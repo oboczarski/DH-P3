@@ -4174,16 +4174,29 @@
       }).join('\n') || 'No included draft picks';
     }
 
-    // Power Rankings alone mirrors FPA's positional stacked bars: 14px segments,
-    // left-to-right tint gradients, quiet axes, and a fine outline on your team.
+    // Power Rankings retains FPA's gradient treatment with thicker, borderless
+    // segments. Metric-specific colors distinguish Contender from Dynasty.
     // Reuse the existing derived rows so filters, ranks, and missing PROJ stay intact.
     function renderPowerRankingsBars(host, rows, keys, colors, metric) {
-      host.style.height = `${Math.max(196, rows.length * 24 + 44)}px`;
+      host.style.height = `${Math.max(212, rows.length * 28 + 44)}px`;
       const chart = state.charts.lineup || echarts.init(host, null, { renderer: 'svg' });
       state.charts.lineup = chart;
       const mobile = host.clientWidth < 440;
       const dynasty = metric !== 'proj';
       const fontFamily = getComputedStyle(host).fontFamily;
+      // Fixed username and rank columns prevent variable-length names from
+      // shifting the ranks. Measure text before truncating so wide glyphs fit too.
+      const usernameWidth = mobile ? 64 : 92;
+      const usernameFontSize = mobile ? 10 : 11;
+      const labelContext = document.createElement('canvas').getContext('2d');
+      const usernameLabel = row => {
+        const characters = Array.from(String(row.team.username).replace(/[{}\r\n]/g, ''));
+        labelContext.font = `${row.team.isUserTeam ? 600 : 500} ${usernameFontSize}px ${fontFamily}`;
+        const name = characters.join('');
+        if (labelContext.measureText(name).width <= usernameWidth) return name;
+        while (characters.length && labelContext.measureText(`${characters.join('')}…`).width > usernameWidth) characters.pop();
+        return `${characters.join('')}…`;
+      };
       const rgba = (hex, opacity) => {
         const value = parseInt(hex.slice(1), 16);
         return `rgba(${value >> 16},${(value >> 8) & 255},${value & 255},${opacity})`;
@@ -4195,7 +4208,7 @@
         animationDuration: 450,
         textStyle: { fontFamily },
         aria: { enabled: true, label: { description: `Power Rankings: ${dynasty ? 'KTC values' : 'Contender rest-of-season projections'}. ${rows.map(row => `${row.team.username}: ${formatAnalysisValue(row.total, metric)}`).join('. ')}` } },
-        grid: { left: mobile ? 92 : 124, right: mobile ? 48 : 57, top: 4, bottom: 36 },
+        grid: { left: mobile ? 96 : 124, right: mobile ? 48 : 57, top: 4, bottom: 36 },
         xAxis: { type: 'value', min: 0, max: Math.ceil(maximum / step) * step, splitNumber: mobile ? 3 : 5,
           name: dynasty ? 'KTC VALUE' : 'ROS PROJ', nameLocation: 'middle', nameGap: 24,
           nameTextStyle: { color: '#97afd1', fontSize: 9, fontWeight: 400 },
@@ -4204,15 +4217,14 @@
           splitLine: { lineStyle: { color: 'rgba(154,182,224,.09)', width: 1, type: 'solid' } } },
         yAxis: { type: 'category', inverse: true, data: rows.map(row => String(row.team.roster.roster_id)),
           axisLine: { show: false }, axisTick: { show: false }, splitLine: { show: false },
-          axisLabel: { interval: 0, margin: 12, formatter: (_, index) => {
+          axisLabel: { interval: 0, margin: 4, formatter: (_, index) => {
             const row = rows[index];
-            const name = truncateLabel(row.team.username, mobile ? 8 : 13).replace(/[{}]/g, '');
-            return `{${row.team.isUserTeam ? 'selectedRank' : 'rank'}|${row.rank ? `#${row.rank}` : '—'}} {${row.team.isUserTeam ? 'selected' : 'team'}|${name}}`;
+            return `{${row.team.isUserTeam ? 'selected' : 'team'}|${usernameLabel(row)}}{${row.team.isUserTeam ? 'selectedRank' : 'rank'}|${row.rank ? `#${row.rank}` : '—'}}`;
           }, rich: {
-            rank: { color: '#97afd1', fontSize: 9, width: 19, align: 'right' },
-            selectedRank: { color: '#f1f6ff', fontSize: 9, fontWeight: 600, width: 19, align: 'right' },
-            team: { color: '#b6c9e9', fontSize: mobile ? 10 : 11, fontWeight: 500 },
-            selected: { color: '#f1f6ff', fontSize: mobile ? 10 : 11, fontWeight: 600 },
+            rank: { color: '#97afd1', fontSize: 10, fontWeight: 500, width: 20, align: 'center' },
+            selectedRank: { color: '#f1f6ff', fontSize: 10, fontWeight: 600, width: 20, align: 'center' },
+            team: { color: '#b6c9e9', fontSize: usernameFontSize, fontWeight: 500, width: usernameWidth, align: 'left', padding: [0, 5, 0, 0] },
+            selected: { color: '#f1f6ff', fontSize: usernameFontSize, fontWeight: 600, width: usernameWidth, align: 'left', padding: [0, 5, 0, 0] },
           } } },
         tooltip: { trigger: 'axis', confine: true, enterable: true, appendToBody: false,
           backgroundColor: '#0a1427', borderColor: 'rgba(156,187,238,.35)', borderWidth: 1,
@@ -4231,18 +4243,17 @@
             }).join('');
             return `<b>${escapeHtml(row.team.username)}</b><div style="margin-top:4px">${row.rank ? `#${row.rank} · ` : ''}${formatAnalysisValue(row.total, metric)} ${dynasty ? 'KTC' : 'PROJ'}</div>${details}`;
           } },
-        series: keys.map((key, index) => ({ name: SLOT_LABELS[key] || key, type: 'bar', stack: 'total', barWidth: 14,
+        series: keys.map((key, index) => ({ name: SLOT_LABELS[key] || key, type: 'bar', stack: 'total', barWidth: 20,
           itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0,
-            colorStops: [{ offset: 0, color: rgba(colors[key], .45) }, { offset: 1, color: rgba(colors[key], .94) }] },
-            borderRadius: 2 },
-          emphasis: { itemStyle: { borderColor: 'rgba(226,239,255,.85)', borderWidth: 1.2, opacity: 1 } },
+            colorStops: [{ offset: 0, color: rgba(colors[key], .65) }, { offset: 1, color: rgba(colors[key], 1) }] },
+            borderRadius: 2, borderWidth: 0 },
+          // Hover and your-team emphasis use opacity only, never a bar outline.
+          emphasis: { itemStyle: { borderWidth: 0, shadowBlur: 0, opacity: 1 } },
           label: { show: index === keys.length - 1, position: 'right', distance: 7, fontSize: 10,
             formatter: params => Number.isFinite(rows[params.dataIndex].total)
               ? (dynasty ? formatNumber(rows[params.dataIndex].total) : formatProj(rows[params.dataIndex].total)) : '—' },
           data: rows.map(row => ({ value: row.total === null ? 0 : row.segments.find(segment => segment.key === key)?.value ?? 0,
-            itemStyle: { opacity: row.team.isUserTeam ? 1 : .77,
-              borderColor: row.team.isUserTeam ? 'rgba(226,239,255,.85)' : rgba(colors[key], .15),
-              borderWidth: row.team.isUserTeam ? 1.2 : .5 },
+            itemStyle: { opacity: row.team.isUserTeam ? 1 : .87, borderWidth: 0 },
             label: { color: row.team.isUserTeam ? '#f1f6ff' : '#bacdeb', fontWeight: row.team.isUserTeam ? 600 : 400 },
           })),
         })),
@@ -4270,11 +4281,13 @@
         ...(!startersOnly ? ['Depth', ...(dynasty ? ['Picks'] : [])] : []),
       ] : [...POSITION_ORDER, 'Picks'];
       const keys = filter === 'ALL' ? allKeys : allKeys.filter(key => key === filter);
-      // Power Rankings follows FPA's amCharts ColorSet, extended in the same
-      // hue order for FLEX, depth, and picks. Roster Value keeps its own palette.
+      // Power Rankings keeps separate established metric palettes: teal/green
+      // for Dynasty and blue for Contender. Position filters retain each color.
       const defaultColors = !power
         ? { QB: '#3700B3', RB: '#4c02de', WR: '#6300ff', TE: '#7100ff', Picks: '#9400ff' }
-        : { QB: '#67b7dc', RB: '#6794dc', WR: '#6771dc', TE: '#8067dc', FLEX: '#a367dc', SUPER_FLEX: '#c767dc', Depth: '#dc67ce', Picks: '#dc67ab' };
+        : dynasty
+          ? { QB: '#15607a', RB: '#0c8184', WR: '#0da0a4', TE: '#09bb9f', FLEX: '#2ad2a0', SUPER_FLEX: '#37ebb5', Depth: '#16d9cd', Picks: '#00c8f0' }
+          : { QB: '#003c63', RB: '#005d91', WR: '#006da2', TE: '#007bb4', FLEX: '#008cd1', SUPER_FLEX: '#00a3ff', Depth: '#3076ff' };
       const colors = defaultColors;
       const rows = state.teams.map(team => {
         // Refine is applied before position filtering, totals, ranking, and Top 6.

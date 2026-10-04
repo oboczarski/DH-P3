@@ -25,7 +25,8 @@
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
 // Refresh compact, source-only Game Logs team dialogs and their positional stat colors.
-const CACHE_NAME = 'DH3.48q-compact-team-directory';
+// Also refresh LeagueHub's refined Power Rankings gradients and label spacing.
+const CACHE_NAME = 'DH3.48r-power-bars-refined';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

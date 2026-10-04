@@ -953,27 +953,35 @@ function rostersResetTeamView({ restoreFocus = false } = {}) {
 }
 function rostersTeamCard(player) {
   const escape = escapeHtml;
-  const basic = [['Age', 'age', 'decimal', 'Player age'], ['G', 'games_played', 'integer', 'Games played'], ['FPTS', 'fpts', 'decimal', 'Season PPR fantasy points'], ['PPG', 'ppg', 'decimal', 'PPR fantasy points per game'], ['KTC', 'ktc', 'integer', 'KeepTradeCut value']];
-  const statMarkup = (columns, extra) => `<span class="team-player-stats${extra ? ' team-player-stats--position' : ''}">${columns.map(([label, key, format, title]) => {
-    const value = key === 'age' || key === 'ktc' ? player[key] : player.stats[key];
+  // Team cards keep full names plus age/G on the heading, freeing a single
+  // eight-stat row below. Reuse each metric's existing positional colors.
+  const columns = [['FPTS', 'fpts', 'decimal', 'Season PPR fantasy points'], ['PPG', 'ppg', 'decimal', 'PPR fantasy points per game'], ['KTC', 'ktc', 'integer', 'KeepTradeCut value'], ...rostersTeamStatColumns[player.pos]];
+  const vitals = [['age', 'age', 'decimal', 'Player age'], ['G', 'games_played', 'integer', 'Games played']].map(([label, key, format, title]) => {
+    const value = key === 'age' ? player.age : player.stats[key];
+    const color = rostersTeamStatColor(player, key);
+    return `<span class="team-player-vital" title="${escape(title)}">${label}-<span${color ? ` style="color:${escape(color)}"` : ''}>${escape(rostersTeamFormat(value, format))}</span></span>`;
+  }).join('');
+  const stats = columns.map(([label, key, format, title]) => {
+    const value = key === 'ktc' ? player.ktc : player.stats[key];
     const color = rostersTeamStatColor(player, key);
     return `<span class="team-player-stat${key === 'ktc' ? ' team-player-stat--ktc' : ''}" title="${escape(title)}"><span class="team-player-stat-label">${escape(label)}</span><span class="team-player-stat-value"${color ? ` style="color:${escape(color)}"` : ''}>${escape(rostersTeamFormat(value, format))}</span></span>`;
-  }).join('')}</span>`;
+  }).join('');
   return `<button type="button" class="team-player-card" data-team-player-id="${escape(player.id)}" aria-label="Open ${escape(player.name)} Game Logs" title="${escape(player.name)} — open Game Logs">
-    <span class="team-player-card-heading"><span class="team-player-name">${escape(player.name)}</span><span class="team-player-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></span>
-    ${statMarkup(basic, false)}${statMarkup(rostersTeamStatColumns[player.pos], true)}
+    <span class="team-player-card-heading"><span class="team-player-name">${escape(player.name)}</span><span class="team-player-vitals">${vitals}</span><span class="team-player-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></span>
+    <span class="team-player-stats">${stats}</span>
   </button>`;
 }
 function rostersFitTeamText() {
   const pane = modal?.querySelector('#gamelogs-team-pane');
   if (!modal?.classList.contains('is-team-view')) return;
-  // Fit long names and the widest numeric cells to their allocated column;
-  // keep all ten stats readable without wrapping or horizontal scrolling.
+  // Fit full names beside age/G and each of the eight stat columns, including
+  // when fonts finish loading after the dialog has already opened.
   pane?.querySelectorAll('.team-player-name, .team-player-stat-value, .team-player-stat-label').forEach(node => {
     node.style.fontSize = '';
     const size = Number.parseFloat(getComputedStyle(node).fontSize);
     if (node.scrollWidth > node.clientWidth && node.clientWidth > 0) {
-      node.style.fontSize = `${Math.max(node.classList.contains('team-player-stat-label') ? 6.5 : 8, size * node.clientWidth / node.scrollWidth - 0.2)}px`;
+      const minimum = node.classList.contains('team-player-stat-label') ? 5.5 : 6.5;
+      node.style.fontSize = `${Math.max(minimum, size * node.clientWidth / node.scrollWidth - 0.2)}px`;
     }
   });
 }
