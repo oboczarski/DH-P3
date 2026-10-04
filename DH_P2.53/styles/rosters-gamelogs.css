@@ -6565,7 +6565,7 @@ body[data-page="rosters"] #game-logs-modal .team-modal-heading p {
 body[data-page="rosters"] #game-logs-modal .team-modal-summary { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 10px; row-gap: 3px; font-variant-numeric: normal; }
 body[data-page="rosters"] #game-logs-modal .team-modal-metric { display: inline-flex; align-items: baseline; gap: 3px; color: #95a7c2; white-space: nowrap; }
 body[data-page="rosters"] #game-logs-modal .team-modal-metric strong { color: #dce7f7; font-weight: 550; }
-body[data-page="rosters"] #game-logs-modal .team-modal-metric-rank { color: #a0aec6; font-weight: 350; font-size: .9em; }
+body[data-page="rosters"] #game-logs-modal .team-modal-metric-rank {color: #a0aec6;font-weight: 350;font-size: .9em;font-variant: none;}
 body[data-page="rosters"] #game-logs-modal .team-modal-player-count { color: #8396b2; white-space: nowrap; }
 body[data-page="rosters"] #game-logs-modal .team-modal-body {
   min-height: 0;
