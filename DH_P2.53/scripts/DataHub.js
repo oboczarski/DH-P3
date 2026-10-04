@@ -12366,8 +12366,9 @@ function buildDataHubModalRankCache(rows, season = "2025") {
 
 
 // TEAM DIRECTORY MODEL START
-// Data Hub Game Logs team directory: read the selected season snapshot and
-// the full player index, independent of page search, qualifiers, and league ownership.
+// Data Hub Game Logs team directory: only the selected season's source rows
+// define membership (DH in 2026). The player index supplies metadata, never extra
+// players; page search, qualification, and league ownership do not hide source rows.
 const dataHubTeamPositions = ['QB', 'RB', 'WR', 'TE'];
 const dataHubTeamNames = {
   ARI: 'Arizona Cardinals', ATL: 'Atlanta Falcons', BAL: 'Baltimore Ravens', BUF: 'Buffalo Bills',
@@ -12417,16 +12418,46 @@ function dataHubTeamFormat(value, format = 'integer') {
   if (format === 'percent') return `${number.toFixed(1)}%`;
   return format === 'decimal' ? number.toFixed(1) : String(Math.round(number));
 }
+function dataHubTeamDerivedRanks(seasonStats, qualifiedIds) {
+  // Team-card G and TD(t) extend the existing season formatting with league-wide
+  // positional ranks. Preserve the modal's qualifier pool and shared ranks for ties.
+  const result = Object.create(null);
+  for (const pos of dataHubTeamPositions) {
+    const pool = Object.entries(seasonStats).filter(([id, source]) => source?.pos === pos && qualifiedIds.has(id))
+      .map(([id, source]) => ({ id, stats: dataHubTeamStats(source, pos) }));
+    for (const key of ['games_played', 'team_total_td']) {
+      const candidates = pool.filter(player => player.stats[key] != null).sort((a, b) => b.stats[key] - a.stats[key]);
+      let previous = null, rank = 0;
+      candidates.forEach((player, index) => {
+        if (player.stats[key] !== previous) rank = index + 1;
+        previous = player.stats[key];
+        (result[player.id] ||= {})[key] = rank;
+      });
+    }
+  }
+  return result;
+}
+function dataHubTeamStatColor(player, key) {
+  // Reuse Game Logs' position-specific rank palette and age rules; unavailable
+  // values and unqualified ranks stay neutral rather than implying performance.
+  const value = dataHubTeamNumber(key === 'age' || key === 'ktc' ? player[key] : player.stats[key]);
+  if (value === null) return '';
+  if (key === 'age') return getDataHubVitalsColor('AGE', player.pos, value) || '';
+  const rank = dataHubTeamNumber(player.statRanks?.[key]);
+  return rank > 0 ? getDataHubConditionalColorByRank(rank, player.pos) : '';
+}
 function dataHubTeamPlayers(team) {
   const teamKey = dataHubTeamKey(team);
   const seasonStats = state.playerSeasonStats || {};
   const playerIndex = state.sleeperPlayers || {};
   const rowsById = new Map(getDataHubStatsRowsForSeason(state.currentModalSeason).map(row => [String(row.__meta.playerId), row]));
-  const ids = new Set([...Object.keys(playerIndex), ...Object.keys(seasonStats)]);
+  const ids = Object.keys(seasonStats);
+  const derivedRanks = dataHubTeamDerivedRanks(seasonStats, getDataHubGameLogsQualifiedIds(state.currentModalSeason));
   const players = [];
   for (const id of ids) {
     const player = playerIndex[id] || {};
     const source = seasonStats[id];
+    if (!source || typeof source !== 'object') continue;
     const row = rowsById.get(id);
     const meta = row?.__meta || {};
     const pos = String(source?.pos || meta.pos || player.position || player.fantasy_positions?.[0] || '').toUpperCase();
@@ -12438,13 +12469,18 @@ function dataHubTeamPlayers(team) {
     const name = String(player.full_name || `${player.first_name || ''} ${player.last_name || ''}`.trim()
       || meta.fullName || meta.name || valuation.name || `Player ${id}`).trim();
     const ktc = dataHubTeamNumber(valuation.ktc);
-    const age = dataHubTeamNumber(valuation.age ?? meta.age ?? player.age);
+    const age = dataHubTeamNumber(source.age ?? meta.age ?? valuation.age ?? player.age);
     // Player Game Logs expects a position-prefixed rank string, including when
     // a valuation feed supplies only a numeric rank.
     const rank = String(valuation.posRank ?? meta.posRankText ?? '').match(/\d+/)?.[0];
+    const seasonRanks = state.playerSeasonRanks?.[id] || {};
+    const summaryRanks = state.modalRankCache?.[id] || {};
     players.push({ id, name, fullName: name, pos, team: teamKey, ktc, age,
       posRank: rank ? `${pos}·${rank}` : null, overallRank: valuation.overallRank ?? meta.overallKtcRank,
-      stats: dataHubTeamStats(source, pos) });
+      stats: dataHubTeamStats(source, pos), statRanks: { ...derivedRanks[id], ...seasonRanks,
+        // The summary cache must belong to this card, not the original open player.
+        fpts: summaryRanks.posRank ?? seasonRanks.fpts ?? seasonRanks.fpts_ppr,
+        ppg: summaryRanks.ppgPosRank ?? seasonRanks.ppg, ktc: dataHubTeamNumber(rank) } });
   }
   // Unknown KTC stays below any known value. Stable name/ID tie breaks make
   // the position groups deterministic without inheriting Stats table sorting.
@@ -12466,10 +12502,11 @@ function dataHubTeamCard(player) {
   const basic = [['Age', 'age', 'decimal', 'Player age'], ['G', 'games_played', 'integer', 'Games played'], ['FPTS', 'fpts', 'decimal', 'Season PPR fantasy points'], ['PPG', 'ppg', 'decimal', 'PPR fantasy points per game'], ['KTC', 'ktc', 'integer', 'KeepTradeCut value']];
   const statMarkup = (columns, extra) => `<span class="team-player-stats${extra ? ' team-player-stats--position' : ''}">${columns.map(([label, key, format, title]) => {
     const value = key === 'age' || key === 'ktc' ? player[key] : player.stats[key];
-    return `<span class="team-player-stat${key === 'ktc' ? ' team-player-stat--ktc' : ''}" title="${escape(title)}"><span class="team-player-stat-label">${escape(label)}</span><span class="team-player-stat-value">${escape(dataHubTeamFormat(value, format))}</span></span>`;
+    const color = dataHubTeamStatColor(player, key);
+    return `<span class="team-player-stat${key === 'ktc' ? ' team-player-stat--ktc' : ''}" title="${escape(title)}"><span class="team-player-stat-label">${escape(label)}</span><span class="team-player-stat-value"${color ? ` style="color:${escape(color)}"` : ''}>${escape(dataHubTeamFormat(value, format))}</span></span>`;
   }).join('')}</span>`;
   return `<button type="button" class="team-player-card" data-team-player-id="${escape(player.id)}" aria-label="Open ${escape(player.name)} Game Logs" title="${escape(player.name)} — open Game Logs">
-    <span class="team-player-card-heading"><span class="team-player-name">${escape(player.name)}</span><span class="team-player-arrow" aria-hidden="true">↗</span></span>
+    <span class="team-player-card-heading"><span class="team-player-name">${escape(player.name)}</span><span class="team-player-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></span>
     ${statMarkup(basic, false)}${statMarkup(dataHubTeamStatColumns[player.pos], true)}
   </button>`;
 }
@@ -12721,6 +12758,9 @@ function attachGameLogsModalListeners() {
   modalOverlay?.addEventListener("click", closeDataHubModal);
   gameLogsModal.addEventListener("keydown", dataHubTeamKeydown);
   window.addEventListener("resize", dataHubFitTeamText);
+  // Team cards can reveal a font after fonts.ready already resolved; refit
+  // when that face finishes loading so long names never spill into adjacent cards.
+  document.fonts?.addEventListener("loadingdone", dataHubFitTeamText);
   document.addEventListener("click", (event) => {
     if (!gameLogsSeasonDropdown?.contains(event.target)) {
       closeDataHubGameLogsSeasonMenu();

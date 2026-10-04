@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh LeagueHub's Power Rankings script and styles for the FPA bar treatment.
-const CACHE_NAME = 'DH3.48p-power-bars-fpa';
+// Refresh compact, source-only Game Logs team dialogs and their positional stat colors.
+const CACHE_NAME = 'DH3.48q-compact-team-directory';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

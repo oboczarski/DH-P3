@@ -15928,8 +15928,8 @@ body[data-page="datahub"] #game-logs-modal #radar-chart-container #player-radar-
 
 
 /* Data Hub Game Logs team view: a page-local alternate dialog pane with two
-   player columns at every width. Names sit above two fixed five-stat rows;
-   only the team list scrolls vertically when the full roster exceeds the screen. */
+   player columns at every width. Tight names and two five-stat rows fit source-only
+   rosters on typical screens; short viewports retain an accessible overflow fallback. */
 body[data-page="datahub"] #game-logs-modal [data-team-modal-open] {
   cursor: pointer;
   transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
@@ -15939,7 +15939,7 @@ body[data-page="datahub"] #game-logs-modal [data-team-modal-open]:enabled:hover 
   background: rgba(111, 139, 255, .13);
 }
 body[data-page="datahub"] #game-logs-modal [data-team-modal-open]:disabled { cursor: default; }
-body[data-page="datahub"] #game-logs-modal :is([data-team-modal-open], .team-modal-back, .team-player-card):focus-visible {
+body[data-page="datahub"] #game-logs-modal :is([data-team-modal-open], .team-modal-back, .team-player-card, .team-modal-pane .modal-close-btn):focus-visible {
   outline: 2px solid #a9caff;
   outline-offset: 3px;
 }
@@ -15948,16 +15948,16 @@ body[data-page="datahub"] #game-logs-modal.is-team-view > :is(.gamelogs-modal-ta
 }
 body[data-page="datahub"] #game-logs-modal .team-modal-pane.hidden { display: none !important; }
 body[data-page="datahub"] #game-logs-modal.is-team-view .team-modal-pane {
-  --team-card-gap: 10px;
+  --team-card-gap: 5px;
   display: flex;
   flex-direction: column;
   width: min(760px, calc(100vw - 24px));
   max-width: calc(100vw - 24px);
-  /* Override the player pane's fixed mobile height; team content uses the viewport. */
+  /* Override fixed player-pane height/padding so compact team spacing stays local. */
   height: auto !important;
   max-height: calc(100vh - 36px);
   max-height: calc(100dvh - 36px);
-  padding: 18px;
+  padding: 12px !important;
   overflow: hidden;
   border: 1px solid rgba(156, 172, 224, .26);
   border-radius: 18px;
@@ -15966,12 +15966,21 @@ body[data-page="datahub"] #game-logs-modal.is-team-view .team-modal-pane {
   box-shadow: 0 28px 100px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(227, 236, 255, .08);
 }
 body[data-page="datahub"] #game-logs-modal .team-modal-pane .modal-close-btn {
-  top: 10px;
-  right: 13px;
-  font-size: 26px;
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
+  /* Legacy phone close-button rules place the player control outside its pane.
+     The team pane clips overflow, so keep this control fully inside at every width. */
+  display: grid;
+  place-items: center;
+  top: 7px !important;
+  right: 9px !important;
+  font-size: 23px !important;
+  width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  line-height: 1;
+  background: rgba(17, 26, 43, .75) !important;
+  border: 1px solid rgba(157, 178, 232, .18) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
 }
 body[data-page="datahub"] #game-logs-modal .team-modal-toolbar {
   display: flex;
@@ -15979,37 +15988,37 @@ body[data-page="datahub"] #game-logs-modal .team-modal-toolbar {
   justify-content: space-between;
   gap: 8px;
   padding-right: 40px;
-  min-height: 28px;
+  min-height: 22px;
   flex: 0 0 auto;
 }
 body[data-page="datahub"] #game-logs-modal .team-modal-back {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 5px 8px;
+  gap: 5px;
+  padding: 3px 6px;
   border: 1px solid rgba(163, 183, 235, .16);
   border-radius: 7px;
   background: rgba(126, 152, 216, .07);
   font: inherit;
-  font-size: 11px;
+  font-size: 10px;
   color: #b9c9e5;
   cursor: pointer;
   white-space: nowrap;
 }
 body[data-page="datahub"] #game-logs-modal .team-modal-back:hover { background: rgba(126, 152, 216, .16); color: #eef5ff; }
-body[data-page="datahub"] #game-logs-modal .team-modal-season { color: #9eafca; font-size: 10px; letter-spacing: .07em; white-space: nowrap; }
+body[data-page="datahub"] #game-logs-modal .team-modal-season { color: #9eafca; font-size: 9px; letter-spacing: .07em; white-space: nowrap; }
 body[data-page="datahub"] #game-logs-modal .team-modal-header {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 17px 4px 19px;
+  gap: 9px;
+  padding: 6px 2px 8px;
   flex: 0 0 auto;
   text-align: left;
   border-bottom: 1px solid rgba(153, 174, 218, .14);
 }
 body[data-page="datahub"] #game-logs-modal .team-modal-logo {
-  width: 52px;
-  height: 52px;
+  width: 34px;
+  height: 34px;
   object-fit: contain;
   flex: 0 0 auto;
   filter: drop-shadow(0 5px 12px rgba(0, 0, 0, .3));
@@ -16017,17 +16026,17 @@ body[data-page="datahub"] #game-logs-modal .team-modal-logo {
 body[data-page="datahub"] #game-logs-modal .team-modal-heading { min-width: 0; }
 body[data-page="datahub"] #game-logs-modal .team-modal-heading h3 {
   margin: 0;
-  font-size: 24px;
+  font-size: 21px;
   font-weight: 550;
   letter-spacing: -.025em;
   color: #eff5ff;
   line-height: 1.2;
 }
 body[data-page="datahub"] #game-logs-modal .team-modal-heading p {
-  margin: 5px 0 0;
+  margin: 2px 0 0;
   color: #9eafca;
-  font-size: 11px;
-  line-height: 1.4;
+  font-size: 9px;
+  line-height: 1.2;
 }
 body[data-page="datahub"] #game-logs-modal .team-modal-heading p span { margin: 0 5px; color: #647792; }
 body[data-page="datahub"] #game-logs-modal .team-modal-body {
@@ -16041,7 +16050,7 @@ body[data-page="datahub"] #game-logs-modal .team-modal-body {
   scrollbar-color: rgba(135, 160, 206, .35) transparent;
 }
 body[data-page="datahub"] #game-logs-modal .team-modal-body:focus-visible { outline: 1px solid #a9caff; outline-offset: -1px; }
-body[data-page="datahub"] #game-logs-modal .team-position-group { --team-position-color: var(--pos-qb, #ff7296); padding-top: 15px; }
+body[data-page="datahub"] #game-logs-modal .team-position-group { --team-position-color: var(--pos-qb, #ff7296); padding-top: 7px; }
 body[data-page="datahub"] #game-logs-modal .team-position-group[data-position="RB"] { --team-position-color: var(--pos-rb, #53d7b8); }
 body[data-page="datahub"] #game-logs-modal .team-position-group[data-position="WR"] { --team-position-color: var(--pos-wr, #6bb4ff); }
 body[data-page="datahub"] #game-logs-modal .team-position-group[data-position="TE"] { --team-position-color: var(--pos-te, #bd8aff); }
@@ -16049,25 +16058,25 @@ body[data-page="datahub"] #game-logs-modal .team-position-heading {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 0 9px;
+  margin: 0 0 4px;
   color: #c5d0e3;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 500;
   line-height: 1.3;
   text-align: left;
 }
 body[data-page="datahub"] #game-logs-modal .team-position-badge {
-  min-width: 30px;
-  padding: 3px 5px;
+  min-width: 25px;
+  padding: 1px 4px;
   border-radius: 5px;
   background: color-mix(in srgb, var(--team-position-color) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--team-position-color) 30%, transparent);
   color: var(--team-position-color);
-  font-size: 10px;
+  font-size: 8px;
   font-weight: 700;
   text-align: center;
 }
-body[data-page="datahub"] #game-logs-modal .team-position-count { margin-left: auto; color: #8396b2; font-size: 11px; font-variant-numeric: tabular-nums; }
+body[data-page="datahub"] #game-logs-modal .team-position-count { margin-left: auto; color: #8396b2; font-size: 9px; font-variant-numeric: tabular-nums; }
 body[data-page="datahub"] #game-logs-modal .team-player-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -16077,7 +16086,7 @@ body[data-page="datahub"] #game-logs-modal .team-player-card {
   display: block;
   min-width: 0;
   width: 100%;
-  padding: 8px 10px 7px;
+  padding: 5px 8px 4px;
   border: 1px solid rgba(132, 156, 201, .18);
   border-radius: 10px;
   background: linear-gradient(120deg, rgba(75, 98, 137, .13), rgba(38, 51, 78, .2));
@@ -16093,61 +16102,93 @@ body[data-page="datahub"] #game-logs-modal .team-player-card:hover {
   border-color: color-mix(in srgb, var(--team-position-color) 45%, transparent);
 }
 body[data-page="datahub"] #game-logs-modal .team-player-card:active { background: rgba(95, 119, 171, .22); }
-body[data-page="datahub"] #game-logs-modal .team-player-card-heading { display: flex; gap: 5px; align-items: center; margin-bottom: 6px; }
+body[data-page="datahub"] #game-logs-modal .team-player-card-heading { display: flex; gap: 5px; align-items: center; margin-bottom: 3px; }
 body[data-page="datahub"] #game-logs-modal .team-player-name {
   display: block;
   flex: 1;
   min-width: 0;
   color: #e8effb;
-  font-size: 14px;
-  line-height: 1.2;
+  font-size: 13px;
+  line-height: 1.15;
   font-weight: 550;
   white-space: nowrap;
+  /* Keep unusually long names contained while font loading/resizing refits them. */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-body[data-page="datahub"] #game-logs-modal .team-player-arrow { flex: 0 0 auto; font-size: 12px; color: var(--team-position-color); opacity: .85; }
-body[data-page="datahub"] #game-logs-modal .team-player-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
-body[data-page="datahub"] #game-logs-modal .team-player-stats--position { margin-top: 5px; padding-top: 5px; border-top: 1px solid rgba(153, 174, 218, .1); }
-body[data-page="datahub"] #game-logs-modal .team-player-stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; text-align: center; }
-body[data-page="datahub"] #game-logs-modal .team-player-stat-label { font-size: 9px; line-height: 1.15; color: #95a7c2; white-space: nowrap; }
-body[data-page="datahub"] #game-logs-modal .team-player-stat-value { font-size: 13px; line-height: 1.15; color: #dce7f7; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+body[data-page="datahub"] #game-logs-modal .team-player-arrow { display: grid; place-items: center; flex: 0 0 auto; width: 14px; height: 14px; border-radius: 50%; color: var(--team-position-color); background: color-mix(in srgb, var(--team-position-color) 10%, transparent); }
+body[data-page="datahub"] #game-logs-modal .team-player-arrow svg { display: block; width: 12px; height: 12px; }
+body[data-page="datahub"] #game-logs-modal .team-modal-back svg { display: block; width: 12px; height: 12px; flex: 0 0 auto; }
+body[data-page="datahub"] #game-logs-modal .team-player-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px; }
+body[data-page="datahub"] #game-logs-modal .team-player-stats--position { margin-top: 2px; padding-top: 2px; border-top: 1px solid rgba(153, 174, 218, .1); }
+body[data-page="datahub"] #game-logs-modal .team-player-stat { display: flex; align-items: baseline; justify-content: center; gap: 3px; min-width: 0; text-align: center; }
+body[data-page="datahub"] #game-logs-modal .team-player-stat-label { min-width: 0; font-size: 8px; line-height: 1.1; color: #95a7c2; white-space: nowrap; }
+body[data-page="datahub"] #game-logs-modal .team-player-stat-value { min-width: 0; font-size: 11px; line-height: 1.1; color: #dce7f7; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
 body[data-page="datahub"] #game-logs-modal .team-player-stat--ktc .team-player-stat-label { color: #ada0dd; }
-body[data-page="datahub"] #game-logs-modal .team-player-stat--ktc .team-player-stat-value { color: #c8baff; }
-body[data-page="datahub"] #game-logs-modal .team-position-empty { margin: 0; padding: 10px 0; color: #8a9cb7; font-size: 11px; }
-@media (max-width: 640px) {
+body[data-page="datahub"] #game-logs-modal .team-position-empty { margin: 0; padding: 3px 0; color: #8a9cb7; font-size: 11px; }
+@media (max-width: 719px) {
   body[data-page="datahub"] #game-logs-modal.is-team-view .team-modal-pane {
-    --team-card-gap: 7px;
+    --team-card-gap: 4px;
     width: calc(100vw - 16px);
     max-width: calc(100vw - 16px);
     max-height: calc(100vh - 24px);
     max-height: calc(100dvh - 24px);
-    padding: 11px 9px;
+    padding: 8px 7px !important;
     border-radius: 14px;
   }
-  body[data-page="datahub"] #game-logs-modal .team-modal-pane .modal-close-btn { top: 8px; right: 7px; }
+  body[data-page="datahub"] #game-logs-modal .team-modal-pane .modal-close-btn { top: 5px !important; right: 6px !important; }
   body[data-page="datahub"] #game-logs-modal .team-modal-toolbar { padding-right: 31px; }
-  body[data-page="datahub"] #game-logs-modal .team-modal-back { padding: 5px 6px; gap: 5px; font-size: 10px; }
+  body[data-page="datahub"] #game-logs-modal .team-modal-back { padding: 3px 5px; gap: 4px; font-size: 9px; }
   body[data-page="datahub"] #game-logs-modal .team-modal-season { font-size: 8px; letter-spacing: .03em; }
-  body[data-page="datahub"] #game-logs-modal .team-modal-header { gap: 10px; padding: 12px 2px 13px; }
-  body[data-page="datahub"] #game-logs-modal .team-modal-logo { width: 40px; height: 40px; }
-  body[data-page="datahub"] #game-logs-modal .team-modal-heading h3 { font-size: 19px; }
-  body[data-page="datahub"] #game-logs-modal .team-modal-heading p { font-size: 10px; margin-top: 3px; }
+  body[data-page="datahub"] #game-logs-modal .team-modal-header { gap: 7px; padding: 5px 1px 6px; }
+  body[data-page="datahub"] #game-logs-modal .team-modal-logo { width: 28px; height: 28px; }
+  body[data-page="datahub"] #game-logs-modal .team-modal-heading h3 { font-size: 17px; }
+  body[data-page="datahub"] #game-logs-modal .team-modal-heading p { font-size: 8px; margin-top: 1px; }
   body[data-page="datahub"] #game-logs-modal .team-modal-body { padding: 0 2px 2px; }
-  body[data-page="datahub"] #game-logs-modal .team-position-group { padding-top: 12px; }
-  body[data-page="datahub"] #game-logs-modal .team-position-heading { margin-bottom: 7px; font-size: 11px; }
-  body[data-page="datahub"] #game-logs-modal .team-player-card { padding: 8px 6px 7px; border-radius: 8px; }
-  body[data-page="datahub"] #game-logs-modal .team-player-card-heading { margin-bottom: 5px; gap: 3px; }
-  body[data-page="datahub"] #game-logs-modal .team-player-name { font-size: 12px; }
-  body[data-page="datahub"] #game-logs-modal .team-player-arrow { font-size: 10px; }
+  body[data-page="datahub"] #game-logs-modal .team-position-group { padding-top: 6px; }
+  body[data-page="datahub"] #game-logs-modal .team-position-heading { margin-bottom: 3px; font-size: 9px; }
+  body[data-page="datahub"] #game-logs-modal .team-player-card { padding: 2px 5px; border-radius: 7px; }
+  body[data-page="datahub"] #game-logs-modal .team-player-card-heading { margin-bottom: 2px; gap: 3px; }
+  body[data-page="datahub"] #game-logs-modal .team-player-name { font-size: 11.5px; line-height: 1.1; }
+  body[data-page="datahub"] #game-logs-modal .team-player-arrow { width: 12px; height: 12px; }
   body[data-page="datahub"] #game-logs-modal .team-player-stats { gap: 2px; }
-  body[data-page="datahub"] #game-logs-modal .team-player-stats--position { margin-top: 4px; padding-top: 4px; }
-  body[data-page="datahub"] #game-logs-modal .team-player-stat-label { font-size: 8px; letter-spacing: -.015em; }
-  body[data-page="datahub"] #game-logs-modal .team-player-stat-value { font-size: 10px; letter-spacing: -.035em; }
+  body[data-page="datahub"] #game-logs-modal .team-player-stats--position { margin-top: 1px; padding-top: 1px; }
+  body[data-page="datahub"] #game-logs-modal .team-player-stat { flex-direction: column; align-items: center; gap: 0; }
+  body[data-page="datahub"] #game-logs-modal .team-player-stat-label { font-size: 7px; line-height: 1; letter-spacing: -.015em; }
+  body[data-page="datahub"] #game-logs-modal .team-player-stat-value { font-size: 9.5px; line-height: 1; letter-spacing: -.025em; }
 }
 @media (max-width: 359px) {
   body[data-page="datahub"] #game-logs-modal .team-player-name { font-size: 11px; }
   body[data-page="datahub"] #game-logs-modal .team-player-stat-label { font-size: 7px; }
   body[data-page="datahub"] #game-logs-modal .team-player-stat-value { font-size: 9px; }
-  body[data-page="datahub"] #game-logs-modal .team-modal-heading h3 { font-size: 17px; }
+  body[data-page="datahub"] #game-logs-modal .team-modal-heading h3 { font-size: 16px; }
+}
+/* Short desktop/tablet windows retain inline stat captions and tighten card spacing. */
+@media (min-width: 720px) and (max-height: 850px) {
+  body[data-page="datahub"] #game-logs-modal .team-player-card { padding-top: 2px; padding-bottom: 2px; }
+  body[data-page="datahub"] #game-logs-modal .team-player-card-heading { margin-bottom: 1px; }
+  body[data-page="datahub"] #game-logs-modal .team-player-stats--position { margin-top: 1px; padding-top: 1px; }
+}
+/* Smaller desktop windows fit the full source roster while preserving stat type sizes. */
+@media (min-width: 720px) and (max-height: 740px) {
+  body[data-page="datahub"] #game-logs-modal .team-player-card { padding-top: 1px; padding-bottom: 1px; }
+  body[data-page="datahub"] #game-logs-modal .team-player-card-heading { margin-bottom: 0; }
+  body[data-page="datahub"] #game-logs-modal .team-player-stats--position { margin-top: 0; padding-top: 0; }
+}
+/* Short phone team dialogs: use a denser rhythm before needing vertical overflow. */
+@media (max-width: 719px) and (max-height: 800px) {
+  body[data-page="datahub"] #game-logs-modal.is-team-view .team-modal-pane { padding: 6px !important; --team-card-gap: 2px; }
+  body[data-page="datahub"] #game-logs-modal .team-modal-header { padding: 3px 1px 4px; }
+  body[data-page="datahub"] #game-logs-modal .team-modal-logo { width: 24px; height: 24px; }
+  body[data-page="datahub"] #game-logs-modal .team-modal-heading h3 { font-size: 15px; }
+  body[data-page="datahub"] #game-logs-modal .team-position-group { padding-top: 2px; }
+  body[data-page="datahub"] #game-logs-modal .team-position-heading { margin-bottom: 2px; }
+  body[data-page="datahub"] #game-logs-modal .team-player-card { padding-top: 1px; padding-bottom: 0; }
+  body[data-page="datahub"] #game-logs-modal .team-player-card-heading { margin-bottom: 0; }
+  body[data-page="datahub"] #game-logs-modal .team-player-stats--position { margin-top: 0; padding-top: 0; }
+  body[data-page="datahub"] #game-logs-modal .team-player-name { font-size: 11px; line-height: 1; }
+  body[data-page="datahub"] #game-logs-modal .team-player-stat-label { font-size: 6.5px; }
+  body[data-page="datahub"] #game-logs-modal .team-player-stat-value { font-size: 9px; }
 }
 @media (prefers-reduced-motion: reduce) {
   body[data-page="datahub"] #game-logs-modal :is([data-team-modal-open], .team-player-card) { transition: none; }
