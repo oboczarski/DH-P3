@@ -26,7 +26,8 @@
 // ============================================================================
 // Refresh compact, source-only Game Logs team dialogs and their positional stat colors.
 // Also refresh LeagueHub's refined Power Rankings gradients and label spacing.
-const CACHE_NAME = 'DH3.48r-power-bars-refined';
+// Team dialogs now use inline vitals, one stat row and DataHub's TM_STAT summary.
+const CACHE_NAME = 'DH3.48s-team-inline-stats';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -64,6 +65,8 @@ const CORE_ASSET_PATHS = [
   '/scripts/datahub-stats-help.js',
   '/scripts/datahub-stats-season.js',
   '/scripts/datahub-2026-data.js',
+  // The DataHub team pane owns its lazy TM_STAT reader; the CSV stays uncached.
+  '/scripts/datahub-team-stats.js',
   '/scripts/nfl-2026-sheets.js',
   '/data/NFL-2026/Schedule2026.csv',
   '/scripts/leaguehub.js',
