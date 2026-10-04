@@ -4174,6 +4174,82 @@
       }).join('\n') || 'No included draft picks';
     }
 
+    // Power Rankings alone mirrors FPA's positional stacked bars: 14px segments,
+    // left-to-right tint gradients, quiet axes, and a fine outline on your team.
+    // Reuse the existing derived rows so filters, ranks, and missing PROJ stay intact.
+    function renderPowerRankingsBars(host, rows, keys, colors, metric) {
+      host.style.height = `${Math.max(196, rows.length * 24 + 44)}px`;
+      const chart = state.charts.lineup || echarts.init(host, null, { renderer: 'svg' });
+      state.charts.lineup = chart;
+      const mobile = host.clientWidth < 440;
+      const dynasty = metric !== 'proj';
+      const fontFamily = getComputedStyle(host).fontFamily;
+      const rgba = (hex, opacity) => {
+        const value = parseInt(hex.slice(1), 16);
+        return `rgba(${value >> 16},${(value >> 8) & 255},${value & 255},${opacity})`;
+      };
+      const maximum = Math.max(1, ...rows.map(row => row.total ?? 0));
+      const step = Math.max(1, 10 ** Math.floor(Math.log10(maximum)) / 5);
+      chart.setOption({
+        animation: !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+        animationDuration: 450,
+        textStyle: { fontFamily },
+        aria: { enabled: true, label: { description: `Power Rankings: ${dynasty ? 'KTC values' : 'Contender rest-of-season projections'}. ${rows.map(row => `${row.team.username}: ${formatAnalysisValue(row.total, metric)}`).join('. ')}` } },
+        grid: { left: mobile ? 92 : 124, right: mobile ? 48 : 57, top: 4, bottom: 36 },
+        xAxis: { type: 'value', min: 0, max: Math.ceil(maximum / step) * step, splitNumber: mobile ? 3 : 5,
+          name: dynasty ? 'KTC VALUE' : 'ROS PROJ', nameLocation: 'middle', nameGap: 24,
+          nameTextStyle: { color: '#97afd1', fontSize: 9, fontWeight: 400 },
+          axisLine: { show: false }, axisTick: { show: false },
+          axisLabel: { color: '#97afd1', fontSize: 10, margin: 6, formatter: value => formatNumber(value) },
+          splitLine: { lineStyle: { color: 'rgba(154,182,224,.09)', width: 1, type: 'solid' } } },
+        yAxis: { type: 'category', inverse: true, data: rows.map(row => String(row.team.roster.roster_id)),
+          axisLine: { show: false }, axisTick: { show: false }, splitLine: { show: false },
+          axisLabel: { interval: 0, margin: 12, formatter: (_, index) => {
+            const row = rows[index];
+            const name = truncateLabel(row.team.username, mobile ? 8 : 13).replace(/[{}]/g, '');
+            return `{${row.team.isUserTeam ? 'selectedRank' : 'rank'}|${row.rank ? `#${row.rank}` : '—'}} {${row.team.isUserTeam ? 'selected' : 'team'}|${name}}`;
+          }, rich: {
+            rank: { color: '#97afd1', fontSize: 9, width: 19, align: 'right' },
+            selectedRank: { color: '#f1f6ff', fontSize: 9, fontWeight: 600, width: 19, align: 'right' },
+            team: { color: '#b6c9e9', fontSize: mobile ? 10 : 11, fontWeight: 500 },
+            selected: { color: '#f1f6ff', fontSize: mobile ? 10 : 11, fontWeight: 600 },
+          } } },
+        tooltip: { trigger: 'axis', confine: true, enterable: true, appendToBody: false,
+          backgroundColor: '#0a1427', borderColor: 'rgba(156,187,238,.35)', borderWidth: 1,
+          padding: [10, 12], textStyle: { color: '#dae6ff', fontSize: 11, fontFamily },
+          axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(154,182,224,.04)' } },
+          extraCssText: 'max-width:300px;max-height:min(65vh,420px);overflow:auto;white-space:normal;box-shadow:0 14px 40px #0007;border-radius:9px;',
+          formatter: params => {
+            const row = rows[params[0]?.dataIndex];
+            if (!row) return '';
+            const details = row.segments.map(segment => {
+              const members = segment.key === 'Picks'
+                ? escapeHtml(formatAnalysisPickText(segment.picks)).replace(/\n/g, '<br>')
+                : segment.players.slice().sort((a, b) => (b[dynasty ? 'ktc' : 'proj'] ?? -Infinity) - (a[dynasty ? 'ktc' : 'proj'] ?? -Infinity))
+                  .map(player => `${escapeHtml(player.name)} (${formatAnalysisValue(player[dynasty ? 'ktc' : 'proj'], metric)})`).join(', ') || 'No eligible players';
+              return `<div style="margin-top:7px"><b style="color:${colors[segment.key]}">${SLOT_LABELS[segment.key] || segment.key}</b> · ${formatAnalysisValue(segment.value, metric)}<div style="color:#9eacc4;font-size:11px">${members}</div></div>`;
+            }).join('');
+            return `<b>${escapeHtml(row.team.username)}</b><div style="margin-top:4px">${row.rank ? `#${row.rank} · ` : ''}${formatAnalysisValue(row.total, metric)} ${dynasty ? 'KTC' : 'PROJ'}</div>${details}`;
+          } },
+        series: keys.map((key, index) => ({ name: SLOT_LABELS[key] || key, type: 'bar', stack: 'total', barWidth: 14,
+          itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0,
+            colorStops: [{ offset: 0, color: rgba(colors[key], .45) }, { offset: 1, color: rgba(colors[key], .94) }] },
+            borderRadius: 2 },
+          emphasis: { itemStyle: { borderColor: 'rgba(226,239,255,.85)', borderWidth: 1.2, opacity: 1 } },
+          label: { show: index === keys.length - 1, position: 'right', distance: 7, fontSize: 10,
+            formatter: params => Number.isFinite(rows[params.dataIndex].total)
+              ? (dynasty ? formatNumber(rows[params.dataIndex].total) : formatProj(rows[params.dataIndex].total)) : '—' },
+          data: rows.map(row => ({ value: row.total === null ? 0 : row.segments.find(segment => segment.key === key)?.value ?? 0,
+            itemStyle: { opacity: row.team.isUserTeam ? 1 : .77,
+              borderColor: row.team.isUserTeam ? 'rgba(226,239,255,.85)' : rgba(colors[key], .15),
+              borderWidth: row.team.isUserTeam ? 1.2 : .5 },
+            label: { color: row.team.isUserTeam ? '#f1f6ff' : '#bacdeb', fontWeight: row.team.isUserTeam ? 600 : 400 },
+          })),
+        })),
+      }, true);
+      chart.resize();
+    }
+
     // ECharts owns the redesigned bars. Charts, tooltips, filters, and matrix
     // read the same enriched players and derived lineup objects, with zero baselines.
     function renderAnalysisBar(kind) {
@@ -4194,13 +4270,11 @@
         ...(!startersOnly ? ['Depth', ...(dynasty ? ['Picks'] : [])] : []),
       ] : [...POSITION_ORDER, 'Picks'];
       const keys = filter === 'ALL' ? allKeys : allKeys.filter(key => key === filter);
-      // Continue the established saturated palettes through Depth/Picks, avoiding
-      // muted end segments that break the progression of the stacked bars.
+      // Power Rankings follows FPA's amCharts ColorSet, extended in the same
+      // hue order for FLEX, depth, and picks. Roster Value keeps its own palette.
       const defaultColors = !power
         ? { QB: '#3700B3', RB: '#4c02de', WR: '#6300ff', TE: '#7100ff', Picks: '#9400ff' }
-        : dynasty
-          ? { QB: '#15607a', RB: '#0c8184', WR: '#0da0a4', TE: '#09bb9f', FLEX: '#2ad2a0', SUPER_FLEX: '#37ebb5', Depth: '#16d9cd', Picks: '#00c8f0' }
-          : { QB: '#003c63', RB: '#005d91', WR: '#006da2', TE: '#007bb4', FLEX: '#008cd1', SUPER_FLEX: '#00a3ff', Depth: '#3076ff' };
+        : { QB: '#67b7dc', RB: '#6794dc', WR: '#6771dc', TE: '#8067dc', FLEX: '#a367dc', SUPER_FLEX: '#c767dc', Depth: '#dc67ce', Picks: '#dc67ab' };
       const colors = defaultColors;
       const rows = state.teams.map(team => {
         // Refine is applied before position filtering, totals, ranking, and Top 6.
@@ -4220,6 +4294,18 @@
       }
       const host = kind === 'lineup' ? elements.startersCanvas : elements.overallCanvas;
       if (!window.echarts) { host.textContent = 'Charts unavailable. Rankings are available in the matrix.'; return; }
+      // Keep the FPA visual trial confined to lineup; the existing Total Roster
+      // Value renderer below retains its dimensions, colors, labels, and tooltip.
+      if (power) {
+        renderPowerRankingsBars(host, visible, keys, colors, metric);
+        document.getElementById('lineupChartLegend').innerHTML = keys.map(key => `<span><i style="background:${colors[key]}"></i>${SLOT_LABELS[key] || key}</span>`).join('');
+        document.getElementById('lineupChartNote').textContent = filter !== 'ALL'
+          ? `Ranked by ${SLOT_LABELS[filter] || filter} only · Your team is highlighted`
+          : startersOnly ? 'Re-ranked by starters only · Depth and picks excluded'
+            : dynasty ? 'Starters + six reserves + 2027/2028 first- and second-round picks (Mid)'
+              : 'Starters + next 1 QB + next 3 RB/WR/TE';
+        return;
+      }
       // Reserve a compact second axis line for the metric name, retaining bar density.
       host.style.height = `${Math.max(228, visible.length * 30 + 44)}px`;
       const chart = state.charts[kind] || echarts.init(host, null, { renderer: 'svg' });

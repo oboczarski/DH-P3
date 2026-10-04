@@ -313,6 +313,13 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-chart-legend { display: fle
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-chart-legend span { display: inline-flex; align-items: center; gap: 6px; color: #a9b9d0; font-size: 10px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-chart-legend i { width: 7px; height: 7px; border-radius: 2px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-chart-note { text-align: center; color: #7f91ad; font-size: 10px; margin: -4px 0 0; line-height: 1.45; }
+/* Power Rankings alone adopts FPA's plot typography and top legend. Keep the
+   SVG inside its panel at narrow widths; Total Roster Value retains its sizing. */
+body[data-page="leaguehub"] #leagueAnalysisPanel #lineup-panel #startersValueChart { width: 100%; font-family: 'Google Sans Flex', 'Google Sans', sans-serif; }
+body[data-page="leaguehub"] #leagueAnalysisPanel #lineup-panel .la-chart-legend { justify-content: flex-start; gap: 6px 16px; padding: 3px 9px 0; }
+body[data-page="leaguehub"] #leagueAnalysisPanel #lineup-panel .la-chart-legend span { gap: 5px; color: #bacdeb; font-size: 10px; font-weight: 500; }
+body[data-page="leaguehub"] #leagueAnalysisPanel #lineup-panel .la-chart-legend i { width: 14px; height: 6px; border-radius: 4px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel #lineup-panel .la-chart-note { text-align: left; color: #91a5c5; margin: -2px 9px 0; }
 /* Position filters and the team-scope select share one centered row at every
    width. The mobile rules compact their dimensions without changing the skin. */
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-position-filter {display: flex;flex: 1 1 260px;gap: 1px;min-width: 0;padding: 1px;border: 1px solid #afbdea22;border-radius: 999px;background: radial-gradient(115% 76% at 100% 0%, rgb(215 225 255 / 0.081) 0%, rgb(219 230 255 / 0.05) 18%, transparent 74%) padding-box, radial-gradient(115% 76% at 0% 100%, rgb(215 225 255 / 0.051) 0%, rgb(219 230 255 / 0.03) 18%, transparent 74%) padding-box,  conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF30 20deg,  #FFFFFF50 104deg,  #FFF6FF2a 112deg,  #FFFFFF10 133deg,  #FFFFFF10 153deg,  #FFFFFF20 230deg,  #FFFFFF2f 265deg,  #FFFFFF3a 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;box-shadow: inset 0 1px 0 #ffffff14, inset 0 -1px 1px #0000;}

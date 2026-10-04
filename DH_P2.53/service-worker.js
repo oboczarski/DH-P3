@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh both page-owned Game Logs team directories and their modal assets.
-const CACHE_NAME = 'DH3.48o-gamelogs-team-directory';
+// Refresh LeagueHub's Power Rankings script and styles for the FPA bar treatment.
+const CACHE_NAME = 'DH3.48p-power-bars-fpa';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
