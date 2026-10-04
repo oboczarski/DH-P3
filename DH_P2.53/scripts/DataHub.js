@@ -12447,6 +12447,14 @@ function dataHubTeamStatColor(player, key) {
   const rank = dataHubTeamNumber(player.statRanks?.[key]);
   return rank > 0 ? getDataHubConditionalColorByRank(rank, player.pos) : '';
 }
+function dataHubTeamFptsRank(player) {
+  // Team-card names show the selected season's own FPTS positional rank.
+  // Zero/missing totals get no label; negative earned totals remain source-backed.
+  const points = dataHubTeamNumber(player.stats?.fpts);
+  const rank = dataHubTeamNumber(player.statRanks?.fpts);
+  return points !== null && points !== 0 && Number.isInteger(rank) && rank > 0
+    ? `${player.pos}${rank}` : '';
+}
 function dataHubTeamPlayers(team) {
   const teamKey = dataHubTeamKey(team);
   const seasonStats = state.playerSeasonStats || {};
@@ -12533,6 +12541,8 @@ async function dataHubUpdateTeamSummary(team, season, revision) {
 }
 function dataHubTeamCard(player) {
   const escape = dataHubEscapeHtml;
+  const fptsRank = dataHubTeamFptsRank(player);
+  const rankMarkup = fptsRank ? `<span class="team-player-fpts-rank" title="Season PPR FPTS position rank" style="color:${escape(dataHubTeamStatColor(player, 'fpts'))}">${escape(fptsRank)}</span>` : '';
   // Restore the team card's ten requested metrics in two five-stat rows:
   // general/valuation first, then position-specific production, with native colors.
   const basic = [['Age', 'age', 'decimal', 'Player age'], ['G', 'games_played', 'integer', 'Games played'], ['FPTS', 'fpts', 'decimal', 'Season PPR fantasy points'], ['PPG', 'ppg', 'decimal', 'PPR fantasy points per game'], ['KTC', 'ktc', 'integer', 'KeepTradeCut value']];
@@ -12541,8 +12551,8 @@ function dataHubTeamCard(player) {
     const color = dataHubTeamStatColor(player, key);
     return `<span class="team-player-stat${key === 'ktc' ? ' team-player-stat--ktc' : ''}" title="${escape(title)}"><span class="team-player-stat-label">${escape(label)}</span><span class="team-player-stat-value"${color ? ` style="color:${escape(color)}"` : ''}>${escape(dataHubTeamFormat(value, format))}</span></span>`;
   }).join('')}</span>`;
-  return `<button type="button" class="team-player-card" data-team-player-id="${escape(player.id)}" aria-label="Open ${escape(player.name)} Game Logs" title="${escape(player.name)} — open Game Logs">
-    <span class="team-player-card-heading"><span class="team-player-name">${escape(player.name)}</span><span class="team-player-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></span>
+  return `<button type="button" class="team-player-card" data-team-player-id="${escape(player.id)}" aria-label="Open ${escape(player.name)} Game Logs${fptsRank ? `, season FPTS rank ${escape(fptsRank)}` : ''}" title="${escape(player.name)} — open Game Logs">
+    <span class="team-player-card-heading"><span class="team-player-name">${escape(player.name)}</span>${rankMarkup}<span class="team-player-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></span>
     ${statMarkup(basic, false)}${statMarkup(dataHubTeamStatColumns[player.pos], true)}
   </button>`;
 }
@@ -12594,7 +12604,7 @@ function dataHubOpenTeamView(trigger) {
   // Each section keeps its KTC-sorted players in the two-card responsive grid.
   body.innerHTML = dataHubTeamPositions.map(pos => {
     const group = players.filter(player => player.pos === pos);
-    return `<section class="team-position-group" data-position="${pos}" aria-labelledby="team-position-${pos}"><h4 id="team-position-${pos}" class="team-position-heading"><span class="team-position-badge">${pos}</span><span>${groupNames[pos]}</span><span class="team-position-count">${group.length}</span></h4><div class="team-player-grid">${group.map(dataHubTeamCard).join('')}</div>${group.length ? '' : '<p class="team-position-empty">No players listed</p>'}</section>`;
+    return `<section class="team-position-group" data-position="${pos}" aria-labelledby="team-position-${pos}"><h4 id="team-position-${pos}" class="team-position-heading"><span class="team-position-badge">${pos}</span><span>${groupNames[pos]}</span><span class="team-position-divider" aria-hidden="true"></span><span class="team-position-count">${group.length}</span></h4><div class="team-player-grid">${group.map(dataHubTeamCard).join('')}</div>${group.length ? '' : '<p class="team-position-empty">No players listed</p>'}</section>`;
   }).join('');
   body.scrollTop = 0;
   gameLogsModal.classList.add('is-team-view');

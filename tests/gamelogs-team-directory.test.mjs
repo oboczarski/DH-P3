@@ -41,11 +41,33 @@ function model(page, fixture = {}) {
   const ageName = page === 'datahub' ? 'getDataHubVitalsColor' : 'getVitalsColor';
   const helpers = [readFunction(appSource, colorName), readFunction(appSource, ageName),
     page === 'rosters' ? readFunction(appSource, 'parseAgeValue') : ''].join('\n');
-  new vm.Script(`${helpers}\n${source}\nglobalThis.api = { players: ${prefix}TeamPlayers, stats: ${prefix}TeamStats, format: ${prefix}TeamFormat, key: ${prefix}TeamKey, columns: ${prefix}TeamStatColumns, derivedRanks: ${prefix}TeamDerivedRanks, color: ${prefix}TeamStatColor, rankColor: ${colorName}, ageColor: ${ageName} };`).runInContext(context);
+  new vm.Script(`${helpers}\n${source}\nglobalThis.api = { players: ${prefix}TeamPlayers, fptsRank: ${prefix}TeamFptsRank, stats: ${prefix}TeamStats, format: ${prefix}TeamFormat, key: ${prefix}TeamKey, columns: ${prefix}TeamStatColumns, derivedRanks: ${prefix}TeamDerivedRanks, color: ${prefix}TeamStatColor, rankColor: ${colorName}, ageColor: ${ageName} };`).runInContext(context);
   return context.api;
 }
 
 for (const page of ['datahub', 'rosters']) {
+  test(`${page}: name ranks use each player's season FPTS rank, omit zero/missing totals and keep positional colors`, () => {
+    const entries = [['q', 'QB', 22], ['r', 'RB', 1], ['t', 'TE', 11], ['w', 'WR', 44]];
+    const api = model(page, {
+      season: '2025', qualified: [],
+      stats: Object.fromEntries(entries.map(([id, pos]) => [id, { pos, team: 'BUF', fpts_ppr: 20 }])),
+      ranks: Object.fromEntries(entries.map(([id, , rank]) => [id, { fpts: rank }])),
+      values: Object.fromEntries(entries.map(([id]) => [id, { posRank: 999, ktc: 9999 }])),
+    });
+    for (const player of api.players('BUF')) {
+      const rank = entries.find(([id]) => id === player.id)[2];
+      assert.equal(api.fptsRank(player), `${player.pos}${rank}`);
+      assert.equal(api.color(player, 'fpts'), api.rankColor(rank, player.pos));
+    }
+    for (const points of [0, null, undefined, '', 'NA']) {
+      assert.equal(api.fptsRank({ pos: 'RB', stats: { fpts: points }, statRanks: { fpts: 1 } }), '');
+    }
+    for (const rank of [0, null, undefined, 'NA', -1, 1.5]) {
+      assert.equal(api.fptsRank({ pos: 'WR', stats: { fpts: 20 }, statRanks: { fpts: rank } }), '');
+    }
+    assert.equal(api.fptsRank({ pos: 'RB', stats: { fpts: -1 }, statRanks: { fpts: 50 } }), 'RB50');
+  });
+
   test(`${page}: QB TD(t) includes passing and rushing; RB TD(t) includes rushing and receiving`, () => {
     const api = model(page);
     const source = { pass_td: 25, rush_td: 14, rec_td: 1 };

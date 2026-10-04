@@ -6604,7 +6604,17 @@ body[data-page="rosters"] #game-logs-modal .team-position-badge {
   font-weight: 700;
   text-align: center;
 }
-body[data-page="rosters"] #game-logs-modal .team-position-count { margin-left: auto; color: #8396b2; font-size: 9px; font-variant-numeric: normal; }
+/* Match DataHub's mobile Min Qualifiers rule beside team-position labels at all widths. */
+body[data-page="rosters"] #game-logs-modal .team-position-divider {
+  display: block;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 1px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(172, 195, 232, 0.42), rgba(116, 239, 255, 0.18), transparent);
+  box-shadow: 0 0 3px rgba(116, 239, 255, 0.08);
+}
+body[data-page="rosters"] #game-logs-modal .team-position-count { flex: 0 0 auto; color: #8396b2; font-size: 9px; font-variant-numeric: normal; }
 /* Each full-width position section keeps two player cards across at every width. */
 body[data-page="rosters"] #game-logs-modal .team-player-grid {
   display: grid;
@@ -6645,6 +6655,8 @@ body[data-page="rosters"] #game-logs-modal .team-player-name {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* Keep the FPTS rank beside the name without allowing the rank or arrow to wrap. */
+body[data-page="rosters"] #game-logs-modal .team-player-fpts-rank { flex: 0 0 auto; font-size: 10px; font-weight: 550; line-height: 1.15; font-variant-numeric: normal; white-space: nowrap; }
 body[data-page="rosters"] #game-logs-modal .team-player-arrow { display: grid; place-items: center; flex: 0 0 auto; margin-left: auto; width: 12px; height: 12px; border-radius: 50%; color: var(--team-position-color); background: color-mix(in srgb, var(--team-position-color) 10%, transparent); }
 body[data-page="rosters"] #game-logs-modal .team-player-arrow svg { display: block; width: 12px; height: 12px; }
 body[data-page="rosters"] #game-logs-modal .team-modal-back svg { display: block; width: 12px; height: 12px; flex: 0 0 auto; }
@@ -6680,6 +6692,7 @@ body[data-page="rosters"] #game-logs-modal .team-position-empty { margin: 0; pad
   body[data-page="rosters"] #game-logs-modal .team-player-card { padding: 2px; border-radius: 7px; }
   body[data-page="rosters"] #game-logs-modal .team-player-card-heading { margin-bottom: 2px; gap: 3px; }
   body[data-page="rosters"] #game-logs-modal .team-player-name { font-size: 10.5px; line-height: 1.1; }
+  body[data-page="rosters"] #game-logs-modal .team-player-fpts-rank { font-size: 9px; }
   body[data-page="rosters"] #game-logs-modal .team-player-arrow { width: 12px; height: 12px; }
   body[data-page="rosters"] #game-logs-modal .team-player-stats { gap: 2px; }
   body[data-page="rosters"] #game-logs-modal .team-player-stat { flex-direction: column; align-items: center; gap: 0; }
@@ -6689,6 +6702,7 @@ body[data-page="rosters"] #game-logs-modal .team-position-empty { margin: 0; pad
 @media (max-width: 359px) {
   body[data-page="rosters"] #game-logs-modal .team-player-stat-value { font-size: 9px; }
   body[data-page="rosters"] #game-logs-modal .team-player-name { font-size: 10px; }
+  body[data-page="rosters"] #game-logs-modal .team-player-fpts-rank { font-size: 8.5px; }
   body[data-page="rosters"] #game-logs-modal .team-player-stat-label { font-size: 6.5px; }
   body[data-page="rosters"] #game-logs-modal .team-modal-heading h3 { font-size: 16px; }
   body[data-page="rosters"] #game-logs-modal .team-modal-heading p { font-size: 9px; }
