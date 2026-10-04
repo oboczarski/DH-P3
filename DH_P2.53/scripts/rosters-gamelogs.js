@@ -941,16 +941,6 @@ function rostersTeamPlayers(team) {
   return players.sort((a, b) => rostersTeamPositions.indexOf(a.pos) - rostersTeamPositions.indexOf(b.pos)
     || (b.ktc ?? -1) - (a.ktc ?? -1) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
 }
-function rostersTeamPositionColumns(players) {
-  // Count only this team's included season-source players before placing TE.
-  // TE moves left when WR+TE exceeds QB+RB; equal counts keep TE on the right.
-  const counts = { QB: 0, RB: 0, WR: 0, TE: 0 };
-  for (const player of players) {
-    if (rostersTeamPositions.includes(player.pos)) counts[player.pos] += 1;
-  }
-  return counts.WR + counts.TE > counts.QB + counts.RB
-    ? [['QB', 'RB', 'TE'], ['WR']] : [['QB', 'RB'], ['WR', 'TE']];
-}
 // TEAM DIRECTORY MODEL END
 
 let rostersTeamTrigger = null;
@@ -1056,13 +1046,12 @@ function rostersOpenTeamView(trigger) {
   pane.querySelector('.team-modal-header').innerHTML = `<img class="team-modal-logo" src="${`../assets/NFL_logos_svg/${({ WAS: 'was' })[team] || team.toLowerCase()}.svg`}" alt="${team}" width="48" height="48"><div class="team-modal-heading"><h3 id="team-modal-title">${escapeHtml(rostersTeamNames[team])}</h3><p class="team-modal-summary" title="${state.currentGameLogsSeason === '2026' ? '2026 team season totals · TM_STAT' : 'TM_STAT team stats are available for 2026'}"><span class="team-modal-player-count">${players.length} players</span>${rostersTeamSummaryFields.map(key => `<span class="team-modal-metric">${({ paYds: 'PaYds', ruYds: 'RuYds' })[key] || key} <strong data-team-summary-stat="${key}">—</strong> <span class="team-modal-metric-rank" data-team-summary-rank="${key}"></span></span>`).join('')}</p></div>`;
   const groupNames = { QB: 'Quarterbacks', RB: 'Running backs', WR: 'Wide receivers', TE: 'Tight ends' };
   const body = pane.querySelector('.team-modal-body');
-  // Keep QB/RB left and WR right; place TE using the original position totals.
-  // Moving the whole group preserves KTC ordering and both five-stat rows.
-  body.innerHTML = `<div class="team-modal-columns">${rostersTeamPositionColumns(players).map(positions =>
-    `<div class="team-position-column" data-team-position-column="${positions.join(' ')}">${positions.map(pos => {
-      const group = players.filter(player => player.pos === pos);
-      return `<section class="team-position-group" data-position="${pos}" aria-labelledby="team-position-${pos}"><h4 id="team-position-${pos}" class="team-position-heading"><span class="team-position-badge">${pos}</span><span>${groupNames[pos]}</span><span class="team-position-count">${group.length}</span></h4><div class="team-player-grid">${group.map(rostersTeamCard).join('')}</div>${group.length ? '' : '<p class="team-position-empty">No players listed</p>'}</section>`;
-    }).join('')}</div>`).join('')}</div>`;
+  // Rosters team view stacks full-width QB/RB/WR/TE sections in a fixed order.
+  // Each section keeps its KTC-sorted players in the two-card responsive grid.
+  body.innerHTML = rostersTeamPositions.map(pos => {
+    const group = players.filter(player => player.pos === pos);
+    return `<section class="team-position-group" data-position="${pos}" aria-labelledby="team-position-${pos}"><h4 id="team-position-${pos}" class="team-position-heading"><span class="team-position-badge">${pos}</span><span>${groupNames[pos]}</span><span class="team-position-count">${group.length}</span></h4><div class="team-player-grid">${group.map(rostersTeamCard).join('')}</div>${group.length ? '' : '<p class="team-position-empty">No players listed</p>'}</section>`;
+  }).join('');
   body.scrollTop = 0;
   modal.classList.add('is-team-view');
   pane.classList.remove('hidden');

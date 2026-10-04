@@ -41,26 +41,11 @@ function model(page, fixture = {}) {
   const ageName = page === 'datahub' ? 'getDataHubVitalsColor' : 'getVitalsColor';
   const helpers = [readFunction(appSource, colorName), readFunction(appSource, ageName),
     page === 'rosters' ? readFunction(appSource, 'parseAgeValue') : ''].join('\n');
-  new vm.Script(`${helpers}\n${source}\nglobalThis.api = { players: ${prefix}TeamPlayers, positionColumns: ${prefix}TeamPositionColumns, stats: ${prefix}TeamStats, format: ${prefix}TeamFormat, key: ${prefix}TeamKey, columns: ${prefix}TeamStatColumns, derivedRanks: ${prefix}TeamDerivedRanks, color: ${prefix}TeamStatColor, rankColor: ${colorName}, ageColor: ${ageName} };`).runInContext(context);
+  new vm.Script(`${helpers}\n${source}\nglobalThis.api = { players: ${prefix}TeamPlayers, stats: ${prefix}TeamStats, format: ${prefix}TeamFormat, key: ${prefix}TeamKey, columns: ${prefix}TeamStatColumns, derivedRanks: ${prefix}TeamDerivedRanks, color: ${prefix}TeamStatColor, rankColor: ${colorName}, ageColor: ${ageName} };`).runInContext(context);
   return context.api;
 }
 
 for (const page of ['datahub', 'rosters']) {
-  test(`${page}: TE moves left only when the original WR/TE total exceeds QB/RB`, () => {
-    const api = model(page);
-    const placement = counts => JSON.parse(JSON.stringify(api.positionColumns(
-      Object.entries(counts).flatMap(([pos, count]) => Array.from({ length: count }, () => ({ pos }))),
-    )));
-    const left = [['QB', 'RB', 'TE'], ['WR']], right = [['QB', 'RB'], ['WR', 'TE']];
-    assert.deepEqual(placement({ QB: 2, RB: 3, WR: 4, TE: 2 }), left);
-    assert.deepEqual(placement({ QB: 2, RB: 3, WR: 3, TE: 2 }), right);
-    assert.deepEqual(placement({ QB: 2, RB: 3, WR: 2, TE: 2 }), right);
-    // Use the requested pre-move totals even if a large TE group makes left taller.
-    assert.deepEqual(placement({ QB: 1, RB: 1, WR: 1, TE: 5 }), left);
-    assert.deepEqual(placement({}), right);
-    assert.deepEqual(placement({ QB: 1, RB: 1, WR: 1, TE: 1, LB: 20 }), right);
-  });
-
   test(`${page}: QB TD(t) includes passing and rushing; RB TD(t) includes rushing and receiving`, () => {
     const api = model(page);
     const source = { pass_td: 25, rush_td: 14, rec_td: 1 };

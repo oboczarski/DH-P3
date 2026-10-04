@@ -6450,8 +6450,8 @@ body[data-page="rosters"] #game-logs-modal #radar-chart-container #player-radar-
 }
 
 
-/* Rosters Game Logs team view: QB/RB stay left and WR stays right; the renderer
-   places TE from team player counts. Cards keep two five-stat rows. The dialog
+/* Rosters Game Logs team view: QB/RB/WR/TE sections stack in a fixed order,
+   with two player cards across and two five-stat rows per card. The dialog
    grows to the viewport limit, then its body scrolls while navigation stays visible. */
 body[data-page="rosters"] #game-logs-modal [data-team-modal-open] {
   cursor: pointer;
@@ -6476,7 +6476,7 @@ body[data-page="rosters"] #game-logs-modal.is-team-view .team-modal-pane {
   flex-direction: column;
   width: min(760px, calc(100vw - 24px));
   max-width: calc(100vw - 24px);
-  /* Grow with the two position columns; constrain only at the viewport boundary. */
+  /* Grow with the stacked position sections; constrain only at the viewport boundary. */
   height: auto !important;
   max-height: calc(100vh - 36px);
   max-height: calc(100dvh - 36px);
@@ -6605,12 +6605,10 @@ body[data-page="rosters"] #game-logs-modal .team-position-badge {
   text-align: center;
 }
 body[data-page="rosters"] #game-logs-modal .team-position-count { margin-left: auto; color: #8396b2; font-size: 9px; font-variant-numeric: normal; }
-/* Independent position stacks preserve the requested left/right grouping at every width. */
-body[data-page="rosters"] #game-logs-modal .team-modal-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 10px; }
-body[data-page="rosters"] #game-logs-modal .team-position-column { min-width: 0; }
+/* Each full-width position section keeps two player cards across at every width. */
 body[data-page="rosters"] #game-logs-modal .team-player-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--team-card-gap);
 }
 body[data-page="rosters"] #game-logs-modal .team-player-card {
@@ -6684,7 +6682,6 @@ body[data-page="rosters"] #game-logs-modal .team-position-empty { margin: 0; pad
   body[data-page="rosters"] #game-logs-modal .team-player-name { font-size: 10.5px; line-height: 1.1; }
   body[data-page="rosters"] #game-logs-modal .team-player-arrow { width: 12px; height: 12px; }
   body[data-page="rosters"] #game-logs-modal .team-player-stats { gap: 2px; }
-  body[data-page="rosters"] #game-logs-modal .team-modal-columns { gap: 6px; }
   body[data-page="rosters"] #game-logs-modal .team-player-stat { flex-direction: column; align-items: center; gap: 0; }
   body[data-page="rosters"] #game-logs-modal .team-player-stat-label { font-size: 7px; line-height: 1; letter-spacing: -.015em; }
   body[data-page="rosters"] #game-logs-modal .team-player-stat-value { font-size: 9.5px; line-height: 1; letter-spacing: -.025em; }
