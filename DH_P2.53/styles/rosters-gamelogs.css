@@ -6450,9 +6450,9 @@ body[data-page="rosters"] #game-logs-modal #radar-chart-container #player-radar-
 }
 
 
-/* Rosters Game Logs team view: a page-local alternate dialog pane with two
-   player columns at every width. Inline name/age/G and one eight-stat row fit source-only
-   rosters on typical screens; short viewports retain an accessible overflow fallback. */
+/* Rosters Game Logs team view: QB/RB occupy the left position column and
+   WR/TE the right, with one player per card and two five-stat rows. The dialog
+   grows to the viewport limit, then its body scrolls while navigation stays visible. */
 body[data-page="rosters"] #game-logs-modal [data-team-modal-open] {
   cursor: pointer;
   transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
@@ -6476,7 +6476,7 @@ body[data-page="rosters"] #game-logs-modal.is-team-view .team-modal-pane {
   flex-direction: column;
   width: min(760px, calc(100vw - 24px));
   max-width: calc(100vw - 24px);
-  /* Override fixed player-pane height/padding so compact team spacing stays local. */
+  /* Grow with the two position columns; constrain only at the viewport boundary. */
   height: auto !important;
   max-height: calc(100vh - 36px);
   max-height: calc(100dvh - 36px);
@@ -6558,10 +6558,15 @@ body[data-page="rosters"] #game-logs-modal .team-modal-heading h3 {
 body[data-page="rosters"] #game-logs-modal .team-modal-heading p {
   margin: 2px 0 0;
   color: #9eafca;
-  font-size: 9px;
+  font-size: 15px;
   line-height: 1.2;
 }
-body[data-page="rosters"] #game-logs-modal .team-modal-heading p span { margin: 0 5px; color: #647792; }
+/* Team summary values keep each rank next to its metric; whole metrics wrap cleanly. */
+body[data-page="rosters"] #game-logs-modal .team-modal-summary { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 10px; row-gap: 3px; font-variant-numeric: normal; }
+body[data-page="rosters"] #game-logs-modal .team-modal-metric { display: inline-flex; align-items: baseline; gap: 3px; color: #95a7c2; white-space: nowrap; }
+body[data-page="rosters"] #game-logs-modal .team-modal-metric strong { color: #dce7f7; font-weight: 550; }
+body[data-page="rosters"] #game-logs-modal .team-modal-metric-rank { color: #a0aec6; font-weight: 350; font-size: .9em; }
+body[data-page="rosters"] #game-logs-modal .team-modal-player-count { color: #8396b2; white-space: nowrap; }
 body[data-page="rosters"] #game-logs-modal .team-modal-body {
   min-height: 0;
   overflow-y: auto;
@@ -6600,9 +6605,12 @@ body[data-page="rosters"] #game-logs-modal .team-position-badge {
   text-align: center;
 }
 body[data-page="rosters"] #game-logs-modal .team-position-count { margin-left: auto; color: #8396b2; font-size: 9px; font-variant-numeric: normal; }
+/* Independent position stacks preserve the requested left/right grouping at every width. */
+body[data-page="rosters"] #game-logs-modal .team-modal-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 10px; }
+body[data-page="rosters"] #game-logs-modal .team-position-column { min-width: 0; }
 body[data-page="rosters"] #game-logs-modal .team-player-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--team-card-gap);
 }
 body[data-page="rosters"] #game-logs-modal .team-player-card {
@@ -6625,7 +6633,7 @@ body[data-page="rosters"] #game-logs-modal .team-player-card:hover {
   border-color: color-mix(in srgb, var(--team-position-color) 45%, transparent);
 }
 body[data-page="rosters"] #game-logs-modal .team-player-card:active { background: rgba(95, 119, 171, .22); }
-body[data-page="rosters"] #game-logs-modal .team-player-card-heading { display: flex; gap: 5px; align-items: center; margin-bottom: 2px; }
+body[data-page="rosters"] #game-logs-modal .team-player-card-heading { display: flex; gap: 5px; align-items: center; margin-bottom: 5px; }
 body[data-page="rosters"] #game-logs-modal .team-player-name {
   display: block;
   flex: 0 1 auto;
@@ -6639,19 +6647,14 @@ body[data-page="rosters"] #game-logs-modal .team-player-name {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* Age/G stay beside the full name; proportional digits leave more room on phones. */
-body[data-page="rosters"] #game-logs-modal .team-player-vitals { display: inline-flex; flex: 0 0 auto; gap: 5px; color: #95a7c2; font-size: 8px; line-height: 1; font-variant-numeric: normal; white-space: nowrap; }
 body[data-page="rosters"] #game-logs-modal .team-player-arrow { display: grid; place-items: center; flex: 0 0 auto; margin-left: auto; width: 12px; height: 12px; border-radius: 50%; color: var(--team-position-color); background: color-mix(in srgb, var(--team-position-color) 10%, transparent); }
 body[data-page="rosters"] #game-logs-modal .team-player-arrow svg { display: block; width: 12px; height: 12px; }
 body[data-page="rosters"] #game-logs-modal .team-modal-back svg { display: block; width: 12px; height: 12px; flex: 0 0 auto; }
-body[data-page="rosters"] #game-logs-modal .team-player-stats { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 2px; }
-/* Percentage cells need slightly more room than PPG/TD; keep all eight aligned. */
-body[data-page="rosters"] #game-logs-modal .team-position-group:is([data-position="QB"], [data-position="RB"]) .team-player-stats { grid-template-columns: minmax(0, 1.1fr) minmax(0, .8fr) minmax(0, 1fr) minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)) minmax(0, .85fr); }
-/* Receiving labels/yards need wider columns; compact count fields share the space. */
-body[data-page="rosters"] #game-logs-modal .team-position-group:is([data-position="WR"], [data-position="TE"]) .team-player-stats { grid-template-columns: minmax(0, 1.1fr) minmax(0, .8fr) minmax(0, 1fr) repeat(2, minmax(0, .7fr)) minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, .8fr); }
-body[data-page="rosters"] #game-logs-modal .team-player-stat { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-width: 0; text-align: center; }
-body[data-page="rosters"] #game-logs-modal .team-player-stat-label { max-width: 100%; min-width: 0; font-size: 7px; line-height: 1.1; color: #95a7c2; white-space: nowrap; }
-body[data-page="rosters"] #game-logs-modal .team-player-stat-value { max-width: 100%; min-width: 0; font-size: 10px; line-height: 1.1; color: #dce7f7; font-weight: 500; font-variant-numeric: normal; white-space: nowrap; }
+body[data-page="rosters"] #game-logs-modal .team-player-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px; }
+body[data-page="rosters"] #game-logs-modal .team-player-stats--position { margin-top: 3px; padding-top: 3px; border-top: 1px solid rgba(153, 174, 218, .1); }
+body[data-page="rosters"] #game-logs-modal .team-player-stat { display: flex; align-items: baseline; justify-content: center; gap: 3px; min-width: 0; text-align: center; }
+body[data-page="rosters"] #game-logs-modal .team-player-stat-label { max-width: 100%; min-width: 0; font-size: 9px; line-height: 1.1; color: #95a7c2; white-space: nowrap; }
+body[data-page="rosters"] #game-logs-modal .team-player-stat-value { max-width: 100%; min-width: 0; font-size: 13px; line-height: 1.1; color: #dce7f7; font-weight: 500; font-variant-numeric: normal; white-space: nowrap; }
 body[data-page="rosters"] #game-logs-modal .team-player-stat--ktc .team-player-stat-label { color: #ada0dd; }
 body[data-page="rosters"] #game-logs-modal .team-position-empty { margin: 0; padding: 3px 0; color: #8a9cb7; font-size: 11px; }
 @media (max-width: 719px) {
@@ -6671,37 +6674,30 @@ body[data-page="rosters"] #game-logs-modal .team-position-empty { margin: 0; pad
   body[data-page="rosters"] #game-logs-modal .team-modal-header { gap: 7px; padding: 4px 0 5px; }
   body[data-page="rosters"] #game-logs-modal .team-modal-logo { width: 28px; height: 28px; }
   body[data-page="rosters"] #game-logs-modal .team-modal-heading h3 { font-size: 17px; }
-  body[data-page="rosters"] #game-logs-modal .team-modal-heading p { font-size: 8px; margin-top: 1px; }
+  body[data-page="rosters"] #game-logs-modal .team-modal-heading p { font-size: 10px; margin-top: 1px; }
+  body[data-page="rosters"] #game-logs-modal .team-modal-summary { gap: 3px 7px; }
   body[data-page="rosters"] #game-logs-modal .team-modal-body { padding: 0 1px 2px; }
   body[data-page="rosters"] #game-logs-modal .team-position-group { padding-top: 5px; }
   body[data-page="rosters"] #game-logs-modal .team-position-heading { margin-bottom: 3px; font-size: 9px; }
   body[data-page="rosters"] #game-logs-modal .team-player-card { padding: 2px; border-radius: 7px; }
   body[data-page="rosters"] #game-logs-modal .team-player-card-heading { margin-bottom: 2px; gap: 3px; }
   body[data-page="rosters"] #game-logs-modal .team-player-name { font-size: 10.5px; line-height: 1.1; }
-  body[data-page="rosters"] #game-logs-modal .team-player-vitals { font-size: 6.5px; gap: 3px; }
   body[data-page="rosters"] #game-logs-modal .team-player-arrow { width: 12px; height: 12px; }
-  body[data-page="rosters"] #game-logs-modal .team-player-stats { gap: 1px; }
+  body[data-page="rosters"] #game-logs-modal .team-player-stats { gap: 2px; }
+  body[data-page="rosters"] #game-logs-modal .team-modal-columns { gap: 6px; }
   body[data-page="rosters"] #game-logs-modal .team-player-stat { flex-direction: column; align-items: center; gap: 0; }
-  body[data-page="rosters"] #game-logs-modal .team-player-stat-label { font-size: 6px; line-height: 1; letter-spacing: -.015em; }
-  body[data-page="rosters"] #game-logs-modal .team-player-stat-value { font-size: 8.5px; line-height: 1; letter-spacing: -.025em; }
+  body[data-page="rosters"] #game-logs-modal .team-player-stat-label { font-size: 7px; line-height: 1; letter-spacing: -.015em; }
+  body[data-page="rosters"] #game-logs-modal .team-player-stat-value { font-size: 9.5px; line-height: 1; letter-spacing: -.025em; }
 }
 @media (max-width: 359px) {
+  body[data-page="rosters"] #game-logs-modal .team-player-stat-value { font-size: 9px; }
   body[data-page="rosters"] #game-logs-modal .team-player-name { font-size: 10px; }
-  body[data-page="rosters"] #game-logs-modal .team-player-stat-label { font-size: 5.8px; }
-  body[data-page="rosters"] #game-logs-modal .team-player-stat-value { font-size: 8px; }
+  body[data-page="rosters"] #game-logs-modal .team-player-stat-label { font-size: 6.5px; }
   body[data-page="rosters"] #game-logs-modal .team-modal-heading h3 { font-size: 16px; }
+  body[data-page="rosters"] #game-logs-modal .team-modal-heading p { font-size: 9px; }
+  body[data-page="rosters"] #game-logs-modal .team-modal-summary { gap: 3px 6px; }
 }
-/* Short desktop/tablet windows tighten the single stat row and heading spacing. */
-@media (min-width: 720px) and (max-height: 850px) {
-  body[data-page="rosters"] #game-logs-modal .team-player-card { padding-top: 2px; padding-bottom: 2px; }
-  body[data-page="rosters"] #game-logs-modal .team-player-card-heading { margin-bottom: 1px; }
-}
-/* Smaller desktop windows fit the full source roster while preserving stat type sizes. */
-@media (min-width: 720px) and (max-height: 740px) {
-  body[data-page="rosters"] #game-logs-modal .team-player-card { padding-top: 1px; padding-bottom: 1px; }
-  body[data-page="rosters"] #game-logs-modal .team-player-card-heading { margin-bottom: 0; }
-}
-/* Short phone team dialogs: use a denser rhythm before needing vertical overflow. */
+/* Short phone dialogs retain the same card typography and compact header spacing. */
 @media (max-width: 719px) and (max-height: 800px) {
   body[data-page="rosters"] #game-logs-modal.is-team-view .team-modal-pane { padding: 6px !important; --team-card-gap: 2px; }
   body[data-page="rosters"] #game-logs-modal .team-modal-header { padding: 3px 1px 4px; }
@@ -6709,11 +6705,6 @@ body[data-page="rosters"] #game-logs-modal .team-position-empty { margin: 0; pad
   body[data-page="rosters"] #game-logs-modal .team-modal-heading h3 { font-size: 15px; }
   body[data-page="rosters"] #game-logs-modal .team-position-group { padding-top: 2px; }
   body[data-page="rosters"] #game-logs-modal .team-position-heading { margin-bottom: 2px; }
-  body[data-page="rosters"] #game-logs-modal .team-player-card { padding-top: 1px; padding-bottom: 0; }
-  body[data-page="rosters"] #game-logs-modal .team-player-card-heading { margin-bottom: 0; }
-  body[data-page="rosters"] #game-logs-modal .team-player-name { font-size: 10.5px; line-height: 1; }
-  body[data-page="rosters"] #game-logs-modal .team-player-stat-label { font-size: 6px; }
-  body[data-page="rosters"] #game-logs-modal .team-player-stat-value { font-size: 8px; }
 }
 @media (prefers-reduced-motion: reduce) {
   body[data-page="rosters"] #game-logs-modal :is([data-team-modal-open], .team-player-card) { transition: none; }

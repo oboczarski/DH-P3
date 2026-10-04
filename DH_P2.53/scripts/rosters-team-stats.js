@@ -1,5 +1,6 @@
-// DataHub team-modal summary only. TM_STAT is a 2026 workbook tab without a
+// Rosters team-modal summary only. TM_STAT is a 2026 workbook tab without a
 // season column; never reuse these team totals for a historical player season.
+// This page owns its loader/rank model and shares only the workbook URL config.
 import { get2026SheetCsvUrl } from './nfl-2026-sheets.js';
 
 export const TEAM_SUMMARY_FIELDS = Object.freeze(['Pa%', 'Ru%', 'paYds', 'ruYds']);

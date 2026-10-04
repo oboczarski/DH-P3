@@ -2,7 +2,7 @@ import { get2026QualifierOptions } from "./datahub-stats-season.js";
 import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSeasonRankQualified } from "./datahub-stats-positional-ranks.js";
 import { load2026SourceData, load2026WeeklySourceData } from "./datahub-2026-data.js";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js";
-import { load2026TeamStats, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js";
+import { load2026TeamStats, build2026TeamRanks, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js";
 
 // ---------------------------------------------------------------------------
 // Hero copy and filter labels that drive the surrounding page shell.
@@ -12509,16 +12509,18 @@ async function dataHubUpdateTeamSummary(team, season, revision) {
   const summary = gameLogsModal.querySelector('.team-modal-summary');
   summary.setAttribute('aria-busy', 'true');
   try {
-    dataHubTeamStatsPromise ||= load2026TeamStats({ parseCsv }).catch(error => {
+    dataHubTeamStatsPromise ||= load2026TeamStats({ parseCsv }).then(teams => ({ teams, ranks: build2026TeamRanks(teams) })).catch(error => {
       dataHubTeamStatsPromise = null;
       throw error;
     });
-    const teams = await dataHubTeamStatsPromise;
+    const { teams, ranks } = await dataHubTeamStatsPromise;
     if (revision !== dataHubTeamViewRevision || !gameLogsModal.classList.contains('is-team-view')) return;
     summary.querySelectorAll('[data-team-summary-stat]').forEach(node => {
       const key = node.dataset.teamSummaryStat;
       const value = teams[team]?.[key];
       node.textContent = value == null ? '—' : key.endsWith('%') ? `${value.toFixed(1)}%` : Math.round(value).toLocaleString('en-US');
+      const rank = ranks[team]?.[key];
+      node.parentElement.querySelector('.team-modal-metric-rank').textContent = value != null && rank ? `(${rank})` : '';
     });
     summary.title = teams[team] ? '2026 team season totals · TM_STAT' : 'Team stats unavailable in TM_STAT';
   } catch (error) {
@@ -12530,35 +12532,46 @@ async function dataHubUpdateTeamSummary(team, season, revision) {
 }
 function dataHubTeamCard(player) {
   const escape = dataHubEscapeHtml;
-  // Team cards keep full names plus age/G on the heading, freeing a single
-  // eight-stat row below. Reuse each metric's existing positional colors.
-  const columns = [['FPTS', 'fpts', 'decimal', 'Season PPR fantasy points'], ['PPG', 'ppg', 'decimal', 'PPR fantasy points per game'], ['KTC', 'ktc', 'integer', 'KeepTradeCut value'], ...dataHubTeamStatColumns[player.pos]];
-  const vitals = [['age', 'age', 'decimal', 'Player age'], ['G', 'games_played', 'integer', 'Games played']].map(([label, key, format, title]) => {
-    const value = key === 'age' ? player.age : player.stats[key];
-    const color = dataHubTeamStatColor(player, key);
-    return `<span class="team-player-vital" title="${escape(title)}">${label}-<span${color ? ` style="color:${escape(color)}"` : ''}>${escape(dataHubTeamFormat(value, format))}</span></span>`;
-  }).join('');
-  const stats = columns.map(([label, key, format, title]) => {
-    const value = key === 'ktc' ? player.ktc : player.stats[key];
+  // Restore the team card's ten requested metrics in two five-stat rows:
+  // general/valuation first, then position-specific production, with native colors.
+  const basic = [['Age', 'age', 'decimal', 'Player age'], ['G', 'games_played', 'integer', 'Games played'], ['FPTS', 'fpts', 'decimal', 'Season PPR fantasy points'], ['PPG', 'ppg', 'decimal', 'PPR fantasy points per game'], ['KTC', 'ktc', 'integer', 'KeepTradeCut value']];
+  const statMarkup = (columns, extra) => `<span class="team-player-stats${extra ? ' team-player-stats--position' : ''}">${columns.map(([label, key, format, title]) => {
+    const value = key === 'age' || key === 'ktc' ? player[key] : player.stats[key];
     const color = dataHubTeamStatColor(player, key);
     return `<span class="team-player-stat${key === 'ktc' ? ' team-player-stat--ktc' : ''}" title="${escape(title)}"><span class="team-player-stat-label">${escape(label)}</span><span class="team-player-stat-value"${color ? ` style="color:${escape(color)}"` : ''}>${escape(dataHubTeamFormat(value, format))}</span></span>`;
-  }).join('');
+  }).join('')}</span>`;
   return `<button type="button" class="team-player-card" data-team-player-id="${escape(player.id)}" aria-label="Open ${escape(player.name)} Game Logs" title="${escape(player.name)} — open Game Logs">
-    <span class="team-player-card-heading"><span class="team-player-name">${escape(player.name)}</span><span class="team-player-vitals">${vitals}</span><span class="team-player-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></span>
-    <span class="team-player-stats">${stats}</span>
+    <span class="team-player-card-heading"><span class="team-player-name">${escape(player.name)}</span><span class="team-player-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></span>
+    ${statMarkup(basic, false)}${statMarkup(dataHubTeamStatColumns[player.pos], true)}
   </button>`;
 }
 function dataHubFitTeamText() {
   const pane = gameLogsModal?.querySelector('#gamelogs-team-pane');
   if (!gameLogsModal?.classList.contains('is-team-view')) return;
-  // Fit full names beside age/G and each of the eight stat columns, including
-  // when fonts finish loading after the dialog has already opened.
-  pane?.querySelectorAll('.team-player-name, .team-player-stat-value, .team-player-stat-label').forEach(node => {
-    node.style.fontSize = '';
+  // Fit full names and both five-stat rows, including after a font loads. Inline
+  // desktop captions/values scale together so flex redistribution cannot clip one.
+  const fitNode = (node, minimum) => {
     const size = Number.parseFloat(getComputedStyle(node).fontSize);
     if (node.scrollWidth > node.clientWidth && node.clientWidth > 0) {
-      const minimum = node.classList.contains('team-player-stat-label') ? 5.5 : 6.5;
       node.style.fontSize = `${Math.max(minimum, size * node.clientWidth / node.scrollWidth - 0.2)}px`;
+    }
+  };
+  pane?.querySelectorAll('.team-player-name, .team-player-stat-value, .team-player-stat-label').forEach(node => { node.style.fontSize = ''; });
+  pane?.querySelectorAll('.team-player-name').forEach(node => fitNode(node, 8));
+  pane?.querySelectorAll('.team-player-stat').forEach(stat => {
+    const label = stat.querySelector('.team-player-stat-label'), value = stat.querySelector('.team-player-stat-value');
+    const style = getComputedStyle(stat);
+    if (style.flexDirection === 'column') { fitNode(label, 6.5); fitNode(value, 8); return; }
+    const measure = node => {
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      return range.getBoundingClientRect().width;
+    };
+    const width = measure(label) + measure(value), gap = Number.parseFloat(style.columnGap) || 0;
+    if (width + gap > stat.clientWidth && stat.clientWidth > 0) {
+      const scale = Math.max(0, stat.clientWidth - gap - 1) / width;
+      label.style.fontSize = `${Math.max(6.5, Number.parseFloat(getComputedStyle(label).fontSize) * scale)}px`;
+      value.style.fontSize = `${Math.max(8, Number.parseFloat(getComputedStyle(value).fontSize) * scale)}px`;
     }
   });
 }
@@ -12573,13 +12586,16 @@ function dataHubOpenTeamView(trigger) {
   pane.querySelector('.team-modal-season').textContent = `${state.currentModalSeason} SEASON · PPR`;
   // Keep the requested team metrics in the existing subtitle. The 2026-only
   // source leaves historical values blank instead of displaying another season.
-  pane.querySelector('.team-modal-header').innerHTML = `<img class="team-modal-logo" src="${getDataHubTeamLogoSrc(team)}" alt="${team}" width="48" height="48"><div class="team-modal-heading"><h3 id="team-modal-title">${dataHubEscapeHtml(dataHubTeamNames[team])}</h3><p class="team-modal-summary" title="${state.currentModalSeason === '2026' ? '2026 team season totals · TM_STAT' : 'TM_STAT team stats are available for 2026'}"><span class="team-modal-player-count">${players.length} players</span>${TEAM_SUMMARY_FIELDS.map(key => `<span class="team-modal-metric">${key === 'ruYds' ? 'RuYds' : key} <strong data-team-summary-stat="${key}">—</strong></span>`).join('')}</p></div>`;
+  pane.querySelector('.team-modal-header').innerHTML = `<img class="team-modal-logo" src="${getDataHubTeamLogoSrc(team)}" alt="${team}" width="48" height="48"><div class="team-modal-heading"><h3 id="team-modal-title">${dataHubEscapeHtml(dataHubTeamNames[team])}</h3><p class="team-modal-summary" title="${state.currentModalSeason === '2026' ? '2026 team season totals · TM_STAT' : 'TM_STAT team stats are available for 2026'}"><span class="team-modal-player-count">${players.length} players</span>${TEAM_SUMMARY_FIELDS.map(key => `<span class="team-modal-metric">${key === 'ruYds' ? 'RuYds' : key} <strong data-team-summary-stat="${key}">—</strong> <span class="team-modal-metric-rank" data-team-summary-rank="${key}"></span></span>`).join('')}</p></div>`;
   const groupNames = { QB: 'Quarterbacks', RB: 'Running backs', WR: 'Wide receivers', TE: 'Tight ends' };
   const body = pane.querySelector('.team-modal-body');
-  body.innerHTML = dataHubTeamPositions.map(pos => {
-    const group = players.filter(player => player.pos === pos);
-    return `<section class="team-position-group" data-position="${pos}" aria-labelledby="team-position-${pos}"><h4 id="team-position-${pos}" class="team-position-heading"><span class="team-position-badge">${pos}</span><span>${groupNames[pos]}</span><span class="team-position-count">${group.length}</span></h4><div class="team-player-grid">${group.map(dataHubTeamCard).join('')}</div>${group.length ? '' : '<p class="team-position-empty">No players listed</p>'}</section>`;
-  }).join('');
+  // Position columns stay independent: QB/RB stack on the left, WR/TE on the
+  // right. Each position retains KTC order and full-width player cards.
+  body.innerHTML = `<div class="team-modal-columns">${[['QB', 'RB'], ['WR', 'TE']].map(positions =>
+    `<div class="team-position-column" data-team-position-column="${positions.join(' ')}">${positions.map(pos => {
+      const group = players.filter(player => player.pos === pos);
+      return `<section class="team-position-group" data-position="${pos}" aria-labelledby="team-position-${pos}"><h4 id="team-position-${pos}" class="team-position-heading"><span class="team-position-badge">${pos}</span><span>${groupNames[pos]}</span><span class="team-position-count">${group.length}</span></h4><div class="team-player-grid">${group.map(dataHubTeamCard).join('')}</div>${group.length ? '' : '<p class="team-position-empty">No players listed</p>'}</section>`;
+    }).join('')}</div>`).join('')}</div>`;
   body.scrollTop = 0;
   gameLogsModal.classList.add('is-team-view');
   pane.classList.remove('hidden');
