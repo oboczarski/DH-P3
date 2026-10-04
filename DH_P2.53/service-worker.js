@@ -27,7 +27,8 @@
 // Refresh compact, source-only Game Logs team dialogs and their positional stat colors.
 // Also refresh LeagueHub's refined Power Rankings gradients and label spacing.
 // Team dialogs restore five-stat rows, split position groups and rank TM_STAT on both pages.
-const CACHE_NAME = 'DH3.48t-team-position-columns';
+// Refresh adaptive TE placement and the requested team-summary rank colors on both pages.
+const CACHE_NAME = 'DH3.48u-adaptive-team-colors';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

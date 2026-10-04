@@ -6450,8 +6450,8 @@ body[data-page="rosters"] #game-logs-modal #radar-chart-container #player-radar-
 }
 
 
-/* Rosters Game Logs team view: QB/RB occupy the left position column and
-   WR/TE the right, with one player per card and two five-stat rows. The dialog
+/* Rosters Game Logs team view: QB/RB stay left and WR stays right; the renderer
+   places TE from team player counts. Cards keep two five-stat rows. The dialog
    grows to the viewport limit, then its body scrolls while navigation stays visible. */
 body[data-page="rosters"] #game-logs-modal [data-team-modal-open] {
   cursor: pointer;

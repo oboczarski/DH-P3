@@ -13,7 +13,22 @@ vm.runInContext(source.slice(source.indexOf('function parseCsv('), source.indexO
 const parseCsv = context.parseCsv;
 const row = { TM: 'BUF', 'Pa%': '51.1%', 'Ru%': '48.9%', paYds: '786', ruYds: '465' };
 
-for (const [page, { build2026TeamStats, load2026TeamStats, build2026TeamRanks }] of [['DataHub', dataHubModel], ['Rosters', rostersModel]]) {
+for (const [page, { build2026TeamStats, load2026TeamStats, build2026TeamRanks, get2026TeamStatColor }] of [['DataHub', dataHubModel], ['Rosters', rostersModel]]) {
+  test(`${page}: team summary colors match every requested rank-band boundary`, () => {
+    for (const [keys, colors] of [
+      [['Pa%', 'Ru%'], ['#b178ff', '#78d3ff', '#78baff', '#e678ff']],
+      [['paYds', 'ruYds'], ['#79ffd6eb', '#5aa7ff', '#957CFF', '#FF6FE1']],
+    ]) {
+      for (const key of keys) {
+        for (const [band, ranks] of [[0, [1, 8]], [1, [9, 16]], [2, [17, 24]], [3, [25, 32]]]) {
+          for (const rank of ranks) assert.equal(get2026TeamStatColor(key, rank), colors[band]);
+        }
+        for (const rank of [null, undefined, NaN, 0, -1, 33, 8.5]) assert.equal(get2026TeamStatColor(key, rank), '');
+      }
+    }
+    assert.equal(get2026TeamStatColor('unknown', 1), '');
+  });
+
   test(`${page}: TM_STAT maps exact source fields, team aliases, percentage units and real zeros`, () => {
     const teams = build2026TeamStats([row, { ...row, TM: 'WSH', paYds: '1,234', ruYds: '0', 'Pa%': '0%' }]);
     assert.deepEqual(teams.BUF, { 'Pa%': 51.1, 'Ru%': 48.9, paYds: 786, ruYds: 465 });

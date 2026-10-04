@@ -46,6 +46,17 @@ export function build2026TeamRanks(teams) {
   return ranks;
 }
 
+export function get2026TeamStatColor(key, rank) {
+  // Rosters team-summary values use the requested eight-team rank bands.
+  // Missing/out-of-range ranks stay neutral; preserve the top yardage band's alpha.
+  if (!Number.isInteger(rank) || rank < 1 || rank > 32) return '';
+  const colors = key === 'Pa%' || key === 'Ru%'
+    ? ['#b178ff', '#78d3ff', '#78baff', '#e678ff']
+    : key === 'paYds' || key === 'ruYds'
+      ? ['#79ffd6eb', '#5aa7ff', '#957CFF', '#FF6FE1'] : null;
+  return colors?.[Math.floor((rank - 1) / 8)] || '';
+}
+
 export async function load2026TeamStats({ parseCsv, fetchImpl = fetch }) {
   const response = await fetchImpl(get2026SheetCsvUrl('TM_STAT'), { cache: 'no-store' });
   if (!response.ok) throw new Error(`2026 TM_STAT could not load (${response.status}).`);
