@@ -30,7 +30,8 @@
 // Restore stacked position sections on both pages while retaining team-summary rank colors.
 // Refresh team-card FPTS name ranks and centered position-heading dividers on both pages.
 // Refresh every navigation entry and the integrated, live-Sheets Matchups page.
-const CACHE_NAME = 'DH3.49-matchups-sheets';
+// Refresh Rosters Start/Sit previews and their independently owned defense-panel modal.
+const CACHE_NAME = 'DH3.49a-rosters-matchups';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -117,7 +118,9 @@ function isCacheableAsset(url) {
     /^\/data\//,
     // Include Matchups' clean directory URL and its page-owned image assets.
     /^\/matchups\/(?:index\.html)?$/,
-    /^\/matchups\/assets\//
+    /^\/matchups\/assets\//,
+    // The copied Start/Sit panel owns its image assets under Rosters.
+    /^\/rosters\/matchup-breakdown\/assets\//
   ];
 
   return patterns.some(p => p.test(pathname));

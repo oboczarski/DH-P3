@@ -1,0 +1,51 @@
+<!-- Rosters owns this exact defensePanel copy, its filters, SVG symbols and expanded player view.
+     A shadow root contains the original IDs/styles without affecting other Rosters modals. -->
+  <svg class="iconSprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="icon-chart" viewBox="0 0 24 24"><path d="M4 3v17h17M8 14l4-5 4 2 5-7"/></symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="icon-expand" viewBox="0 0 24 24"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m6 0h6v-6"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+    <symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></symbol>
+  </svg>
+<dialog class="matchupDialog" id="breakdownDialog" aria-labelledby="breakdownTitle">
+  <div class="dialogHeader"><div><h2 id="breakdownTitle">Matchup Breakdown</h2><p class="panelSubtitle" id="breakdownPlayer"></p></div><button type="button" class="iconButton" data-close-breakdown aria-label="Close matchup breakdown"><svg class="icon"><use href="#icon-close"/></svg></button></div>
+  <div class="dialogBody">
+    <div id="loadStatus" class="smallMuted" role="status">Preparing matchup data…</div>
+    <div class="loadError" id="loadError" role="alert" hidden></div>
+    <button type="button" class="retryButton" data-retry-load hidden>Retry matchup data</button>
+    <div id="analysis" aria-busy="true" hidden>
+<div class="expandedControls" aria-label="Matchup filters">
+  <div class="teamPicker" id="teamPicker" data-picker-kind="team"></div>
+  <div class="teamPicker venueMenu" id="venueMenu" data-picker-kind="venue"></div>
+  <span class="smallMuted" id="scopeNote"></span>
+</div>      <section class="glass-panel defensePanel" aria-labelledby="defenseTitle">
+        <div class="defenseHeader"><div class="defenseLogo" id="defenseLogo"></div><div><span class="fieldLabel">FANTASY POINTS ALLOWED</span><h2 id="defenseTitle">Loading defense…</h2><p id="defenseSubtitle" class="panelSubtitle"></p></div><span class="positionBadge" id="selectedPosition" data-pos="QB">QB</span></div>
+        <div class="metricStrip" id="metrics"></div>
+        <section class="weeklySection" aria-labelledby="weeklyTitle">
+          <div class="sectionHeading chartHeading"><h3 id="weeklyTitle">Week by week</h3><div class="chartHeaderControls"><div class="chartLegend"><span><i class="legendActual"></i>Actual FPA</span><span><i class="legendExpected"></i>Expected</span></div><div class="positionToggle chartPositionToggle" role="group" aria-label="Weekly chart position"><button type="button" data-position="QB" data-pos="QB" aria-pressed="true">QB</button><button type="button" data-position="RB" data-pos="RB" aria-pressed="false">RB</button><button type="button" data-position="WR" data-pos="WR" aria-pressed="false">WR</button><button type="button" data-position="TE" data-pos="TE" aria-pressed="false">TE</button><button type="button" data-position="ALL" data-pos="ALL" aria-pressed="false">ALL</button></div></div></div>
+          <div class="chart weeklyChart" id="weeklyChart"></div>
+          <div class="weeklyMatchups" id="weeklyMatchups"></div>
+        </section>
+        <section class="playersSection" id="players" aria-labelledby="playersTitle">
+          <div class="sectionHeading"><h3 id="playersTitle">Players faced</h3><span class="smallMuted" id="playerScope"></span><button type="button" class="iconButton" id="expandPlayers" aria-label="Expand player results" title="Expand player results"><svg class="icon"><use href="#icon-expand"/></svg></button></div>
+          <div class="playerFilters"><label class="searchField"><svg class="icon"><use href="#icon-search"/></svg><input type="search" id="playerSearch" placeholder="Search players or offenses" aria-label="Search player results"></label><label class="checkboxField"><input type="checkbox" id="hideZero" checked>Hide &lt;1 point</label></div>
+          <div class="tableScroll playerTableScroll" tabindex="0" aria-label="Scrollable player results"><table class="playerTable" id="playerTable"></table></div>
+          <div class="playerFooter"><span id="playerCount" aria-live="polite"></span><span id="playerTotal"></span></div>
+        </section>
+      </section>
+    </div>
+  </div>
+  <div class="chartTooltip" id="chartTooltip" role="status" hidden></div>
+</dialog>
+  <dialog class="expandedDialog glass-panel" id="playersDialog" aria-labelledby="expandedTitle">
+    <div class="dialogHeader"><div><span class="fieldLabel">RECORDED PLAYER SCORES</span><h2 id="expandedTitle">Players faced</h2><p class="panelSubtitle" id="expandedSubtitle"></p></div><button type="button" class="iconButton" data-close-dialog aria-label="Close expanded player results"><svg class="icon"><use href="#icon-close"/></svg></button></div>
+    <div class="dialogBody">
+      <div class="expandedControls">
+        <div class="teamPicker" id="modalTeamPicker" data-picker-kind="team"></div>
+        <div class="positionToggle" role="group" aria-label="Expanded position"><button type="button" data-position="QB" data-pos="QB" aria-pressed="true">QB</button><button type="button" data-position="RB" data-pos="RB" aria-pressed="false">RB</button><button type="button" data-position="WR" data-pos="WR" aria-pressed="false">WR</button><button type="button" data-position="TE" data-pos="TE" aria-pressed="false">TE</button><button type="button" data-position="ALL" data-pos="ALL" aria-pressed="false">ALL</button></div>
+        <div class="teamPicker venueMenu" id="modalVenueMenu" data-picker-kind="venue"></div>
+      </div>
+      <div class="playerFilters"><label class="searchField"><svg class="icon"><use href="#icon-search"/></svg><input type="search" id="expandedSearch" placeholder="Search players or offenses" aria-label="Search expanded player results"></label><label class="checkboxField"><input type="checkbox" id="expandedHideZero" checked>Hide &lt;1 point</label></div>
+      <div class="tableScroll expandedTableScroll" tabindex="0" aria-label="Expanded player results"><table class="playerTable" id="expandedTable"></table></div><div class="playerFooter"><span id="expandedCount"></span><span>Selections update the dashboard.</span></div>
+    </div>
+  </dialog>

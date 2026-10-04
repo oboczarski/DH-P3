@@ -43,6 +43,12 @@ const statsButton = document.getElementById('statsButton');
 const leagueHubButton = document.getElementById('leagueHubButton');
 const researchButton = document.getElementById('researchButton');
 const startSitButton = document.getElementById('startSitButton');
+// Rosters Start/Sit owns its copied matchup panel, loader and state. Import it
+// only when Start/Sit is requested; other pages never load these files/sheets.
+let rostersMatchups = null;
+let rostersMatchupsModulePromise = null;
+let rostersMatchupsPreparationPromise = null;
+let rostersMatchupsLoadFailed = false;
 const gameLogsModal = document.getElementById('game-logs-modal');
 const gameLogsSeasonDropdown = document.querySelector('[data-gamelogs-season-dropdown]');
 const gameLogsSeasonToggle = document.getElementById('gamelogsSeasonToggle');
@@ -1621,6 +1627,21 @@ if (pageType === 'rosters') {
     rosterGrid?.addEventListener('click', handleTeamSelect);
     mainContent?.addEventListener('click', handleAssetClickForTrade);
     tradeSimulator.addEventListener('click', (e) => {
+        const breakdownButton = e.target.closest('[data-start-sit-matchup-id]');
+        if (breakdownButton && state.isStartSitMode) {
+            const selection = state.startSitSelections.find(player => player.id === breakdownButton.dataset.startSitMatchupId);
+            if (selection && !breakdownButton.disabled) {
+                // Open that player's defense/position; reuse the data preparation
+                // already started by the Start/Sit button, even if still pending.
+                getRostersMatchupController().then(controller => {
+                    if (state.isStartSitMode) return controller.open(selection, breakdownButton);
+                }).catch(error => {
+                    console.warn('Unable to open Matchup Breakdown.', error);
+                    showTemporaryTooltip(breakdownButton, 'Unable to open matchup details. Please try again.');
+                });
+            }
+            return;
+        }
         const compareButton = e.target.closest('#comparePlayersButton');
         if (compareButton) {
             const isModalOpen = !playerComparisonModal.classList.contains('hidden');
@@ -2624,6 +2645,34 @@ function handleCompareClick() {
     }
     renderAllTeamData(state.currentTeams);
 }
+function getRostersMatchupController() {
+    if (pageType !== 'rosters') return Promise.reject(new Error('Matchup Breakdown belongs to Rosters.'));
+    if (!rostersMatchupsModulePromise) {
+        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.49a-rosters-matchups')
+            .then(({ createMatchupBreakdown }) => {
+                rostersMatchups = createMatchupBreakdown({ onDataChange: () => {
+                    // Late matchup readiness updates selected previews without
+                    // changing their projection snapshots or selected players.
+                    rostersMatchupsLoadFailed = rostersMatchups?.status === 'error';
+                    if (state.isStartSitMode) renderTradeBlock();
+                } });
+                return rostersMatchups;
+            }).catch(error => { rostersMatchupsModulePromise = null; throw error; });
+    }
+    return rostersMatchupsModulePromise;
+}
+function prepareRostersStartSitMatchups() {
+    if (rostersMatchupsPreparationPromise) return rostersMatchupsPreparationPromise;
+    rostersMatchupsLoadFailed = false;
+    rostersMatchupsPreparationPromise = getRostersMatchupController()
+        .then(controller => controller.prepare())
+        .catch(error => {
+            rostersMatchupsLoadFailed = true;
+            console.warn('Unable to prepare Rosters matchup data.', error);
+            if (state.isStartSitMode) renderTradeBlock();
+        }).finally(() => { rostersMatchupsPreparationPromise = null; });
+    return rostersMatchupsPreparationPromise;
+}
 async function handleStartSitButtonClick() {
     if (state.isStartSitMode) {
         exitStartSitMode();
@@ -2632,6 +2681,10 @@ async function handleStartSitButtonClick() {
     if (startSitButton?.getAttribute('aria-busy') === 'true') {
         return;
     }
+    // Begin fresh FPF/FPFA/FPA reads, parsing, venue analysis, panel/styles and
+    // image preparation immediately, in parallel with the existing projections.
+    // An optional matchup failure does not prevent selecting Start/Sit players.
+    void prepareRostersStartSitMatchups();
     const teams = state.currentTeams || [];
     const userTeam = teams.find(team => team.teamName === state.userTeamName) || teams.find(team => team.isUserTeam);
     if (!userTeam) {
@@ -2716,6 +2769,7 @@ function enterStartSitMode() {
 function exitStartSitMode() {
     if (!state.isStartSitMode) return;
     state.isStartSitMode = false;
+    rostersMatchups?.close();
     state.startSitSelections = [];
     state.startSitNextSide = 'left';
     rosterView.classList.remove('is-trade-mode');
@@ -9552,6 +9606,7 @@ function renderStartSitPreview() {
         let totalDisplay = '—';
         let projectionColor = 'var(--color-text-tertiary)';
         let matchupSectionHtml = '';
+        let breakdownHtml = '';
         if (selection) {
             const tagColor = TAG_COLORS[selection.pos] || 'var(--pos-bn)';
             const posForColor = selection.basePos || selection.pos;
@@ -9588,24 +9643,43 @@ function renderStartSitPreview() {
                 }
             }
             if (selection.matchup) {
-                const { opponent, opponentOrdinal, opponentRankDisplay, color, isBye } = selection.matchup;
+                const { opponent, isBye } = selection.matchup;
                 const opponentText = opponent || (isBye ? 'BYE' : '');
                 if (opponentText) {
-                    const opponentStyle = color && !isBye ? ` style="color: ${color};"` : '';
-                    const rankRawText = !isBye
-                        ? (opponentOrdinal || (opponentRankDisplay && opponentRankDisplay !== 'NA' ? opponentRankDisplay : ''))
-                        : '';
+                    // Preview percent/rank use the copied Matchups analysis. The
+                    // point difference is its total delta divided by recorded
+                    // games, so it expresses the same comparison per game.
+                    const metric = rostersMatchups?.preview(selection);
+                    const matchupColor = metric?.actualRank ? getOpponentRankColor(metric.actualRank) : null;
+                    const opponentStyle = matchupColor && !isBye ? ` style="color: ${matchupColor};"` : '';
+                    const rankRawText = !isBye && metric?.actualRank ? ordinalSuffix(metric.actualRank) : '';
                     const hasRankText = Boolean(rankRawText);
-                    const rankStyle = color && !isBye ? ` style="color: ${color};"` : '';
+                    const rankStyle = matchupColor && !isBye ? ` style="color: ${matchupColor};"` : '';
                     const safeOpponent = escapeHtml(opponentText);
                     const rankHtml = hasRankText
                         ? `<span class="start-sit-matchup-sep">•</span><span class="start-sit-matchup-rank"${rankStyle}>${escapeHtml(rankRawText)}</span>`
                         : '';
-                    // Render matchup inline (next to projected points) to reduce vertical space.
-                    // Keep the same data; this is purely a placement/layout change.
-                    matchupSectionHtml = `<span class="start-sit-matchup-inline"><span class="start-sit-matchup-opponent"${opponentStyle}>${safeOpponent}</span>${rankHtml}</span>`;
+                    const signedMatchup = (value, digits) => `${value > 0 ? '+' : ''}${(Math.abs(value) < 1e-9 ? 0 : value).toFixed(digits)}`;
+                    let comparisonText = '';
+                    let comparisonStyle = '';
+                    if (!isBye) {
+                        if (metric && metric.deltaPerGame !== null) {
+                            const percent = metric.deltaPct === null ? '—' : `${signedMatchup(metric.deltaPct, 1)}%`;
+                            comparisonText = `${percent} · ${signedMatchup(metric.deltaPerGame, 2)} pts/game vs expected`;
+                            comparisonStyle = metric.delta > 0 ? ' style="color:#75e0b7;"' : metric.delta < 0 ? ' style="color:#ffb2d8;"' : '';
+                        } else {
+                            comparisonText = rostersMatchupsLoadFailed || rostersMatchups?.status === 'error'
+                                ? 'Matchup data unavailable'
+                                : rostersMatchups?.status === 'ready' ? 'Comparison unavailable' : 'Loading matchup…';
+                        }
+                    }
+                    matchupSectionHtml = `<span class="start-sit-matchup-inline"><span class="start-sit-matchup-opponent"${opponentStyle}><span>${safeOpponent}${rankHtml}</span>${comparisonText ? `<span class="start-sit-matchup-delta"${comparisonStyle}>${escapeHtml(comparisonText)}</span>` : ''}</span></span>`;
                 }
             }
+            // A text-styled button supplies keyboard/touch access at the bottom
+            // of each selected preview. BYE/unknown matchups have no defense to open.
+            const canBreakdown = Boolean(rostersMatchups?.canOpen(selection));
+            breakdownHtml = `<button type="button" class="start-sit-matchup-breakdown" data-start-sit-matchup-id="${escapeHtml(selection.id)}" aria-haspopup="dialog" aria-label="Matchup Breakdown for ${escapeHtml(selection.label)}"${canBreakdown ? '' : ' disabled title="No opponent defense available"'}>Matchup Breakdown</button>`;
             const rankParts = rankText.split('·');
             const rankNumberDisplay = rankParts.length > 1 ? rankParts.slice(1).join('·') : 'NA';
             assetsHTML = `
@@ -9629,12 +9703,13 @@ function renderStartSitPreview() {
                         <h4>Player ${slotNumber}</h4>
                         <div class="trade-assets">${assetsHTML}</div>
                         <div class="trade-total even start-sit-total">
-                            <span class="start-sit-total-label">Projected Points:</span>
                             <span class="start-sit-proj-inline-row">
+                                <span class="start-sit-total-label">Projected Points:</span>
                                 <span class="start-sit-total-value" style="color: ${projectionColor};">${safeTotal}</span>
-                                ${matchupSectionHtml}
                             </span>
                         </div>
+                        ${matchupSectionHtml ? `<div class="start-sit-matchup-meta">${matchupSectionHtml}</div>` : ''}
+                        ${breakdownHtml}
                     </div>
                 `;
     };

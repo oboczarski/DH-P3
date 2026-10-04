@@ -22,6 +22,7 @@ When you update code and make changes to the app, add comments that explain:
 - **DataHub 2026 exception:** use workbook `16fOWHEuPWkNz9AHLCiySjxwW_y4ulLemNaMVc3srE94`: `DH` for season totals, numbered `WK1`–`WK18` tabs for weekly data, and `DRK` for opponent position ranks. Match opponents through `DH_P2.53/data/NFL-2026/Schedule2026.csv`. Load DH independently for the main Stats content; load WK/DRK/schedule only for Game Logs and Compare. Derive qualifier weeks from the maximum DH GM_P (Overview G), with a minimum of 1; from 14 games onward use maximum G + 1 (14 games = Week 15). DataHub 2025 and the separate Rosters/Stats pages retain their CSV sources.
 - Existing KTC/ADP Google Sheets feeds remain available for valuation data.
 - **Matchups 2026:** `DH_P2.53/matchups/index.html` owns its app, CSS, assets and chart library. Its page-local loader shares `scripts/nfl-2026-sheets.js` URL configuration and reads fresh `FPF` (offense scoring), `FPFA` (published defense summaries) and `FPA` (players/weekly results, formerly FPAv2) tabs from the same 2026-Wkly workbook. Preserve each source's original calculations and ranks; never fall back to bundled snapshots.
+- **Rosters Start/Sit matchup exception:** pressing Start/Sit lazily prepares the same fresh FPF/FPFA/FPA exports with independently copied parsers, defense-panel renderers, styles and logos in `rosters/matchup-breakdown/`. Its shadow-root modal never imports Matchups files or changes projection/Game Logs sources. Preview percent uses the panel total comparison; preview points per game are its unrounded total delta divided by recorded games.
 - DataHub 2026 season positional ranks use default weekly-scaled qualifiers: QB `paATT`, RB `CAR`, WR/TE `RR`. Non-qualified players keep their statistics but receive no season rank; Show All does not bypass ranking qualification.
 
 ## Key patterns (do not break)
@@ -156,7 +157,7 @@ The “Matchups” buttons inside every desktop/mobile navigation menu open the 
 
 ### Google Sheets
 - **DataHub 2026 enabled:** the workbook and tab mapping above are authoritative for 2026 Stats, Game Logs, Season views, and Compare. Never overlay another year's stats or Sleeper live stats onto those rows.
-- **Matchups 2026 enabled:** only the Matchups page loads its three mapped FPF/FPFA/FPA tabs, using fresh native CSV exports and the original Matchups parsers. Other pages do not load these sources or the Matchups chart library.
+- **Matchup sheets enabled:** Matchups and the explicitly requested Rosters Start/Sit breakdown load the mapped FPF/FPFA/FPA tabs with fresh native CSV exports and independently owned copies of the original parsers. No other page loads these sources; the Matchups chart library stays on its page.
 - **Historical data:** DataHub 2025 and the separate Rosters/Stats pages still use local CSVs.
 - **Valuations:** KTC/ADP workbook SLP.TL (`GOOGLE_SHEET_ID`) remains live.
 - **Edge proxies** exist but are NOT used by frontend currently

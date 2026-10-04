@@ -385,70 +385,110 @@ body[data-page="rosters"] #starfield::after {
   line-height: 1;
 }
 
-/* Start/Sit: layout for projected points + matchup (no font resizing). */
-
-.start-sit-preview-column .trade-total.start-sit-total {
+/* Rosters Start/Sit: label and value stay in one row at every width.
+   Matchup context and its Breakdown action follow below each player's projection;
+   the Trade Preview layout and every other modal retain their existing rules. */
+body[data-page="rosters"] .start-sit-preview-column .trade-total.start-sit-total {
   display: flex;
-  flex-direction: row;
   align-items: baseline;
   justify-content: center;
-  flex-wrap: nowrap;
-  gap: 0.45rem;
+  max-width: 100%;
+  margin-inline: 0 !important;
+  padding-inline: 0;
 }
-
-.start-sit-preview-column .trade-total.start-sit-total .start-sit-total-label {
+/* Six enriched previews can exceed a short phone's height. Keep Close/Clear
+   reachable and scroll only this Start/Sit body; Trade Preview stays unchanged. */
+body[data-page="rosters"] .start-sit-container {
+  max-height: 70dvh;
+}
+body[data-page="rosters"] .start-sit-container .trade-header,
+body[data-page="rosters"] .start-sit-container .trade-footnote {
+  flex-shrink: 0;
+}
+body[data-page="rosters"] .start-sit-container .trade-body {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+body[data-page="rosters"] .start-sit-preview-row {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+body[data-page="rosters"] .start-sit-preview-column,
+body[data-page="rosters"] .start-sit-chip-body,
+body[data-page="rosters"] .start-sit-name-text {
+  min-width: 0;
+  max-width: 100%;
+}
+body[data-page="rosters"] .start-sit-preview-column .trade-assets {
+  margin-inline: 0 !important;
+}
+body[data-page="rosters"] .start-sit-chip-body,
+body[data-page="rosters"] .start-sit-name {
+  width: 100%;
+}
+body[data-page="rosters"] .start-sit-name-text {
+  white-space: normal;
+}
+body[data-page="rosters"] .start-sit-proj-inline-row {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+body[data-page="rosters"] .start-sit-proj-inline-row .start-sit-total-label {
   margin-right: 0;
-  white-space: nowrap;
 }
-
-.start-sit-preview-column .trade-total.start-sit-total .start-sit-total-value {
-  white-space: nowrap;
+body[data-page="rosters"] .start-sit-matchup-meta {
+  width: 100%;
 }
-
-/* The inline row is only the VALUE + matchup (label is separate). */
-
-.start-sit-preview-column .trade-total.start-sit-total .start-sit-proj-inline-row {
+body[data-page="rosters"] .start-sit-matchup-inline {
   display: inline-flex;
-  align-items: baseline;
   justify-content: center;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-  gap: 0.45rem;
-}
-
-/* Start/Sit preview: matchup inline next to projected points (layout only; font sizes unchanged). */
-
-.start-sit-preview-column .trade-total .start-sit-matchup-inline {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0;
-  margin-left: 0;
-  line-height: 1;
-  white-space: nowrap;
-  color: var(--color-text-tertiary);
   font-size: 0.8rem;
-  /* same as the previous matchup block */
-  letter-spacing: 0.01em;
-  font-weight: 500;
+  max-width: 100%;
 }
-
-/* Mobile priority: label stays visible; VALUE + matchup are on one non-wrapping line below it. */
-
-@media (max-width: 520px) {
-  .start-sit-preview-column .trade-total.start-sit-total {
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.18rem;
-  }
-
-  .start-sit-preview-column .trade-total.start-sit-total .start-sit-total-label {
-    display: inline-block;
-    white-space: nowrap;
-  }
-
-  .start-sit-preview-column .trade-total.start-sit-total .start-sit-proj-inline-row {
-    white-space: nowrap;
+body[data-page="rosters"] .start-sit-matchup-opponent {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.16rem;
+  min-width: 0;
+  max-width: 100%;
+}
+body[data-page="rosters"] .start-sit-matchup-delta {
+  color: var(--color-text-tertiary);
+  font-size: 0.7rem;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  max-width: 100%;
+  white-space: normal;
+}
+body[data-page="rosters"] .start-sit-matchup-breakdown {
+  border: 0;
+  background: transparent;
+  padding: 0.2rem;
+  color: #b8c4ff;
+  font-size: 0.73rem;
+  line-height: 1.3;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+body[data-page="rosters"] .start-sit-matchup-breakdown:focus-visible {
+  outline: 2px solid #74efff;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
+  color: var(--color-text-tertiary);
+  opacity: 0.65;
+  cursor: default;
+}
+@media (max-width:520px) {
+  body[data-page="rosters"] .start-sit-proj-inline-row { gap: 0.25rem; }
+  body[data-page="rosters"] .start-sit-proj-inline-row .start-sit-total-label {
+    font-size: clamp(0.68rem, 2.9vw, 0.9rem);
   }
 }
 
@@ -468,7 +508,7 @@ body[data-page="rosters"] #starfield::after {
   color: var(--color-text-tertiary);
   text-align: center;
   line-height: 1.25;
-  margin-top: -0.2rem;
+  margin-top: 0;
   letter-spacing: 0.01em;
 }
 
