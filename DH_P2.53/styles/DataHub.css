@@ -16067,17 +16067,17 @@ body[data-page="datahub"] #game-logs-modal .team-position-heading {
   color: #c5d0e3;
   font-size: 12px;
   font-weight: 500;
-  line-height: 1.3;
+  line-height: 1.4;
   text-align: left;
 }
 body[data-page="datahub"] #game-logs-modal .team-position-badge {
   min-width: 25px;
-  padding: 2px 6px;
+  padding: 1px 6px 0px;
   border-radius: 6px;
   background: color-mix(in srgb, var(--team-position-color) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--team-position-color) 30%, transparent);
   color: var(--team-position-color);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   text-align: center;
 }
@@ -16133,7 +16133,7 @@ body[data-page="datahub"] #game-logs-modal .team-player-name {
   text-overflow: ellipsis;
 }
 /* Keep the FPTS rank beside the name without allowing the rank or arrow to wrap. */
-body[data-page="datahub"] #game-logs-modal .team-player-fpts-rank { flex: 0 0 auto; font-size: 10px; font-weight: 550; line-height: 1.15; font-variant-numeric: normal; white-space: nowrap; }
+body[data-page="datahub"] #game-logs-modal .team-player-fpts-rank {flex: 0 0 auto;font-size: 11px;font-weight: 550;line-height: 1;font-variant-numeric: normal;white-space: nowrap;padding: 3px 3px;border: 1px solid #bbc2;border-radius: 6px;background: linear-gradient(148deg, rgb(37 47 69 / 95%), rgb(20 29 40));}
 body[data-page="datahub"] #game-logs-modal .team-player-arrow { display: grid; place-items: center; flex: 0 0 auto; margin-left: auto; width: 12px; height: 12px; border-radius: 50%; color: var(--team-position-color); background: color-mix(in srgb, var(--team-position-color) 10%, transparent); }
 body[data-page="datahub"] #game-logs-modal .team-player-arrow svg { display: block; width: 12px; height: 12px; }
 body[data-page="datahub"] #game-logs-modal .team-modal-back svg { display: block; width: 12px; height: 12px; flex: 0 0 auto; }
@@ -16165,7 +16165,7 @@ body[data-page="datahub"] #game-logs-modal .team-position-empty { margin: 0; pad
   body[data-page="datahub"] #game-logs-modal .team-modal-summary { gap: 3px 7px; }
   body[data-page="datahub"] #game-logs-modal .team-modal-body { padding: 0 1px 2px; }
   body[data-page="datahub"] #game-logs-modal .team-position-group { padding-top: 5px; }
-  body[data-page="datahub"] #game-logs-modal .team-position-heading { margin-bottom: 3px; font-size: 9px; }
+  body[data-page="datahub"] #game-logs-modal .team-position-heading {margin-bottom: 3px;font-size: 12px;}
   body[data-page="datahub"] #game-logs-modal .team-player-card { padding: 2px; border-radius: 7px; }
   body[data-page="datahub"] #game-logs-modal .team-player-card-heading { margin-bottom: 2px; gap: 3px; }
   body[data-page="datahub"] #game-logs-modal .team-player-name { font-size: 10.5px; line-height: 1.1; }
