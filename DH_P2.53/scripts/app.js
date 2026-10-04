@@ -460,7 +460,8 @@ function ensureLeagueUsernameGate() {
                                         <i class="fa-solid fa-trophy" aria-hidden="true"></i>
                                         <span class="nav-label">Trophy Room</span>
                                     </button>
-                                    <button class="league-username-gate__more-item" type="button" data-gate-menu-url="http://dynastyhub-matchups.netlify.app/" role="menuitem">
+                                    <!-- The username gate also opens Matchups locally from its desktop/mobile menu. -->
+                                    <button class="league-username-gate__more-item" type="button" data-gate-menu-url="../matchups/index.html" role="menuitem">
                                         <i class="fa-solid fa-table-columns" aria-hidden="true"></i>
                                         <span class="nav-label">Matchups</span>
                                     </button>
@@ -1333,7 +1334,7 @@ if (pageType !== 'welcome') {
                 moreButton.setAttribute('aria-expanded', 'false');
                 moreDropdown.setAttribute('aria-hidden', 'true');
 
-                // External destinations (Matchups / Trophy Room)
+                // URL destinations include integrated Matchups and the Trophy Room sister app.
                 if (url) {
                     const destination = typeof window.__dhBuildExternalUrl === 'function'
                         ? window.__dhBuildExternalUrl(url)

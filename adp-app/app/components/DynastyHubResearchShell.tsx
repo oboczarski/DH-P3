@@ -19,6 +19,7 @@ type InternalDestination =
   | "leaguehub"
   | "research"
   | "ownership"
+  | "matchups"
   | "contact";
 
 type MenuPosition = {
@@ -33,6 +34,8 @@ const INTERNAL_PATHS: Record<InternalDestination, string> = {
   leaguehub: "/leaguehub/leaguehub.html",
   research: "/research/research.html",
   ownership: "/ownership/ownership.html",
+  // Both ADP research routes open the page-owned Matchups app on the same host.
+  matchups: "/matchups/index.html",
   contact: "/contact/contact.html",
 };
 
@@ -305,7 +308,7 @@ export default function DynastyHubResearchShell({
                   <span className="dh-nav-more-item-subtext">Dyn. Career Profile</span>
                 </span>
               </button>
-              <button className="dh-nav-more-item" type="button" role="menuitem" onClick={() => navigateExternal("http://dynastyhub-matchups.netlify.app/")}>
+              <button className="dh-nav-more-item" type="button" role="menuitem" onClick={() => navigateInternal("matchups")}>
                 <span className="dh-nav-more-item-icon" aria-hidden="true"><i className="fa-solid fa-table-columns" /></span>
                 <span className="dh-nav-more-item-copy">
                   <span className="dh-nav-more-item-title">Matchups</span>

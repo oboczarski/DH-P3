@@ -1,0 +1,372 @@
+/* Matchups-only selectors use :where() to retain the original rule specificity. */
+/* FPA-owned presentation, adapted from DataHub's page and Game Logs surfaces. */
+:root:where([data-page="matchups"]) {
+  color-scheme:dark;
+  --page-bg:#050b13; --text:#e6e9ff; --muted:#a5accb; --dim:#7b81a5;
+  --border:rgba(170,187,255,.14); --mint:#75e0b7; --pink:#ffb2d8;
+  --accent-gradient:linear-gradient(90deg,#74efff 0%,#7297ff 52%,#d97dff 100%);
+  --position:#ffb2d8; --font:"Google Sans Flex","Google Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+:where(html[data-page="matchups"], html[data-page="matchups"] *), :where(html[data-page="matchups"], html[data-page="matchups"] *)::before, :where(html[data-page="matchups"], html[data-page="matchups"] *)::after { box-sizing:border-box; }
+html:where([data-page="matchups"]) { min-height:100%; background:var(--page-bg); scroll-padding-top:10px; }
+body:where([data-page="matchups"]) {
+  margin:0; min-height:100vh; position:relative; isolation:isolate;
+  font:12px/1.4 var(--font); color:var(--text); -webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(620px 560px at 12% 8%,rgba(90,160,255,.1),transparent 42%),
+    radial-gradient(980px 680px at 88% 10%,rgba(70,190,255,.12),transparent 38%),
+    radial-gradient(800px 320px at 99% 52%,rgba(250,60,38,.07),transparent 36%),
+    radial-gradient(900px 620px at 96% 28%,rgba(170,0,255,.13),transparent 34%),
+    radial-gradient(1160px 1140px at 92% 80%,rgba(255,20,140,.1),transparent 30%),
+    radial-gradient(980px 800px at 25% 52%,rgba(90,0,250,.13),transparent 29%),
+    radial-gradient(980px 800px at 1% 88%,rgba(0,220,220,.06),transparent 28%),
+    linear-gradient(180deg,rgba(170,187,255,.14),#091625 36%,#07111b 68%,#050c14);
+  background-attachment:fixed;
+}
+body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.6; mix-blend-mode:screen; background:repeating-radial-gradient(circle at 16% 10%,rgba(175,90,255,.055) 0 1px,rgba(255,255,255,.01) 1px 2px,rgba(255,40,125,.012) 2px 3px,rgba(255,255,255,.018) 42px 82px); }
+:where(body[data-page="matchups"]) .background-orb { position:fixed; z-index:0; pointer-events:none; border-radius:50%; filter:blur(48px); opacity:.22; }
+:where(body[data-page="matchups"]) .background-orb--one { top:10vh; right:-6vw; width:28vw; height:28vw; background:radial-gradient(circle,rgba(102,215,255,.54),transparent 72%); }
+:where(body[data-page="matchups"]) .background-orb--two { bottom:18vh; left:-8vw; width:34vw; height:34vw; background:radial-gradient(circle,rgba(162,127,255,.48),transparent 70%); }
+:where(body[data-page="matchups"]) h1,:where(body[data-page="matchups"]) h2,:where(body[data-page="matchups"]) h3,:where(body[data-page="matchups"]) p { margin:0; }
+:where(body[data-page="matchups"]) h1 { font:600 26px/1.1 "MuseoModerno",var(--font); letter-spacing:-.7px; background:var(--accent-gradient); background-clip:text; -webkit-background-clip:text; color:transparent; }
+:where(body[data-page="matchups"]) h2 { font-size:17px; line-height:1.2; font-weight:550; letter-spacing:-.3px; }
+:where(body[data-page="matchups"]) h3 { font-size:12px; font-weight:550; }
+:where(body[data-page="matchups"]) a { color:inherit; text-decoration:none; }
+:where(body[data-page="matchups"]) button,:where(body[data-page="matchups"]) input { font:inherit; color:inherit; min-width:0; }
+:where(body[data-page="matchups"]) button { cursor:pointer; background:none; }
+:where(body[data-page="matchups"]) button,:where(body[data-page="matchups"]) a,:where(body[data-page="matchups"]) input,:where(body[data-page="matchups"]) summary { -webkit-tap-highlight-color:transparent; }
+:where(body[data-page="matchups"]) button:disabled { cursor:default; opacity:.45; }
+:where(body[data-page="matchups"]) button:focus-visible,:where(body[data-page="matchups"]) a:focus-visible,:where(body[data-page="matchups"]) input:focus-visible,:where(body[data-page="matchups"]) summary:focus-visible,:where(body[data-page="matchups"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
+:where(body[data-page="matchups"]) input[type="checkbox"] { accent-color:#88b8ff; width:13px; height:13px; margin:0; }
+:where(body[data-page="matchups"]) [hidden] { display:none!important; }
+:where(body[data-page="matchups"]) svg { display:block; }
+:where(body[data-page="matchups"]) .iconSprite { position:absolute; width:0; height:0; overflow:hidden; }
+:where(body[data-page="matchups"]) .icon { width:16px; height:16px; flex:none; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+:where(body[data-page="matchups"]) .srOnly { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+:where(body[data-page="matchups"]) .skipLink { position:fixed; top:6px; left:6px; z-index:100; padding:7px; border-radius:7px; background:#17263b; transform:translateY(-150%); }
+:where(body[data-page="matchups"]) .skipLink:focus { transform:none; }
+:where(body[data-page="matchups"]) .app-shell {position:relative;z-index:1;max-width: 1300px;width:100%;margin:auto;padding:10px 12px 8px;}
+:where(body[data-page="matchups"]) .glass-panel {
+  position:relative; min-width:0; border:1px solid var(--border); border-radius:14px;
+  background:linear-gradient(155deg,rgba(255,255,255,.055),rgba(255,255,255,.009)),linear-gradient(180deg,rgba(15,21,39,.76),rgba(8,13,26,.7));
+  box-shadow:0 8px 28px rgba(2,5,17,.22),inset 0 4px 18px rgba(255,255,255,.035);
+  backdrop-filter:blur(7px) saturate(140%); -webkit-backdrop-filter:blur(7px) saturate(140%);
+}
+:where(body[data-page="matchups"]) .glass-panel::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:linear-gradient(135deg,rgba(215,225,255,.065),transparent 30%); }
+:where(body[data-page="matchups"]) .pageHeader { display:flex; align-items:center; gap:24px; min-height:47px; padding:0 6px 8px; }
+:where(body[data-page="matchups"]) .brand { display:flex; align-items:center; gap:6px; flex:none; }
+:where(body[data-page="matchups"]) .brand img { object-fit:contain; }
+:where(body[data-page="matchups"]) .brand > span { font:500 16px/1.1 "MuseoModerno",var(--font); }
+:where(body[data-page="matchups"]) .brandAccent { background:var(--accent-gradient); background-clip:text; -webkit-background-clip:text; color:transparent; }
+:where(body[data-page="matchups"]) .brand small { display:block; font:500 6px/1.8 var(--font); color:var(--dim); letter-spacing:2.1px; }
+:where(body[data-page="matchups"]) .pageIdentity { display:flex; gap:8px; align-items:center; }
+:where(body[data-page="matchups"]) .seasonTag { font-size:10px; padding:2px 7px; border:1px solid #ffffff17; border-radius:7px; color:#bdc1d8; background:#8892bc10; }
+:where(body[data-page="matchups"]) .coverage { margin-left:auto; text-align:right; color:var(--muted); font-size:10px; }
+:where(body[data-page="matchups"]) .coverage strong { color:#d6defa; font-weight:500; }
+:where(body[data-page="matchups"]) .loadError { margin:0 0 8px; padding:10px; color:#ffd1da; border:1px solid #ff8fab40; background:#852b4920; border-radius:10px; }
+:where(body[data-page="matchups"]) .toolbar { display:flex; align-items:center; gap:14px; padding:8px 12px; margin-bottom:10px; }
+:where(body[data-page="matchups"]) .defensePicker,:where(body[data-page="matchups"]) .venuePicker { display:flex; align-items:center; gap:8px; min-width:0; }
+:where(body[data-page="matchups"]) .fieldLabel {color:var(--dim);font-size:7px;font-weight:600;letter-spacing: 0;white-space:nowrap;}
+:where(body[data-page="matchups"]) .defensePicker { flex:0 1 184px; }
+:where(body[data-page="matchups"]) .defensePicker > .teamPicker { flex:1; }
+:where(body[data-page="matchups"]) .venuePicker { flex:0 0 216px; }
+:where(body[data-page="matchups"]) .venuePicker > .teamPicker { flex:1; }
+:where(body[data-page="matchups"]) .teamPicker { position:relative; min-width:0; }
+:where(body[data-page="matchups"]) .teamPicker__btn {
+  width:100%; height:36px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 12px;
+  border-radius:14px; border:1px solid rgba(255,255,255,.14); color:rgba(255,255,255,.92); font-weight:900; letter-spacing:.04em;
+  background:radial-gradient(180px 70px at 20% 20%,rgba(0,191,255,.14),transparent 60%),linear-gradient(135deg,rgba(255,255,255,.06),rgba(0,0,0,.16));
+}
+:where(body[data-page="matchups"]) .teamPicker__btn:hover { border-color:rgba(255,255,255,.2); }
+:where(body[data-page="matchups"]) .teamPicker.is-open .teamPicker__btn { border-color:rgba(0,191,255,.55); }
+:where(body[data-page="matchups"]) .teamPicker__left { display:flex; align-items:center; gap:9px; min-width:0; }
+:where(body[data-page="matchups"]) .teamPicker__code { font-size:15px; font-weight:950; }
+:where(body[data-page="matchups"]) .teamPicker__chev { opacity:.75; font-size:12px; }
+:where(body[data-page="matchups"]) .teamLogoStack { display:inline-grid; place-items:center; vertical-align:middle; line-height:0; flex:none; }
+:where(body[data-page="matchups"]) .teamLogo { width:19px; height:19px; object-fit:contain; border-radius:4px; display:block; }
+:where(body[data-page="matchups"]) .teamLogoStack__glow { grid-area:1 / 1; z-index:0; filter:drop-shadow(0 0 3px var(--team-glow)); }
+:where(body[data-page="matchups"]) .teamLogoStack__img { grid-area:1 / 1; z-index:1; }
+:where(body[data-page="matchups"]) .teamPicker__btn .teamLogo { width:22px; height:22px; }
+:where(body[data-page="matchups"]) .teamPicker__panel {
+  position:fixed; inset:auto; margin:0; z-index:120; width:min(560px,calc(100vw - 28px)); max-height:calc(100dvh - 16px); overflow:auto;
+  padding:10px; border-radius:18px; border:1px solid rgba(255,255,255,.14); color:rgba(255,255,255,.92);
+  background:rgba(8,8,18,.92); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 16px 48px rgba(0,0,0,.5);
+  display:none; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; align-items:start;
+}
+:where(body[data-page="matchups"]) .teamPicker__panel:popover-open { display:grid; }
+:where(body[data-page="matchups"]) .teamPickerDiv { display:flex; flex-direction:column; gap:6px; min-width:0; }
+:where(body[data-page="matchups"]) .teamPickerDiv__title { display:flex; align-items:center; justify-content:center; gap:6px; font-size:10px; font-weight:500; letter-spacing:.06em; color:rgb(209,204,228); line-height:1.1; user-select:none; margin-bottom:1px; text-transform:uppercase; }
+:where(body[data-page="matchups"]) .teamPickerDiv__confLogo { width:14px; height:14px; object-fit:contain; opacity:.9; filter:drop-shadow(0 0 6px rgba(0,0,0,.35)); }
+:where(body[data-page="matchups"]) .teamOption { width:100%; display:flex; align-items:center; justify-content:center; gap:4px; padding:7px 3px; border-radius:14px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05); color:rgba(255,255,255,.9); font-weight:950; letter-spacing:.06em; }
+:where(body[data-page="matchups"]) .teamOption:hover { border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.07); }
+:where(body[data-page="matchups"]) .teamOption.is-selected { border-color:rgba(0,191,255,.55); background:linear-gradient(135deg,rgba(0,191,255,.14),rgba(207,120,255,.12)); }
+:where(body[data-page="matchups"]) .teamOption__code { font-size:12px; }
+:where(body[data-page="matchups"]) .venueMenuLabel { font-size:11px; font-weight:600; letter-spacing:0; white-space:nowrap; }
+:where(body[data-page="matchups"]) .venueMenu .teamPicker__panel { width:164px; grid-template-columns:1fr; }
+:where(body[data-page="matchups"]) .venueOption { justify-content:flex-start; padding:8px 10px; font-size:11px; font-weight:600; letter-spacing:0; }
+:where(body[data-page="matchups"]) .toolbarNote { margin-left:auto; color:var(--dim); font-size:9px; white-space:nowrap; }
+:where(body[data-page="matchups"]) .positionToggle,:where(body[data-page="matchups"]) .smallToggle {display:inline-flex;gap:3px;padding:3px;border:1px solid #aabbff1c;border-radius:11px;background:#03091642;box-shadow:inset 0 2px 9px #01051238;margin-left: auto;}
+:where(body[data-page="matchups"]) .positionToggle button { position:relative; min-width:41px; padding:5px 9px; border:1px solid transparent; border-radius:8px; color:var(--muted); font-size:11px; font-weight:600; }
+:where(body[data-page="matchups"]) .positionToggle button[aria-pressed="true"] { color:var(--pos-color,var(--position)); border-color:color-mix(in srgb,var(--pos-color,var(--position)) 35%,transparent); background:color-mix(in srgb,var(--pos-color,var(--position)) 12%,transparent); box-shadow:inset 0 3px 9px #ffffff08,0 0 9px color-mix(in srgb,var(--pos-color,var(--position)) 9%,transparent); }
+:where(body[data-page="matchups"]) [data-pos="QB"] { --pos-color:#ffb2d8; }
+:where(body[data-page="matchups"]) [data-pos="RB"] { --pos-color:#75e0b7; }
+:where(body[data-page="matchups"]) [data-pos="WR"] { --pos-color:#63b0de; }
+:where(body[data-page="matchups"]) [data-pos="TE"] { --pos-color:#ab9bff; }
+:where(body[data-page="matchups"]) [data-pos="ALL"] { --pos-color:#aabaff; }
+:where(body[data-page="matchups"]) .positionBadge {color:var(--pos-color);padding:3px 7px;border:1px solid color-mix(in srgb,var(--pos-color) 25%,transparent);border-radius:7px;font-size: 14px;background:color-mix(in srgb,var(--pos-color) 8%,transparent);font-weight: 500;}
+:where(body[data-page="matchups"]) .smallToggle button {padding: 3px 8px;min-height: 20px;border:1px solid transparent;border-radius:7px;font-size:10px;color:var(--muted);}
+:where(body[data-page="matchups"]) .smallToggle button[aria-pressed="true"] { background:linear-gradient(180deg,#85d7ff24,#a27fff17); border-color:#9ad1ff35; color:#dceeff; box-shadow:inset 0 3px 8px #ffffff08; }
+:where(body[data-page="matchups"]) .matchupLayout { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:14px; }
+:where(body[data-page="matchups"]) .defensePanel {padding: 4px 12px 4px;}
+:where(body[data-page="matchups"]) .defenseHeader {display:flex;gap:10px;align-items:center;margin-bottom: 7px;}
+:where(body[data-page="matchups"]) .defenseLogo { display:flex; align-items:center; justify-content:center; width:49px; height:43px; flex:none; border-radius:12px; border:1px solid #ffffff1c; background:#ffffff06; box-shadow:inset 4px 6px 16px #ffffff06,0 8px 24px #1f26691a; }
+:where(body[data-page="matchups"]) .defenseLogo img { width:41px; height:35px; object-fit:contain; }
+:where(body[data-page="matchups"]) .defenseHeader h2 {font-size: 20px;margin: 0px 0;}
+:where(body[data-page="matchups"]) .defenseHeader > .positionBadge { margin-left:auto; }
+:where(body[data-page="matchups"]) .panelSubtitle { font-size:10px; color:var(--muted); }
+:where(body[data-page="matchups"]) .metricStrip {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom: 6px;}
+:where(body[data-page="matchups"]) .metric {padding: 5px 14px;min-width:0;border:1px solid #ffffff10;border-radius:9px;background:linear-gradient(180deg,#8f94a616,#8f94a609);box-shadow:inset 4px 5px 12px #ffffff04;}
+:where(body[data-page="matchups"]) .metricLabel { font-size:8px; color:var(--muted); white-space:nowrap; }
+:where(body[data-page="matchups"]) .metricValue { margin:2px 0 1px; font-size:23px; line-height:1.1; letter-spacing:-.5px; font-weight:550; font-variant-numeric:tabular-nums; }
+:where(body[data-page="matchups"]) .metricValue small { font-size:10px; color:var(--dim); margin-left:3px; font-weight:400; }
+:where(body[data-page="matchups"]) .metricSub { font-size:8px; color:var(--dim); }
+:where(body[data-page="matchups"]) .is-easy { color:var(--mint); }
+:where(body[data-page="matchups"]) .is-tough { color:var(--pink); }
+:where(body[data-page="matchups"]) .smallMuted { color:var(--dim); font-size:9px; }
+:where(body[data-page="matchups"]) .sectionHeading {display:flex;align-items:center;gap:8px;margin-bottom: 0px;min-height:19px;}
+:where(body[data-page="matchups"]) .sectionHeading > .smallMuted { margin-left:auto; }
+:where(body[data-page="matchups"]) .sectionHeading > .iconButton { margin-left:auto; }
+:where(body[data-page="matchups"]) .iconButton { width:27px; height:26px; display:inline-flex; align-items:center; justify-content:center; flex:none; border:1px solid var(--border); background:#aabbff08; border-radius:7px; color:#a5accb; }
+:where(body[data-page="matchups"]) .iconButton:hover { background:#aabbff18; color:#e8efff; }
+:where(body[data-page="matchups"]) .chartLegend { display:flex; gap:10px; margin-left:auto; color:var(--muted); font-size:8px; }
+:where(body[data-page="matchups"]) .chartLegend span { display:flex; align-items:center; gap:4px; }
+:where(body[data-page="matchups"]) .chartHeading { flex-wrap:wrap; }
+:where(body[data-page="matchups"]) .chartHeaderControls {display:flex;align-items:center;justify-content: center;flex-wrap: balance;gap: 4px;}
+:where(body[data-page="matchups"]) .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
+:where(body[data-page="matchups"]) .positionToggle.chartPositionToggle button {min-width: 40px;padding: 3px 6px;font-size:9px;border-radius:6px;}
+:where(body[data-page="matchups"]) .chartSortControls { display:flex; align-items:center; flex:none; gap:6px; margin-left:auto; white-space:nowrap; }
+:where(body[data-page="matchups"]) .chartSortLabel { font-size:8px; color:var(--dim); letter-spacing:.3px; }
+:where(body[data-page="matchups"]) .chartHeaderControls .chartLegend { margin-left:0; white-space:nowrap; }
+:where(body[data-page="matchups"]) .legendExpected { width:14px; height:2px; background:linear-gradient(90deg,#8af7ffb5,#e3b3ffa8); }
+:where(body[data-page="matchups"]) .legendActual { width:7px; height:7px; border-radius:2px; background:var(--position); box-shadow:0 0 6px color-mix(in srgb,var(--position) 25%,transparent); }
+:where(body[data-page="matchups"]) .chart { min-width:0; }
+:where(body[data-page="matchups"]) .chart svg { display:block; width:100%; height:auto; overflow:visible; }
+:where(body[data-page="matchups"]) .chart svg text { font:9px var(--font); fill:var(--dim); }
+:where(body[data-page="matchups"]) .chart svg .chartValue { fill:#d7def5; font-size:10px; font-weight:500; }
+:where(body[data-page="matchups"]) .chart svg .axisTitle { fill:#adb4d3; font-size:10px; }
+:where(body[data-page="matchups"]) .chart svg .zoneLabel { fill:#9199bd; font-size:8px; }
+:where(body[data-page="matchups"]) .gridLine { stroke:#aabbff; stroke-opacity:.09; stroke-width:1; }
+:where(body[data-page="matchups"]) .zeroLine { stroke:#aabbff; stroke-opacity:.3; }
+:where(body[data-page="matchups"]) .chartPoint {cursor:pointer;outline:none;r: 5.5;fill: #e3b3ffa8;stroke: #f0f8ff9e;filter: drop-shadow(0px 3px 3px #0004);}
+:where(body[data-page="matchups"]) .chartPoint:focus-visible circle,:where(body[data-page="matchups"]) .chartPoint:focus-visible rect { stroke:#fff; stroke-width:2; }
+:where(body[data-page="matchups"]) .weeklyMatchups { display:grid; grid-template-columns:repeat(auto-fit,minmax(80px,1fr)); gap:5px; margin:4px 0 10px; }
+:where(body[data-page="matchups"]) .expectedLine {fill:none;stroke:url(#weekly-expected-line);stroke-width: 6px;stroke-dasharray: 1;filter: drop-shadow(0px 2px 4px #0008);}
+:where(body[data-page="matchups"]) .weekMatchup { display:flex; justify-content:center; align-items:center; gap:5px; padding:4px 5px; color:var(--muted); background:#8f94a608; border:1px solid #aabbff10; border-radius:7px; font-size:9px; }
+:where(body[data-page="matchups"]) .weekMatchup img { width:19px; height:18px; object-fit:contain; }
+:where(body[data-page="matchups"]) .weekMatchup .weekNumber { color:var(--dim); font-size:8px; }
+:where(body[data-page="matchups"]) .playersSection {padding-top: 3px;border-top:1px solid var(--border);}
+:where(body[data-page="matchups"]) .playerFilters { display:flex; gap:10px; align-items:center; margin:0 0 7px; }
+:where(body[data-page="matchups"]) .searchField { flex:1; display:flex; min-width:0; gap:6px; align-items:center; padding:0 8px; border:1px solid #aabbff1c; border-radius:7px; background:#03091635; }
+:where(body[data-page="matchups"]) .searchField .icon { width:13px; height:13px; color:var(--dim); }
+:where(body[data-page="matchups"]) .searchField input { border:0; outline-offset:0; background:transparent; width:100%; padding:6px 0; font-size:10px; }
+:where(body[data-page="matchups"]) .searchField input::placeholder { color:var(--dim); }
+:where(body[data-page="matchups"]) .checkboxField { display:flex; align-items:center; gap:5px; font-size:9px; color:var(--muted); white-space:nowrap; cursor:pointer; }
+:where(body[data-page="matchups"]) .tableScroll { min-width:0; overflow:auto; border:1px solid var(--border); border-radius:9px; scrollbar-width:thin; scrollbar-color:#aabbff26 transparent; }
+:where(body[data-page="matchups"]) .tableScroll::-webkit-scrollbar { width:6px; height:6px; }
+:where(body[data-page="matchups"]) .tableScroll::-webkit-scrollbar-thumb { border-radius:8px; background:#aabbff26; border:1px solid transparent; background-clip:padding-box; }
+:where(body[data-page="matchups"]) table { width:100%; border-collapse:separate; border-spacing:0; font-variant-numeric:tabular-nums; }
+:where(body[data-page="matchups"]) th { background:#182039; position:sticky; top:0; z-index:2; color:#bbc0e8; font-size:9px; font-weight:550; white-space:nowrap; }
+:where(body[data-page="matchups"]) th,:where(body[data-page="matchups"]) td { text-align:left; padding:5px 7px; }
+:where(body[data-page="matchups"]) th { border-bottom:1px solid #808abd2e; }
+:where(body[data-page="matchups"]) td { border-bottom:1px solid #ffffff0a; font-size:10px; }
+:where(body[data-page="matchups"]) tbody tr:last-child td { border-bottom:0; }
+:where(body[data-page="matchups"]) tbody tr:hover td { background:#aabbff09; }
+:where(body[data-page="matchups"]) th button { color:inherit; font:inherit; border:0; padding:1px 0; width:100%; text-align:inherit; }
+:where(body[data-page="matchups"]) .sortArrow { color:#88b8ff; margin-left:3px; font-size:9px; }
+:where(body[data-page="matchups"]) .playerTableScroll {max-height: 160px;min-height: 160px;}
+:where(body[data-page="matchups"]) .playerTable th:first-child,:where(body[data-page="matchups"]) .playerTable td:first-child { width:35px; color:var(--dim); }
+:where(body[data-page="matchups"]) .playerTable th:last-child,:where(body[data-page="matchups"]) .playerTable td:last-child { text-align:right; width:64px; }
+:where(body[data-page="matchups"]) .playerTable td:last-child { font-weight:550; }
+:where(body[data-page="matchups"]) .playerTable td { white-space:nowrap; }
+:where(body[data-page="matchups"]) .playerName { color:#dfe3f9; font-weight:500; }
+:where(body[data-page="matchups"]) .offenseCell { display:flex; align-items:center; gap:4px; font-size:9px; color:var(--muted); }
+:where(body[data-page="matchups"]) .offenseCell img { width:20px; height:19px; object-fit:contain; }
+:where(body[data-page="matchups"]) .playerOpponent { color:#b5bddd; font-size:9px; }
+:where(body[data-page="matchups"]) .playerPosition { font-size:7px; padding:1px 3px; margin-right:5px; border-radius:4px; color:var(--pos-color); border:1px solid color-mix(in srgb,var(--pos-color) 20%,transparent); }
+:where(body[data-page="matchups"]) .scoreZero { color:var(--dim); }
+:where(body[data-page="matchups"]) .scoreNegative { color:var(--pink); }
+:where(body[data-page="matchups"]) .playerFooter { display:flex; justify-content:space-between; gap:8px; padding:7px 2px 0; font-size:9px; color:var(--dim); }
+:where(body[data-page="matchups"]) .playerFooter span:last-child { color:#bbc0d8; }
+:where(body[data-page="matchups"]) .panelHeader {display:flex;justify-content:space-between;align-items:center;gap:10px;padding: 14px 12px 2px;}
+:where(body[data-page="matchups"]) .comparisonPanel .panelHeader,:where(body[data-page="matchups"]) .rankingsPanel .panelHeader { flex-wrap:wrap; }
+:where(body[data-page="matchups"]) .rankingsPanel .heatmapHeader { flex-wrap:nowrap; gap:8px; }
+:where(body[data-page="matchups"]) .heatmapHeading { min-width:0; }
+:where(body[data-page="matchups"]) .heatmapHeading .heatLegend {line-height:1;}
+:where(body[data-page="matchups"]) .comparisonChart {padding: 0px 0px 18px 4px;}
+:where(body[data-page="matchups"]) .comparisonDetail {display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding: 12px 12px;border-top:1px solid #aabbff14;color:var(--dim);font-size:10px;}
+:where(body[data-page="matchups"]) .comparisonDetail strong { color:#d3daf5; font-weight:550; margin-left:3px; }
+:where(body[data-page="matchups"]) .comparisonDetail .is-easy,:where(body[data-page="matchups"]) .comparisonDetail .is-tough { margin-left:auto; }
+:where(body[data-page="matchups"]) .comparisonTeam { display:flex; align-items:center; gap:4px; color:#d3daf5; }
+:where(body[data-page="matchups"]) .comparisonTeam img { width:20px; height:19px; object-fit:contain; }
+:where(body[data-page="matchups"]) .chartNote { font-size:9px; color:var(--dim); padding:0 12px 7px; }
+:where(body[data-page="matchups"]) .opponentsSection {margin: 3px 12px 18px;}
+:where(body[data-page="matchups"]) .opponentsSection .sectionHeading {margin-bottom: 6px;}
+:where(body[data-page="matchups"]) .opponentsTable th:not(:nth-child(2)),:where(body[data-page="matchups"]) .opponentsTable td:not(:nth-child(2)) { text-align:right; }
+:where(body[data-page="matchups"]) .opponentsTable th:first-child,:where(body[data-page="matchups"]) .opponentsTable td:first-child { text-align:left; width:35px; color:var(--dim); }
+:where(body[data-page="matchups"]) .opponentsTable th,:where(body[data-page="matchups"]) .opponentsTable td { padding:4px 7px; }
+:where(body[data-page="matchups"]) .opponentsTable .offenseCell { font-size:10px; }
+:where(body[data-page="matchups"]) .opponentsTable .opponentPlaceholder td { color:var(--dim); background:#9cbeff04; }
+:where(body[data-page="matchups"]) .opponentsTable .placeholderLogo { display:inline-block; flex:none; width:17px; height:14px; border:1px dashed #9cbbee45; border-radius:4px; background:linear-gradient(130deg,#88bdff0c,#b38bff0c); }
+:where(body[data-page="matchups"]) .heatLegend { display:flex; align-items:center; gap:5px; color:var(--dim); font-size:8px; white-space:nowrap; }
+:where(body[data-page="matchups"]) .heatLegend i { width:48px; height:3px; border-radius:3px; background:linear-gradient(90deg,#ffb2d8,#ab9bff,#75e0b7); }
+:where(body[data-page="matchups"]) .heatTableScroll {max-height: 710px;margin:0 12px;}
+:where(body[data-page="matchups"]) .heatTable { table-layout:fixed; }
+:where(body[data-page="matchups"]) .heatTable th,:where(body[data-page="matchups"]) .heatTable td {padding: 0px 4px;text-align:center;}
+:where(body[data-page="matchups"]) .heatTable th:first-child { width:75px; text-align:left; padding-left:7px; }
+:where(body[data-page="matchups"]) .heatTable th { font-size:9px; padding-block:5px; }
+:where(body[data-page="matchups"]) .heatTable th[data-pos] { color:var(--pos-color); }
+:where(body[data-page="matchups"]) .heatTable td { border-bottom:1px solid #ffffff05; }
+:where(body[data-page="matchups"]) .heatTable button { border:0; border-radius:5px; }
+:where(body[data-page="matchups"]) .heatTeamButton { display:flex; align-items:center; gap:4px; width:100%; padding:2px 3px; color:#c5cbe6; font-size:9px; }
+:where(body[data-page="matchups"]) .heatTeamButton img {width: 15px;height: 15px;object-fit:contain;}
+:where(body[data-page="matchups"]) .heatCell {display:flex;align-items:center;justify-content:center;gap:3px;width:100%;padding:4px 1px;font-size:10px;line-height:1;font-weight:550;background:color-mix(in srgb,var(--heat-color) 9%,transparent);color:var(--heat-color);}
+:where(body[data-page="matchups"]) .heatCell sup { font-size:7px; opacity:.75; font-weight:400; }
+:where(body[data-page="matchups"]) .heatCell[aria-pressed="true"] { box-shadow:inset 0 0 0 1px var(--heat-color); background:color-mix(in srgb,var(--heat-color) 18%,transparent); }
+:where(body[data-page="matchups"]) .heatTable .selectedTeam .heatTeamButton { color:#ecf1ff; }
+:where(body[data-page="matchups"]) .heatTable .selectedTeam td:first-child { background:#8fb5ff13; }
+:where(body[data-page="matchups"]) .panelFootnote { padding:6px 12px 8px; color:var(--dim); font-size:8px; }
+:where(body[data-page="matchups"]) .footnoteDivider { margin:0 4px; color:#aabbff40; }
+:where(body[data-page="matchups"]) .methodology { margin-top:9px; border:1px solid #aabbff18; border-radius:10px; background:#060c1735; }
+:where(body[data-page="matchups"]) .methodology summary { display:flex; align-items:center; gap:7px; cursor:pointer; padding:7px 11px; color:#aeb7d7; font-size:10px; }
+:where(body[data-page="matchups"]) .methodology summary .icon { width:13px; height:13px; color:var(--dim); }
+:where(body[data-page="matchups"]) .methodologyContent { display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; padding:1px 12px 10px; color:var(--muted); font-size:10px; line-height:1.6; }
+:where(body[data-page="matchups"]) .methodologyContent strong { color:#c9d0ed; font-weight:500; }
+:where(body[data-page="matchups"]) .methodologyContent code { color:#b3c6e9; font-size:9px; }
+:where(body[data-page="matchups"]) .pageFooter { display:flex; justify-content:space-between; gap:8px; padding:8px 3px 0; font-size:7px; letter-spacing:1px; color:#7b81a5; }
+:where(body[data-page="matchups"]) .pageFooter span > span { color:#aabbff40; margin:0 5px; }
+:where(body[data-page="matchups"]) .emptyState { padding:18px 8px; text-align:center; color:var(--dim); font-size:10px; }
+:where(body[data-page="matchups"]) .emptyState strong { display:block; color:#bdc1d8; font-size:12px; margin-bottom:4px; font-weight:500; }
+:where(body[data-page="matchups"]) .emptyState button { margin-top:7px; padding:4px 7px; border:1px solid var(--border); background:#aabbff10; border-radius:6px; font-size:10px; }
+:where(body[data-page="matchups"]) .chartTooltip { position:fixed; z-index:2000; max-width:min(340px,calc(100vw - 20px)); padding:9px 11px; pointer-events:none; border-radius:9px; border:1px solid #aabbff30; color:#c2cbe8; font-size:10px; line-height:1.65; background:rgba(7,11,28,.97); box-shadow:0 8px 30px #01040d90; }
+:where(body[data-page="matchups"]) .chartTooltip strong { color:#edf1ff; font-weight:550; }
+:where(body[data-page="matchups"]) .tooltipMuted { color:var(--dim); }
+:where(body[data-page="matchups"]) dialog.glass-panel { position:fixed; inset:0; margin:auto; padding:0; width:min(900px,calc(100% - 24px)); max-height:90dvh; color:var(--text); overflow:auto; background:linear-gradient(155deg,#252a416e,#080e1aed),#0b1123; }
+:where(body[data-page="matchups"]) dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
+:where(body[data-page="matchups"]) .dialogHeader { display:flex; justify-content:space-between; gap:10px; align-items:center; padding:12px; border-bottom:1px solid var(--border); }
+:where(body[data-page="matchups"]) .dialogHeader h2 { margin:3px 0; }
+:where(body[data-page="matchups"]) .dialogBody { padding:10px 12px 12px; }
+:where(body[data-page="matchups"]) .expandedControls { display:flex; align-items:center; gap:9px; margin-bottom:8px; }
+:where(body[data-page="matchups"]) .expandedControls > .teamPicker { flex:1; min-width:120px; }
+:where(body[data-page="matchups"]) .expandedTableScroll { max-height:58dvh; }
+:where(body[data-page="matchups"]) .expandedTableScroll table { min-width:500px; }
+:where(body[data-page="matchups"]) .noscript { position:relative; padding:15px; color:var(--text); }
+@media (max-width:1100px) {
+  :where(body[data-page="matchups"]) .toolbar { gap:9px; }
+  :where(body[data-page="matchups"]) .toolbarNote { display:none; }
+  :where(body[data-page="matchups"]) .defensePicker { flex:1; }
+  :where(body[data-page="matchups"]) .venuePicker { flex-basis:200px; }
+  :where(body[data-page="matchups"]) .defenseHeader h2 { font-size:18px; }
+  :where(body[data-page="matchups"]) .metricStrip { gap:4px; }
+  :where(body[data-page="matchups"]) .metric { padding:6px; }
+  :where(body[data-page="matchups"]) .metricValue { font-size:21px; }
+}
+@media (max-width:860px) {
+  :where(body[data-page="matchups"]) .matchupLayout { grid-template-columns:minmax(0,1fr); }
+  :where(body[data-page="matchups"]) .pageHeader { gap:18px; }
+  :where(body[data-page="matchups"]) .coverage { font-size:9px; }
+  :where(body[data-page="matchups"]) .comparisonDetail { gap:7px; font-size:9px; }
+  :where(body[data-page="matchups"]) .panelHeader h2 { font-size:15px; }
+  :where(body[data-page="matchups"]) .comparisonPanel .panelHeader { flex-wrap:wrap; }
+  :where(body[data-page="matchups"]) .heatLegend { font-size:7px; }
+  :where(body[data-page="matchups"]) .heatLegend i { width:28px; }
+  :where(body[data-page="matchups"]) .heatTable th:first-child { width:60px; }
+  :where(body[data-page="matchups"]) .heatCell { font-size:9px; gap:2px; }
+}
+@media (max-width:620px) {
+  :where(body[data-page="matchups"]) .app-shell { padding:6px 7px; }
+  :where(body[data-page="matchups"]) .pageHeader { flex-wrap:wrap; gap:4px 12px; min-height:0; padding:1px 4px 7px; }
+  :where(body[data-page="matchups"]) .brand { gap:3px; }
+  :where(body[data-page="matchups"]) .brand img { width:29px; height:29px; }
+  :where(body[data-page="matchups"]) .brand > span { font-size:13px; }
+  :where(body[data-page="matchups"]) .brand small { font-size:5px; letter-spacing:1.5px; }
+  :where(body[data-page="matchups"]) .pageIdentity { margin-left:auto; gap:5px; }
+  :where(body[data-page="matchups"]) h1 { font-size:21px; }
+  :where(body[data-page="matchups"]) .seasonTag { font-size:8px; padding:2px 5px; }
+  :where(body[data-page="matchups"]) .coverage { flex-basis:100%; text-align:left; margin:1px 0 0; font-size:9px; }
+  :where(body[data-page="matchups"]) .toolbar { padding:7px 9px; flex-wrap:wrap; gap:7px; margin-bottom:8px; }
+  :where(body[data-page="matchups"]) .defensePicker,:where(body[data-page="matchups"]) .venuePicker { gap:5px; }
+  :where(body[data-page="matchups"]) .defensePicker { flex:1 1 100%; }
+  :where(body[data-page="matchups"]) .teamPicker__btn { height:34px; padding-inline:10px; border-radius:13px; }
+  :where(body[data-page="matchups"]) .teamPicker__code { font-size:13px; }
+  :where(body[data-page="matchups"]) .teamPicker__panel { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  :where(body[data-page="matchups"]) .toolbar .positionToggle { flex:1; }
+  :where(body[data-page="matchups"]) .positionToggle {padding:2px;border-radius:9px;}
+  :where(body[data-page="matchups"]) .positionToggle button { flex:1; min-width:0; font-size:10px; padding:5px 7px; }
+  :where(body[data-page="matchups"]) .venuePicker { flex:0 0 117px; }
+  :where(body[data-page="matchups"]) .venuePicker .fieldLabel { display:none; }
+  :where(body[data-page="matchups"]) .venueMenuLabel { font-size:10px; }
+  :where(body[data-page="matchups"]) .matchupLayout { display:flex; flex-direction:column; gap:8px; }
+  :where(body[data-page="matchups"]) .glass-panel { border-radius:12px; }
+  :where(body[data-page="matchups"]) .defensePanel { padding:10px; }
+  :where(body[data-page="matchups"]) .defenseHeader { gap:7px; margin-bottom:8px; }
+  :where(body[data-page="matchups"]) .defenseLogo { width:42px; height:37px; border-radius:10px; }
+  :where(body[data-page="matchups"]) .defenseLogo img { width:36px; height:30px; }
+  :where(body[data-page="matchups"]) .defenseHeader h2 { font-size:17px; }
+  :where(body[data-page="matchups"]) .fieldLabel {font-size: 9px;}
+  :where(body[data-page="matchups"]) .panelSubtitle { font-size:9px; }
+  :where(body[data-page="matchups"]) .metricStrip { gap:4px; margin-bottom:8px; }
+  :where(body[data-page="matchups"]) .metric { padding:6px 5px; border-radius:7px; }
+  :where(body[data-page="matchups"]) .metricLabel { font-size:7px; }
+  :where(body[data-page="matchups"]) .metricValue { font-size:19px; }
+  :where(body[data-page="matchups"]) .metricValue small { font-size:8px; margin-left:1px; }
+  :where(body[data-page="matchups"]) .metricSub { font-size:7px; }
+  :where(body[data-page="matchups"]) .chartLegend { font-size:7px; gap:8px; }
+  :where(body[data-page="matchups"]) .sectionHeading h3 { font-size:11px; }
+  :where(body[data-page="matchups"]) .weeklyMatchups { margin-bottom:8px; gap:4px; }
+  :where(body[data-page="matchups"]) .weekMatchup { font-size:8px; padding:3px; }
+  :where(body[data-page="matchups"]) .playerTable th,:where(body[data-page="matchups"]) .playerTable td { padding:5px; }
+  :where(body[data-page="matchups"]) .playerTable th { font-size:8px; }
+  :where(body[data-page="matchups"]) .playerTable td { font-size:10px; }
+  :where(body[data-page="matchups"]) .playerTable th:first-child,:where(body[data-page="matchups"]) .playerTable td:first-child { width:28px; }
+  :where(body[data-page="matchups"]) .playerTable th:last-child,:where(body[data-page="matchups"]) .playerTable td:last-child { width:46px; }
+  :where(body[data-page="matchups"]) .playerFilters { gap:7px; }
+  :where(body[data-page="matchups"]) .playerFooter { font-size:8px; }
+  :where(body[data-page="matchups"]) .panelHeader {padding: 3px 5px 0px 10px;margin-bottom: -6px;}
+  :where(body[data-page="matchups"]) .panelHeader h2 {font-size: 18px;margin-top: 8px;margin-bottom: 5px;}
+  :where(body[data-page="matchups"]) .comparisonPanel .panelHeader {flex-wrap: nowrap;gap: 0px;}
+  :where(body[data-page="matchups"]) .comparisonChart { padding:0 10px; }
+  :where(body[data-page="matchups"]) .comparisonDetail { padding:5px 10px; font-size:9px; }
+  :where(body[data-page="matchups"]) .chartNote { padding-inline:10px; font-size:8px; }
+  :where(body[data-page="matchups"]) .opponentsSection { margin-inline:10px; }
+  :where(body[data-page="matchups"]) .opponentsTable th,:where(body[data-page="matchups"]) .opponentsTable td { font-size:9px; padding:4px 5px; }
+  :where(body[data-page="matchups"]) .opponentsTable th { font-size:8px; }
+  :where(body[data-page="matchups"]) .heatLegend {font-size:8px;margin-top: -4px;margin-bottom: 11px;}
+  :where(body[data-page="matchups"]) .chartSortControls { gap:4px; }
+  :where(body[data-page="matchups"]) .chartSortLabel { font-size:7px; }
+  :where(body[data-page="matchups"]) .chartSortControls .chartPositionToggle button {min-width: 30px;padding: 2px 1px;font-size: 10px;}
+  :where(body[data-page="matchups"]) .heatTableScroll {margin-inline:10px;max-height: 700px;}
+  :where(body[data-page="matchups"]) .heatCell { font-size:10px; }
+  :where(body[data-page="matchups"]) .heatTable th:first-child { width:65px; }
+  :where(body[data-page="matchups"]) .methodologyContent { grid-template-columns:1fr; gap:6px; }
+  :where(body[data-page="matchups"]) .pageFooter { font-size:6px; letter-spacing:.6px; }
+  :where(body[data-page="matchups"]) .expandedControls { flex-wrap:wrap; gap:7px; }
+  :where(body[data-page="matchups"]) .expandedControls > .teamPicker { min-width:120px; flex:1 1 45%; }
+  :where(body[data-page="matchups"]) .expandedControls .positionToggle { order:3; width:100%; }
+  :where(body[data-page="matchups"]) .dialogHeader,:where(body[data-page="matchups"]) .dialogBody { padding:10px; }
+}
+@media (max-width:400px) {
+  :where(body[data-page="matchups"]) .metricValue { font-size:17px; }
+  :where(body[data-page="matchups"]) .metricLabel { font-size:6px; }
+  :where(body[data-page="matchups"]) .metricSub { font-size:6px; }
+  :where(body[data-page="matchups"]) .metric { padding:5px 4px; }
+  :where(body[data-page="matchups"]) .defenseHeader h2 { font-size:15px; }
+  :where(body[data-page="matchups"]) .playerTable .offenseColumn { display:none; }
+  :where(body[data-page="matchups"]) .expandedTableScroll .playerTable .offenseColumn { display:table-cell; }
+  :where(body[data-page="matchups"]) .playerName { font-size:9px; }
+  :where(body[data-page="matchups"]) .playerOpponent { font-size:8px; }
+  :where(body[data-page="matchups"]) .checkboxField { font-size:8px; }
+  :where(body[data-page="matchups"]) .venuePicker { flex-basis:106px; }
+  :where(body[data-page="matchups"]) .positionToggle button { padding-inline:5px; }
+}
+@media (prefers-reduced-motion:reduce) { :where(html[data-page="matchups"], html[data-page="matchups"] *) { scroll-behavior:auto!important; } }
+@media print { body:where([data-page="matchups"]) { background:#050b13; } :where(body[data-page="matchups"]) .toolbar,:where(body[data-page="matchups"]) .methodology,:where(body[data-page="matchups"]) .pageFooter,:where(body[data-page="matchups"]) .iconButton,:where(body[data-page="matchups"]) .playerFilters,:where(body[data-page="matchups"]) .chartTooltip { display:none; } :where(body[data-page="matchups"]) .app-shell { max-width:none; } :where(body[data-page="matchups"]) .glass-panel { backdrop-filter:none; } :where(body[data-page="matchups"]) .tableScroll { max-height:none; overflow:visible; } }

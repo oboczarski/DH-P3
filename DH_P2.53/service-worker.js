@@ -29,7 +29,8 @@
 // Team dialogs retain five-stat rows and ranked TM_STAT summaries on both pages.
 // Restore stacked position sections on both pages while retaining team-summary rank colors.
 // Refresh team-card FPTS name ranks and centered position-heading dividers on both pages.
-const CACHE_NAME = 'DH3.48w-team-name-ranks';
+// Refresh every navigation entry and the integrated, live-Sheets Matchups page.
+const CACHE_NAME = 'DH3.49-matchups-sheets';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -44,6 +45,8 @@ const CORE_ASSET_PATHS = [
   '/ownership/ownership.html',
   '/leaguehub/leaguehub.html',
   '/research/research.html',
+  // Matchups owns its runtime assets; chart bundles load only on page visits.
+  '/matchups/index.html',
   '/adp/index.html',
   '/adp/nfl-draft/index.html',
   '/contact/contact.html',
@@ -111,7 +114,10 @@ function isCacheableAsset(url) {
     /\.js$/,
     /\.webmanifest$/,
     /^\/assets\//,
-    /^\/data\//
+    /^\/data\//,
+    // Include Matchups' clean directory URL and its page-owned image assets.
+    /^\/matchups\/(?:index\.html)?$/,
+    /^\/matchups\/assets\//
   ];
 
   return patterns.some(p => p.test(pathname));

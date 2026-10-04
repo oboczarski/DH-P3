@@ -62,6 +62,13 @@
   to = "/research/research.html"
   status = 200
 
+# Matchups is a self-contained directory. Canonicalize the slash so its existing
+# relative styles, scripts, chart bundles and logo paths resolve on clean URLs.
+[[redirects]]
+  from = "/matchups"
+  to = "/matchups/"
+  status = 301
+
 [[redirects]]
   from = "/adp"
   to = "/adp/index.html"
