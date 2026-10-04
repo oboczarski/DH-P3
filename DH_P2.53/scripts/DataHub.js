@@ -12364,6 +12364,159 @@ function buildDataHubModalRankCache(rows, season = "2025") {
   }]));
 }
 
+
+// TEAM DIRECTORY MODEL START
+// Data Hub Game Logs team directory: read the selected season snapshot and
+// the full player index, independent of page search, qualifiers, and league ownership.
+const dataHubTeamPositions = ['QB', 'RB', 'WR', 'TE'];
+const dataHubTeamNames = {
+  ARI: 'Arizona Cardinals', ATL: 'Atlanta Falcons', BAL: 'Baltimore Ravens', BUF: 'Buffalo Bills',
+  CAR: 'Carolina Panthers', CHI: 'Chicago Bears', CIN: 'Cincinnati Bengals', CLE: 'Cleveland Browns',
+  DAL: 'Dallas Cowboys', DEN: 'Denver Broncos', DET: 'Detroit Lions', GB: 'Green Bay Packers',
+  HOU: 'Houston Texans', IND: 'Indianapolis Colts', JAX: 'Jacksonville Jaguars', KC: 'Kansas City Chiefs',
+  LAC: 'Los Angeles Chargers', LAR: 'Los Angeles Rams', LV: 'Las Vegas Raiders', MIA: 'Miami Dolphins',
+  MIN: 'Minnesota Vikings', NE: 'New England Patriots', NO: 'New Orleans Saints', NYG: 'New York Giants',
+  NYJ: 'New York Jets', PHI: 'Philadelphia Eagles', PIT: 'Pittsburgh Steelers', SEA: 'Seattle Seahawks',
+  SF: 'San Francisco 49ers', TB: 'Tampa Bay Buccaneers', TEN: 'Tennessee Titans', WAS: 'Washington Commanders',
+};
+const dataHubTeamStatColumns = {
+  QB: [['CMP%', 'cmp_pct', 'percent', 'Completion percentage'], ['paRTG', 'pass_rtg', 'decimal', 'Passer rating'], ['paYDS', 'pass_yd', 'integer', 'Passing yards'], ['ruYDS', 'rush_yd', 'integer', 'Rushing yards'], ['TD(t)', 'team_total_td', 'integer', 'Passing TD + rushing TD']],
+  RB: [['SNP%', 'snp_pct', 'percent', 'Snap share'], ['CAR', 'rush_att', 'integer', 'Carries'], ['YPC', 'ypc', 'decimal', 'Yards per carry'], ['YDS(t)', 'yds_total', 'integer', 'Rushing yards + receiving yards'], ['TD(t)', 'team_total_td', 'integer', 'Rushing TD + receiving TD']],
+  WR: [['TGT', 'rec_tgt', 'integer', 'Targets'], ['REC', 'rec', 'integer', 'Receptions'], ['recYDS', 'rec_yd', 'integer', 'Receiving yards'], ['recTD', 'rec_td', 'integer', 'Receiving touchdowns'], ['YAC', 'rec_yar', 'integer', 'Receiving yards after catch']],
+  TE: [['TGT', 'rec_tgt', 'integer', 'Targets'], ['REC', 'rec', 'integer', 'Receptions'], ['recYDS', 'rec_yd', 'integer', 'Receiving yards'], ['recTD', 'rec_td', 'integer', 'Receiving touchdowns'], ['YAC', 'rec_yar', 'integer', 'Receiving yards after catch']],
+};
+function dataHubTeamNumber(value) {
+  if (value === null || value === undefined || String(value).trim() === '') return null;
+  const number = Number(String(value).replace(/[% ,]/g, ''));
+  return Number.isFinite(number) ? number : null;
+}
+function dataHubTeamKey(team) {
+  const key = String(team || '').trim().toUpperCase();
+  return ({ WSH: 'WAS', JAC: 'JAX', LA: 'LAR' })[key] || key;
+}
+function dataHubTeamStats(source, pos) {
+  const stats = Object.fromEntries(Object.entries(source || {}).map(([key, value]) => [key, dataHubTeamNumber(value)]));
+  stats.fpts = dataHubTeamNumber(source?.fpts_ppr ?? source?.fpt_ppr ?? source?.fpts);
+  stats.ppg = dataHubTeamNumber(source?.ppg);
+  if (stats.ppg === null && stats.games_played > 0 && stats.fpts !== null) stats.ppg = stats.fpts / stats.games_played;
+  // TD(t) has a position-specific meaning. Never treat absent components as zero,
+  // and do not reuse Career ttlTD (which excludes passing touchdowns for QBs).
+  const tdKeys = pos === 'QB' ? ['pass_td', 'rush_td'] : ['rush_td', 'rec_td'];
+  stats.team_total_td = dataHubTeamNumber(source?.['TD(t)']);
+  if (stats.team_total_td === null) stats.team_total_td = tdKeys.every(key => stats[key] !== null && stats[key] !== undefined)
+    ? tdKeys.reduce((sum, key) => sum + stats[key], 0) : null;
+  if (stats.yds_total == null) stats.yds_total = ['rush_yd', 'rec_yd'].every(key => stats[key] != null)
+    ? stats.rush_yd + stats.rec_yd : null;
+  if (stats.cmp_pct == null && stats.pass_att > 0 && stats.pass_cmp != null) stats.cmp_pct = 100 * stats.pass_cmp / stats.pass_att;
+  if (stats.ypc == null && stats.rush_att > 0 && stats.rush_yd != null) stats.ypc = stats.rush_yd / stats.rush_att;
+  return stats;
+}
+function dataHubTeamFormat(value, format = 'integer') {
+  const number = dataHubTeamNumber(value);
+  if (number === null) return '—';
+  if (format === 'percent') return `${number.toFixed(1)}%`;
+  return format === 'decimal' ? number.toFixed(1) : String(Math.round(number));
+}
+function dataHubTeamPlayers(team) {
+  const teamKey = dataHubTeamKey(team);
+  const seasonStats = state.playerSeasonStats || {};
+  const playerIndex = state.sleeperPlayers || {};
+  const rowsById = new Map(getDataHubStatsRowsForSeason(state.currentModalSeason).map(row => [String(row.__meta.playerId), row]));
+  const ids = new Set([...Object.keys(playerIndex), ...Object.keys(seasonStats)]);
+  const players = [];
+  for (const id of ids) {
+    const player = playerIndex[id] || {};
+    const source = seasonStats[id];
+    const row = rowsById.get(id);
+    const meta = row?.__meta || {};
+    const pos = String(source?.pos || meta.pos || player.position || player.fantasy_positions?.[0] || '').toUpperCase();
+    if (!dataHubTeamPositions.includes(pos)) continue;
+    // The selected season's team takes precedence over today's player index so
+    // historical/traded players cannot leak into the wrong team's season view.
+    if (dataHubTeamKey(source?.team || meta.team || player.team) !== teamKey) continue;
+    const valuation = getActiveKtcLookup()?.[id] || {};
+    const name = String(player.full_name || `${player.first_name || ''} ${player.last_name || ''}`.trim()
+      || meta.fullName || meta.name || valuation.name || `Player ${id}`).trim();
+    const ktc = dataHubTeamNumber(valuation.ktc);
+    const age = dataHubTeamNumber(valuation.age ?? meta.age ?? player.age);
+    // Player Game Logs expects a position-prefixed rank string, including when
+    // a valuation feed supplies only a numeric rank.
+    const rank = String(valuation.posRank ?? meta.posRankText ?? '').match(/\d+/)?.[0];
+    players.push({ id, name, fullName: name, pos, team: teamKey, ktc, age,
+      posRank: rank ? `${pos}·${rank}` : null, overallRank: valuation.overallRank ?? meta.overallKtcRank,
+      stats: dataHubTeamStats(source, pos) });
+  }
+  // Unknown KTC stays below any known value. Stable name/ID tie breaks make
+  // the position groups deterministic without inheriting Stats table sorting.
+  return players.sort((a, b) => dataHubTeamPositions.indexOf(a.pos) - dataHubTeamPositions.indexOf(b.pos)
+    || (b.ktc ?? -1) - (a.ktc ?? -1) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+}
+// TEAM DIRECTORY MODEL END
+
+let dataHubTeamTrigger = null;
+function dataHubResetTeamView({ restoreFocus = false } = {}) {
+  const pane = gameLogsModal?.querySelector('#gamelogs-team-pane');
+  gameLogsModal?.classList.remove('is-team-view');
+  pane?.classList.add('hidden');
+  if (restoreFocus && dataHubTeamTrigger?.isConnected) dataHubTeamTrigger.focus({ preventScroll: true });
+  dataHubTeamTrigger = null;
+}
+function dataHubTeamCard(player) {
+  const escape = dataHubEscapeHtml;
+  const basic = [['Age', 'age', 'decimal', 'Player age'], ['G', 'games_played', 'integer', 'Games played'], ['FPTS', 'fpts', 'decimal', 'Season PPR fantasy points'], ['PPG', 'ppg', 'decimal', 'PPR fantasy points per game'], ['KTC', 'ktc', 'integer', 'KeepTradeCut value']];
+  const statMarkup = (columns, extra) => `<span class="team-player-stats${extra ? ' team-player-stats--position' : ''}">${columns.map(([label, key, format, title]) => {
+    const value = key === 'age' || key === 'ktc' ? player[key] : player.stats[key];
+    return `<span class="team-player-stat${key === 'ktc' ? ' team-player-stat--ktc' : ''}" title="${escape(title)}"><span class="team-player-stat-label">${escape(label)}</span><span class="team-player-stat-value">${escape(dataHubTeamFormat(value, format))}</span></span>`;
+  }).join('')}</span>`;
+  return `<button type="button" class="team-player-card" data-team-player-id="${escape(player.id)}" aria-label="Open ${escape(player.name)} Game Logs" title="${escape(player.name)} — open Game Logs">
+    <span class="team-player-card-heading"><span class="team-player-name">${escape(player.name)}</span><span class="team-player-arrow" aria-hidden="true">↗</span></span>
+    ${statMarkup(basic, false)}${statMarkup(dataHubTeamStatColumns[player.pos], true)}
+  </button>`;
+}
+function dataHubFitTeamText() {
+  const pane = gameLogsModal?.querySelector('#gamelogs-team-pane');
+  if (!gameLogsModal?.classList.contains('is-team-view')) return;
+  // Fit long names and the widest numeric cells to their allocated column;
+  // keep all ten stats readable without wrapping or horizontal scrolling.
+  pane?.querySelectorAll('.team-player-name, .team-player-stat-value, .team-player-stat-label').forEach(node => {
+    node.style.fontSize = '';
+    const size = Number.parseFloat(getComputedStyle(node).fontSize);
+    if (node.scrollWidth > node.clientWidth && node.clientWidth > 0) {
+      node.style.fontSize = `${Math.max(node.classList.contains('team-player-stat-label') ? 6.5 : 8, size * node.clientWidth / node.scrollWidth - 0.2)}px`;
+    }
+  });
+}
+function dataHubOpenTeamView(trigger) {
+  const pane = gameLogsModal?.querySelector('#gamelogs-team-pane');
+  const team = dataHubTeamKey(trigger.dataset.teamModalOpen);
+  if (!pane || !dataHubTeamNames[team] || gameLogsModal.classList.contains('loading')) return;
+  const players = dataHubTeamPlayers(team);
+  dataHubTeamTrigger = trigger;
+  closeDataHubGameLogsSeasonMenu();
+  pane.querySelector('.team-modal-season').textContent = `${state.currentModalSeason} SEASON · PPR`;
+  pane.querySelector('.team-modal-header').innerHTML = `<img class="team-modal-logo" src="${getDataHubTeamLogoSrc(team)}" alt="${team}" width="48" height="48"><div class="team-modal-heading"><h3 id="team-modal-title">${dataHubEscapeHtml(dataHubTeamNames[team])}</h3><p>${players.length} players <span aria-hidden="true">·</span> KTC high to low</p></div>`;
+  const groupNames = { QB: 'Quarterbacks', RB: 'Running backs', WR: 'Wide receivers', TE: 'Tight ends' };
+  const body = pane.querySelector('.team-modal-body');
+  body.innerHTML = dataHubTeamPositions.map(pos => {
+    const group = players.filter(player => player.pos === pos);
+    return `<section class="team-position-group" data-position="${pos}" aria-labelledby="team-position-${pos}"><h4 id="team-position-${pos}" class="team-position-heading"><span class="team-position-badge">${pos}</span><span>${groupNames[pos]}</span><span class="team-position-count">${group.length}</span></h4><div class="team-player-grid">${group.map(dataHubTeamCard).join('')}</div>${group.length ? '' : '<p class="team-position-empty">No players listed</p>'}</section>`;
+  }).join('');
+  body.scrollTop = 0;
+  gameLogsModal.classList.add('is-team-view');
+  pane.classList.remove('hidden');
+  requestAnimationFrame(dataHubFitTeamText);
+  document.fonts?.ready.then(dataHubFitTeamText);
+  pane.querySelector('[data-team-modal-back]').focus({ preventScroll: true });
+}
+function dataHubTeamKeydown(event) {
+  if (!gameLogsModal?.classList.contains('is-team-view') || event.key !== 'Tab') return;
+  const controls = [...gameLogsModal.querySelectorAll('#gamelogs-team-pane button, #gamelogs-team-pane [tabindex="0"]')];
+  const first = controls[0], last = controls[controls.length - 1];
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+}
+
+
 function closeDataHubGameLogsSeasonMenu() {
   // DataHub Game Logs modal season dropdown:
   // collapses the page-local season menu and keeps aria-expanded in sync with
@@ -12491,6 +12644,29 @@ function attachGameLogsModalListeners() {
       return;
     }
 
+    // DataHub team navigation uses its own season and KTC snapshots; switching
+    // back preserves the player's selected view and all existing modal panels.
+    const teamTrigger = event.target?.closest?.("[data-team-modal-open]");
+    if (teamTrigger) {
+      dataHubOpenTeamView(teamTrigger);
+      return;
+    }
+    if (event.target?.closest?.("[data-team-modal-back]")) {
+      dataHubResetTeamView({ restoreFocus: true });
+      return;
+    }
+    const teamPlayer = event.target?.closest?.("[data-team-player-id]");
+    if (teamPlayer) {
+      const player = dataHubTeamPlayers(state.currentGameLogsPlayer?.team)
+        .find(entry => entry.id === teamPlayer.dataset.teamPlayerId);
+      if (player) {
+        const season = state.currentModalSeason;
+        dataHubResetTeamView();
+        openDataHubGameLogs({ __meta: { ...player, playerId: player.id, hasGameLogsSupport: true } }, null, { season });
+      }
+      return;
+    }
+
     const seasonToggle = event.target?.closest?.("[data-gamelogs-season-toggle]");
     if (seasonToggle) {
       event.preventDefault();
@@ -12543,6 +12719,8 @@ function attachGameLogsModalListeners() {
     clearDataHubOwnershipPromptStatus(promptInput.form);
   });
   modalOverlay?.addEventListener("click", closeDataHubModal);
+  gameLogsModal.addEventListener("keydown", dataHubTeamKeydown);
+  window.addEventListener("resize", dataHubFitTeamText);
   document.addEventListener("click", (event) => {
     if (!gameLogsSeasonDropdown?.contains(event.target)) {
       closeDataHubGameLogsSeasonMenu();
@@ -12617,6 +12795,7 @@ function openDataHubModal(season = state.statsSeason) {
   if (!gameLogsModal) {
     return;
   }
+  dataHubResetTeamView();
   // Veteran modal mode:
   // explicitly restore the existing tab strip before every Game Logs launch so
   // a previous rookie-only Ownership open can never alter veteran behavior.
@@ -12635,6 +12814,7 @@ function openDataHubModal(season = state.statsSeason) {
 }
 
 function closeDataHubModal() {
+  dataHubResetTeamView();
   dataHubGameLogsRequestSeq += 1;
   if (!gameLogsModal) {
     return;
@@ -12704,6 +12884,8 @@ function openDataHubOwnershipOnlyModal() {
   if (!gameLogsModal) {
     return;
   }
+
+  dataHubResetTeamView();
 
   setDataHubModalOwnershipOnly(true);
   gameLogsModal.classList.remove("hidden", "loading");
@@ -13990,7 +14172,7 @@ function renderDataHubModalHeader(player, playerRanks) {
   left.className = "modal-header-left-container";
   left.innerHTML = `
     <div class="player-tag modal-pos-tag ${dataHubEscapeHtml(player.pos)}">${dataHubEscapeHtml(player.pos)}</div>
-    ${getDataHubTeamLogoMarkup(player.team)}
+    ${getDataHubTeamLogoMarkup(player.team, { interactive: true })}
   `;
   header.insertBefore(left, header.firstChild);
   modalPlayerName.textContent = player.fullName || player.name || "Player";
@@ -17488,11 +17670,19 @@ function getDataHubLeagueColor(abbr) {
   return dataHubAssignedLeagueColors.get(abbr);
 }
 
-function getDataHubTeamLogoMarkup(team) {
+function getDataHubTeamLogoMarkup(team, { interactive = false } = {}) {
   const teamKey = String(team || "FA").trim().toUpperCase() || "FA";
-  return teamKey !== "FA" && teamKey !== "UD"
-    ? `<div class="player-tag modal-team-logo-chip" data-team="${dataHubEscapeHtml(teamKey)}"><img class="team-logo glow" src="${getDataHubTeamLogoSrc(teamKey)}" alt="${dataHubEscapeHtml(teamKey)}" width="24" height="24" loading="eager" /></div>`
-    : `<div class="player-tag modal-team-logo-chip" data-team="${teamKey}"><span>${teamKey}</span></div>`;
+  const validTeam = Boolean(dataHubTeamNames[dataHubTeamKey(teamKey)]);
+  const tag = interactive ? "button" : "div";
+  // Only the Game Logs header is interactive; Ownership chips remain local to
+  // their existing pane. Free agents have no NFL team directory to open.
+  const controls = interactive
+    ? ` type="button" data-team-modal-open="${dataHubEscapeHtml(teamKey)}" aria-controls="gamelogs-team-pane" aria-label="View ${dataHubEscapeHtml(teamKey)} team players" title="View ${dataHubEscapeHtml(teamKey)} team players"${validTeam ? "" : " disabled"}`
+    : "";
+  const content = validTeam
+    ? `<img class="team-logo glow" src="${getDataHubTeamLogoSrc(teamKey)}" alt="${dataHubEscapeHtml(teamKey)}" width="24" height="24" loading="eager" />`
+    : `<span>${dataHubEscapeHtml(teamKey)}</span>`;
+  return `<${tag} class="player-tag modal-team-logo-chip" data-team="${dataHubEscapeHtml(teamKey)}"${controls}>${content}</${tag}>`;
 }
 
 function getDataHubNormalizedTeamLogoKey(team) {

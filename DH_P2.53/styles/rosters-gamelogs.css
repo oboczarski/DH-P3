@@ -6448,3 +6448,230 @@ body[data-page="rosters"] #game-logs-modal #radar-chart-container #player-radar-
   max-height: none;
   padding: 0;
 }
+
+
+/* Rosters Game Logs team view: a page-local alternate dialog pane with two
+   player columns at every width. Names sit above two fixed five-stat rows;
+   only the team list scrolls vertically when the full roster exceeds the screen. */
+body[data-page="rosters"] #game-logs-modal [data-team-modal-open] {
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+body[data-page="rosters"] #game-logs-modal [data-team-modal-open]:enabled:hover {
+  border-color: rgba(148, 171, 255, .65);
+  background: rgba(111, 139, 255, .13);
+}
+body[data-page="rosters"] #game-logs-modal [data-team-modal-open]:disabled { cursor: default; }
+body[data-page="rosters"] #game-logs-modal :is([data-team-modal-open], .team-modal-back, .team-player-card):focus-visible {
+  outline: 2px solid #a9caff;
+  outline-offset: 3px;
+}
+body[data-page="rosters"] #game-logs-modal.is-team-view > :is(.gamelogs-modal-tabs, #gamelogs-tab-pane, #gamelogs-ownership-pane) {
+  display: none !important;
+}
+body[data-page="rosters"] #game-logs-modal .team-modal-pane.hidden { display: none !important; }
+body[data-page="rosters"] #game-logs-modal.is-team-view .team-modal-pane {
+  --team-card-gap: 10px;
+  display: flex;
+  flex-direction: column;
+  width: min(760px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  /* Override the player pane's fixed mobile height; team content uses the viewport. */
+  height: auto !important;
+  max-height: calc(100vh - 36px);
+  max-height: calc(100dvh - 36px);
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(156, 172, 224, .26);
+  border-radius: 18px;
+  background: radial-gradient(ellipse at 10% 0%, rgba(74, 105, 164, .17), transparent 60%),
+    linear-gradient(155deg, #141c2b, #0b111e 70%);
+  box-shadow: 0 28px 100px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(227, 236, 255, .08);
+}
+body[data-page="rosters"] #game-logs-modal .team-modal-pane .modal-close-btn {
+  top: 10px;
+  right: 13px;
+  font-size: 26px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+body[data-page="rosters"] #game-logs-modal .team-modal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-right: 40px;
+  min-height: 28px;
+  flex: 0 0 auto;
+}
+body[data-page="rosters"] #game-logs-modal .team-modal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px;
+  border: 1px solid rgba(163, 183, 235, .16);
+  border-radius: 7px;
+  background: rgba(126, 152, 216, .07);
+  font: inherit;
+  font-size: 11px;
+  color: #b9c9e5;
+  cursor: pointer;
+  white-space: nowrap;
+}
+body[data-page="rosters"] #game-logs-modal .team-modal-back:hover { background: rgba(126, 152, 216, .16); color: #eef5ff; }
+body[data-page="rosters"] #game-logs-modal .team-modal-season { color: #9eafca; font-size: 10px; letter-spacing: .07em; white-space: nowrap; }
+body[data-page="rosters"] #game-logs-modal .team-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 17px 4px 19px;
+  flex: 0 0 auto;
+  text-align: left;
+  border-bottom: 1px solid rgba(153, 174, 218, .14);
+}
+body[data-page="rosters"] #game-logs-modal .team-modal-logo {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 5px 12px rgba(0, 0, 0, .3));
+}
+body[data-page="rosters"] #game-logs-modal .team-modal-heading { min-width: 0; }
+body[data-page="rosters"] #game-logs-modal .team-modal-heading h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 550;
+  letter-spacing: -.025em;
+  color: #eff5ff;
+  line-height: 1.2;
+}
+body[data-page="rosters"] #game-logs-modal .team-modal-heading p {
+  margin: 5px 0 0;
+  color: #9eafca;
+  font-size: 11px;
+  line-height: 1.4;
+}
+body[data-page="rosters"] #game-logs-modal .team-modal-heading p span { margin: 0 5px; color: #647792; }
+body[data-page="rosters"] #game-logs-modal .team-modal-body {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding: 0 3px 3px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(135, 160, 206, .35) transparent;
+}
+body[data-page="rosters"] #game-logs-modal .team-modal-body:focus-visible { outline: 1px solid #a9caff; outline-offset: -1px; }
+body[data-page="rosters"] #game-logs-modal .team-position-group { --team-position-color: var(--pos-qb, #ff7296); padding-top: 15px; }
+body[data-page="rosters"] #game-logs-modal .team-position-group[data-position="RB"] { --team-position-color: var(--pos-rb, #53d7b8); }
+body[data-page="rosters"] #game-logs-modal .team-position-group[data-position="WR"] { --team-position-color: var(--pos-wr, #6bb4ff); }
+body[data-page="rosters"] #game-logs-modal .team-position-group[data-position="TE"] { --team-position-color: var(--pos-te, #bd8aff); }
+body[data-page="rosters"] #game-logs-modal .team-position-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 9px;
+  color: #c5d0e3;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: left;
+}
+body[data-page="rosters"] #game-logs-modal .team-position-badge {
+  min-width: 30px;
+  padding: 3px 5px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--team-position-color) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--team-position-color) 30%, transparent);
+  color: var(--team-position-color);
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+}
+body[data-page="rosters"] #game-logs-modal .team-position-count { margin-left: auto; color: #8396b2; font-size: 11px; font-variant-numeric: tabular-nums; }
+body[data-page="rosters"] #game-logs-modal .team-player-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--team-card-gap);
+}
+body[data-page="rosters"] #game-logs-modal .team-player-card {
+  display: block;
+  min-width: 0;
+  width: 100%;
+  padding: 8px 10px 7px;
+  border: 1px solid rgba(132, 156, 201, .18);
+  border-radius: 10px;
+  background: linear-gradient(120deg, rgba(75, 98, 137, .13), rgba(38, 51, 78, .2));
+  box-shadow: inset 0 1px 0 rgba(226, 236, 255, .035);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+body[data-page="rosters"] #game-logs-modal .team-player-card:hover {
+  background: linear-gradient(120deg, rgba(90, 122, 173, .23), rgba(48, 65, 99, .3));
+  border-color: color-mix(in srgb, var(--team-position-color) 45%, transparent);
+}
+body[data-page="rosters"] #game-logs-modal .team-player-card:active { background: rgba(95, 119, 171, .22); }
+body[data-page="rosters"] #game-logs-modal .team-player-card-heading { display: flex; gap: 5px; align-items: center; margin-bottom: 6px; }
+body[data-page="rosters"] #game-logs-modal .team-player-name {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  color: #e8effb;
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 550;
+  white-space: nowrap;
+}
+body[data-page="rosters"] #game-logs-modal .team-player-arrow { flex: 0 0 auto; font-size: 12px; color: var(--team-position-color); opacity: .85; }
+body[data-page="rosters"] #game-logs-modal .team-player-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+body[data-page="rosters"] #game-logs-modal .team-player-stats--position { margin-top: 5px; padding-top: 5px; border-top: 1px solid rgba(153, 174, 218, .1); }
+body[data-page="rosters"] #game-logs-modal .team-player-stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; text-align: center; }
+body[data-page="rosters"] #game-logs-modal .team-player-stat-label { font-size: 9px; line-height: 1.15; color: #95a7c2; white-space: nowrap; }
+body[data-page="rosters"] #game-logs-modal .team-player-stat-value { font-size: 13px; line-height: 1.15; color: #dce7f7; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+body[data-page="rosters"] #game-logs-modal .team-player-stat--ktc .team-player-stat-label { color: #ada0dd; }
+body[data-page="rosters"] #game-logs-modal .team-player-stat--ktc .team-player-stat-value { color: #c8baff; }
+body[data-page="rosters"] #game-logs-modal .team-position-empty { margin: 0; padding: 10px 0; color: #8a9cb7; font-size: 11px; }
+@media (max-width: 640px) {
+  body[data-page="rosters"] #game-logs-modal.is-team-view .team-modal-pane {
+    --team-card-gap: 7px;
+    width: calc(100vw - 16px);
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
+    padding: 11px 9px;
+    border-radius: 14px;
+  }
+  body[data-page="rosters"] #game-logs-modal .team-modal-pane .modal-close-btn { top: 8px; right: 7px; }
+  body[data-page="rosters"] #game-logs-modal .team-modal-toolbar { padding-right: 31px; }
+  body[data-page="rosters"] #game-logs-modal .team-modal-back { padding: 5px 6px; gap: 5px; font-size: 10px; }
+  body[data-page="rosters"] #game-logs-modal .team-modal-season { font-size: 8px; letter-spacing: .03em; }
+  body[data-page="rosters"] #game-logs-modal .team-modal-header { gap: 10px; padding: 12px 2px 13px; }
+  body[data-page="rosters"] #game-logs-modal .team-modal-logo { width: 40px; height: 40px; }
+  body[data-page="rosters"] #game-logs-modal .team-modal-heading h3 { font-size: 19px; }
+  body[data-page="rosters"] #game-logs-modal .team-modal-heading p { font-size: 10px; margin-top: 3px; }
+  body[data-page="rosters"] #game-logs-modal .team-modal-body { padding: 0 2px 2px; }
+  body[data-page="rosters"] #game-logs-modal .team-position-group { padding-top: 12px; }
+  body[data-page="rosters"] #game-logs-modal .team-position-heading { margin-bottom: 7px; font-size: 11px; }
+  body[data-page="rosters"] #game-logs-modal .team-player-card { padding: 8px 6px 7px; border-radius: 8px; }
+  body[data-page="rosters"] #game-logs-modal .team-player-card-heading { margin-bottom: 5px; gap: 3px; }
+  body[data-page="rosters"] #game-logs-modal .team-player-name { font-size: 12px; }
+  body[data-page="rosters"] #game-logs-modal .team-player-arrow { font-size: 10px; }
+  body[data-page="rosters"] #game-logs-modal .team-player-stats { gap: 2px; }
+  body[data-page="rosters"] #game-logs-modal .team-player-stats--position { margin-top: 4px; padding-top: 4px; }
+  body[data-page="rosters"] #game-logs-modal .team-player-stat-label { font-size: 8px; letter-spacing: -.015em; }
+  body[data-page="rosters"] #game-logs-modal .team-player-stat-value { font-size: 10px; letter-spacing: -.035em; }
+}
+@media (max-width: 359px) {
+  body[data-page="rosters"] #game-logs-modal .team-player-name { font-size: 11px; }
+  body[data-page="rosters"] #game-logs-modal .team-player-stat-label { font-size: 7px; }
+  body[data-page="rosters"] #game-logs-modal .team-player-stat-value { font-size: 9px; }
+  body[data-page="rosters"] #game-logs-modal .team-modal-heading h3 { font-size: 17px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-page="rosters"] #game-logs-modal :is([data-team-modal-open], .team-player-card) { transition: none; }
+}

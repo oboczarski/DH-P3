@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh League Analyzer's Radiance / Glacial gauge markup and scoped styles.
-const CACHE_NAME = 'DH3.48n-radiance-glacial-gauge';
+// Refresh both page-owned Game Logs team directories and their modal assets.
+const CACHE_NAME = 'DH3.48o-gamelogs-team-directory';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

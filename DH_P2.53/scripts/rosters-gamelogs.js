@@ -815,5 +815,181 @@ window.renderPlayerRadarChart = function(playerId, position) {
   document.addEventListener('keydown', event => { if (event.key === 'Escape') hideTooltip(); });
   window.addEventListener('resize', hideTooltip);
   desktopHover.addEventListener('change', hideTooltip);
+
+// TEAM DIRECTORY MODEL START
+// Rosters Game Logs team directory: read the selected season snapshot and
+// the full player index, independent of page search, qualifiers, and league ownership.
+const rostersTeamPositions = ['QB', 'RB', 'WR', 'TE'];
+const rostersTeamNames = {
+  ARI: 'Arizona Cardinals', ATL: 'Atlanta Falcons', BAL: 'Baltimore Ravens', BUF: 'Buffalo Bills',
+  CAR: 'Carolina Panthers', CHI: 'Chicago Bears', CIN: 'Cincinnati Bengals', CLE: 'Cleveland Browns',
+  DAL: 'Dallas Cowboys', DEN: 'Denver Broncos', DET: 'Detroit Lions', GB: 'Green Bay Packers',
+  HOU: 'Houston Texans', IND: 'Indianapolis Colts', JAX: 'Jacksonville Jaguars', KC: 'Kansas City Chiefs',
+  LAC: 'Los Angeles Chargers', LAR: 'Los Angeles Rams', LV: 'Las Vegas Raiders', MIA: 'Miami Dolphins',
+  MIN: 'Minnesota Vikings', NE: 'New England Patriots', NO: 'New Orleans Saints', NYG: 'New York Giants',
+  NYJ: 'New York Jets', PHI: 'Philadelphia Eagles', PIT: 'Pittsburgh Steelers', SEA: 'Seattle Seahawks',
+  SF: 'San Francisco 49ers', TB: 'Tampa Bay Buccaneers', TEN: 'Tennessee Titans', WAS: 'Washington Commanders',
+};
+const rostersTeamStatColumns = {
+  QB: [['CMP%', 'cmp_pct', 'percent', 'Completion percentage'], ['paRTG', 'pass_rtg', 'decimal', 'Passer rating'], ['paYDS', 'pass_yd', 'integer', 'Passing yards'], ['ruYDS', 'rush_yd', 'integer', 'Rushing yards'], ['TD(t)', 'team_total_td', 'integer', 'Passing TD + rushing TD']],
+  RB: [['SNP%', 'snp_pct', 'percent', 'Snap share'], ['CAR', 'rush_att', 'integer', 'Carries'], ['YPC', 'ypc', 'decimal', 'Yards per carry'], ['YDS(t)', 'yds_total', 'integer', 'Rushing yards + receiving yards'], ['TD(t)', 'team_total_td', 'integer', 'Rushing TD + receiving TD']],
+  WR: [['TGT', 'rec_tgt', 'integer', 'Targets'], ['REC', 'rec', 'integer', 'Receptions'], ['recYDS', 'rec_yd', 'integer', 'Receiving yards'], ['recTD', 'rec_td', 'integer', 'Receiving touchdowns'], ['YAC', 'rec_yar', 'integer', 'Receiving yards after catch']],
+  TE: [['TGT', 'rec_tgt', 'integer', 'Targets'], ['REC', 'rec', 'integer', 'Receptions'], ['recYDS', 'rec_yd', 'integer', 'Receiving yards'], ['recTD', 'rec_td', 'integer', 'Receiving touchdowns'], ['YAC', 'rec_yar', 'integer', 'Receiving yards after catch']],
+};
+function rostersTeamNumber(value) {
+  if (value === null || value === undefined || String(value).trim() === '') return null;
+  const number = Number(String(value).replace(/[% ,]/g, ''));
+  return Number.isFinite(number) ? number : null;
+}
+function rostersTeamKey(team) {
+  const key = String(team || '').trim().toUpperCase();
+  return ({ WSH: 'WAS', JAC: 'JAX', LA: 'LAR' })[key] || key;
+}
+function rostersTeamStats(source, pos) {
+  const stats = Object.fromEntries(Object.entries(source || {}).map(([key, value]) => [key, rostersTeamNumber(value)]));
+  stats.fpts = rostersTeamNumber(source?.fpts_ppr ?? source?.fpt_ppr ?? source?.fpts);
+  stats.ppg = rostersTeamNumber(source?.ppg);
+  if (stats.ppg === null && stats.games_played > 0 && stats.fpts !== null) stats.ppg = stats.fpts / stats.games_played;
+  // TD(t) has a position-specific meaning. Never treat absent components as zero,
+  // and do not reuse Career ttlTD (which excludes passing touchdowns for QBs).
+  const tdKeys = pos === 'QB' ? ['pass_td', 'rush_td'] : ['rush_td', 'rec_td'];
+  stats.team_total_td = rostersTeamNumber(source?.['TD(t)']);
+  if (stats.team_total_td === null) stats.team_total_td = tdKeys.every(key => stats[key] !== null && stats[key] !== undefined)
+    ? tdKeys.reduce((sum, key) => sum + stats[key], 0) : null;
+  if (stats.yds_total == null) stats.yds_total = ['rush_yd', 'rec_yd'].every(key => stats[key] != null)
+    ? stats.rush_yd + stats.rec_yd : null;
+  if (stats.cmp_pct == null && stats.pass_att > 0 && stats.pass_cmp != null) stats.cmp_pct = 100 * stats.pass_cmp / stats.pass_att;
+  if (stats.ypc == null && stats.rush_att > 0 && stats.rush_yd != null) stats.ypc = stats.rush_yd / stats.rush_att;
+  return stats;
+}
+function rostersTeamFormat(value, format = 'integer') {
+  const number = rostersTeamNumber(value);
+  if (number === null) return '—';
+  if (format === 'percent') return `${number.toFixed(1)}%`;
+  return format === 'decimal' ? number.toFixed(1) : String(Math.round(number));
+}
+function rostersTeamPlayers(team) {
+  const teamKey = rostersTeamKey(team);
+  const seasonStats = state.playerSeasonStats || {};
+  const playerIndex = state.players || {};
+  const rowsById = new Map();
+  const ids = new Set([...Object.keys(playerIndex), ...Object.keys(seasonStats)]);
+  const players = [];
+  for (const id of ids) {
+    const player = playerIndex[id] || {};
+    const source = seasonStats[id];
+    const row = rowsById.get(id);
+    const meta = row?.__meta || {};
+    const pos = String(source?.pos || meta.pos || player.position || player.fantasy_positions?.[0] || '').toUpperCase();
+    if (!rostersTeamPositions.includes(pos)) continue;
+    // The selected season's team takes precedence over today's player index so
+    // historical/traded players cannot leak into the wrong team's season view.
+    if (rostersTeamKey(source?.team || meta.team || player.team) !== teamKey) continue;
+    const valuation = (state.isSuperflex ? (state.sflxData?.[id] || state.oneQbData?.[id]) : (state.oneQbData?.[id] || state.sflxData?.[id])) || {};
+    const name = String(player.full_name || `${player.first_name || ''} ${player.last_name || ''}`.trim()
+      || meta.fullName || meta.name || valuation.name || `Player ${id}`).trim();
+    const ktc = rostersTeamNumber(valuation.ktc);
+    const age = rostersTeamNumber(valuation.age ?? meta.age ?? player.age);
+    // Player Game Logs expects a position-prefixed rank string, including when
+    // a valuation feed supplies only a numeric rank.
+    const rank = String(valuation.posRank ?? meta.posRankText ?? '').match(/\d+/)?.[0];
+    players.push({ id, name, fullName: name, pos, team: teamKey, ktc, age,
+      posRank: rank ? `${pos}·${rank}` : null, overallRank: valuation.overallRank ?? meta.overallKtcRank,
+      stats: rostersTeamStats(source, pos) });
+  }
+  // Unknown KTC stays below any known value. Stable name/ID tie breaks make
+  // the position groups deterministic without inheriting Stats table sorting.
+  return players.sort((a, b) => rostersTeamPositions.indexOf(a.pos) - rostersTeamPositions.indexOf(b.pos)
+    || (b.ktc ?? -1) - (a.ktc ?? -1) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+}
+// TEAM DIRECTORY MODEL END
+
+let rostersTeamTrigger = null;
+function rostersResetTeamView({ restoreFocus = false } = {}) {
+  const pane = modal?.querySelector('#gamelogs-team-pane');
+  modal?.classList.remove('is-team-view');
+  pane?.classList.add('hidden');
+  if (restoreFocus && rostersTeamTrigger?.isConnected) rostersTeamTrigger.focus({ preventScroll: true });
+  rostersTeamTrigger = null;
+}
+function rostersTeamCard(player) {
+  const escape = escapeHtml;
+  const basic = [['Age', 'age', 'decimal', 'Player age'], ['G', 'games_played', 'integer', 'Games played'], ['FPTS', 'fpts', 'decimal', 'Season PPR fantasy points'], ['PPG', 'ppg', 'decimal', 'PPR fantasy points per game'], ['KTC', 'ktc', 'integer', 'KeepTradeCut value']];
+  const statMarkup = (columns, extra) => `<span class="team-player-stats${extra ? ' team-player-stats--position' : ''}">${columns.map(([label, key, format, title]) => {
+    const value = key === 'age' || key === 'ktc' ? player[key] : player.stats[key];
+    return `<span class="team-player-stat${key === 'ktc' ? ' team-player-stat--ktc' : ''}" title="${escape(title)}"><span class="team-player-stat-label">${escape(label)}</span><span class="team-player-stat-value">${escape(rostersTeamFormat(value, format))}</span></span>`;
+  }).join('')}</span>`;
+  return `<button type="button" class="team-player-card" data-team-player-id="${escape(player.id)}" aria-label="Open ${escape(player.name)} Game Logs" title="${escape(player.name)} — open Game Logs">
+    <span class="team-player-card-heading"><span class="team-player-name">${escape(player.name)}</span><span class="team-player-arrow" aria-hidden="true">↗</span></span>
+    ${statMarkup(basic, false)}${statMarkup(rostersTeamStatColumns[player.pos], true)}
+  </button>`;
+}
+function rostersFitTeamText() {
+  const pane = modal?.querySelector('#gamelogs-team-pane');
+  if (!modal?.classList.contains('is-team-view')) return;
+  // Fit long names and the widest numeric cells to their allocated column;
+  // keep all ten stats readable without wrapping or horizontal scrolling.
+  pane?.querySelectorAll('.team-player-name, .team-player-stat-value, .team-player-stat-label').forEach(node => {
+    node.style.fontSize = '';
+    const size = Number.parseFloat(getComputedStyle(node).fontSize);
+    if (node.scrollWidth > node.clientWidth && node.clientWidth > 0) {
+      node.style.fontSize = `${Math.max(node.classList.contains('team-player-stat-label') ? 6.5 : 8, size * node.clientWidth / node.scrollWidth - 0.2)}px`;
+    }
+  });
+}
+function rostersOpenTeamView(trigger) {
+  const pane = modal?.querySelector('#gamelogs-team-pane');
+  const team = rostersTeamKey(trigger.dataset.teamModalOpen);
+  if (!pane || !rostersTeamNames[team] || modal.classList.contains('loading')) return;
+  const players = rostersTeamPlayers(team);
+  rostersTeamTrigger = trigger;
+  closeGameLogsSeasonMenu();
+  pane.querySelector('.team-modal-season').textContent = `${state.currentGameLogsSeason} SEASON · PPR`;
+  pane.querySelector('.team-modal-header').innerHTML = `<img class="team-modal-logo" src="${`../assets/NFL_logos_svg/${({ WAS: 'was' })[team] || team.toLowerCase()}.svg`}" alt="${team}" width="48" height="48"><div class="team-modal-heading"><h3 id="team-modal-title">${escapeHtml(rostersTeamNames[team])}</h3><p>${players.length} players <span aria-hidden="true">·</span> KTC high to low</p></div>`;
+  const groupNames = { QB: 'Quarterbacks', RB: 'Running backs', WR: 'Wide receivers', TE: 'Tight ends' };
+  const body = pane.querySelector('.team-modal-body');
+  body.innerHTML = rostersTeamPositions.map(pos => {
+    const group = players.filter(player => player.pos === pos);
+    return `<section class="team-position-group" data-position="${pos}" aria-labelledby="team-position-${pos}"><h4 id="team-position-${pos}" class="team-position-heading"><span class="team-position-badge">${pos}</span><span>${groupNames[pos]}</span><span class="team-position-count">${group.length}</span></h4><div class="team-player-grid">${group.map(rostersTeamCard).join('')}</div>${group.length ? '' : '<p class="team-position-empty">No players listed</p>'}</section>`;
+  }).join('');
+  body.scrollTop = 0;
+  modal.classList.add('is-team-view');
+  pane.classList.remove('hidden');
+  requestAnimationFrame(rostersFitTeamText);
+  document.fonts?.ready.then(rostersFitTeamText);
+  pane.querySelector('[data-team-modal-back]').focus({ preventScroll: true });
+}
+function rostersTeamKeydown(event) {
+  if (!modal?.classList.contains('is-team-view') || event.key !== 'Tab') return;
+  const controls = [...modal.querySelectorAll('#gamelogs-team-pane button, #gamelogs-team-pane [tabindex="0"]')];
+  const first = controls[0], last = controls[controls.length - 1];
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+}
+
+// Keep the shared app.js open/close path aware only of the Rosters-local reset.
+window.resetRostersTeamView = rostersResetTeamView;
+modal.addEventListener('click', event => {
+  const trigger = event.target.closest('[data-team-modal-open]');
+  if (trigger) { rostersOpenTeamView(trigger); return; }
+  if (event.target.closest('[data-team-modal-back]')) { rostersResetTeamView({ restoreFocus: true }); return; }
+  const card = event.target.closest('[data-team-player-id]');
+  if (!card) return;
+  const team = rostersTeamKey(state.currentGameLogsPlayer?.team);
+  const player = rostersTeamPlayers(team).find(entry => entry.id === card.dataset.teamPlayerId);
+  if (!player) return;
+  rostersResetTeamView();
+  handlePlayerNameClick(player).catch(error => {
+    console.error('Unable to open teammate Game Logs.', error);
+    modal.classList.remove('loading');
+    modal.querySelector('.game-logs-loading-container')?.remove();
+    const body = modal.querySelector('#modal-body');
+    body?.classList.remove('loading');
+    if (body) body.innerHTML = '<p class="no-logs">Unable to load Game Logs. Close this modal and try again.</p>';
+  });
+});
+modal.addEventListener('keydown', rostersTeamKeydown);
+window.addEventListener('resize', rostersFitTeamText);
+
   syncYearControl();
 })();

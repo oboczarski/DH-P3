@@ -7234,9 +7234,19 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
     const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
     const src = `../assets/NFL_logos_svg/${normalizedKey}.svg`;
-    const teamLogoChip = document.createElement('div');
+    // Rosters Game Logs: the header logo opens the local team directory.
+    // Other app.js consumers retain their existing non-interactive chip.
+    const teamLogoChip = document.createElement(pageType === 'rosters' ? 'button' : 'div');
     teamLogoChip.className = 'player-tag modal-team-logo-chip';
     teamLogoChip.dataset.team = teamKey;
+    if (pageType === 'rosters') {
+        teamLogoChip.type = 'button';
+        teamLogoChip.dataset.teamModalOpen = teamKey;
+        teamLogoChip.setAttribute('aria-label', `View ${teamKey} team players`);
+        teamLogoChip.setAttribute('aria-controls', 'gamelogs-team-pane');
+        teamLogoChip.title = `View ${teamKey} team players`;
+        teamLogoChip.disabled = ['FA', 'UD', 'NA', '?'].includes(teamKey);
+    }
     teamLogoChip.innerHTML = (teamKey && teamKey !== 'FA')
         ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="24" height="24" loading="eager">`
         : `<span>FA</span>`;
@@ -12403,6 +12413,8 @@ function setGameLogsModalView(view) {
     }
 }
 function openModal() {
+    // Clear Rosters' alternate team pane whenever a player is opened again.
+    if (pageType === 'rosters') window.resetRostersTeamView?.();
     gameLogsModal.classList.remove('hidden');
     modalBody.classList.remove('hidden'); // Ensure game logs table is visible
     statsKeyContainer.classList.add('hidden');
@@ -12424,6 +12436,8 @@ function openModal() {
     });
 }
 function closeModal() {
+    // Closing either pane resets team navigation for the next player launch.
+    if (pageType === 'rosters') window.resetRostersTeamView?.();
     gameLogsModalRequestSeq += 1;
     if (gameLogsModal) {
         gameLogsModal.classList.remove('loading');

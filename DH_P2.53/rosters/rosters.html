@@ -26,7 +26,7 @@
   <!-- Ownership modal styles (needed for watchlist → ownership flow) -->
   <link rel="stylesheet" href="../styles/ownership.css?v=DH3.1t-vi10" />
   <!-- Rosters Game Logs owns its complete responsive theme; it loads last to replace the older shared modal rules. -->
-  <link rel="stylesheet" href="../styles/rosters-gamelogs.css?v=DH3.48k-season-performance-radar-axes" />
+  <link rel="stylesheet" href="../styles/rosters-gamelogs.css?v=DH3.48o-gamelogs-team-directory" />
   <!-- Cloudflare Web Analytics: tracks visits for the current Dynasty Hub Cloudflare property; kept deferred so it does not block app rendering. -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "0a02235754b046f389fb57f26b46f13a"}'></script>
  </head>
@@ -586,6 +586,16 @@
     <div class="ownership-modal-body" id="glOwnershipBody"></div>
   </div>
 
+  <!-- Rosters owns its team view; Back restores the existing player pane and selected view. -->
+  <section id="gamelogs-team-pane" class="modal-content glass-panel team-modal-pane hidden" role="dialog" aria-modal="true" aria-labelledby="team-modal-title">
+    <button class="modal-close-btn" type="button" aria-label="Close team modal">&times;</button>
+    <div class="team-modal-toolbar">
+      <button type="button" class="team-modal-back" data-team-modal-back><span aria-hidden="true">←</span> <span>Back to player</span></button>
+      <span class="team-modal-season"></span>
+    </div>
+    <header class="team-modal-header"></header>
+    <div class="team-modal-body" tabindex="0" aria-label="Team players by position"></div>
+  </section>
 </div>
 
 <!-- Player Watchlist Modal -->
@@ -649,8 +659,8 @@
 </div>
   <!-- Rosters data stays in the existing loader; local presentation supplies modal icons, help, and view styling. -->
   <!-- Restore original Fantasy/PPG formatting; retain stat-group palettes and desktop watchlist styling. -->
-  <script defer="True" src="../scripts/app.js?v=DH3.48k-season-performance-radar-axes"></script>
+  <script defer="True" src="../scripts/app.js?v=DH3.48o-gamelogs-team-directory"></script>
   <script defer="True" src="../scripts/rosters-2026-gamelogs.js?v=DH3.48l-weekly-wk-header"></script>
-  <script defer src="../scripts/rosters-gamelogs.js?v=DH3.48m-performance-mobile-radar"></script>
+  <script defer src="../scripts/rosters-gamelogs.js?v=DH3.48o-gamelogs-team-directory"></script>
 </body>
 </html>
