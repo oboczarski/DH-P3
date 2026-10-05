@@ -78,9 +78,9 @@ for (const page of ['datahub', 'rosters']) {
     assert.equal(api.stats({ rush_td: 3 }, 'RB').team_total_td, null);
     assert.equal(api.stats({ rush_td: 0, rec_td: 0 }, 'RB').team_total_td, 0);
   });
-  test(`${page}: zero stats remain zero and missing stats remain unavailable`, () => {
+  test(`${page}: source zeros stay numeric while their display uses a hyphen, and missing stats stay unavailable`, () => {
     const api = model(page);
-    assert.equal(api.format(0), '0');
+    for (const format of ['integer', 'decimal', 'percent']) assert.equal(api.format(0, format), '-');
     for (const value of [null, undefined, '', 'NA', '—', 'NaN']) assert.equal(api.format(value), '—');
     assert.equal(api.format(69.3, 'percent'), '69.3%');
     assert.equal(api.format(10000), '10000');

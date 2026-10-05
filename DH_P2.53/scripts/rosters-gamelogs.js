@@ -866,6 +866,8 @@ function rostersTeamStats(source, pos) {
 function rostersTeamFormat(value, format = 'integer') {
   const number = rostersTeamNumber(value);
   if (number === null) return '—';
+  // Team-card zero values use a hyphen; source numbers still drive ranks/sorting.
+  if (number === 0) return '-';
   if (format === 'percent') return `${number.toFixed(1)}%`;
   return format === 'decimal' ? number.toFixed(1) : String(Math.round(number));
 }
@@ -1006,8 +1008,10 @@ function rostersTeamCard(player) {
   const basic = [['Age', 'age', 'decimal', 'Player age'], ['G', 'games_played', 'integer', 'Games played'], ['FPTS', 'fpts', 'decimal', 'Season PPR fantasy points'], ['PPG', 'ppg', 'decimal', 'PPR fantasy points per game'], ['KTC', 'ktc', 'integer', 'KeepTradeCut value']];
   const statMarkup = (columns, extra) => `<span class="team-player-stats${extra ? ' team-player-stats--position' : ''}">${columns.map(([label, key, format, title]) => {
     const value = key === 'age' || key === 'ktc' ? player[key] : player.stats[key];
-    const color = rostersTeamStatColor(player, key);
-    return `<span class="team-player-stat${key === 'ktc' ? ' team-player-stat--ktc' : ''}" title="${escape(title)}"><span class="team-player-stat-label">${escape(label)}</span><span class="team-player-stat-value"${color ? ` style="color:${escape(color)}"` : ''}>${escape(rostersTeamFormat(value, format))}</span></span>`;
+    // Zero placeholders stay dim and neutral rather than inheriting a rank color.
+    const isZero = rostersTeamNumber(value) === 0;
+    const color = isZero ? '' : rostersTeamStatColor(player, key);
+    return `<span class="team-player-stat${key === 'ktc' ? ' team-player-stat--ktc' : ''}" title="${escape(title)}"><span class="team-player-stat-label">${escape(label)}</span><span class="team-player-stat-value${isZero ? ' team-player-stat-value--zero' : ''}"${color ? ` style="color:${escape(color)}"` : ''}>${escape(rostersTeamFormat(value, format))}</span></span>`;
   }).join('')}</span>`;
   return `<button type="button" class="team-player-card" data-team-player-id="${escape(player.id)}" aria-label="Open ${escape(player.name)} Game Logs${fptsRank ? `, season FPTS rank ${escape(fptsRank)}` : ''}" title="${escape(player.name)} — open Game Logs">
     <span class="team-player-card-heading"><span class="team-player-name">${escape(player.name)}</span>${rankMarkup}<span class="team-player-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></span>

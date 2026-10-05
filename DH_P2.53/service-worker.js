@@ -32,7 +32,8 @@
 // Refresh every navigation entry and the integrated, live-Sheets Matchups page.
 // Refresh Rosters Start/Sit previews and their independently owned defense-panel modal.
 // Refresh positional SOS context and five-card defense summaries on both owned surfaces.
-const CACHE_NAME = 'DH3.49b-matchup-sos';
+// Refresh dimmed hyphens for zero-valued team-card stats on DataHub and Rosters.
+const CACHE_NAME = 'DH3.49c-team-zero-placeholders';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
