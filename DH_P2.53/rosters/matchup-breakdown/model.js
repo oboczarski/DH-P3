@@ -387,8 +387,12 @@ const Data = (() => {
         const expectedAvg = summaryAvailable ? supplied?.expectedAvg ?? null : expectedTotal === null ? null : expectedTotal / eligible.length;
         const complete = stat.total !== null && expectedTotal !== null;
         const delta = complete ? (Math.round(stat.total * 100) - Math.round(expectedTotal * 100)) / 100 : null;
+        // SOS describes the season opponents already faced at this position.
+        // Keep FPFA's ascending vRK unchanged, including under venue filters;
+        // the selected-game expectedRank below serves a separate comparison.
+        const sosRank = summary.byTeam.get(row.team)?.metrics[pos]?.expectedRank ?? null;
         return [pos, { actual: stat, expectedTotal, expectedAvg,
-          actualRank: stat.rank, expectedRank: supplied?.expectedRank ?? null,
+          actualRank: stat.rank, expectedRank: supplied?.expectedRank ?? null, sosRank,
           delta, deltaPct: complete && expectedTotal !== 0 ? delta / Math.abs(expectedTotal) * 100 : null,
           pool: 0, games: stat.games, entries }];
       })) };

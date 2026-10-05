@@ -31,7 +31,8 @@
 // Refresh team-card FPTS name ranks and centered position-heading dividers on both pages.
 // Refresh every navigation entry and the integrated, live-Sheets Matchups page.
 // Refresh Rosters Start/Sit previews and their independently owned defense-panel modal.
-const CACHE_NAME = 'DH3.49a-rosters-matchups';
+// Refresh positional SOS context and five-card defense summaries on both owned surfaces.
+const CACHE_NAME = 'DH3.49b-matchup-sos';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

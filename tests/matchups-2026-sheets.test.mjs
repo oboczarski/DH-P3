@@ -91,6 +91,33 @@ test('each load reads updated sheets rather than retaining an earlier snapshot',
   assert.equal(requests, 6);
 });
 
+test('SOS preserves each published ascending positional vRK across venue and week filters', () => {
+  const ranks = [1, 8, 13, 21, 32];
+  const positionalSummary = [
+    summary.split('\n')[0],
+    ['BAL', 'ARI', ...positions.flatMap((pos, i) => ['90.1', '30', '7', '80.2', '26.7', ranks[i]])].join(','),
+    // A tied WR rank and a missing TE rank must stay as published, not be filled/re-ranked.
+    ['ARI', 'BAL', ...positions.flatMap((pos, i) => ['70', '23.3', '13', '75', '25', [32, 21, 13, '', 1][i]])].join(','),
+  ].join('\n');
+  const model = Data.readSource(weekly), published = Data.readFPFA(positionalSummary), offenses = Data.readOffenses(offense);
+  for (const scope of [{}, { venue: 'home' }, { venue: 'away' }, { from: 2, to: 2 }]) {
+    const analysis = Data.matchupAnalysis(model, published, scope, offenses);
+    positions.forEach((pos, i) => assert.equal(analysis.byTeam.get('BAL').metrics[pos].sosRank, ranks[i]));
+    assert.equal(analysis.byTeam.get('ARI').metrics.WR.sosRank, 13);
+    assert.equal(analysis.byTeam.get('ARI').metrics.TE.sosRank, null);
+  }
+  const all = Data.matchupAnalysis(model, published, {}, offenses).byTeam.get('BAL').metrics.QB;
+  assert.equal(all.actualRank, 7);
+  assert.equal(all.expectedTotal, 80.2);
+  assert.equal(all.delta, 9.9);
+  const away = Data.matchupAnalysis(model, published, { venue: 'away' }, offenses).byTeam.get('BAL').metrics.QB;
+  assert.equal(away.sosRank, 1);
+  assert.equal(away.expectedRank, 1); // Only BAL has an eligible away game in this fixture.
+  const awayTE = Data.matchupAnalysis(model, published, { venue: 'away' }, offenses).byTeam.get('BAL').metrics.TE;
+  assert.equal(awayTE.sosRank, 21);
+  assert.equal(awayTE.expectedRank, 1); // Venue ranks do not replace the published SOS.
+});
+
 test('a failed, empty or inaccessible sheet rejects the set without a bundled fallback', async () => {
   for (const broken of [response('', 503), response('  '), new Error('Network unavailable')]) {
     await assert.rejects(load2026MatchupSources({ fetchImpl: async url => {

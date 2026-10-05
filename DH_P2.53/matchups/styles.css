@@ -124,7 +124,8 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
 :where(body[data-page="matchups"]) .defenseHeader h2 {font-size: 20px;margin: 0px 0;}
 :where(body[data-page="matchups"]) .defenseHeader > .positionBadge { margin-left:auto; }
 :where(body[data-page="matchups"]) .panelSubtitle { font-size:10px; color:var(--muted); }
-:where(body[data-page="matchups"]) .metricStrip {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom: 6px;}
+/* The defense summary includes the positional SOS card without shrinking its typography. */
+:where(body[data-page="matchups"]) .metricStrip {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom: 6px;}
 :where(body[data-page="matchups"]) .metric {padding: 5px 14px;min-width:0;border:1px solid #ffffff10;border-radius:9px;background:linear-gradient(180deg,#8f94a616,#8f94a609);box-shadow:inset 4px 5px 12px #ffffff04;}
 :where(body[data-page="matchups"]) .metricLabel { font-size:8px; color:var(--muted); white-space:nowrap; }
 :where(body[data-page="matchups"]) .metricValue { margin:2px 0 1px; font-size:23px; line-height:1.1; letter-spacing:-.5px; font-weight:550; font-variant-numeric:tabular-nums; }
@@ -266,7 +267,10 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
   :where(body[data-page="matchups"]) .defensePicker { flex:1; }
   :where(body[data-page="matchups"]) .venuePicker { flex-basis:200px; }
   :where(body[data-page="matchups"]) .defenseHeader h2 { font-size:18px; }
-  :where(body[data-page="matchups"]) .metricStrip { gap:4px; }
+  /* Three scoring cards above two rank cards keep all five readable on narrow panels. */
+  :where(body[data-page="matchups"]) .metricStrip { grid-template-columns:repeat(6,minmax(0,1fr)); gap:4px; }
+  :where(body[data-page="matchups"]) .metricStrip > .metric { grid-column:span 2; }
+  :where(body[data-page="matchups"]) .metricStrip > .metric:nth-child(n+4) { grid-column:span 3; }
   :where(body[data-page="matchups"]) .metric { padding:6px; }
   :where(body[data-page="matchups"]) .metricValue { font-size:21px; }
 }

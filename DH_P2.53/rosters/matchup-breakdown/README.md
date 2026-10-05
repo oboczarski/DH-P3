@@ -23,9 +23,13 @@ Failures display an error/retry state, without bundled or historical fallbacks.
 Only DH's existing `scripts/nfl-2026-sheets.js` workbook URL configuration is
 shared. Published FPFA totals/averages/ranks remain the season-to-date authority;
 FPA records supply weekly actual scores/player results, and FPF offense averages
-supply weekly/venue expected scoring. Preview percent equals the defense panel's
-total comparison. Preview points per game equal its unrounded total delta divided
-by recorded games, avoiding a different result from rounded published averages.
+supply weekly/venue expected scoring. The preview keeps the opponent's positional
+matchup rank and shows `SOS: Nth` below it, using the player's base position's
+published `QBvRK`/`RBvRK`/`WRvRK`/`TEvRK`. Both defense panels add an SOS Ranking
+card, including `ALLvRK` for all positions. These ranks are ascending difficulty:
+1 is the easiest schedule already faced, 32 the toughest. The published season
+SOS rank stays unchanged under venue filters; selected-game expected ranks and
+all existing scoring comparisons keep their original calculations.
 
 Opening a player's Breakdown selects that opponent, the player's base position
 and all games. Position/defense/venue changes, search, sorting, hiding scores below

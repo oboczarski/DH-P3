@@ -2648,7 +2648,7 @@ function handleCompareClick() {
 function getRostersMatchupController() {
     if (pageType !== 'rosters') return Promise.reject(new Error('Matchup Breakdown belongs to Rosters.'));
     if (!rostersMatchupsModulePromise) {
-        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.49a-rosters-matchups')
+        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.49b-matchup-sos')
             .then(({ createMatchupBreakdown }) => {
                 rostersMatchups = createMatchupBreakdown({ onDataChange: () => {
                     // Late matchup readiness updates selected previews without
@@ -9646,9 +9646,9 @@ function renderStartSitPreview() {
                 const { opponent, isBye } = selection.matchup;
                 const opponentText = opponent || (isBye ? 'BYE' : '');
                 if (opponentText) {
-                    // Preview percent/rank use the copied Matchups analysis. The
-                    // point difference is its total delta divided by recorded
-                    // games, so it expresses the same comparison per game.
+                    // Start/Sit retains the opponent's positional matchup rank.
+                    // Its context line uses FPFA's positional vRK for the season
+                    // opponents already faced: 1 is easiest, 32 is toughest.
                     const metric = rostersMatchups?.preview(selection);
                     const matchupColor = metric?.actualRank ? getOpponentRankColor(metric.actualRank) : null;
                     const opponentStyle = matchupColor && !isBye ? ` style="color: ${matchupColor};"` : '';
@@ -9659,21 +9659,20 @@ function renderStartSitPreview() {
                     const rankHtml = hasRankText
                         ? `<span class="start-sit-matchup-sep">•</span><span class="start-sit-matchup-rank"${rankStyle}>${escapeHtml(rankRawText)}</span>`
                         : '';
-                    const signedMatchup = (value, digits) => `${value > 0 ? '+' : ''}${(Math.abs(value) < 1e-9 ? 0 : value).toFixed(digits)}`;
-                    let comparisonText = '';
-                    let comparisonStyle = '';
+                    let sosText = '';
+                    let sosStyle = '';
                     if (!isBye) {
-                        if (metric && metric.deltaPerGame !== null) {
-                            const percent = metric.deltaPct === null ? '—' : `${signedMatchup(metric.deltaPct, 1)}%`;
-                            comparisonText = `${percent} · ${signedMatchup(metric.deltaPerGame, 2)} pts/game vs expected`;
-                            comparisonStyle = metric.delta > 0 ? ' style="color:#75e0b7;"' : metric.delta < 0 ? ' style="color:#ffb2d8;"' : '';
+                        if (metric?.sosRank != null) {
+                            sosText = `SOS: ${ordinalSuffix(metric.sosRank)}`;
+                            sosStyle = ` style="color: ${getOpponentRankColor(metric.sosRank)};"`;
                         } else {
-                            comparisonText = rostersMatchupsLoadFailed || rostersMatchups?.status === 'error'
-                                ? 'Matchup data unavailable'
-                                : rostersMatchups?.status === 'ready' ? 'Comparison unavailable' : 'Loading matchup…';
+                            sosText = rostersMatchupsLoadFailed || rostersMatchups?.status === 'error'
+                                ? 'SOS unavailable'
+                                : rostersMatchups?.status === 'ready' ? 'SOS: —' : 'Loading SOS…';
                         }
                     }
-                    matchupSectionHtml = `<span class="start-sit-matchup-inline"><span class="start-sit-matchup-opponent"${opponentStyle}><span>${safeOpponent}${rankHtml}</span>${comparisonText ? `<span class="start-sit-matchup-delta"${comparisonStyle}>${escapeHtml(comparisonText)}</span>` : ''}</span></span>`;
+                    const sosTitle = `Strength of schedule already faced vs. ${selection.basePos || selection.pos}. 1 = easiest schedule, 32 = toughest.`;
+                    matchupSectionHtml = `<span class="start-sit-matchup-inline"><span class="start-sit-matchup-opponent"${opponentStyle}><span>${safeOpponent}${rankHtml}</span>${sosText ? `<span class="start-sit-matchup-delta"${sosStyle} title="${escapeHtml(sosTitle)}">${escapeHtml(sosText)}</span>` : ''}</span></span>`;
                 }
             }
             // A text-styled button supplies keyboard/touch access at the bottom

@@ -8,6 +8,7 @@ import Data from '../DH_P2.53/rosters/matchup-breakdown/model.js';
 // import it; a divergent summary/weekly fixture catches source-ownership drift.
 const sourceData = createRequire(import.meta.url)('../DH_P2.53/matchups/data-model.js');
 const positions = ['QB', 'RB', 'WR', 'TE', 'ALL'];
+const balSosRanks = [1, 8, 13, 21, 32];
 const weekly = 'WK,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,VS\n' + [
   '1,1,"Quarter, One",QB,ARI,10.25,vs BAL',
   '1,2,Runner,RB,ARI,0,vs BAL',
@@ -22,8 +23,8 @@ const weekly = 'WK,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,VS\n' + [
 ].join('\n');
 const summary = [
   ['TM', 'w1', 'w2', ...positions.flatMap(pos => [pos, `${pos}x`, `${pos}rk`, `${pos}vs`, `${pos}vX`, `${pos}vRK`])].join(','),
-  ['BAL', 'ARI', 'ARI', ...positions.flatMap(() => ['90.1', '45', '7', '80.2', '40.1', '9'])].join(','),
-  ['ARI', 'BAL', 'BAL', ...positions.flatMap(() => ['70', '35', '13', '75', '37.5', '12'])].join(','),
+  ['BAL', 'ARI', 'ARI', ...positions.flatMap((pos, i) => ['90.1', '45', '7', '80.2', '40.1', balSosRanks[i]])].join(','),
+  ['ARI', 'BAL', 'BAL', ...positions.flatMap((pos, i) => ['70', '35', '13', '75', '37.5', [32, 21, 13, 8, 1][i]])].join(','),
 ].join('\n');
 const offense = [
   ['TM', ...positions.flatMap(pos => [pos, `${pos}RK`, `${pos}x`])].join(','),
@@ -81,11 +82,12 @@ test('the independently owned model matches every source metric, venue and playe
   assert.equal(store.snapshot.model.audit.negativeResults, 1);
 });
 
-test('preview percent/rank match the panel and average delta uses unrounded totals', async () => {
+test('preview keeps matchup rank and SOS while panel scoring comparisons remain unchanged', async () => {
   const store = createMatchupStore({ fetchImpl: fetchFixture });
   await store.prepare();
   const metric = store.preview({ basePos: 'QB', pos: 'SUPER_FLEX', matchup: { opponent: 'vs BAL' } });
   assert.equal(metric.actualRank, 7);
+  assert.equal(metric.sosRank, 1);
   assert.equal(metric.actual.total, 90.1);
   assert.equal(metric.expectedTotal, 80.2);
   assert.equal(metric.delta, 9.9);
@@ -95,6 +97,34 @@ test('preview percent/rank match the panel and average delta uses unrounded tota
   const below = store.preview({ pos: 'WR', matchup: { opponent: '@ ARI' } });
   assert.equal(below.deltaPerGame, -2.5);
   assert.ok(below.deltaPct < 0);
+});
+
+test('Start/Sit resolves SOS from the player base position and retains season ranks in filtered panels', async () => {
+  const store = createMatchupStore({ fetchImpl: fetchFixture });
+  await store.prepare();
+  positions.forEach((pos, i) => {
+    for (const venue of ['all', 'home', 'away']) {
+      assert.equal(store.analysis(venue).byTeam.get('BAL').metrics[pos].sosRank, balSosRanks[i]);
+    }
+    if (pos !== 'ALL') {
+      const preview = store.preview({ basePos: pos, pos: 'FLEX', matchup: { opponent: '@ BAL' } });
+      assert.equal(preview.sosRank, balSosRanks[i]);
+      assert.equal(preview.actualRank, 7);
+    }
+  });
+  // QB SOS 1 is independent of the venue comparison's expected-total rank 2.
+  assert.equal(store.analysis('away').byTeam.get('BAL').metrics.QB.expectedRank, 2);
+  const missing = summary.split('\n').map((line, index) => {
+    if (index !== 1) return line;
+    const values = line.split(',');
+    values[summary.split('\n')[0].split(',').indexOf('QBvRK')] = '';
+    return values.join(',');
+  }).join('\n');
+  const blankStore = createMatchupStore({ fetchImpl: async url => response(new URL(url).searchParams.get('sheet') === 'FPFA' ? missing : bySheet[new URL(url).searchParams.get('sheet')]) });
+  await blankStore.prepare();
+  const preview = blankStore.preview({ pos: 'QB', matchup: { opponent: 'BAL' } });
+  assert.equal(preview.sosRank, null);
+  assert.equal(preview.actualRank, 7);
 });
 
 test('opponent resolution preserves base positions and rejects byes or missing defenses', () => {
