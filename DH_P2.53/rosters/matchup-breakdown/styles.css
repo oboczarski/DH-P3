@@ -223,8 +223,8 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
 @media (max-width:400px) {
   /* At 320px the five-card row needs its width for labels, not side padding. */
   .metricStrip { gap:2px; }
-  .metricValue { font-size:14px; }
-  .metricLabel { font-size:6px; }
+  .metricValue {font-size:14px;text-align: center;}
+  .metricLabel {font-size: 7px;font-weight: 800;text-align: center;}
   .metricSub { font-size:6px; }
   .metric { padding:5px 1px; }
   .defenseHeader h2 { font-size:15px; }
