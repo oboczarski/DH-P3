@@ -2648,7 +2648,7 @@ function handleCompareClick() {
 function getRostersMatchupController() {
     if (pageType !== 'rosters') return Promise.reject(new Error('Matchup Breakdown belongs to Rosters.'));
     if (!rostersMatchupsModulePromise) {
-        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.49b-matchup-sos')
+        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.49d-matchups-mobile-nav-injuries')
             .then(({ createMatchupBreakdown }) => {
                 rostersMatchups = createMatchupBreakdown({ onDataChange: () => {
                     // Late matchup readiness updates selected previews without
@@ -9380,14 +9380,16 @@ function createPlayerRow(player, teamName) {
     const ktcPosRankMatch = typeof player.posRank === 'string' ? player.posRank.match(/(\d+)/) : null;
     const rawKtcPosRankNumber = ktcPosRankMatch ? Number.parseInt(ktcPosRankMatch[1], 10) : null;
     const ktcPosRankNumber = Number.isFinite(rawKtcPosRankNumber) && rawKtcPosRankNumber > 0 ? rawKtcPosRankNumber : null;
-    const injuryDesignation = player.injuryDesignation;
-    // OFF-SEASON: Injury badges are hidden. Re-enable the block below at the start of the next season.
-    const injuryBadgeHtml = '';
-    /*
-    const injuryBadgeHtml = !isCondensedView && injuryDesignation
-        ? `<div class="player-injury-badge" style="color: ${injuryDesignation.color};">${injuryDesignation.designation}</div>`
+    // Rosters player cards show the existing Sleeper/upcoming injury designation
+    // in an absolute corner indicator. BYE/numeric/unknown projection values
+    // are not injuries; keeping this outside the flex rows preserves every view's geometry.
+    const injuryDesignation = pageType === 'rosters'
+        ? player.injuryDesignation || getSleeperInjuryDesignation(player.id) || getUpcomingProjectionDesignation(player.id)
+        : null;
+    const injuryCode = String(injuryDesignation?.designation || '').toUpperCase();
+    const injuryBadgeHtml = pageType === 'rosters' && injuryCode !== 'BYE' && Object.hasOwn(INJURY_DESIGNATION_COLORS, injuryCode)
+        ? `<span class="roster-injury-indicator" role="img" aria-label="Injury designation: ${escapeHtml(injuryCode)}" style="color:${INJURY_DESIGNATION_COLORS[injuryCode]};">${escapeHtml(injuryCode)}</span>`
         : '';
-    */
     const condensedPosRankHtml = isCondensedView
         ? `<span class="player-pos-rank condensed-pos-rank" style="color: ${effectivePosRankColor}; font-weight: 400;">${fptsPosRankDisplay}</span>`
         : '';
@@ -9409,7 +9411,7 @@ function createPlayerRow(player, teamName) {
                     ${isCondensedView ? condensedPosRankHtml : playerTagHtml}
                     <div class="player-name"><span class="player-name-clickable">${player.name}</span></div>
                     ${tradePreviewAgeHtml}
-                    ${isCondensedView ? condensedTeamTagHtml : injuryBadgeHtml}
+                    ${condensedTeamTagHtml}
                     ${tradePreviewTeamHtml}
                 </div>`;
     // Trade Preview row two keeps both separators and all three metrics as
@@ -9439,6 +9441,7 @@ function createPlayerRow(player, teamName) {
         : '';
     row.innerHTML = `
                 ${rosterWatermarkHtml}
+                ${injuryBadgeHtml}
                 ${mainLineHtml}
                 ${metaLineHtml}
                 ${valueLineHtml}

@@ -1,7 +1,7 @@
 // Rosters owns this loader and its prepared state. Only DH's existing workbook
 // URL configuration is shared; no code or assets are read from the Matchups page.
 import { get2026SheetCsvUrl } from '../../scripts/nfl-2026-sheets.js';
-import Data from './model.js?v=DH3.49b-matchup-sos';
+import Data from './model.js?v=DH3.49d-matchups-mobile-nav-injuries';
 
 const SOURCES = Object.freeze([
   ['offense', 'FPF'], ['summary', 'FPFA'], ['weekly', 'FPA'],

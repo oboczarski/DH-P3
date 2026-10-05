@@ -172,13 +172,15 @@
     const baselineNote = c.expectedTotal !== null ? `${fmt(c.expectedAvg, 1)} per game` : analysis.summaryAvailable ? "Not supplied in FPFA" : "Opponent average unavailable";
     // The SOS card uses the positional season vRK, with low ranks colored easy
     // like the published matchup ranks. It never reverses or re-ranks the feed.
+    // CSS switches the mobile spans to one-decimal Actual FPA and shorter notes;
+    // desktop text and every underlying comparison retain their existing precision.
     const sosColor = heatColor({ rank: c.sosRank, pool: Data.TEAMS.length, rankOrder: "descending" });
     $("metrics").innerHTML = `
-      <div class="metric"><div class="metricLabel">Actual FPA</div><div class="metricValue">${fmt(stat.total)}</div><div class="metricSub">${fmt(stat.avg, 1)} per game</div></div>
+      <div class="metric"><div class="metricLabel">Actual FPA</div><div class="metricValue"><span class="metricDesktop">${fmt(stat.total)}</span><span class="metricMobile">${fmt(stat.total, 1)}</span></div><div class="metricSub">${fmt(stat.avg, 1)} per game</div></div>
       <div class="metric"><div class="metricLabel">Expected FPA</div><div class="metricValue">${fmt(c.expectedTotal, 1)}</div><div class="metricSub">${baselineNote}</div></div>
       <div class="metric"><div class="metricLabel">Vs expected</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
-      <div class="metric"><div class="metricLabel" title="Rank 1 = ${stat.rankOrder === "descending" ? "most" : "fewest"} points allowed">Matchup rank</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</div></div>
-      <div class="metric metric--sos" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS Ranking</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub">1 easy · 32 tough</div></div>`;
+      <div class="metric"><div class="metricLabel" title="Rank 1 = ${stat.rankOrder === "descending" ? "most" : "fewest"} points allowed">Matchup rank</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub"><span class="metricDesktop">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</span><span class="metricMobile">${stat.games} game${stat.games === 1 ? "" : "s"}</span></div></div>
+      <div class="metric metric--sos" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS Ranking</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub"><span class="metricDesktop">1 easy · 32 tough</span><span class="metricMobile">1 → 32</span></div></div>`;
   }
   function width(id) {
     const element = $(id), style = getComputedStyle(element);
@@ -350,7 +352,44 @@
     tip.style.top = `${Math.max(8, Math.min(innerHeight - tip.offsetHeight - 8, y + 13))}px`;
     renderScatterDetail(target.dataset.chartTeam || state.team);
   }
+  // Matchups keeps its LeagueHub-style navigation independent of matchup loads
+  // and shared DH handlers. Native popover supplies light dismissal; keyboard
+  // movement and viewport placement keep the More links accessible on phones.
+  function bindNavigation() {
+    const button = $("matchupsMoreButton"), menu = $("matchupsMoreMenu");
+    if (!button || !menu) return;
+    const links = [...menu.querySelectorAll("a")];
+    menu.addEventListener("beforetoggle", event => {
+      if (event.newState !== "open") return;
+      closePicker(); hideTooltip();
+      const bounds = button.getBoundingClientRect(), viewport = document.documentElement.clientWidth;
+      const menuWidth = Math.min(168, viewport - 24), top = bounds.bottom + 6;
+      menu.style.left = `${Math.max(8, Math.min(bounds.right - menuWidth, viewport - menuWidth - 8))}px`;
+      menu.style.top = `${top}px`;
+      menu.style.maxHeight = `${Math.max(38, innerHeight - top - 8)}px`;
+    });
+    menu.addEventListener("toggle", () => button.setAttribute("aria-expanded", String(menu.matches(":popover-open"))));
+    button.addEventListener("keydown", event => {
+      if (!["ArrowDown", "ArrowUp"].includes(event.key)) return;
+      event.preventDefault();
+      if (!menu.matches(":popover-open")) button.click();
+      (event.key === "ArrowUp" ? links.at(-1) : links[0]).focus({ preventScroll:true });
+    });
+    menu.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        event.preventDefault(); menu.hidePopover(); button.focus({ preventScroll:true }); return;
+      }
+      if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+      event.preventDefault();
+      const index = links.indexOf(document.activeElement);
+      const next = event.key === "Home" ? 0 : event.key === "End" ? links.length - 1 : (index + (event.key === "ArrowUp" ? -1 : 1) + links.length) % links.length;
+      links[next].focus({ preventScroll:true });
+    });
+    window.addEventListener("resize", () => { if (menu.matches(":popover-open")) menu.hidePopover(); });
+    document.addEventListener("scroll", event => { if (menu.matches(":popover-open") && !menu.contains(event.target)) menu.hidePopover(); }, true);
+  }
   function bindEvents() {
+    bindNavigation();
     for (const id of ["playerSearch", "expandedSearch"]) $(id).addEventListener("input", event => { if (model) { state.query = event.target.value; renderPlayers(); } });
     for (const id of ["hideZero", "expandedHideZero"]) $(id).addEventListener("change", event => { if (model) { state.hideZero = event.target.checked; renderPlayers(); } });
     $("expandPlayers").addEventListener("click", () => {

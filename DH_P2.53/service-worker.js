@@ -33,7 +33,8 @@
 // Refresh Rosters Start/Sit previews and their independently owned defense-panel modal.
 // Refresh positional SOS context and five-card defense summaries on both owned surfaces.
 // Refresh dimmed hyphens for zero-valued team-card stats on DataHub and Rosters.
-const CACHE_NAME = 'DH3.49c-team-zero-placeholders';
+// Refresh compact mobile summaries, page-owned Matchups navigation and roster injury indicators.
+const CACHE_NAME = 'DH3.49d-matchups-mobile-nav-injuries';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

@@ -1,7 +1,7 @@
 // Rosters-owned defense panel: retain the current panel renderer, chart geometry,
 // tooltips, filters and player expansion in an isolated modal, with no Matchups imports.
-import Data from './model.js?v=DH3.49b-matchup-sos';
-import { createMatchupStore, resolveMatchupSelection } from './data.js?v=DH3.49b-matchup-sos';
+import Data from './model.js?v=DH3.49d-matchups-mobile-nav-injuries';
+import { createMatchupStore, resolveMatchupSelection } from './data.js?v=DH3.49d-matchups-mobile-nav-injuries';
 
 export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
   if (document.body?.dataset.page !== 'rosters') throw new Error('Matchup Breakdown belongs to Rosters.');
@@ -159,13 +159,15 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
     const baselineNote = c.expectedTotal !== null ? `${fmt(c.expectedAvg, 1)} per game` : analysis.summaryAvailable ? "Not supplied in FPFA" : "Opponent average unavailable";
     // The SOS card uses the positional season vRK, with low ranks colored easy
     // like the published matchup ranks. It never reverses or re-ranks the feed.
+    // CSS switches the mobile spans to one-decimal Actual FPA and shorter notes;
+    // desktop text and every underlying comparison retain their existing precision.
     const sosColor = heatColor({ rank: c.sosRank, pool: Data.TEAMS.length, rankOrder: "descending" });
     $("metrics").innerHTML = `
-      <div class="metric"><div class="metricLabel">Actual FPA</div><div class="metricValue">${fmt(stat.total)}</div><div class="metricSub">${fmt(stat.avg, 1)} per game</div></div>
+      <div class="metric"><div class="metricLabel">Actual FPA</div><div class="metricValue"><span class="metricDesktop">${fmt(stat.total)}</span><span class="metricMobile">${fmt(stat.total, 1)}</span></div><div class="metricSub">${fmt(stat.avg, 1)} per game</div></div>
       <div class="metric"><div class="metricLabel">Expected FPA</div><div class="metricValue">${fmt(c.expectedTotal, 1)}</div><div class="metricSub">${baselineNote}</div></div>
       <div class="metric"><div class="metricLabel">Vs expected</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
-      <div class="metric"><div class="metricLabel" title="Rank 1 = ${stat.rankOrder === "descending" ? "most" : "fewest"} points allowed">Matchup rank</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</div></div>
-      <div class="metric metric--sos" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS Ranking</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub">1 easy · 32 tough</div></div>`;
+      <div class="metric"><div class="metricLabel" title="Rank 1 = ${stat.rankOrder === "descending" ? "most" : "fewest"} points allowed">Matchup rank</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub"><span class="metricDesktop">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</span><span class="metricMobile">${stat.games} game${stat.games === 1 ? "" : "s"}</span></div></div>
+      <div class="metric metric--sos" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS Ranking</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub"><span class="metricDesktop">1 easy · 32 tough</span><span class="metricMobile">1 → 32</span></div></div>`;
   }
   function width(id) {
     const element = $(id), style = getComputedStyle(element);
@@ -355,12 +357,12 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
   function mount() {
     if (mountPromise) return mountPromise;
     mountPromise = (async () => {
-      const response = await fetch(new URL('./panel.html?v=DH3.49b-matchup-sos', import.meta.url));
+      const response = await fetch(new URL('./panel.html?v=DH3.49d-matchups-mobile-nav-injuries', import.meta.url));
       if (!response.ok) throw new Error(`Matchup panel could not load (${response.status}).`);
       root.innerHTML = await response.text();
       const stylesheet = document.createElement('link');
       stylesheet.rel = 'stylesheet';
-      stylesheet.href = new URL('./styles.css?v=DH3.49b-matchup-sos', import.meta.url).href;
+      stylesheet.href = new URL('./styles.css?v=DH3.49d-matchups-mobile-nav-injuries', import.meta.url).href;
       const styled = new Promise((resolve, reject) => {
         stylesheet.onload = resolve;
         stylesheet.onerror = () => reject(new Error('Matchup panel styling could not load.'));

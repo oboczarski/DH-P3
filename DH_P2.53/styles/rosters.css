@@ -754,8 +754,25 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
   transition: opacity 0.2s ease;
 }
 
-/* Condensed view: smaller watermark to match compact card size */
+/* Rosters injury indicators sit above the watermark and outside the card's
+   flex flow, so desktop/mobile and condensed/trade cards keep identical sizes. */
+body[data-page="rosters"] .player-row > .roster-injury-indicator {
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  z-index: 2;
+  padding: 1px 2px;
+  border-radius: 3px;
+  background: rgba(8, 13, 28, 0.86);
+  font-size: 0.38rem;
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  pointer-events: none;
+}
 
+/* Condensed view: smaller watermark to match compact card size */
 .player-row.player-row-condensed .roster-card-watermark {
   width: 36px;
   height: 36px;

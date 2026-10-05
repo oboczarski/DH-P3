@@ -12,11 +12,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,slnt,wdth,wght,GRAD,ROND@6..144,-10..0,25..151,1..1000,0..100,0..100&amp;family=MuseoModerno:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
   <!-- Matchups owns its styles, assets, models and chart library; shared DH app/CSS are not loaded. -->
-  <link rel="stylesheet" href="styles.css?v=DH3.49b-matchup-sos">
+  <link rel="stylesheet" href="styles.css?v=DH3.49d-matchups-mobile-nav-injuries">
   <link rel="stylesheet" href="chart-lab.css?v=DH3.49-matchups-sheets">
-  <script defer src="data-model.js?v=DH3.49b-matchup-sos"></script>
+  <script defer src="data-model.js?v=DH3.49d-matchups-mobile-nav-injuries"></script>
   <script defer src="chart-utils.js?v=2026.3"></script>
-  <script defer src="app.js?v=DH3.49b-matchup-sos"></script>
+  <script defer src="app.js?v=DH3.49d-matchups-mobile-nav-injuries"></script>
   <script defer src="vendor/amcharts5/index.js?v=5.20.8"></script>
   <script defer src="vendor/amcharts5/xy.js?v=5.20.8"></script>
   <script defer src="vendor/amcharts5/radar.js?v=5.20.8"></script>
@@ -38,12 +38,30 @@
   <a class="skipLink" href="#analysis">Skip to matchup analysis</a>
   <main class="app-shell">
     <header class="pageHeader">
-      <!-- Integrated Matchups returns to DH on the current host using a relative home link. -->
-      <a class="brand" href="../index.html" aria-label="Dynasty Hub home">
-        <img src="assets/welcome/welcome-logo-256.png" width="34" height="34" alt="">
-        <span>Dynasty<span class="brandAccent">Hub</span><small>FANTASY MATCHUPS</small></span>
-      </a>
-      <div class="pageIdentity"><h1>Matchups</h1><span class="seasonTag">2026</span></div>
+      <div class="pageHeaderBrand">
+        <!-- Integrated Matchups returns to DH on the current host using a relative home link. -->
+        <a class="brand" href="../index.html" aria-label="Dynasty Hub home">
+          <img src="assets/welcome/welcome-logo-256.png" width="34" height="34" alt="">
+          <span>Dynasty<span class="brandAccent">Hub</span><small>FANTASY MATCHUPS</small></span>
+        </a>
+        <div class="pageIdentity"><h1>Matchups</h1><span class="seasonTag">2026</span></div>
+      </div>
+      <!-- Page-owned LeagueHub-style navigation: use relative DH destinations,
+           copied local icons and a native More popover without the shared app/CSS. -->
+      <nav class="matchupsNav" aria-label="Primary navigation">
+        <a class="matchupsNavButton" href="../index.html"><i class="navIcon navIcon--home" aria-hidden="true"></i><span>Home</span></a>
+        <a class="matchupsNavButton" href="../rosters/rosters.html"><i class="navIcon navIcon--rosters" aria-hidden="true"></i><span>Rosters</span></a>
+        <a class="matchupsNavButton" href="../datahub/datahub.html"><i class="navIcon navIcon--datahub" aria-hidden="true"></i><span>DataHub</span></a>
+        <a class="matchupsNavButton" href="../leaguehub/leaguehub.html"><i class="navIcon navIcon--leaguehub" aria-hidden="true"></i><span>LeagueHub</span></a>
+        <a class="matchupsNavButton" href="../research/research.html"><i class="navIcon navIcon--research" aria-hidden="true"></i><span>Research</span></a>
+        <button class="matchupsNavButton active" id="matchupsMoreButton" type="button" popovertarget="matchupsMoreMenu" aria-label="More pages" aria-haspopup="menu" aria-controls="matchupsMoreMenu" aria-expanded="false"><i class="navIcon navIcon--more" aria-hidden="true"></i><span>More</span></button>
+        <div class="matchupsMoreMenu" id="matchupsMoreMenu" popover="auto" role="menu" aria-label="More pages">
+          <a class="matchupsMoreItem" href="../ownership/ownership.html" role="menuitem"><span class="matchupsMoreIcon"><i class="navIcon navIcon--ownership" aria-hidden="true"></i></span><span class="matchupsMoreCopy"><strong>Ownership</strong><small>Player Exposures</small></span></a>
+          <a class="matchupsMoreItem" href="https://trophyroom.dynastyhub.pro/" role="menuitem"><span class="matchupsMoreIcon"><i class="navIcon navIcon--trophy" aria-hidden="true"></i></span><span class="matchupsMoreCopy"><strong>Trophy Room</strong><small>Dyn. Career Profile</small></span></a>
+          <a class="matchupsMoreItem" href="./index.html" role="menuitem" aria-current="page"><span class="matchupsMoreIcon"><i class="navIcon navIcon--matchups" aria-hidden="true"></i></span><span class="matchupsMoreCopy"><strong>Matchups</strong><small>In-Season SoS Tool</small></span></a>
+          <a class="matchupsMoreItem" href="../contact/contact.html" role="menuitem"><span class="matchupsMoreIcon"><i class="navIcon navIcon--contact" aria-hidden="true"></i></span><span class="matchupsMoreCopy"><strong>Contact</strong><small>Feedback</small></span></a>
+        </div>
+      </nav>
       <p class="coverage" id="coverage">Loading matchup data…</p>
     </header>
     <div class="loadError" id="loadError" role="alert" hidden></div>

@@ -35,3 +35,10 @@ Opening a player's Breakdown selects that opponent, the player's base position
 and all games. Position/defense/venue changes, search, sorting, hiding scores below
 one point and expanded results affect only the modal. BYE or unknown opponents
 have no defense panel and keep the action disabled.
+
+At phone widths (620px and below), all five summary cards occupy one row. Actual
+FPA displays one decimal, recorded-game text shortens to `N games`, and the SOS
+guide shortens to `1 → 32`. CSS switches these presentation spans without
+changing desktop precision or any scoring calculation. The main modal's top
+defense/venue dropdowns are hidden on phones and their space is removed; its
+expanded-player controls and all desktop filters retain their existing behavior.

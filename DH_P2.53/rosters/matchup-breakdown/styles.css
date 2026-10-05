@@ -89,6 +89,8 @@ svg { display:block; }
 .metricValue { margin:2px 0 1px; font-size:23px; line-height:1.1; letter-spacing:-.5px; font-weight:550; font-variant-numeric:tabular-nums; }
 .metricValue small { font-size:10px; color:var(--dim); margin-left:3px; font-weight:400; }
 .metricSub { font-size:8px; color:var(--dim); }
+/* Compact mobile text changes display precision/labels only, never source calculations. */
+.metricMobile { display:none; }
 .is-easy { color:var(--mint); }
 .is-tough { color:var(--pink); }
 .smallMuted { color:var(--dim); font-size:9px; }
@@ -191,12 +193,17 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .defenseHeader h2 { font-size:17px; }
   .fieldLabel {font-size: 9px;}
   .panelSubtitle { font-size:9px; }
-  .metricStrip { gap:4px; margin-bottom:8px; }
-  .metric { padding:6px 5px; border-radius:7px; }
+  /* All five mobile summary cards stay on one row, including both rank cards. */
+  .metricStrip { grid-template-columns:repeat(5,minmax(0,1fr)); gap:3px; margin-bottom:8px; }
+  .metricStrip > .metric,
+  .metricStrip > .metric:nth-child(n+4) { grid-column:auto; }
+  .metric { padding:6px 3px; border-radius:7px; }
   .metricLabel { font-size:7px; }
-  .metricValue { font-size:19px; }
+  .metricValue { font-size:18px; white-space:nowrap; }
   .metricValue small { font-size:8px; margin-left:1px; }
-  .metricSub { font-size:7px; }
+  .metricSub { font-size:7px; white-space:nowrap; }
+  .metricDesktop { display:none; }
+  .metricMobile { display:inline; }
   .chartLegend { font-size:7px; gap:8px; }
   .sectionHeading h3 { font-size:11px; }
   .weeklyMatchups { margin-bottom:8px; gap:4px; }
@@ -214,10 +221,12 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .dialogHeader, .dialogBody { padding:10px; }
 }
 @media (max-width:400px) {
-  .metricValue { font-size:17px; }
+  /* At 320px the five-card row needs its width for labels, not side padding. */
+  .metricStrip { gap:2px; }
+  .metricValue { font-size:14px; }
   .metricLabel { font-size:6px; }
   .metricSub { font-size:6px; }
-  .metric { padding:5px 4px; }
+  .metric { padding:5px 1px; }
   .defenseHeader h2 { font-size:15px; }
   .playerTable .offenseColumn { display:none; }
   .expandedTableScroll .playerTable .offenseColumn { display:table-cell; }
@@ -238,4 +247,10 @@ dialog { font:inherit; }
 .matchupDialog #scopeNote { flex-basis:100%; }
 #loadStatus { padding:8px 0; }
 .retryButton { padding:6px 9px; border:1px solid var(--border); border-radius:7px; background:#aabbff10; font-size:11px; }
-@media (max-width:620px) { .matchupDialog { border-radius:12px; } }
+@media (max-width:620px) {
+  .matchupDialog { border-radius:12px; }
+  /* Mobile Breakdown opens the selected player's opponent directly. Hide only
+     its top team/venue controls and reclaim their space; expanded-table controls remain available. */
+  .matchupDialog #analysis > .expandedControls { display:none; }
+  .matchupDialog > .dialogBody { padding-top:6px; }
+}

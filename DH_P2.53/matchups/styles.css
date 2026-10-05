@@ -53,7 +53,8 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
   backdrop-filter:blur(7px) saturate(140%); -webkit-backdrop-filter:blur(7px) saturate(140%);
 }
 :where(body[data-page="matchups"]) .glass-panel::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:linear-gradient(135deg,rgba(215,225,255,.065),transparent 30%); }
-:where(body[data-page="matchups"]) .pageHeader { display:flex; align-items:center; gap:24px; min-height:47px; padding:0 6px 8px; }
+:where(body[data-page="matchups"]) .pageHeader { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,390px) minmax(0,1fr); align-items:center; gap:16px; min-height:47px; padding:0 6px 8px; }
+:where(body[data-page="matchups"]) .pageHeaderBrand { display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; min-width:0; }
 :where(body[data-page="matchups"]) .brand { display:flex; align-items:center; gap:6px; flex:none; }
 :where(body[data-page="matchups"]) .brand img { object-fit:contain; }
 :where(body[data-page="matchups"]) .brand > span { font:500 16px/1.1 "MuseoModerno",var(--font); }
@@ -63,6 +64,43 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
 :where(body[data-page="matchups"]) .seasonTag { font-size:10px; padding:2px 7px; border:1px solid #ffffff17; border-radius:7px; color:#bdc1d8; background:#8892bc10; }
 :where(body[data-page="matchups"]) .coverage { margin-left:auto; text-align:right; color:var(--muted); font-size:10px; }
 :where(body[data-page="matchups"]) .coverage strong { color:#d6defa; font-weight:500; }
+/* Matchups owns this copy of LeagueHub's glass icon-over-label buttons. Equal
+   side columns center the navigation in the page, independently of brand/coverage widths. */
+:where(body[data-page="matchups"]) .matchupsNav { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:3px; width:100%; max-width:390px; min-width:0; justify-self:center; }
+:where(body[data-page="matchups"]) .matchupsNavButton {
+  position:relative; display:inline-flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:3px; min-width:0; min-height:46px; padding:5px 1px; overflow:hidden;
+  border:1px solid rgba(150,166,207,.14); border-radius:11px;
+  background:radial-gradient(120% 100% at 92% 6%,rgba(255,255,255,.1),transparent 54%),radial-gradient(90% 78% at 8% 94%,rgba(200,220,255,.07),transparent 62%),linear-gradient(155deg,rgba(38,47,75,.78),rgba(12,18,34,.84));
+  color:rgba(190,202,229,.68); box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 3px 8px rgba(1,4,12,.2);
+}
+:where(body[data-page="matchups"]) .matchupsNavButton > span { max-width:100%; font-size:8.5px; font-weight:700; letter-spacing:-.015em; line-height:1; white-space:nowrap; }
+:where(body[data-page="matchups"]) .matchupsNavButton::after { content:""; position:absolute; right:24%; bottom:0; left:24%; height:2px; border-radius:999px 999px 0 0; background:transparent; }
+:where(body[data-page="matchups"]) .matchupsNavButton:hover,
+:where(body[data-page="matchups"]) .matchupsNavButton:focus-visible { border-color:rgba(150,180,230,.32); background:radial-gradient(120% 100% at 92% 6%,rgba(255,255,255,.13),transparent 54%),linear-gradient(155deg,rgba(48,61,95,.86),rgba(16,23,43,.9)); color:#eef5ff; box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 4px 10px rgba(1,4,12,.24); }
+:where(body[data-page="matchups"]) .matchupsNavButton.active { border-color:rgba(125,204,236,.4); background:radial-gradient(110% 100% at 86% 8%,rgba(117,220,255,.17),transparent 50%),radial-gradient(100% 90% at 10% 95%,rgba(173,119,255,.14),transparent 58%),linear-gradient(155deg,rgba(43,62,100,.92),rgba(20,27,52,.94)); color:#f9fbff; box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 4px 12px rgba(3,7,18,.25); }
+:where(body[data-page="matchups"]) .matchupsNavButton.active::after { background:linear-gradient(90deg,#69dfdf,#7f91ff,#d183ee); }
+:where(body[data-page="matchups"]) .navIcon { display:inline-block; flex:none; width:16px; height:16px; background:currentColor; -webkit-mask:var(--nav-icon) center / contain no-repeat; mask:var(--nav-icon) center / contain no-repeat; }
+:where(body[data-page="matchups"]) .navIcon--home { --nav-icon:url("assets/navigation/house.svg"); }
+:where(body[data-page="matchups"]) .navIcon--rosters { --nav-icon:url("assets/navigation/clipboard-list.svg"); }
+:where(body[data-page="matchups"]) .navIcon--datahub { --nav-icon:url("assets/navigation/chart-column.svg"); }
+:where(body[data-page="matchups"]) .navIcon--leaguehub { --nav-icon:url("assets/navigation/square-poll-vertical.svg"); }
+:where(body[data-page="matchups"]) .navIcon--research { --nav-icon:url("assets/navigation/flask.svg"); }
+:where(body[data-page="matchups"]) .navIcon--more { --nav-icon:url("assets/navigation/ellipsis.svg"); }
+:where(body[data-page="matchups"]) .navIcon--ownership { --nav-icon:url("assets/navigation/percent.svg"); }
+:where(body[data-page="matchups"]) .navIcon--trophy { --nav-icon:url("assets/navigation/trophy.svg"); }
+:where(body[data-page="matchups"]) .navIcon--matchups { --nav-icon:url("assets/navigation/table-columns.svg"); }
+:where(body[data-page="matchups"]) .navIcon--contact { --nav-icon:url("assets/navigation/envelope.svg"); }
+:where(body[data-page="matchups"]) .matchupsMoreMenu { position:fixed; inset:auto; margin:0; z-index:1200; display:none; gap:4px; width:min(168px,calc(100vw - 24px)); padding:5px; overflow:auto; border:1px solid rgba(171,160,255,.3); border-radius:18px; color:var(--text); background:radial-gradient(circle at 88% 4%,rgba(66,174,255,.1),transparent 50%),radial-gradient(circle at 7% 100%,rgb(48 0 255 / 11%),transparent 50%),linear-gradient(180deg,rgb(37 44 78 / 98%),rgb(28 32 44 / 98%)); backdrop-filter:blur(20px) saturate(160%); box-shadow:0 26px 60px rgba(0,0,0,.54),inset 0 1px 0 rgba(255,255,255,.13),inset 0 -1px 0 rgba(0,0,0,.34),0 0 0 1px rgba(92,102,178,.14); }
+:where(body[data-page="matchups"]) .matchupsMoreMenu:popover-open { display:grid; }
+:where(body[data-page="matchups"]) .matchupsMoreItem { display:grid; grid-template-columns:31px minmax(0,1fr); align-items:center; gap:4px; min-height:38px; padding:4px 2px 4px 5px; border:1px solid transparent; border-radius:14px; background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015)),rgba(10,17,29,.42); color:rgba(237,239,255,.94); box-shadow:inset 0 0 0 1px rgba(16,16,32,.12),inset 0 0 7px 3px rgba(17,17,34,.07),0 0 8px rgba(160,160,176,.06); }
+:where(body[data-page="matchups"]) .matchupsMoreIcon { display:inline-grid; place-items:center; width:30px; height:30px; border-radius:11px; color:rgb(178 181 255 / 96%); background:linear-gradient(180deg,#6556c994,rgb(95 76 147 / 17%)),rgba(15,26,42,.78); box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 2px 3px -1px rgba(0,0,0,.33); }
+:where(body[data-page="matchups"]) .matchupsMoreIcon .navIcon { width:15px; height:15px; }
+:where(body[data-page="matchups"]) .matchupsMoreCopy { display:grid; gap:1px; min-width:0; }
+:where(body[data-page="matchups"]) .matchupsMoreCopy strong { font-size:11.2px; font-weight:700; line-height:1.1; letter-spacing:-.015em; white-space:nowrap; }
+:where(body[data-page="matchups"]) .matchupsMoreCopy small { font-size:8.8px; color:rgba(178,187,220,.76); line-height:1.15; letter-spacing:-.017em; }
+:where(body[data-page="matchups"]) .matchupsMoreItem:hover,
+:where(body[data-page="matchups"]) .matchupsMoreItem[aria-current="page"] { border-color:rgba(170,178,255,.31); background:linear-gradient(180deg,rgba(118,109,255,.16),rgba(66,194,255,.07)),rgba(14,20,37,.78); box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 12px 22px rgba(3,7,18,.3),0 0 15px rgba(118,109,255,.1); }
 :where(body[data-page="matchups"]) .loadError { margin:0 0 8px; padding:10px; color:#ffd1da; border:1px solid #ff8fab40; background:#852b4920; border-radius:10px; }
 :where(body[data-page="matchups"]) .toolbar { display:flex; align-items:center; gap:14px; padding:8px 12px; margin-bottom:10px; }
 :where(body[data-page="matchups"]) .defensePicker,:where(body[data-page="matchups"]) .venuePicker { display:flex; align-items:center; gap:8px; min-width:0; }
@@ -131,6 +169,8 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
 :where(body[data-page="matchups"]) .metricValue { margin:2px 0 1px; font-size:23px; line-height:1.1; letter-spacing:-.5px; font-weight:550; font-variant-numeric:tabular-nums; }
 :where(body[data-page="matchups"]) .metricValue small { font-size:10px; color:var(--dim); margin-left:3px; font-weight:400; }
 :where(body[data-page="matchups"]) .metricSub { font-size:8px; color:var(--dim); }
+/* Compact mobile text changes display precision/labels only, never source calculations. */
+:where(body[data-page="matchups"]) .metricMobile { display:none; }
 :where(body[data-page="matchups"]) .is-easy { color:var(--mint); }
 :where(body[data-page="matchups"]) .is-tough { color:var(--pink); }
 :where(body[data-page="matchups"]) .smallMuted { color:var(--dim); font-size:9px; }
@@ -262,6 +302,11 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
 :where(body[data-page="matchups"]) .expandedTableScroll table { min-width:500px; }
 :where(body[data-page="matchups"]) .noscript { position:relative; padding:15px; color:var(--text); }
 @media (max-width:1100px) {
+  /* Narrow desktop/tablet headers give navigation its own centered row. */
+  :where(body[data-page="matchups"]) .pageHeader { grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:6px 12px; }
+  :where(body[data-page="matchups"]) .pageHeaderBrand { grid-column:1; grid-row:1; }
+  :where(body[data-page="matchups"]) .coverage { grid-column:2; grid-row:1; }
+  :where(body[data-page="matchups"]) .matchupsNav { grid-column:1/-1; grid-row:2; }
   :where(body[data-page="matchups"]) .toolbar { gap:9px; }
   :where(body[data-page="matchups"]) .toolbarNote { display:none; }
   :where(body[data-page="matchups"]) .defensePicker { flex:1; }
@@ -288,7 +333,12 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
 }
 @media (max-width:620px) {
   :where(body[data-page="matchups"]) .app-shell { padding:6px 7px; }
-  :where(body[data-page="matchups"]) .pageHeader { flex-wrap:wrap; gap:4px 12px; min-height:0; padding:1px 4px 7px; }
+  :where(body[data-page="matchups"]) .pageHeader { grid-template-columns:minmax(0,1fr); gap:6px; min-height:0; padding:1px 4px 7px; }
+  :where(body[data-page="matchups"]) .pageHeaderBrand { grid-column:1; grid-row:1; flex-wrap:nowrap; justify-content:space-between; }
+  :where(body[data-page="matchups"]) .matchupsNav { grid-column:1; grid-row:2; gap:3px; }
+  :where(body[data-page="matchups"]) .matchupsNavButton { min-height:42px; border-radius:9px; padding:5px 1px; }
+  :where(body[data-page="matchups"]) .matchupsNavButton > span { font-size:7.5px; }
+  :where(body[data-page="matchups"]) .matchupsNavButton .navIcon { width:14px; height:14px; }
   :where(body[data-page="matchups"]) .brand { gap:3px; }
   :where(body[data-page="matchups"]) .brand img { width:29px; height:29px; }
   :where(body[data-page="matchups"]) .brand > span { font-size:13px; }
@@ -296,7 +346,7 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
   :where(body[data-page="matchups"]) .pageIdentity { margin-left:auto; gap:5px; }
   :where(body[data-page="matchups"]) h1 { font-size:21px; }
   :where(body[data-page="matchups"]) .seasonTag { font-size:8px; padding:2px 5px; }
-  :where(body[data-page="matchups"]) .coverage { flex-basis:100%; text-align:left; margin:1px 0 0; font-size:9px; }
+  :where(body[data-page="matchups"]) .coverage { grid-column:1; grid-row:3; text-align:left; margin:0; font-size:9px; }
   :where(body[data-page="matchups"]) .toolbar { padding:7px 9px; flex-wrap:wrap; gap:7px; margin-bottom:8px; }
   :where(body[data-page="matchups"]) .defensePicker,:where(body[data-page="matchups"]) .venuePicker { gap:5px; }
   :where(body[data-page="matchups"]) .defensePicker { flex:1 1 100%; }
@@ -318,12 +368,17 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
   :where(body[data-page="matchups"]) .defenseHeader h2 { font-size:17px; }
   :where(body[data-page="matchups"]) .fieldLabel {font-size: 9px;}
   :where(body[data-page="matchups"]) .panelSubtitle { font-size:9px; }
-  :where(body[data-page="matchups"]) .metricStrip { gap:4px; margin-bottom:8px; }
-  :where(body[data-page="matchups"]) .metric { padding:6px 5px; border-radius:7px; }
+  /* All five mobile summary cards stay on one row, including both rank cards. */
+  :where(body[data-page="matchups"]) .metricStrip { grid-template-columns:repeat(5,minmax(0,1fr)); gap:3px; margin-bottom:8px; }
+  :where(body[data-page="matchups"]) .metricStrip > .metric,
+  :where(body[data-page="matchups"]) .metricStrip > .metric:nth-child(n+4) { grid-column:auto; }
+  :where(body[data-page="matchups"]) .metric { padding:6px 3px; border-radius:7px; }
   :where(body[data-page="matchups"]) .metricLabel { font-size:7px; }
-  :where(body[data-page="matchups"]) .metricValue { font-size:19px; }
+  :where(body[data-page="matchups"]) .metricValue { font-size:18px; white-space:nowrap; }
   :where(body[data-page="matchups"]) .metricValue small { font-size:8px; margin-left:1px; }
-  :where(body[data-page="matchups"]) .metricSub { font-size:7px; }
+  :where(body[data-page="matchups"]) .metricSub { font-size:7px; white-space:nowrap; }
+  :where(body[data-page="matchups"]) .metricDesktop { display:none; }
+  :where(body[data-page="matchups"]) .metricMobile { display:inline; }
   :where(body[data-page="matchups"]) .chartLegend { font-size:7px; gap:8px; }
   :where(body[data-page="matchups"]) .sectionHeading h3 { font-size:11px; }
   :where(body[data-page="matchups"]) .weeklyMatchups { margin-bottom:8px; gap:4px; }
@@ -359,10 +414,12 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
   :where(body[data-page="matchups"]) .dialogHeader,:where(body[data-page="matchups"]) .dialogBody { padding:10px; }
 }
 @media (max-width:400px) {
-  :where(body[data-page="matchups"]) .metricValue { font-size:17px; }
+  /* At 320px the five-card row needs its width for labels, not side padding. */
+  :where(body[data-page="matchups"]) .metricStrip { gap:2px; }
+  :where(body[data-page="matchups"]) .metricValue { font-size:14px; }
   :where(body[data-page="matchups"]) .metricLabel { font-size:6px; }
   :where(body[data-page="matchups"]) .metricSub { font-size:6px; }
-  :where(body[data-page="matchups"]) .metric { padding:5px 4px; }
+  :where(body[data-page="matchups"]) .metric { padding:5px 1px; }
   :where(body[data-page="matchups"]) .defenseHeader h2 { font-size:15px; }
   :where(body[data-page="matchups"]) .playerTable .offenseColumn { display:none; }
   :where(body[data-page="matchups"]) .expandedTableScroll .playerTable .offenseColumn { display:table-cell; }
