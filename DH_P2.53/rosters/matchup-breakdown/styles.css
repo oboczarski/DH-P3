@@ -225,7 +225,7 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .metricStrip { gap:2px; }
   .metricValue {font-size:14px;text-align: center;}
   .metricLabel {font-size: 7px;font-weight: 800;text-align: center;}
-  .metricSub { font-size:6px; }
+  .metricSub {font-size: 7px;text-align: center;}
   .metric { padding:5px 1px; }
   .defenseHeader h2 { font-size:15px; }
   .playerTable .offenseColumn { display:none; }
