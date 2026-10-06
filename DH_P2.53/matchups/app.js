@@ -203,9 +203,9 @@
   // Each opponent's positional scoring average supplies its weekly expected line.
   function renderWeekly() {
     const entries = comparison().entries;
-    // Matchups chips place the opponent logo below its label; weekly data and
-    // home/away labels remain unchanged as additional recorded weeks arrive.
-    $("weeklyMatchups").innerHTML = entries.map(entry => `<div class="weekMatchup"><span class="weekNumber">W${entry.week}</span><span class="weekOpponent">${entry.offense ? `${entry.venue === "home" ? "vs" : "@"} ${entry.offense}` : "Offense unknown"}</span>${logo(entry.offense)}</div>`).join("");
+    // Matchups chips keep the week inline to the left of the opponent's label
+    // and logo stack. Weekly data and home/away labels retain their source values.
+    $("weeklyMatchups").innerHTML = entries.map(entry => `<div class="weekMatchup"><span class="weekNumber">W${entry.week}</span><span class="weekOpponentStack"><span class="weekOpponent">${entry.offense ? `${entry.venue === "home" ? "vs" : "@"} ${entry.offense}` : "Offense unknown"}</span>${logo(entry.offense)}</span></div>`).join("");
     if (!entries.some(entry => entry.actual !== null)) { $("weeklyChart").innerHTML = empty("No recorded games", "Choose another defense venue or position."); return; }
     const W = width("weeklyChart"), H = 196, left = 31, right = W - 9, top = 22, bottom = H - 19;
     const bounds = scale(entries.flatMap(entry => [entry.actual, entry.expected]));

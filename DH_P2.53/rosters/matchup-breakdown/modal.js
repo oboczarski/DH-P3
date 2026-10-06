@@ -190,9 +190,9 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
   // Each opponent's positional scoring average supplies its weekly expected line.
   function renderWeekly() {
     const entries = comparison().entries;
-    // Rosters owns this matching chip layout: opponent logos sit below their
-    // labels without changing weekly data or importing Matchups page files.
-    $("weeklyMatchups").innerHTML = entries.map(entry => `<div class="weekMatchup"><span class="weekNumber">W${entry.week}</span><span class="weekOpponent">${entry.offense ? `${entry.venue === "home" ? "vs" : "@"} ${entry.offense}` : "Offense unknown"}</span>${logo(entry.offense)}</div>`).join("");
+    // Rosters owns this matching layout: the week sits inline to the left of
+    // the opponent label/logo stack, without importing any Matchups page files.
+    $("weeklyMatchups").innerHTML = entries.map(entry => `<div class="weekMatchup"><span class="weekNumber">W${entry.week}</span><span class="weekOpponentStack"><span class="weekOpponent">${entry.offense ? `${entry.venue === "home" ? "vs" : "@"} ${entry.offense}` : "Offense unknown"}</span>${logo(entry.offense)}</span></div>`).join("");
     if (!entries.some(entry => entry.actual !== null)) { $("weeklyChart").innerHTML = empty("No recorded games", "Choose another defense venue or position."); return; }
     const W = width("weeklyChart"), H = 196, left = 31, right = W - 9, top = 22, bottom = H - 19;
     const bounds = scale(entries.flatMap(entry => [entry.actual, entry.expected]));
@@ -364,7 +364,7 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
       root.innerHTML = await response.text();
       const stylesheet = document.createElement('link');
       stylesheet.rel = 'stylesheet';
-      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.49f-matchup-week-chips', import.meta.url).href;
+      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.49g-start-sit-matchup-info', import.meta.url).href;
       const styled = new Promise((resolve, reject) => {
         stylesheet.onload = resolve;
         stylesheet.onerror = () => reject(new Error('Matchup panel styling could not load.'));

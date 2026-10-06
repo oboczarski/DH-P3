@@ -36,7 +36,8 @@
 // Refresh compact mobile summaries, page-owned Matchups navigation and roster injury indicators.
 // Refresh current WK4-WK7 mappings and Rosters' weekly/historical failure isolation.
 // Refresh both renamed matchup stylesheets and vertically stacked weekly chips.
-const CACHE_NAME = 'DH3.49f-matchup-week-chips';
+// Refresh inline week labels and the Rosters-owned Start/Sit matchup-info chips.
+const CACHE_NAME = 'DH3.49g-start-sit-matchup-info';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

@@ -207,12 +207,13 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
 :where(body[data-page="matchups"]) .chartPoint:focus-visible circle,:where(body[data-page="matchups"]) .chartPoint:focus-visible rect { stroke:#fff; stroke-width:2; }
 :where(body[data-page="matchups"]) .weeklyMatchups { display:grid; grid-template-columns:repeat(auto-fit,minmax(80px,1fr)); gap:5px; margin:4px 0 10px; }
 :where(body[data-page="matchups"]) .expectedLine {fill:none;stroke:url(#weekly-expected-line);stroke-width: 6px;stroke-dasharray: 1;filter: drop-shadow(0px 2px 4px #0008);}
-/* Weekly matchup chips stack the week, opponent label and logo to stay compact
-   as more weeks arrive. Keep the existing responsive grid and logo dimensions. */
-:where(body[data-page="matchups"]) .weekMatchup { display:flex; flex-direction:column; justify-content:center; align-items:center; gap:2px; padding:4px 5px; color:var(--muted); background:#8f94a608; border:1px solid #aabbff10; border-radius:7px; font-size:9px; }
+/* Weekly chips keep the week to the left of the opponent label/logo stack.
+   Retain the responsive grid and logo dimensions as additional weeks arrive. */
+:where(body[data-page="matchups"]) .weekMatchup { display:flex; justify-content:center; align-items:center; gap:5px; padding:4px 5px; color:var(--muted); background:#8f94a608; border:1px solid #aabbff10; border-radius:7px; font-size:9px; }
+:where(body[data-page="matchups"]) .weekOpponentStack { display:flex; flex-direction:column; align-items:center; gap:2px; min-width:0; }
 :where(body[data-page="matchups"]) .weekMatchup .weekOpponent { max-width:100%; text-align:center; }
 :where(body[data-page="matchups"]) .weekMatchup img { width:19px; height:18px; object-fit:contain; }
-:where(body[data-page="matchups"]) .weekMatchup .weekNumber { color:var(--dim); font-size:10px; font-weight:600; }
+:where(body[data-page="matchups"]) .weekMatchup .weekNumber { flex:none; color:var(--dim); font-size:10px; font-weight:600; }
 :where(body[data-page="matchups"]) .playersSection {padding-top: 3px;border-top:1px solid var(--border);}
 :where(body[data-page="matchups"]) .playerFilters { display:flex; gap:10px; align-items:center; margin:0 0 7px; }
 :where(body[data-page="matchups"]) .searchField { flex:1; display:flex; min-width:0; gap:6px; align-items:center; padding:0 8px; border:1px solid #aabbff1c; border-radius:7px; background:#03091635; }

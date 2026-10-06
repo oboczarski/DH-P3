@@ -385,9 +385,8 @@ body[data-page="rosters"] #starfield::after {
   line-height: 1;
 }
 
-/* Rosters Start/Sit: label and value stay in one row at every width.
-   Matchup context and its Breakdown action follow below each player's projection;
-   the Trade Preview layout and every other modal retain their existing rules. */
+/* Rosters Start/Sit keeps the projection label above an inline value/opponent
+   row and a separate four-chip info strip. Trade Preview retains its layout. */
 body[data-page="rosters"] .start-sit-preview-column .trade-total.start-sit-total {
   display: flex;
   align-items: baseline;
@@ -429,42 +428,103 @@ body[data-page="rosters"] .start-sit-name {
 body[data-page="rosters"] .start-sit-name-text {
   white-space: normal;
 }
-body[data-page="rosters"] .start-sit-proj-inline-row {
-  display: inline-flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 0.35rem;
+body[data-page="rosters"] .start-sit-total-label {
+  margin-right: 0;
   white-space: nowrap;
 }
-body[data-page="rosters"] .start-sit-proj-inline-row .start-sit-total-label {
-  margin-right: 0;
-}
 body[data-page="rosters"] .start-sit-matchup-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 0.35rem;
   width: 100%;
+  white-space: nowrap;
+}
+body[data-page="rosters"] .start-sit-matchup-meta .start-sit-total-value {
+  flex: none;
+  margin-top: 0;
+  font-size: clamp(1rem, 4vw, 1.4rem);
+  line-height: 1;
 }
 body[data-page="rosters"] .start-sit-matchup-inline {
   display: inline-flex;
   justify-content: center;
-  font-size: 0.8rem;
+  font-size: clamp(8px, 2.6vw, 11px);
   max-width: 100%;
 }
 body[data-page="rosters"] .start-sit-matchup-opponent {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 0.56rem;
+  gap: 0;
   min-width: 0;
   max-width: 100%;
+  white-space: nowrap;
 }
-body[data-page="rosters"] .start-sit-matchup-delta {
+/* Each player's info strip owns an inline-size container. Its four tracks and
+   container-scaled text stay on one row even in a narrow two-player preview;
+   no selector can alter the defense-panel modal or another page's summaries. */
+body[data-page="rosters"] .start-sit-matchup-info {
+  container-type: inline-size;
+  /* Use both 0.2rem column gutters for the four labels while staying inside
+     the column's border box; player/projection rows retain their own spacing. */
+  width: calc(100% + 0.4rem);
+  min-width: 0;
+}
+body[data-page="rosters"] .start-sit-matchup-info-heading {
+  display: block;
+  margin-bottom: 3px;
   color: var(--color-text-tertiary);
-  font-size: 0.6rem;
-  line-height: 1.3;
+  font-size: 8px;
+  line-height: 1;
+}
+body[data-page="rosters"] .start-sit-matchup-info-grid {
+  display: grid;
+  /* Signed percentages need more width than the two numeric FPA totals. */
+  grid-template-columns: 1.05fr 1fr 1.15fr 1.2fr;
+  gap: 3px;
+}
+body[data-page="rosters"] .start-sit-matchup-info-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 5px 2px;
+  border: 1px solid rgba(170, 187, 255, 0.12);
+  border-radius: 5px;
+  background: rgba(170, 187, 255, 0.04);
   font-variant-numeric: tabular-nums;
-  max-width: 100%;
-  white-space: normal;
-  letter-spacing: -0.04em;
-  word-spacing: -0.25em;
+}
+body[data-page="rosters"] .start-sit-matchup-info-label {
+  color: var(--color-text-tertiary);
+  font-size: clamp(5.5px, 3.8cqi, 8px);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+}
+body[data-page="rosters"] .start-sit-matchup-info-value {
+  color: var(--color-text-primary);
+  font-size: clamp(8px, 5.8cqi, 13px);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+body[data-page="rosters"] .start-sit-matchup-info-value small {
+  margin-left: 1px;
+  font-size: 0.6em;
+  font-weight: 400;
+  color: var(--color-text-tertiary);
+}
+body[data-page="rosters"] .start-sit-matchup-info-value.is-easy { color: #75e0b7; }
+body[data-page="rosters"] .start-sit-matchup-info-value.is-tough { color: #ffb2d8; }
+body[data-page="rosters"] .start-sit-info-mobile { display: none; }
+@media (max-width:620px) {
+  /* Match the defense panel's mobile Actual FPA precision without rounding data. */
+  body[data-page="rosters"] .start-sit-info-desktop { display: none; }
+  body[data-page="rosters"] .start-sit-info-mobile { display: inline; }
 }
 body[data-page="rosters"] .start-sit-matchup-breakdown {
   border: 0;
@@ -488,10 +548,15 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
   cursor: default;
 }
 @media (max-width:520px) {
-  body[data-page="rosters"] .start-sit-proj-inline-row { gap: 0.25rem; }
-  body[data-page="rosters"] .start-sit-proj-inline-row .start-sit-total-label {
+  body[data-page="rosters"] .start-sit-matchup-meta { gap: 0.25rem; }
+  body[data-page="rosters"] .start-sit-total-label {
     font-size: clamp(0.68rem, 2.9vw, 0.9rem);
   }
+  body[data-page="rosters"] .start-sit-matchup-info-heading { font-size: 7px; }
+  body[data-page="rosters"] .start-sit-matchup-info-grid { gap: 2px; }
+  /* Narrow preview columns need their full chip width for complete labels. */
+  body[data-page="rosters"] .start-sit-matchup-info-chip { padding: 4px 0; }
+  body[data-page="rosters"] .start-sit-matchup-opponent .start-sit-matchup-sep { margin-inline: 0.2rem; }
 }
 
 .start-sit-total-label {

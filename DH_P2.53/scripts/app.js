@@ -2648,7 +2648,7 @@ function handleCompareClick() {
 function getRostersMatchupController() {
     if (pageType !== 'rosters') return Promise.reject(new Error('Matchup Breakdown belongs to Rosters.'));
     if (!rostersMatchupsModulePromise) {
-        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.49f-matchup-week-chips')
+        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.49g-start-sit-matchup-info')
             .then(({ createMatchupBreakdown }) => {
                 rostersMatchups = createMatchupBreakdown({ onDataChange: () => {
                     // Late matchup readiness updates selected previews without
@@ -9578,6 +9578,50 @@ function renderStartSitPreview() {
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
     };
+    // Start/Sit's four compact info chips read the already-prepared defense
+    // comparison, including published positional SOS. This is presentation only:
+    // projection snapshots, panel calculations and background loading stay owned
+    // by their existing paths; missing/loading data never becomes a zero value.
+    const buildMatchupInfo = (selection, metric) => {
+        const fmt = (value, digits = 1) => Number.isFinite(value) ? value.toFixed(digits) : '—';
+        const signed = (value, digits = 1) => {
+            if (!Number.isFinite(value)) return '—';
+            const normalized = Math.abs(value) < 1e-9 ? 0 : value;
+            return `${normalized > 0 ? '+' : ''}${normalized.toFixed(digits)}`;
+        };
+        const noDefense = selection.matchup?.isBye || !selection.matchup?.opponent ||
+            (rostersMatchups && !rostersMatchups.canOpen(selection));
+        const failed = rostersMatchupsLoadFailed || rostersMatchups?.status === 'error';
+        const loading = !metric && !noDefense && !failed && rostersMatchups?.status !== 'ready';
+        const unavailable = noDefense ? 'No opponent defense available.' :
+            loading ? 'Loading matchup data…' : 'Matchup data unavailable.';
+        const pos = selection.basePos || selection.pos;
+        const sosColor = metric?.sosRank != null ? getOpponentRankColor(metric.sosRank) : '';
+        const deltaValue = Number.isFinite(metric?.deltaPct) ? `${signed(metric.deltaPct)}%` : signed(metric?.delta, 2);
+        const deltaClass = metric?.delta > 0 ? 'is-easy' : metric?.delta < 0 ? 'is-tough' : '';
+        const chips = [
+            {
+                label: 'SOS Ranking',
+                value: metric?.sosRank != null ? `${metric.sosRank}<small>/ 32</small>` : '—',
+                color: sosColor,
+                title: metric ? `Schedule already faced vs. ${pos}: ${metric.sosRank ?? 'unavailable'} of 32. 1 = easiest, 32 = toughest.` : unavailable,
+            },
+            {
+                label: 'Actual FPA',
+                value: `<span class="start-sit-info-desktop">${fmt(metric?.actual.total, 2)}</span><span class="start-sit-info-mobile">${fmt(metric?.actual.total, 1)}</span>`,
+                title: metric ? `Actual FPA vs. ${pos}: ${fmt(metric.actual.total, 2)} total · ${fmt(metric.actual.avg)} per game.` : unavailable,
+            },
+            {
+                label: 'Expected FPA', value: fmt(metric?.expectedTotal),
+                title: metric ? `Expected FPA vs. ${pos}: ${fmt(metric.expectedTotal)} total · ${fmt(metric.expectedAvg)} per game.` : unavailable,
+            },
+            {
+                label: 'vs Expected', value: deltaValue, className: deltaClass,
+                title: metric ? `Actual vs. expected: ${deltaValue} · ${signed(metric.delta, 2)} points. Same total comparison as Matchup Breakdown.` : unavailable,
+            },
+        ];
+        return `<section class="start-sit-matchup-info" aria-label="Matchup info for ${escapeHtml(selection.label)}" aria-busy="${loading}"><span class="start-sit-matchup-info-heading">Matchup info</span><div class="start-sit-matchup-info-grid">${chips.map(chip => `<div class="start-sit-matchup-info-chip" title="${escapeHtml(chip.title)}"><span class="start-sit-matchup-info-label">${chip.label}</span><span class="start-sit-matchup-info-value ${chip.className || ''}"${chip.color ? ` style="color: ${chip.color};"` : ''}>${chip.value}</span></div>`).join('')}</div></section>`;
+    };
     tradeSimulator.innerHTML = `
                             <div class="trade-container glass-panel start-sit-container">
                     <div class="trade-header">
@@ -9616,8 +9660,10 @@ function renderStartSitPreview() {
         let totalDisplay = '—';
         let projectionColor = 'var(--color-text-tertiary)';
         let matchupSectionHtml = '';
+        let matchupInfoHtml = '';
         let breakdownHtml = '';
         if (selection) {
+            const matchupMetric = rostersMatchups?.preview(selection);
             const tagColor = TAG_COLORS[selection.pos] || 'var(--pos-bn)';
             const posForColor = selection.basePos || selection.pos;
             const rankColor = Number.isFinite(selection.ppgPosRank)
@@ -9656,10 +9702,9 @@ function renderStartSitPreview() {
                 const { opponent, isBye } = selection.matchup;
                 const opponentText = opponent || (isBye ? 'BYE' : '');
                 if (opponentText) {
-                    // Start/Sit retains the opponent's positional matchup rank.
-                    // Its context line uses FPFA's positional vRK for the season
-                    // opponents already faced: 1 is easiest, 32 is toughest.
-                    const metric = rostersMatchups?.preview(selection);
+                    // The second row keeps only the opponent and positional
+                    // matchup rank. SOS moves into the separate info strip below.
+                    const metric = matchupMetric;
                     const matchupColor = metric?.actualRank ? getOpponentRankColor(metric.actualRank) : null;
                     const opponentStyle = matchupColor && !isBye ? ` style="color: ${matchupColor};"` : '';
                     const rankRawText = !isBye && metric?.actualRank ? ordinalSuffix(metric.actualRank) : '';
@@ -9669,20 +9714,7 @@ function renderStartSitPreview() {
                     const rankHtml = hasRankText
                         ? `<span class="start-sit-matchup-sep">•</span><span class="start-sit-matchup-rank"${rankStyle}>${escapeHtml(rankRawText)}</span>`
                         : '';
-                    let sosText = '';
-                    let sosStyle = '';
-                    if (!isBye) {
-                        if (metric?.sosRank != null) {
-                            sosText = `SOS: ${ordinalSuffix(metric.sosRank)}`;
-                            sosStyle = ` style="color: ${getOpponentRankColor(metric.sosRank)};"`;
-                        } else {
-                            sosText = rostersMatchupsLoadFailed || rostersMatchups?.status === 'error'
-                                ? 'SOS unavailable'
-                                : rostersMatchups?.status === 'ready' ? 'SOS: —' : 'Loading SOS…';
-                        }
-                    }
-                    const sosTitle = `Strength of schedule already faced vs. ${selection.basePos || selection.pos}. 1 = easiest schedule, 32 = toughest.`;
-                    matchupSectionHtml = `<span class="start-sit-matchup-inline"><span class="start-sit-matchup-opponent"${opponentStyle}><span>${safeOpponent}${rankHtml}</span>${sosText ? `<span class="start-sit-matchup-delta"${sosStyle} title="${escapeHtml(sosTitle)}">${escapeHtml(sosText)}</span>` : ''}</span></span>`;
+                    matchupSectionHtml = `<span class="start-sit-matchup-inline"><span class="start-sit-matchup-opponent"${opponentStyle}>${safeOpponent}${rankHtml}</span></span>`;
                 }
             }
             // A text-styled button supplies keyboard/touch access at the bottom
@@ -9702,6 +9734,7 @@ function renderStartSitPreview() {
                             </div>
                         </div>`;
             totalDisplay = projectionDisplay;
+            matchupInfoHtml = buildMatchupInfo(selection, matchupMetric);
         } else {
             assetsHTML = `<span class="text-xs text-slate-500 p-2">Select a player...</span>`;
         }
@@ -9712,12 +9745,11 @@ function renderStartSitPreview() {
                         <h4>Player ${slotNumber}</h4>
                         <div class="trade-assets">${assetsHTML}</div>
                         <div class="trade-total even start-sit-total">
-                            <span class="start-sit-proj-inline-row">
-                                <span class="start-sit-total-label">Projected Points:</span>
-                                <span class="start-sit-total-value" style="color: ${projectionColor};">${safeTotal}</span>
-                            </span>
+                            <span class="start-sit-total-label">Projected Points:</span>
                         </div>
-                        ${matchupSectionHtml ? `<div class="start-sit-matchup-meta">${matchupSectionHtml}</div>` : ''}
+                        <!-- Projection value sits inline to the left of the opponent/rank. -->
+                        <div class="start-sit-matchup-meta"><span class="start-sit-total-value" style="color: ${projectionColor};">${safeTotal}</span>${matchupSectionHtml}</div>
+                        ${matchupInfoHtml}
                         ${breakdownHtml}
                     </div>
                 `;
