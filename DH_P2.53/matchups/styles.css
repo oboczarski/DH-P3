@@ -10,8 +10,13 @@
 :where(html[data-page="matchups"], html[data-page="matchups"] *), :where(html[data-page="matchups"], html[data-page="matchups"] *)::before, :where(html[data-page="matchups"], html[data-page="matchups"] *)::after { box-sizing:border-box; }
 html:where([data-page="matchups"]) { min-height:100%; background:var(--page-bg); scroll-padding-top:10px; }
 body:where([data-page="matchups"]) {
-  margin:0; min-height:100vh; position:relative; isolation:isolate;
-  font:12px/1.4 var(--font); color:var(--text); -webkit-font-smoothing:antialiased;
+  margin:0;
+  min-height:100vh;
+  position:relative;
+  isolation:isolate;
+  font:12px/1.4 var(--font);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
   background:
     radial-gradient(620px 560px at 12% 8%,rgba(90,160,255,.1),transparent 42%),
     radial-gradient(980px 680px at 88% 10%,rgba(70,190,255,.12),transparent 38%),
@@ -28,7 +33,7 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
 :where(body[data-page="matchups"]) .background-orb--one { top:10vh; right:-6vw; width:28vw; height:28vw; background:radial-gradient(circle,rgba(102,215,255,.54),transparent 72%); }
 :where(body[data-page="matchups"]) .background-orb--two { bottom:18vh; left:-8vw; width:34vw; height:34vw; background:radial-gradient(circle,rgba(162,127,255,.48),transparent 70%); }
 :where(body[data-page="matchups"]) h1,:where(body[data-page="matchups"]) h2,:where(body[data-page="matchups"]) h3,:where(body[data-page="matchups"]) p { margin:0; }
-:where(body[data-page="matchups"]) h1 { font:600 26px/1.1 "MuseoModerno",var(--font); letter-spacing:-.7px; background:var(--accent-gradient); background-clip:text; -webkit-background-clip:text; color:transparent; }
+:where(body[data-page="matchups"]) h1 {font: 500 26px/1.1 "MuseoModerno",var(--font);letter-spacing: -1.5px;background:var(--accent-gradient);background-clip:text;-webkit-background-clip:text;color:transparent;}
 :where(body[data-page="matchups"]) h2 { font-size:17px; line-height:1.2; font-weight:550; letter-spacing:-.3px; }
 :where(body[data-page="matchups"]) h3 { font-size:12px; font-weight:550; }
 :where(body[data-page="matchups"]) a { color:inherit; text-decoration:none; }
@@ -54,19 +59,19 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
 }
 :where(body[data-page="matchups"]) .glass-panel::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:linear-gradient(135deg,rgba(215,225,255,.065),transparent 30%); }
 :where(body[data-page="matchups"]) .pageHeader { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,390px) minmax(0,1fr); align-items:center; gap:16px; min-height:47px; padding:0 6px 8px; }
-:where(body[data-page="matchups"]) .pageHeaderBrand { display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; min-width:0; }
+:where(body[data-page="matchups"]) .pageHeaderBrand {display:flex;flex-wrap: nowrap;align-items:center;gap:4px 12px;min-width:0;}
 :where(body[data-page="matchups"]) .brand { display:flex; align-items:center; gap:6px; flex:none; }
 :where(body[data-page="matchups"]) .brand img { object-fit:contain; }
-:where(body[data-page="matchups"]) .brand > span { font:500 16px/1.1 "MuseoModerno",var(--font); }
-:where(body[data-page="matchups"]) .brandAccent { background:var(--accent-gradient); background-clip:text; -webkit-background-clip:text; color:transparent; }
-:where(body[data-page="matchups"]) .brand small { display:block; font:500 6px/1.8 var(--font); color:var(--dim); letter-spacing:2.1px; }
+:where(body[data-page="matchups"]) .brand > span {font: 500 27px/1 "MuseoModerno",var(--font);margin: 2px 0 -10px;letter-spacing: -0.06em;}
+:where(body[data-page="matchups"]) .brandAccent {background:var(--accent-gradient);background-clip:text;-webkit-background-clip:text;color:transparent;padding: 0 0.1em;}
+:where(body[data-page="matchups"]) .brand small {display:block;font: 500 9px/1.4 var(--font);color:var(--dim);letter-spacing:2.1px;}
 :where(body[data-page="matchups"]) .pageIdentity { display:flex; gap:8px; align-items:center; }
-:where(body[data-page="matchups"]) .seasonTag { font-size:10px; padding:2px 7px; border:1px solid #ffffff17; border-radius:7px; color:#bdc1d8; background:#8892bc10; }
+:where(body[data-page="matchups"]) .seasonTag {font-size: 12px;padding: 1px 5px;border: 1px solid transparent;border-radius: 6px;color: transparent;background: linear-gradient(90deg,#74efff33 0%,#7297ff33 52%,#d97dff33 100%), linear-gradient(90deg,#74efffbb 0%,#7297ffbb 52%,#d97dffbb 100%) border-area, linear-gradient(90deg,#74efff 0%,#7297ff 52%, #d97dff 100%) text;font-weight: 600;margin: 2px 0 0;}
 :where(body[data-page="matchups"]) .coverage { margin-left:auto; text-align:right; color:var(--muted); font-size:10px; }
 :where(body[data-page="matchups"]) .coverage strong { color:#d6defa; font-weight:500; }
 /* Matchups owns this copy of LeagueHub's glass icon-over-label buttons. Equal
    side columns center the navigation in the page, independently of brand/coverage widths. */
-:where(body[data-page="matchups"]) .matchupsNav { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:3px; width:100%; max-width:390px; min-width:0; justify-self:center; }
+:where(body[data-page="matchups"]) .matchupsNav {display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap: 5px;width:100%;max-width: 440px;min-width: 440px;justify-self:center;}
 :where(body[data-page="matchups"]) .matchupsNavButton {
   position:relative; display:inline-flex; flex-direction:column; align-items:center; justify-content:center;
   gap:3px; min-width:0; min-height:46px; padding:5px 1px; overflow:hidden;
@@ -182,7 +187,7 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
 :where(body[data-page="matchups"]) .chartLegend { display:flex; gap:10px; margin-left:auto; color:var(--muted); font-size:8px; }
 :where(body[data-page="matchups"]) .chartLegend span { display:flex; align-items:center; gap:4px; }
 :where(body[data-page="matchups"]) .chartHeading { flex-wrap:wrap; }
-:where(body[data-page="matchups"]) .chartHeaderControls {display:flex;align-items:center;justify-content: center;flex-wrap: balance;gap: 4px;}
+:where(body[data-page="matchups"]) .chartHeaderControls {display:flex;align-items:center;justify-content: center;flex-wrap: wrap;gap: 4px;}
 :where(body[data-page="matchups"]) .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
 :where(body[data-page="matchups"]) .positionToggle.chartPositionToggle button {min-width: 40px;padding: 3px 6px;font-size:9px;border-radius:6px;}
 :where(body[data-page="matchups"]) .chartSortControls { display:flex; align-items:center; flex:none; gap:6px; margin-left:auto; white-space:nowrap; }
@@ -306,7 +311,7 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
   :where(body[data-page="matchups"]) .pageHeader { grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:6px 12px; }
   :where(body[data-page="matchups"]) .pageHeaderBrand { grid-column:1; grid-row:1; }
   :where(body[data-page="matchups"]) .coverage { grid-column:2; grid-row:1; }
-  :where(body[data-page="matchups"]) .matchupsNav { grid-column:1/-1; grid-row:2; }
+  :where(body[data-page="matchups"]) .matchupsNav {grid-column:1/-1;grid-row: 2;max-width: 70%;}
   :where(body[data-page="matchups"]) .toolbar { gap:9px; }
   :where(body[data-page="matchups"]) .toolbarNote { display:none; }
   :where(body[data-page="matchups"]) .defensePicker { flex:1; }
@@ -335,17 +340,17 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
   :where(body[data-page="matchups"]) .app-shell { padding:6px 7px; }
   :where(body[data-page="matchups"]) .pageHeader { grid-template-columns:minmax(0,1fr); gap:6px; min-height:0; padding:1px 4px 7px; }
   :where(body[data-page="matchups"]) .pageHeaderBrand { grid-column:1; grid-row:1; flex-wrap:nowrap; justify-content:space-between; }
-  :where(body[data-page="matchups"]) .matchupsNav { grid-column:1; grid-row:2; gap:3px; }
+  :where(body[data-page="matchups"]) .matchupsNav {grid-column:1;grid-row:2;gap:3px;min-width: 101%;}
   :where(body[data-page="matchups"]) .matchupsNavButton { min-height:42px; border-radius:9px; padding:5px 1px; }
   :where(body[data-page="matchups"]) .matchupsNavButton > span { font-size:7.5px; }
   :where(body[data-page="matchups"]) .matchupsNavButton .navIcon { width:14px; height:14px; }
   :where(body[data-page="matchups"]) .brand { gap:3px; }
   :where(body[data-page="matchups"]) .brand img { width:29px; height:29px; }
-  :where(body[data-page="matchups"]) .brand > span { font-size:13px; }
-  :where(body[data-page="matchups"]) .brand small { font-size:5px; letter-spacing:1.5px; }
-  :where(body[data-page="matchups"]) .pageIdentity { margin-left:auto; gap:5px; }
-  :where(body[data-page="matchups"]) h1 { font-size:21px; }
-  :where(body[data-page="matchups"]) .seasonTag { font-size:8px; padding:2px 5px; }
+  :where(body[data-page="matchups"]) .brand > span {font-size: 24px;margin: 0 0 -6px;letter-spacing: -0.06em;}
+  :where(body[data-page="matchups"]) .brand small {font-size: 6px;letter-spacing:1.5px;margin: 0 0 0 6px;}
+  :where(body[data-page="matchups"]) .pageIdentity {margin-left:auto;gap: 7px;margin: 0 0 2px;}
+  :where(body[data-page="matchups"]) h1 {font-size: 24px;}
+  :where(body[data-page="matchups"]) .seasonTag {font-size: 9px;padding: 2px 4px;font-weight: 800;}
   :where(body[data-page="matchups"]) .coverage { grid-column:1; grid-row:3; text-align:left; margin:0; font-size:9px; }
   :where(body[data-page="matchups"]) .toolbar { padding:7px 9px; flex-wrap:wrap; gap:7px; margin-bottom:8px; }
   :where(body[data-page="matchups"]) .defensePicker,:where(body[data-page="matchups"]) .venuePicker { gap:5px; }
@@ -416,11 +421,11 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
 @media (max-width:400px) {
   /* At 320px the five-card row needs its width for labels, not side padding. */
   :where(body[data-page="matchups"]) .metricStrip { gap:2px; }
-  :where(body[data-page="matchups"]) .metricValue { font-size:14px; }
-  :where(body[data-page="matchups"]) .metricLabel { font-size:6px; }
-  :where(body[data-page="matchups"]) .metricSub { font-size:6px; }
+  :where(body[data-page="matchups"]) .metricValue {font-size:14px;text-align: center;}
+  :where(body[data-page="matchups"]) .metricLabel {font-size: 7.5px;text-align: center;}
+  :where(body[data-page="matchups"]) .metricSub {font-size: 7.5px;text-align: center;}
   :where(body[data-page="matchups"]) .metric { padding:5px 1px; }
-  :where(body[data-page="matchups"]) .defenseHeader h2 { font-size:15px; }
+  :where(body[data-page="matchups"]) .defenseHeader h2 {font-size:15px;}
   :where(body[data-page="matchups"]) .playerTable .offenseColumn { display:none; }
   :where(body[data-page="matchups"]) .expandedTableScroll .playerTable .offenseColumn { display:table-cell; }
   :where(body[data-page="matchups"]) .playerName { font-size:9px; }
