@@ -3902,6 +3902,13 @@ async function fetchPlayerStatsSheets() {
             }
         } catch (error) {
             console.error('Failed to fetch player stats (CSV/Sheets).', error);
+            // Rosters warms the independent 2025 archive in the background.
+            // A failed historical CSV must not erase an already active 2026
+            // workbook snapshot or its live/league overlays; allow an archive retry.
+            if (pageType === 'rosters' && state.activeRostersGameLogsSeason === '2026') {
+                state.statsSheetsLoaded = false;
+                return;
+            }
             state.playerSeasonStats = {};
             state.playerSeasonRanks = {};
             state.playerWeeklyStats = {};

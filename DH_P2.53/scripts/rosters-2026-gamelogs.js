@@ -172,11 +172,32 @@
             if (!scheduleResponse.ok) throw new Error(`Rosters 2026 schedule could not load (${scheduleResponse.status}).`);
             const scheduleRows = parseCsv(await scheduleResponse.text());
             if (!scheduleRows.length || !('TM' in scheduleRows[0]) || !('18' in scheduleRows[0])) throw new Error('Rosters 2026 schedule is invalid.');
-            const [seasonRows, defenseRows, ...weeks] = await Promise.all([
+            const [seasonRows, defenseRows] = await Promise.all([
                 ensureRosters2026SeasonRowsLoaded(),
-                fetchRows('DRK', ['TM', 'QBRK', 'RBRK', 'WRRK', 'TERK']),
-                ...Array.from({ length: 18 }, (_, index) => fetchRows(`WK${index + 1}`, ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR']))
+                fetchRows('DRK', ['TM', 'QBRK', 'RBRK', 'WRRK', 'TERK'])
             ]);
+            // Rosters league rendering awaits this snapshot. Isolate optional
+            // weekly failures so a deleted/recreated tab cannot blank every
+            // roster. Never relabel another week's rows or invent missing stats.
+            // Bound CSV requests like the independently owned DataHub loader.
+            const weeks = Array.from({ length: 18 }, () => []);
+            const weekErrors = {};
+            let nextWeek = 1;
+            await Promise.all(Array.from({ length: 4 }, async () => {
+                while (nextWeek <= 18) {
+                    const week = nextWeek++;
+                    try {
+                        const rows = await fetchRows(`WK${week}`, ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR']);
+                        if (rows.some((row) => isPlayer(row) && Number(row.SZN) !== week)) throw new Error(`WK${week} contains another week's rows.`);
+                        weeks[week - 1] = rows;
+                    } catch (error) {
+                        weekErrors[week] = error.message;
+                    }
+                }
+            }));
+            if (Object.keys(weekErrors).length) {
+                console.warn('Rosters skipped unavailable or invalid 2026 weeks:', weekErrors);
+            }
             const players = seasonRows.filter(isPlayer);
             const weeksOfData = weeks.reduce((count, rows) => count + (rows.some(hasRecordedStats) ? 1 : 0), 0);
             const latestRecordedWeek = weeks.reduce((latest, rows, index) => rows.some((row) => isPlayer(row) && hasRecordedStats(row)) ? index + 1 : latest, 0);
@@ -214,7 +235,7 @@
             // owns the expanded stat/summary pool requested for this modal.
             const snapshot = { seasonStats, seasonRanks: buildRanks(players, weeksOfData, latestRecordedWeek),
                 cardSeasonRanks: buildRanks(players, weeksOfData, latestRecordedWeek, false), weeklyStats,
-                latestRecordedWeek, rankQualifierWeeks: Math.max(1, weeksOfData) };
+                latestRecordedWeek, rankQualifierWeeks: Math.max(1, weeksOfData), weekErrors };
             state.rosters2026GameLogs = snapshot;
             return snapshot;
         })().finally(() => { loadPromise = null; });

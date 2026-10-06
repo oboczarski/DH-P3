@@ -34,7 +34,8 @@
 // Refresh positional SOS context and five-card defense summaries on both owned surfaces.
 // Refresh dimmed hyphens for zero-valued team-card stats on DataHub and Rosters.
 // Refresh compact mobile summaries, page-owned Matchups navigation and roster injury indicators.
-const CACHE_NAME = 'DH3.49d-matchups-mobile-nav-injuries';
+// Refresh current WK4-WK7 mappings and Rosters' weekly/historical failure isolation.
+const CACHE_NAME = 'DH3.49e-week4-sheet-recovery';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

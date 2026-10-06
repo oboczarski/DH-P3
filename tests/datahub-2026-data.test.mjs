@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import { build2026SourceData, has2026WeekResults, get2026WeeksOfData, load2026SourceData, load2026WeeklySourceData } from '../DH_P2.53/scripts/datahub-2026-data.js';
 import { get2026QualifierOptions } from '../DH_P2.53/scripts/datahub-stats-season.js';
+import { get2026SheetCsvUrl } from '../DH_P2.53/scripts/nfl-2026-sheets.js';
 
 const source = fs.readFileSync(new URL('../DH_P2.53/scripts/DataHub.js', import.meta.url), 'utf8');
 const context = vm.createContext({ get2026QualifierOptions, VIEW_FILTER_CONFIGS: { stats: { defaultCategory: 'overview' } } });
@@ -14,6 +15,35 @@ const parseCsv = context.parseCsv;
 const player = { SZN: '2026', SLPR_ID: '4984', 'PLAYER NAME': 'Josh Allen', POS: 'QB', TM: 'BUF', FPT_PPR: '35.66', GM_P: '1' };
 const schedule = [{ TM: 'BUF', 1: '@ HOU', 2: 'vs DET', 7: 'BYE', 18: 'vs NYJ' }];
 const defense = [{ TM: 'HOU', QBRK: '2', RBRK: '11', WRRK: '8', TERK: '19' }, { TM: 'DET', QBRK: '6' }];
+
+test('weekly source URLs select the current native Week 4-7 tabs without dropping text PROJ values', () => {
+  for (const [sheet, gid] of Object.entries({ WK4: '2067451265', WK5: '749604963', WK6: '677856696', WK7: '696122995' })) {
+    const url = new URL(get2026SheetCsvUrl(sheet));
+    assert.match(url.pathname, /\/export$/);
+    assert.equal(url.searchParams.get('gid'), gid);
+    assert.equal(url.searchParams.get('sheet'), sheet);
+    assert.equal(url.searchParams.get('format'), 'csv');
+  }
+});
+
+test('DataHub loads Week 4 results and retains them when a neighboring export returns HTTP 400', async () => {
+  const fetchImpl = async (url) => {
+    const sheet = new URL(url).searchParams.get('sheet');
+    if (sheet === 'WK5') return { ok: false, status: 400 };
+    const tables = {
+      DRK: 'TM,QBRK,RBRK,WRRK,TERK\nHOU,2,11,8,19',
+      WK4: 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n4,4984,QB,BUF,19.52,1,59,23.4',
+    };
+    return { ok: true, text: async () => sheet ? (tables[sheet] || '') : 'TM,4,18\nBUF,@ HOU,vs NYJ' };
+  };
+  const data = await load2026WeeklySourceData({ seasonRows: [player], parseCsv, scheduleUrl: 'https://test.local/Schedule2026.csv', fetchImpl });
+  assert.deepEqual(data.weeksWithResults, [4]);
+  assert.equal(data.weeklyRows[4][0].FPT_PPR, '19.52');
+  assert.equal(data.weeklyRows[4][0].PROJ, '23.4');
+  assert.equal(data.weeklyRows[4][0].vsRK, '2');
+  assert.match(data.weekErrors[5], /could not load \(400\)/);
+  assert.equal(data.weeklyRows[5][0].FPT_PPR, undefined);
+});
 
 test('Overview defaults to Show All for both seasons; other categories retain their qualifiers', () => {
   for (const season of ['2025', '2026']) {

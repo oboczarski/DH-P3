@@ -9,8 +9,12 @@ const WEEKLY_SHEET_GIDS = Object.freeze({
     WK1: '946140193',
     WK2: '1480597852',
     WK3: '3751902',
-    WK4: '1759479235',
-    WK5: '1939087638'
+    // Week 4/5 now have different workbook tab IDs; their previous gids return
+    // HTTP 400. Use the current tabs, plus the new projection-only Week 6/7.
+    WK4: '2067451265',
+    WK5: '749604963',
+    WK6: '677856696',
+    WK7: '696122995'
 });
 
 // Matchups reads the three existing 2026-Wkly tabs by their verified gids.
