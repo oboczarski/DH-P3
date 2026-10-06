@@ -4,7 +4,7 @@ The page at `index.html` is copied from the local FPA app's `DH-FPA` folder.
 Its original data models, chart utilities, chart renderers, assets and pinned
 amCharts library live here. The source FPA repository remains independent.
 
-The page does not import DH's app shell or global CSS. Its original styles are
+The page does not import DH's app shell or global CSS. Its `matchups.css` styles are
 scoped to its `data-page="matchups"` document with selectors that retain the
 original specificity; its application and chart bootstrap
 also require the Matchups body marker. The branding links back to DH locally.

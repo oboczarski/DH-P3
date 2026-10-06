@@ -4,7 +4,7 @@ Start/Sit owns this copy of the current Matchups `defensePanel`. It imports no
 files from `matchups/`: `model.js` copies the pure parsers/calculations,
 `modal.js` copies the defense profile, weekly SVG chart, player table and picker
 renderers, `panel.html` retains the exact panel and expanded-player markup,
-`styles.css` retains their original declarations/media queries, and `assets/`
+`matchup-brkdwn.css` retains their original declarations/media queries, and `assets/`
 contains its own team/conference logos.
 
 The panel lives in a shadow root so its selectors, IDs, position colors, symbols
