@@ -6054,7 +6054,7 @@ body[data-page="rosters"] #game-logs-modal #modal-body .career-stats-position-me
    Edit a group's six colors below, or override these tier effects in that
    group's block. Only stat text changes; row backgrounds and geometry stay intact. */
 body[data-page="rosters"] #game-logs-modal #modal-body .career-stats-cell--formatted {
-  --career-format-tier-0-filter: brightness(0.5);
+  --career-format-tier-0-filter: brightness(0.6);
   --career-format-tier-1-filter: brightness(0.8);
   --career-format-tier-2-filter: brightness(0.95);
   --career-format-tier-3-filter: none;
@@ -6074,10 +6074,10 @@ body[data-page="rosters"] #game-logs-modal #modal-body .career-stats-cell--forma
 body[data-page="rosters"] #game-logs-modal #modal-body .career-stats-cell--formatted[data-career-group="passing"] {
   --career-format-tier-0-color: rgba(232, 208, 202, 0.74);
   --career-format-tier-1-color: rgba(232, 208, 202, 0.74);
-  --career-format-tier-2-color: rgba(244, 197, 184, 0.84);
-  --career-format-tier-3-color: rgba(253, 174, 153, 0.92);
-  --career-format-tier-4-color: rgba(255, 119, 89, 1);
-  --career-format-tier-5-color: rgba(255, 119, 89, 1);
+  --career-format-tier-2-color: rgb(255 199 184 / 78%);
+  --career-format-tier-3-color: rgb(255 191 174 / 92%);
+  --career-format-tier-4-color: rgb(252 152 131);
+  --career-format-tier-5-color: rgb(255 113 101);
   --career-format-glow-rgb: 255, 119, 89;
 }
 
@@ -6085,10 +6085,10 @@ body[data-page="rosters"] #game-logs-modal #modal-body .career-stats-cell--forma
 body[data-page="rosters"] #game-logs-modal #modal-body .career-stats-cell--formatted[data-career-group="rushing"] {
   --career-format-tier-0-color: rgba(203, 226, 214, 0.74);
   --career-format-tier-1-color: rgba(203, 226, 214, 0.74);
-  --career-format-tier-2-color: rgba(184, 237, 211, 0.84);
-  --career-format-tier-3-color: rgba(147, 242, 201, 0.92);
-  --career-format-tier-4-color: rgba(73, 252, 176, 1);
-  --career-format-tier-5-color: rgba(73, 252, 176, 1);
+  --career-format-tier-2-color: rgb(226 255 241 / 70%);
+  --career-format-tier-3-color: rgb(186 251 223 / 92%);
+  --career-format-tier-4-color: rgb(156 255 213);
+  --career-format-tier-5-color: rgb(106 255 192);
   --career-format-glow-rgb: 73, 252, 176;
 }
 
