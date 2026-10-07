@@ -107,6 +107,8 @@ export const DATAHUB_STAT_SECTIONS = [
     stat("recYPG", "Receiving Yards per Game", ["rec_ypg"]),
     // RB Stats/Season additions stay in the local receiving glossary so their
     // headers and modal labels have matching definitions and tooltip aliases.
+    // W/T reception share has its own source field, distinct from target share.
+    stat("RECS%", "Receptions Market Share", ["recs_pct"], "Percentage of team receptions."),
     stat("recYS%", "Receiving Yards Market Share", ["recYMS", "rec_yms"], "Percentage of team receiving yards."),
     // W/T additions share definitions between Stats headers and Game Logs.
     stat("recTDS%", "Receiving Touchdowns Market Share", ["recTMS", "rec_tms"], "Percentage of team receiving touchdowns."),

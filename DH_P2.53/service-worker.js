@@ -40,7 +40,8 @@
 // Refresh Start/Sit's opponent/position headings, per-game chips and FPA footer.
 // Refresh Start/Sit's internal chip dividers, per-game rank colors and Allowed footer.
 // Refresh renamed TDS%/YS% labels, source mappings and the Overview touchdown-share column.
-const CACHE_NAME = 'DH3.49j-stat-share-labels';
+// Refresh DataHub's source-backed W/T RECS% column and its stat-key definition.
+const CACHE_NAME = 'DH3.49k-receptions-share';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

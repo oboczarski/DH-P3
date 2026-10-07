@@ -29,7 +29,7 @@ function objectSource(source, name) {
 
 function datahubHarness() {
   const context = vm.createContext({
-    ALL_COLUMNS: ['POS', 'G', 'RR', ...shares],
+    ALL_COLUMNS: ['POS', 'G', 'RR', ...shares, 'RECS%'],
     BLANK_PLACEHOLDER_COLUMNS: new Set(),
     SOURCE_ALIASES: {},
     FPTS_COLUMN: 'FPTS',
@@ -87,6 +87,34 @@ test('renamed unavailable cells cannot be overwritten by a legacy share column',
   assert.equal(api.normalizeRow(row)['recYS%'], 'NA');
   assert.equal(api.parseDataHubSeasonStatsRows([row])['1'].rec_yms, undefined);
   assert.equal(api.parseDataHubWeeklyStatsRows([row])['1'].rec_yms, undefined);
+});
+
+test('RECS% reads its own source percentage, preserves missing values, and supports positional ranks', () => {
+  const api = datahubHarness();
+  const rows = ['18.8%', '0.188', '1%', '0', 'NA', undefined].map((value) =>
+    api.normalizeRow({ POS: 'WR', RR: '20', G: '1', 'RECS%': value, 'TS%': '90%', REC: '50' }));
+  assert.deepEqual(rows.map((row) => row['RECS%']), ['18.8', '18.8', '1', '0', 'NA', 'NA']);
+  assert.deepEqual(rows.map((row) => api.formatDisplayValue('RECS%', row['RECS%'])),
+    ['18.8%', '18.8%', '1.0%', '0.0%', 'NA', 'NA']);
+  const ranks = buildStatsPositionalRanks(rows, ['RECS%'], '2026', 1);
+  assert.deepEqual(rows.map((row) => ranks.get(row)?.['RECS%']), [1, 1, 3, 4, undefined, undefined]);
+  const sourceRow = { SLPR_ID: '1', POS: 'WR', 'RECS%': '18.8%' };
+  assert.equal(api.parseDataHubSeasonStatsRows([sourceRow])['1'].recs_pct, 18.8);
+  assert.equal(api.parseDataHubWeeklyStatsRows([sourceRow])['1'].recs_pct, 18.8);
+  assert.equal(api.parseDataHubSeasonRanksRows([{ SLPR_ID: '1', 'RECS%': '2' }])['1'].recs_pct, 2);
+  assert.equal(api.buildDataHubStatLabels().recs_pct, 'RECS%');
+});
+
+test('W/T places RECS% immediately before recYS% and documents Receptions Market Share', () => {
+  const start = datahub.indexOf('const STATS_RECEIVING_GROUP_COLUMNS_2026 = Object.freeze({');
+  const end = datahub.indexOf('\n});', start) + 4;
+  const context = vm.createContext({});
+  vm.runInContext(`${datahub.slice(start, end)}\ncolumns = STATS_RECEIVING_GROUP_COLUMNS_2026["RECEIVING EFFICIENCY"];`, context);
+  assert.deepEqual(Array.from(context.columns.slice(-4)), ['REC/G', 'RECS%', 'recYS%', 'recTDS%']);
+  const definition = DATAHUB_STAT_SECTIONS.flatMap((section) => section.items).find((item) => item.abbr === 'RECS%');
+  assert.equal(definition.name, 'Receptions Market Share');
+  assert.equal(definition.note, 'Percentage of team receptions.');
+  assert.ok(definition.aliases.includes('recs_pct'));
 });
 
 test('shared CSV parser and labels use the same renamed share contract', () => {
