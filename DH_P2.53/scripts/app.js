@@ -9578,10 +9578,11 @@ function renderStartSitPreview() {
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
     };
-    // Start/Sit's four compact info chips read the already-prepared defense
-    // comparison, including published positional SOS. This is presentation only:
-    // projection snapshots, panel calculations and background loading stay owned
-    // by their existing paths; missing/loading data never becomes a zero value.
+    // Start/Sit's opponent/base-position heading and four compact chips use the
+    // already-prepared defense comparison. Keep published SOS and per-game FPA
+    // averages; vs Expected divides the panel's unrounded total difference by
+    // recorded games, rather than subtracting rounded averages. This only changes
+    // preview presentation; missing/loading data never becomes a zero value.
     const buildMatchupInfo = (selection, metric) => {
         const fmt = (value, digits = 1) => Number.isFinite(value) ? value.toFixed(digits) : '—';
         const signed = (value, digits = 1) => {
@@ -9595,32 +9596,36 @@ function renderStartSitPreview() {
         const loading = !metric && !noDefense && !failed && rostersMatchups?.status !== 'ready';
         const unavailable = noDefense ? 'No opponent defense available.' :
             loading ? 'Loading matchup data…' : 'Matchup data unavailable.';
-        const pos = selection.basePos || selection.pos;
+        const pos = metric?.pos || String(selection.basePos || selection.pos || '—').toUpperCase();
+        // Show the opponent while loading too; prepared data supplies its canonical
+        // abbreviation. BYE/unknown matchups retain their unavailable values.
+        const team = metric?.team || String(selection.matchup?.opponent || (selection.matchup?.isBye ? 'BYE' : '—'))
+            .trim().replace(/^(?:vs\.?|@)\s*/i, '').toUpperCase();
+        const heading = `${team} vs. ${pos}:`;
         const sosColor = metric?.sosRank != null ? getOpponentRankColor(metric.sosRank) : '';
-        const deltaValue = Number.isFinite(metric?.deltaPct) ? `${signed(metric.deltaPct)}%` : signed(metric?.delta, 2);
-        const deltaClass = metric?.delta > 0 ? 'is-easy' : metric?.delta < 0 ? 'is-tough' : '';
+        const deltaValue = signed(metric?.deltaPerGame, 2);
+        const deltaClass = metric?.deltaPerGame > 0 ? 'is-easy' : metric?.deltaPerGame < 0 ? 'is-tough' : '';
         const chips = [
             {
-                label: 'SOS Ranking',
+                label: 'SOS Rk.',
                 value: metric?.sosRank != null ? `${metric.sosRank}<small>/ 32</small>` : '—',
                 color: sosColor,
                 title: metric ? `Schedule already faced vs. ${pos}: ${metric.sosRank ?? 'unavailable'} of 32. 1 = easiest, 32 = toughest.` : unavailable,
             },
             {
-                label: 'Actual FPA',
-                value: `<span class="start-sit-info-desktop">${fmt(metric?.actual.total, 2)}</span><span class="start-sit-info-mobile">${fmt(metric?.actual.total, 1)}</span>`,
-                title: metric ? `Actual FPA vs. ${pos}: ${fmt(metric.actual.total, 2)} total · ${fmt(metric.actual.avg)} per game.` : unavailable,
+                label: 'FPA/G', value: fmt(metric?.actual.avg),
+                title: metric ? `Actual FPA vs. ${pos}: ${fmt(metric.actual.avg)} points per game.` : unavailable,
             },
             {
-                label: 'Expected FPA', value: fmt(metric?.expectedTotal),
-                title: metric ? `Expected FPA vs. ${pos}: ${fmt(metric.expectedTotal)} total · ${fmt(metric.expectedAvg)} per game.` : unavailable,
+                label: 'Expected/G', value: fmt(metric?.expectedAvg),
+                title: metric ? `Expected FPA vs. ${pos}: ${fmt(metric.expectedAvg)} points per game.` : unavailable,
             },
             {
                 label: 'vs Expected', value: deltaValue, className: deltaClass,
-                title: metric ? `Actual vs. expected: ${deltaValue} · ${signed(metric.delta, 2)} points. Same total comparison as Matchup Breakdown.` : unavailable,
+                title: metric ? `Actual vs. expected: ${deltaValue} points per game across ${metric.games} ${metric.games === 1 ? 'game' : 'games'}.` : unavailable,
             },
         ];
-        return `<section class="start-sit-matchup-info" aria-label="Matchup info for ${escapeHtml(selection.label)}" aria-busy="${loading}"><span class="start-sit-matchup-info-heading">Matchup info</span><div class="start-sit-matchup-info-grid">${chips.map(chip => `<div class="start-sit-matchup-info-chip" title="${escapeHtml(chip.title)}"><span class="start-sit-matchup-info-label">${chip.label}</span><span class="start-sit-matchup-info-value ${chip.className || ''}"${chip.color ? ` style="color: ${chip.color};"` : ''}>${chip.value}</span></div>`).join('')}</div></section>`;
+        return `<section class="start-sit-matchup-info" aria-label="${escapeHtml(heading)} matchup info for ${escapeHtml(selection.label)}" aria-busy="${loading}"><span class="start-sit-matchup-info-heading">${escapeHtml(heading)}</span><div class="start-sit-matchup-info-grid">${chips.map(chip => `<div class="start-sit-matchup-info-chip" title="${escapeHtml(chip.title)}"><span class="start-sit-matchup-info-label">${chip.label}</span><span class="start-sit-matchup-info-value ${chip.className || ''}"${chip.color ? ` style="color: ${chip.color};"` : ''}>${chip.value}</span></div>`).join('')}</div></section>`;
     };
     tradeSimulator.innerHTML = `
                             <div class="trade-container glass-panel start-sit-container">
@@ -9647,7 +9652,8 @@ function renderStartSitPreview() {
             </div>
           </div>
           <div class="trade-body"></div>
-          <div class="trade-footnote">• Projected Points •</div>
+          <!-- Start/Sit's footer explains the FPA shorthand in its per-game chips. -->
+          <div class="trade-footnote">FPA • Fantasy Points Against</div>
         </div>
     <button id="showTradeButton"><i class="fa-solid fa-circle-chevron-up"></i> <span class="show-button-label">Start/Sit <i class="fa-solid fa-elevator analyzer-icon"></i></span><span class="start-sit-week">${weekLabelDisplay}</span> <i class="fa-solid fa-circle-chevron-up"></i></button>
   `;

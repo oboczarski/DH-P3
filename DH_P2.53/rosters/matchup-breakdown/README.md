@@ -24,10 +24,13 @@ Only DH's existing `scripts/nfl-2026-sheets.js` workbook URL configuration is
 shared. Published FPFA totals/averages/ranks remain the season-to-date authority;
 FPA records supply weekly actual scores/player results, and FPF offense averages
 supply weekly/venue expected scoring. The preview keeps the opponent's positional
-matchup rank inline to the right of the projected value. Its separate Matchup info
-strip shows SOS Ranking, Actual FPA, Expected FPA and vs Expected, in that order,
-using the same prepared comparison as this panel. SOS uses the player's base
-position's published `QBvRK`/`RBvRK`/`WRvRK`/`TEvRK`. Both defense panels add an SOS Ranking
+matchup rank inline to the right of the projected value. Its separate info strip
+is headed by the opponent abbreviation and player's base position (e.g. `DEN vs. RB:`).
+It shows SOS Rk., FPA/G, Expected/G and vs Expected, in that order. FPA/G and
+Expected/G use the published averages; vs Expected shows the panel's unrounded
+total point difference divided by recorded games, keeping source rounding intact.
+The Start/Sit footer explains `FPA • Fantasy Points Against`. SOS uses the player's
+base position's published `QBvRK`/`RBvRK`/`WRvRK`/`TEvRK`. Both defense panels add an SOS Ranking
 card, including `ALLvRK` for all positions. These ranks are ascending difficulty:
 1 is the easiest schedule already faced, 32 the toughest. The published season
 SOS rank stays unchanged under venue filters; selected-game expected ranks and

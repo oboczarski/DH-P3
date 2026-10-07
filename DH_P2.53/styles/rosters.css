@@ -482,7 +482,7 @@ body[data-page="rosters"] .start-sit-matchup-info-heading {
 }
 body[data-page="rosters"] .start-sit-matchup-info-grid {
   display: grid;
-  /* Signed percentages need more width than the two numeric FPA totals. */
+  /* Signed point differences need more width than the two per-game FPA values. */
   grid-template-columns: 1.05fr 1fr 1.15fr 1.2fr;
   gap: 3px;
 }
@@ -521,12 +521,6 @@ body[data-page="rosters"] .start-sit-matchup-info-value small {
 }
 body[data-page="rosters"] .start-sit-matchup-info-value.is-easy { color: #75e0b7; }
 body[data-page="rosters"] .start-sit-matchup-info-value.is-tough { color: #ffb2d8; }
-body[data-page="rosters"] .start-sit-info-mobile { display: none; }
-@media (max-width:620px) {
-  /* Match the defense panel's mobile Actual FPA precision without rounding data. */
-  body[data-page="rosters"] .start-sit-info-desktop { display: none; }
-  body[data-page="rosters"] .start-sit-info-mobile { display: inline; }
-}
 body[data-page="rosters"] .start-sit-matchup-breakdown {
   border: 0;
   background: transparent;
