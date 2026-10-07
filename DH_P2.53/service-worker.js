@@ -38,7 +38,8 @@
 // Refresh both renamed matchup stylesheets and vertically stacked weekly chips.
 // Refresh inline week labels and the Rosters-owned Start/Sit matchup-info chips.
 // Refresh Start/Sit's opponent/position headings, per-game chips and FPA footer.
-const CACHE_NAME = 'DH3.49h-start-sit-per-game';
+// Refresh Start/Sit's internal chip dividers, per-game rank colors and Allowed footer.
+const CACHE_NAME = 'DH3.49i-start-sit-dividers-colors';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

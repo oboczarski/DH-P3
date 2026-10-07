@@ -29,7 +29,10 @@ is headed by the opponent abbreviation and player's base position (e.g. `DEN vs.
 It shows SOS Rk., FPA/G, Expected/G and vs Expected, in that order. FPA/G and
 Expected/G use the published averages; vs Expected shows the panel's unrounded
 total point difference divided by recorded games, keeping source rounding intact.
-The Start/Sit footer explains `FPA • Fantasy Points Against`. SOS uses the player's
+The preview's borderless chips have three internal dividers. FPA/G uses the existing
+matchup rank palette and Expected/G uses that palette with the published SOS rank;
+missing averages or ranks stay neutral. The Start/Sit footer explains
+`FPA • Fantasy Points Allowed`. SOS uses the player's
 base position's published `QBvRK`/`RBvRK`/`WRvRK`/`TEvRK`. Both defense panels add an SOS Ranking
 card, including `ALLvRK` for all positions. These ranks are ascending difficulty:
 1 is the easiest schedule already faced, 32 the toughest. The published season

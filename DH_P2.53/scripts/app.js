@@ -9603,6 +9603,12 @@ function renderStartSitPreview() {
             .trim().replace(/^(?:vs\.?|@)\s*/i, '').toUpperCase();
         const heading = `${team} vs. ${pos}:`;
         const sosColor = metric?.sosRank != null ? getOpponentRankColor(metric.sosRank) : '';
+        // Start/Sit's per-game values share the existing matchup rank palette:
+        // actual uses the published positional matchup rank, expected uses the
+        // published positional SOS rank. Keep missing values/ranks neutral and
+        // valid zero averages colored; never invert or recompute supplied ranks.
+        const averageColor = (value, rank) => Number.isFinite(value) && Number.isInteger(rank) && rank >= 1 && rank <= 32
+            ? getOpponentRankColor(rank) : '';
         const deltaValue = signed(metric?.deltaPerGame, 2);
         const deltaClass = metric?.deltaPerGame > 0 ? 'is-easy' : metric?.deltaPerGame < 0 ? 'is-tough' : '';
         const chips = [
@@ -9614,11 +9620,13 @@ function renderStartSitPreview() {
             },
             {
                 label: 'FPA/G', value: fmt(metric?.actual.avg),
-                title: metric ? `Actual FPA vs. ${pos}: ${fmt(metric.actual.avg)} points per game.` : unavailable,
+                color: averageColor(metric?.actual.avg, metric?.actualRank),
+                title: metric ? `Actual FPA vs. ${pos}: ${fmt(metric.actual.avg)} points per game · matchup rank ${metric.actualRank ?? 'unavailable'} of 32.` : unavailable,
             },
             {
                 label: 'Expected/G', value: fmt(metric?.expectedAvg),
-                title: metric ? `Expected FPA vs. ${pos}: ${fmt(metric.expectedAvg)} points per game.` : unavailable,
+                color: averageColor(metric?.expectedAvg, metric?.sosRank),
+                title: metric ? `Expected FPA vs. ${pos}: ${fmt(metric.expectedAvg)} points per game · SOS rank ${metric.sosRank ?? 'unavailable'} of 32.` : unavailable,
             },
             {
                 label: 'vs Expected', value: deltaValue, className: deltaClass,
@@ -9653,7 +9661,7 @@ function renderStartSitPreview() {
           </div>
           <div class="trade-body"></div>
           <!-- Start/Sit's footer explains the FPA shorthand in its per-game chips. -->
-          <div class="trade-footnote">FPA • Fantasy Points Against</div>
+          <div class="trade-footnote">FPA • Fantasy Points Allowed</div>
         </div>
     <button id="showTradeButton"><i class="fa-solid fa-circle-chevron-up"></i> <span class="show-button-label">Start/Sit <i class="fa-solid fa-elevator analyzer-icon"></i></span><span class="start-sit-week">${weekLabelDisplay}</span> <i class="fa-solid fa-circle-chevron-up"></i></button>
   `;

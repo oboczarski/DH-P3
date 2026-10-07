@@ -482,22 +482,35 @@ body[data-page="rosters"] .start-sit-matchup-info-heading {
 }
 body[data-page="rosters"] .start-sit-matchup-info-grid {
   display: grid;
+  --start-sit-info-gap: 3px;
   /* Signed point differences need more width than the two per-game FPA values. */
   grid-template-columns: 1.05fr 1fr 1.15fr 1.2fr;
-  gap: 3px;
+  gap: var(--start-sit-info-gap);
 }
 body[data-page="rosters"] .start-sit-matchup-info-chip {
   display: flex;
+  position: relative;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
   min-width: 0;
   padding: 5px 2px;
-  border: 1px solid rgba(170, 187, 255, 0.1);
-  border-radius: 5px;
+  border: 0;
   background: rgba(170, 187, 255, 0.00);
   font-variant-numeric: tabular-nums;
+}
+/* Start/Sit adds a divider only before a chip with a preceding chip. Absolute
+   positioning centers all three lines in the grid gaps without outer borders
+   or width changes; the inherited gap also handles the flush mobile layout. */
+body[data-page="rosters"] .start-sit-matchup-info-chip + .start-sit-matchup-info-chip::before {
+  content: '';
+  position: absolute;
+  inset-block: 3px;
+  inset-inline-start: calc(-0.5 * (var(--start-sit-info-gap) + 1px));
+  width: 1px;
+  background: rgba(170, 187, 255, 0.2);
+  pointer-events: none;
 }
 body[data-page="rosters"] .start-sit-matchup-info-label {
   color: var(--color-text-tertiary);
@@ -549,7 +562,7 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
     font-size: clamp(0.68rem, 2.9vw, 0.9rem);
   }
   body[data-page="rosters"] .start-sit-matchup-info-heading {font-size: 13px;padding: 4px 3px 0;font-weight: 600;}
-  body[data-page="rosters"] .start-sit-matchup-info-grid {gap: 0px;}
+  body[data-page="rosters"] .start-sit-matchup-info-grid {--start-sit-info-gap: 0px;}
   /* Narrow preview columns need their full chip width for complete labels. */
   body[data-page="rosters"] .start-sit-matchup-info-chip {padding: 3px 0;}
   body[data-page="rosters"] .start-sit-matchup-opponent .start-sit-matchup-sep { margin-inline: 0.2rem; }
