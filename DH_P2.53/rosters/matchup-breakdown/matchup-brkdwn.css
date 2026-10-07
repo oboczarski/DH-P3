@@ -211,7 +211,7 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .chartLegend { font-size:7px; gap:8px; }
   .sectionHeading h3 { font-size:11px; }
   .weeklyMatchups { margin-bottom:8px; gap:4px; }
-  .weekMatchup { font-size:8px; padding:3px; }
+  .weekMatchup {font-size:8px;padding: 3px 3px 1px;}
   .playerTable th, .playerTable td { padding:5px; }
   .playerTable th { font-size:8px; }
   .playerTable td { font-size:10px; }
