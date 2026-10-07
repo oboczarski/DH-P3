@@ -2536,6 +2536,7 @@ body[data-page="datahub"] .qualifier-row__controls {
   box-shadow:
     0 0 16px rgba(116, 239, 255, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  justify-content: center;
 }
 
 .qualifier-field.is-filtering::before {
