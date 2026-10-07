@@ -581,8 +581,8 @@ const ROOKIES_TRADE_COLUMN_SET = [
   ...MARKET_DATA_COLUMNS,
 ];
 
-// Stats positional tables append IMP/OPP to General Prod. & Eff. before the
-// ceiling group. Reuse the Overview source field, icon, and responsive widths.
+// Stats totals: TD(t) follows YPG(t) in Overview and YDS(t) in positional tables;
+// each positional General Prod. & Eff. group ends with the source-backed TDS%.
 const STATS_COLUMN_SETS = {
   overview: [
     "RK",
@@ -596,6 +596,7 @@ const STATS_COLUMN_SETS = {
     "SNP%",
     "YDS(t)",
     "YPG(t)",
+    "TD(t)",
     "OPP",
     "IMP",
     "IMP/OPP",
@@ -635,9 +636,11 @@ const STATS_COLUMN_SETS = {
     "CAR",
     "YPC",
     "YDS(t)",
+    "TD(t)",
     "FUM",
     "IMP/G",
     "IMP/OPP",
+    "TDS%",
     "FPOE",
     "CSTY%",
     "CL",
@@ -674,9 +677,11 @@ const STATS_COLUMN_SETS = {
     "YAC",
     "rec1D",
     "YDS(t)",
+    "TD(t)",
     "FUM",
     "IMP/G",
     "IMP/OPP",
+    "TDS%",
     "FPOE",
     "CSTY%",
     "CL",
@@ -712,8 +717,10 @@ const STATS_COLUMN_SETS = {
     "SNP%",
     "IMP/G",
     "YDS(t)",
+    "TD(t)",
     "FUM",
     "IMP/OPP",
+    "TDS%",
     "FPOE",
     "CSTY%",
     "CL",
@@ -1070,6 +1077,9 @@ const COLUMN_ICONS = {
   paYPG:     DATAHUB_LUCIDE_ICON_MARKUP.BowArrow,
   ruYDS:     DATAHUB_LUCIDE_ICON_MARKUP.Route,
   ruTD:      RUTD_HEADER_ICON_MARKUP,
+  // NFL total touchdowns reuses the requested rushing-TD glyph, independently
+  // of the college-career tTD field and its existing icon.
+  "TD(t)":   RUTD_HEADER_ICON_MARKUP,
   pa1D:      PASS_REC_FIRST_DOWN_HEADER_ICON_MARKUP,
   "IMP/G":   DATAHUB_LUCIDE_ICON_MARKUP.Fan,
   pIMP:      "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM8 12l3 3 5-5", // Target+check
@@ -1427,8 +1437,8 @@ const BASE_COLUMN_GROUPS = Object.freeze({
       icon: OVERVIEW_STATS_GROUP_ICON_MARKUP,
       iconViewBox: DATAHUB_MATERIAL_SYMBOL_VIEW_BOX,
       iconClassName: "stats-table__group-header-icon--overview-stats-material",
-      // Keep TDS% last in this group, before Ceiling & Consistency.
-      columns: ["G", "SNP%", "YDS(t)", "YPG(t)", "OPP", "IMP", "IMP/OPP", "TDS%"],
+      // Overview total touchdowns follows YPG(t); TDS% stays last in this group.
+      columns: ["G", "SNP%", "YDS(t)", "YPG(t)", "TD(t)", "OPP", "IMP", "IMP/OPP", "TDS%"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
     }),
@@ -1485,7 +1495,7 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     createDataHubColumnGroup({
       label: "GENERAL PROD. & EFF.",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
-      columns: ["YDS(t)", "FUM", "IMP/G", "IMP/OPP"],
+      columns: ["YDS(t)", "TD(t)", "FUM", "IMP/G", "IMP/OPP", "TDS%"],
       groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.GENERAL_PROD_EFF,
       columnIconColor: PASSING_COLUMN_ICON_COLORS.GENERAL_PROD_EFF,
     }),
@@ -1541,7 +1551,7 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     createDataHubColumnGroup({
       label: "GENERAL PROD. & EFF.",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
-      columns: ["YDS(t)", "FUM", "IMP/G", "IMP/OPP"],
+      columns: ["YDS(t)", "TD(t)", "FUM", "IMP/G", "IMP/OPP", "TDS%"],
       groupIconColor: RUSHING_GROUP_HEADER_ICON_COLORS.GENERAL_PROD_EFF,
       columnIconColor: RUSHING_COLUMN_ICON_COLORS.GENERAL_PROD_EFF,
     }),
@@ -1597,7 +1607,7 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     createDataHubColumnGroup({
       label: "GENERAL PROD. & EFF.",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
-      columns: ["SNP%", "IMP/G", "YDS(t)", "FUM", "IMP/OPP"],
+      columns: ["SNP%", "IMP/G", "YDS(t)", "TD(t)", "FUM", "IMP/OPP", "TDS%"],
       groupIconColor: RECEIVING_GROUP_HEADER_ICON_COLORS.GENERAL_PROD_EFF,
       columnIconColor: RECEIVING_COLUMN_ICON_COLORS.GENERAL_PROD_EFF,
     }),
@@ -2467,6 +2477,7 @@ const COLUMN_WIDTHS = {
   "SNP%": 94,
   "YDS(t)": 108,
   "YPG(t)": 102,
+  "TD(t)": 88,
   OPP: 90,
   IMP: 88,
   "IMP/OPP": 102,
@@ -2628,6 +2639,7 @@ const MOBILE_COLUMN_WIDTHS = {
   "SNP%": 51,
   "YDS(t)": 52,
   "YPG(t)": 52,
+  "TD(t)": 50,
   OPP: 44,
   IMP: 44,
   "IMP/OPP": 62,
@@ -8130,6 +8142,9 @@ function getActiveColumnIconMarkup(columnName) {
     return STATS_RECEIVING_COLUMN_ICON_OVERRIDES_2026[columnName];
   }
   if (state.activePageView === "stats") {
+    // The touchdown-share column keeps its Overview glyph in all four Stats
+    // categories; the existing Material fill hook supplies each group's color.
+    if (columnName === "TDS%") return STATS_COLUMN_ICON_OVERRIDES.overview["TDS%"];
     const categoryOverrides = STATS_COLUMN_ICON_OVERRIDES[state.activeCategory];
     if (categoryOverrides?.[columnName]) {
       return categoryOverrides[columnName];
@@ -9955,10 +9970,9 @@ function createHeaderCell(column, columnIconColor) {
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--ryoe-material");
     }
-    if (column.name === "ruTD") {
-      // ruTD column header icon:
-      // swaps the rushing-touchdown header to the requested filled
-      // Material-style badge icon across all DataHub tables.
+    if (column.name === "ruTD" || column.name === "TD(t)") {
+      // Rushing and total touchdowns share the requested filled Material badge,
+      // including the existing mobile sizing through the page-scoped CSS hook.
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--rutd-material");
     }
@@ -11345,7 +11359,7 @@ function formatDisplayValue(columnName, value) {
 
   // DataHub table display rules: round these exact stats across every table
   // where present, without changing the numeric source used for sorting/heat.
-  if (["RZ Att", "GL Att", "YBC", "IMP/G", "CPOE"].includes(columnName)) {
+  if (["RZ Att", "GL Att", "YBC", "IMP/G", "CPOE", "TD(t)"].includes(columnName)) {
     const numericValue = toComparableNumber(value);
     if (numericValue == null) return formatCellValue(value);
     if (columnName === "CPOE") {
@@ -11867,11 +11881,15 @@ const DATAHUB_STATS_KEY_SECTIONS = [
       { abbr: "YDS(t)", desc: "Total Yards" },
       { abbr: "YPG(t)", desc: "Yards per Game (Total)" },
       { abbr: "TDS%", desc: "Touchdown Share" },
+      { abbr: "TD(t)", desc: "Total Touchdowns" },
       { abbr: "YS%", desc: "Yard Share" },
     ],
   },
 ];
 const DATAHUB_PLAYER_STAT_HEADER_MAP = {
+  // NFL total touchdowns reads the exact source field; Career tTD/ttlTD keeps
+  // its separate contract and cannot substitute for a missing sheet total.
+  "TD(t)": "td_total",
   // Renamed total/rushing shares remain source-backed. Receiving shares below
   // retain rec_yms/rec_tms so existing Season and radar rank consumers agree.
   "TDS%": "tds_pct",
@@ -12168,6 +12186,7 @@ const DATAHUB_LEAGUE_ABBR_OVERRIDES = {
 };
 const DATAHUB_STAT_LABELS = buildDataHubStatLabels();
 const DATAHUB_NO_FALLBACK_KEYS = new Set([
+  "td_total",
   // Share fields use the supplied season percentage, never a weekly sum.
   "tds_pct", "ys_pct", "rush_tms", "rush_yms", "pass_tms", "pass_yms",
   // Receiving rates must stay unavailable when DH/WK omits the source value.

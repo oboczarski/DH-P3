@@ -29,7 +29,7 @@ function objectSource(source, name) {
 
 function datahubHarness() {
   const context = vm.createContext({
-    ALL_COLUMNS: ['POS', 'G', 'RR', ...shares, 'RECS%'],
+    ALL_COLUMNS: ['POS', 'G', 'RR', ...shares, 'RECS%', 'TD(t)'],
     BLANK_PLACEHOLDER_COLUMNS: new Set(),
     SOURCE_ALIASES: {},
     FPTS_COLUMN: 'FPTS',
@@ -115,6 +115,79 @@ test('W/T places RECS% immediately before recYS% and documents Receptions Market
   assert.equal(definition.name, 'Receptions Market Share');
   assert.equal(definition.note, 'Percentage of team receptions.');
   assert.ok(definition.aliases.includes('recs_pct'));
+});
+
+test('TD(t) uses the published total, retains zero and missing values, and supports positional ranks', () => {
+  const api = datahubHarness();
+  const rows = ['13', '0', 'NA', undefined].map((value) =>
+    api.normalizeRow({ POS: 'QB', G: '1', 'TD(t)': value, tTD: '99', paTD: '6', ruTD: '7' }));
+  assert.deepEqual(rows.map((row) => row['TD(t)']), ['13', '0', 'NA', 'NA']);
+  assert.deepEqual(rows.map((row) => api.formatDisplayValue('TD(t)', row['TD(t)'])), ['13', '0', 'NA', 'NA']);
+  const stats = api.parseDataHubSeasonStatsRows([{ SLPR_ID: '1', POS: 'QB', 'TD(t)': '13' }])['1'];
+  assert.equal(stats.td_total, 13);
+  const ranked = [
+    { POS: 'QB', paATT: '30', 'TD(t)': '13' },
+    { POS: 'QB', paATT: '30', 'TD(t)': '0' },
+    { POS: 'QB', paATT: '30', 'TD(t)': 'NA' },
+  ];
+  const ranks = buildStatsPositionalRanks(ranked, ['TD(t)'], '2026', 1);
+  assert.deepEqual(ranked.map((row) => ranks.get(row)?.['TD(t)']), [1, 2, undefined]);
+  assert.equal(DATAHUB_STAT_SECTIONS.flatMap((section) => section.items).find((item) => item.abbr === 'TD(t)').name, 'Total Touchdowns');
+});
+
+test('Stats total/share placements agree with group spans in base and current-season schemas', () => {
+  const start = datahub.indexOf('const BASE_COLUMN_GROUPS = Object.freeze({');
+  const end = datahub.indexOf('\nfunction createRookiesDraftGroup(', start);
+  const declarations = datahub.slice(start, end);
+  const builderStart = datahub.indexOf('function createDataHubColumnGroup(');
+  const groupBuilder = datahub.slice(builderStart, datahub.indexOf('\nconst FROZEN_GROUPS', builderStart));
+  // Only presentation metadata is mocked; execute the real group builder and
+  // column derivation so a missing body column or wrong span fails this check.
+  const metadata = Object.fromEntries([...new Set(declarations.match(/\b[A-Z][A-Z0-9_]+\b/g))].map((name) => [name, {}]));
+  const context = vm.createContext(metadata);
+  vm.runInContext([
+    groupBuilder,
+    declarations,
+    objectSource(datahub, 'STATS_COLUMN_SETS'),
+    'sets = STATS_COLUMN_SETS; groups = BASE_COLUMN_GROUPS;',
+    'current = { passing: STATS_PASSING_COLUMNS_2026, rushing: STATS_RUSHING_COLUMNS_2026, receiving: STATS_RECEIVING_COLUMNS_2026 };',
+    'currentGroups = { passing: STATS_PASSING_COLUMN_GROUPS_2026, rushing: STATS_RUSHING_COLUMN_GROUPS_2026, receiving: STATS_RECEIVING_COLUMN_GROUPS_2026 };',
+  ].join('\n'), context);
+  for (const category of ['overview', 'passing', 'rushing', 'receiving']) {
+    assert.deepEqual(Array.from(context.sets[category].slice(3)), Array.from(context.groups[category]).flatMap((group) => Array.from(group.columns)));
+    const group = context.groups[category].find((entry) => entry.label === (category === 'overview' ? 'OVERVIEW STATS' : 'GENERAL PROD. & EFF.'));
+    const columns = Array.from(group.columns);
+    assert.equal(columns[columns.indexOf(category === 'overview' ? 'YPG(t)' : 'YDS(t)') + 1], 'TD(t)');
+    assert.equal(columns.at(-1), 'TDS%');
+    assert.equal(context.sets[category].filter((column) => column === 'TD(t)').length, 1);
+    assert.equal(context.sets[category].filter((column) => column === 'TDS%').length, 1);
+    if (category !== 'overview') {
+      assert.deepEqual(Array.from(context.current[category].slice(3)), Array.from(context.currentGroups[category]).flatMap((entry) => Array.from(entry.columns)));
+      assert.deepEqual(Array.from(context.currentGroups[category].find((entry) => entry.label === 'GENERAL PROD. & EFF.').columns), columns);
+    }
+  }
+});
+
+test('total touchdowns reuse ruTD geometry and every Stats category resolves the TDS% glyph', () => {
+  const start = datahub.indexOf('const STATS_COLUMN_ICON_OVERRIDES = Object.freeze({');
+  const iconOverrides = datahub.slice(start, datahub.indexOf('\n});', start) + 4);
+  const icons = objectSource(datahub, 'COLUMN_ICONS');
+  const constants = datahub.match(/^const RUTD_HEADER_ICON_MARKUP = .*;$/m)[0];
+  const metadata = Object.fromEntries([...new Set(`${icons}\n${iconOverrides}`.match(/\b[A-Z][A-Z0-9_]+\b/g))].map((name) => [name, {}]));
+  const context = vm.createContext({
+    ...metadata,
+    state: { activePageView: 'stats', activeCategory: 'overview' },
+    is2026ReceivingStatsView: () => false,
+    isDataHubRookiesView: () => false,
+  });
+  vm.runInContext(`${constants}\n${icons}\n${iconOverrides}\n${functionSource(datahub, 'getActiveColumnIconMarkup')}`, context);
+  for (const category of ['overview', 'passing', 'rushing', 'receiving']) {
+    context.state.activeCategory = category;
+    assert.equal(context.getActiveColumnIconMarkup('TD(t)'), context.getActiveColumnIconMarkup('ruTD'));
+    const glyph = context.getActiveColumnIconMarkup('TDS%');
+    assert.equal(typeof glyph, 'string');
+    assert.ok(glyph.startsWith('<path'));
+  }
 });
 
 test('shared CSV parser and labels use the same renamed share contract', () => {

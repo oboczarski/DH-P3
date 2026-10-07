@@ -4425,10 +4425,10 @@ body[data-page="datahub"] [data-column-name="RYOE"] .stats-table__head-icon--ryo
   stroke-width: 0;
 }
 
-/* ruTD column header icon:
-   filled Material-style icon for rushing touchdowns with an individual
-   desktop size/color hook separate from passing/receiving TD headers. */
-body[data-page="datahub"] [data-column-name="ruTD"] .stats-table__head-icon--rutd-material {
+/* Rushing and total TD column header icons:
+   both use the requested ruTD glyph and share its desktop fill/size treatment,
+   scoped to the matching DataHub headers. */
+body[data-page="datahub"] :is([data-column-name="ruTD"], [data-column-name="TD(t)"]) .stats-table__head-icon--rutd-material {
   width: 18px;
   height: 18px;
   fill: var(--column-icon-color, rgb(98 135 183));
@@ -6382,10 +6382,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     height: 15px;
   }
 
-  /* Mobile ruTD header icon:
-     compact sizing hook for the filled rushing-touchdown glyph without
-     changing other touchdown header icons. */
-  body[data-page="datahub"] [data-column-name="ruTD"] .stats-table__head-icon--rutd-material {
+  /* Mobile rushing/total TD headers share the requested glyph's compact size. */
+  body[data-page="datahub"] :is([data-column-name="ruTD"], [data-column-name="TD(t)"]) .stats-table__head-icon--rutd-material {
     width: 16px;
     height: 16px;
   }

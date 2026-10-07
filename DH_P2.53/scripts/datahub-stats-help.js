@@ -17,6 +17,9 @@ export const DATAHUB_STAT_SECTIONS = [
     stat("YDS(t) / tYDS", "Total Yards", ["YDS(t)", "tYDS", "ttlYDS", "yds_total"]),
     stat("YPG(t)", "Total Yards per Game", ["ypg"]),
     stat("tTD", "Total Touchdowns", ["ttlTD"]),
+    // NFL Stats total touchdowns keeps its own header/alias beside the existing
+    // college-career total, so both get the appropriate tooltip and key entry.
+    stat("TD(t)", "Total Touchdowns", ["td_total"]),
     // Share abbreviations match DH/WK; legacy aliases remain searchable only.
     stat("TDS%", "Touchdowns Market Share", ["TMS", "tds_pct"], "Percentage of team touchdowns."),
     stat("YS%", "Yards Market Share", ["YMS", "ys_pct"], "Percentage of team yards."),
