@@ -19,7 +19,7 @@ When you update code and make changes to the app, add comments that explain:
 
 ## Data sources (Rosters + Stats)
 - Primary stats data source for both **Rosters** and **Stats** pages is the **CSV files**.
-- **DataHub 2026 exception:** use workbook `16fOWHEuPWkNz9AHLCiySjxwW_y4ulLemNaMVc3srE94`: `DH` for season totals, numbered `WK1`–`WK18` tabs for weekly data, and `DRK` for opponent position ranks. Match opponents through `DH_P2.53/data/NFL-2026/Schedule2026.csv`. Load DH independently for the main Stats content; load WK/DRK/schedule only for Game Logs and Compare. Derive qualifier weeks from the maximum DH GM_P (Overview G), with a minimum of 1; from 14 games onward use maximum G + 1 (14 games = Week 15). DataHub 2025 and the separate Rosters/Stats pages retain their CSV sources.
+- **DataHub 2026 exception:** use workbook `16fOWHEuPWkNz9AHLCiySjxwW_y4ulLemNaMVc3srE94`: `DH` for season totals and `DRK` for opponent position ranks. Weekly stats use the local combined `DH_P2.53/data/NFL-2026_Stats/WeeklyStats/2026_AllWKs.csv`, grouped by the first-column `WK` number; never request weekly Google Sheets tabs or fall back to them. Match opponents through `DH_P2.53/data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv`. Load DH independently for the main Stats content; load the weekly CSV/DRK/schedule only for Game Logs and Compare. Derive qualifier weeks from the maximum DH GM_P (Overview G), with a minimum of 1; from 14 games onward use maximum G + 1 (14 games = Week 15). DataHub 2025 and the separate Rosters/Stats pages retain their CSV sources.
 - Existing KTC/ADP Google Sheets feeds remain available for valuation data.
 - **Matchups 2026:** `DH_P2.53/matchups/index.html` owns its app, CSS, assets and chart library. Its page-local loader shares `scripts/nfl-2026-sheets.js` URL configuration and reads fresh `FPF` (offense scoring), `FPFA` (published defense summaries) and `FPA` (players/weekly results, formerly FPAv2) tabs from the same 2026-Wkly workbook. Preserve each source's original calculations and ranks; never fall back to bundled snapshots.
 - **Rosters Start/Sit matchup exception:** pressing Start/Sit lazily prepares the same fresh FPF/FPFA/FPA exports with independently copied parsers, defense-panel renderers, styles and logos in `rosters/matchup-breakdown/`. Its shadow-root modal never imports Matchups files or changes projection/Game Logs sources. The preview retains the positional matchup rank and shows the player's base-position FPFA `vRK` as SOS context. Matchups and the modal show the same published SOS rank in their metric strips (`ALLvRK` for all positions), including under venue filters: 1 is the easiest schedule already faced, 32 the toughest. Never invert or recompute these supplied SOS ranks.
@@ -46,8 +46,13 @@ DH-P3/DH_P2.53
 │   │   ├── NFL-Tags_webp/
 │   │   └── welcome/
 │   ├── data
+│   │   ├── NFL-2026_Stats
+│   │   │   ├── NFL-Schedule/
+│   │   │   │   └── Schedule2026.csv
+│   │   │   └── WeeklyStats/
+│   │   │       └── 2026_AllWKs.csv
 │   │   └── NFL-2025_Stats
-│   │       ├── Weeks
+│   │       ├── WeeklyStats
 │   │       │   ├── WK1.csv
 │   │       │   ├── WK2.csv
 │   │       │   ├── WK3.csv
@@ -156,7 +161,7 @@ The “Matchups” buttons inside every desktop/mobile navigation menu open the 
 > **No `immutable` headers** — Allows SW to force fresh fetches.
 
 ### Google Sheets
-- **DataHub 2026 enabled:** the workbook and tab mapping above are authoritative for 2026 Stats, Game Logs, Season views, and Compare. Never overlay another year's stats or Sleeper live stats onto those rows.
+- **2026 stats:** DataHub and Rosters use the workbook DH totals and DRK opponent ranks with the local combined weekly CSV described above. The CSV is authoritative for weekly Game Logs, consistency and Compare; keep header mappings and literal projection/status cells intact. Missing CSV weeks stay blank, with no weekly Sheets fallback. Never overlay another year's stats or Sleeper live stats onto those rows.
 - **Matchup sheets enabled:** Matchups and the explicitly requested Rosters Start/Sit breakdown load the mapped FPF/FPFA/FPA tabs with fresh native CSV exports and independently owned copies of the original parsers. No other page loads these sources; the Matchups chart library stays on its page.
 - **Historical data:** DataHub 2025 and the separate Rosters/Stats pages still use local CSVs.
 - **Valuations:** KTC/ADP workbook SLP.TL (`GOOGLE_SHEET_ID`) remains live.

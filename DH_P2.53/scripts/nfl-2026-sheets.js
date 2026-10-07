@@ -1,22 +1,7 @@
 // Shared URL configuration only: DataHub, Rosters and Matchups keep separate data/state
-// loaders. Native CSV exports preserve mixed PROJ cells (numbers, OUT, IR,
-// BYE, etc.); gviz infers a numeric column and silently drops those text cells.
+// loaders. Weekly player stats live in 2026_AllWKs.csv; this module configures
+// only the remaining workbook feeds (season totals, ranks and Matchups).
 const WORKBOOK_ID = '16fOWHEuPWkNz9AHLCiySjxwW_y4ulLemNaMVc3srE94';
-// These are the workbook's existing numbered tabs, verified by tab name.
-// Add each new WK tab's gid here when it is created; absent tabs retain the
-// existing named-tab read and the callers' missing/mismatched-week handling.
-const WEEKLY_SHEET_GIDS = Object.freeze({
-    WK1: '946140193',
-    WK2: '1480597852',
-    WK3: '3751902',
-    // Week 4/5 now have different workbook tab IDs; their previous gids return
-    // HTTP 400. Use the current tabs, plus the new projection-only Week 6/7.
-    WK4: '2067451265',
-    WK5: '749604963',
-    WK6: '677856696',
-    WK7: '696122995'
-});
-
 // Matchups reads the three existing 2026-Wkly tabs by their verified gids.
 // Native CSV exports preserve the exact headers, literal opponents and scores;
 // this adds URL configuration only, without changing any other page's loader.
@@ -27,7 +12,9 @@ const MATCHUPS_SHEET_GIDS = Object.freeze({
 });
 
 export function get2026SheetCsvUrl(sheetName) {
-    const gid = WEEKLY_SHEET_GIDS[sheetName] || MATCHUPS_SHEET_GIDS[sheetName];
+    // Prevent retired weekly-tab requests from silently reaching Google Sheets.
+    if (/^WK\d+$/.test(sheetName)) throw new Error('2026 weekly stats use 2026_AllWKs.csv.');
+    const gid = MATCHUPS_SHEET_GIDS[sheetName];
     // gid selects the export; keep the tab name in the URL for diagnostics.
     if (gid) return `https://docs.google.com/spreadsheets/d/${WORKBOOK_ID}/export?format=csv&gid=${gid}&sheet=${encodeURIComponent(sheetName)}`;
     return `https://docs.google.com/spreadsheets/d/${WORKBOOK_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(sheetName)}`;

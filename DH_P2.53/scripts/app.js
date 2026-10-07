@@ -1465,7 +1465,8 @@ const PLAYER_STATS_SHEETS = { season: 'SZN', seasonRanks: 'SZN_RKs', weeks: { 1:
 const PLAYER_STATS_CSV_PATHS = {
     season: 'data/NFL-2025_Stats/SZN.csv',
     seasonRanks: 'data/NFL-2025_Stats/SZN_RKs.csv',
-    weeksDir: 'data/NFL-2025_Stats/Weeks'
+    // Historical Game Logs keep one CSV per week in the renamed archive folder.
+    weeksDir: 'data/NFL-2025_Stats/WeeklyStats'
 };
 // === Game Logs modal: Career Stats data source ===
 // Rosters-only Career view uses the shipped multi-season CSV. Keep this block self-contained

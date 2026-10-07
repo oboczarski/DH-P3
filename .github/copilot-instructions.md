@@ -62,7 +62,7 @@ DH-P3/DH_P2.53
 │   │   └── welcome/
 │   ├── data
 │   │   └── NFL-2025_Stats
-│   │       ├── Weeks
+│   │       ├── WeeklyStats
 │   │       │   ├── WK1.csv … WK18.csv
 │   │       ├── SZN_RKS.csv
 │   │       └── SZN.csv
@@ -297,11 +297,12 @@ DH-P3/DH_P2.53
 
 ### Player Stats Data (CSV vs Sheets)
 
-- **Season & weekly player stats (SZN/SZN_RKs/WK1..WK18)** are now shipped as **local CSVs**:
+- **2025 season & weekly player stats (SZN/SZN_RKs/WK1..WK18)** are now shipped as **local CSVs**:
   - `DH_P2.53/data/NFL-2025_Stats/SZN.csv`
   - `DH_P2.53/data/NFL-2025_Stats/SZN_RKs.csv`
-  - `DH_P2.53/data/NFL-2025_Stats/Weeks/WK1.csv` … `WK18.csv`
-- **Rosters and Stats page always uses the local CSVs** for these stats (Google Sheets loader still exists for easy re-enable next season).
+  - `DH_P2.53/data/NFL-2025_Stats/WeeklyStats/WK1.csv` … `WK18.csv`
+- **2026 DataHub/Rosters:** season totals still use the live DH workbook tab; weekly stats use `DH_P2.53/data/NFL-2026_Stats/WeeklyStats/2026_AllWKs.csv`, grouped by `WK`. Opponent ranks remain on DRK; schedule/bye context uses `DH_P2.53/data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv`. Never request numbered weekly Sheets tabs or fall back to them.
+- **Historical Rosters and the separate Stats page use the local 2025 CSVs** for these stats (Google Sheets loader still exists for easy re-enable next season).
 - **Stats page table** now uses `SZN.csv` for displayed stats, and augments with:
   - **KTC VALUE** + **RDP (pick) values** from `KTC_1QB` / `KTC_SFLX` in the Rosters KTC workbook (via `fetchDataFromGoogleSheet()` in `app.js`).
   - Join key: `SLPR_ID` for players; picks are keyed by `PLAYER NAME` with `POS = RDP`.

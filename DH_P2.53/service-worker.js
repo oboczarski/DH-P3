@@ -43,7 +43,8 @@
 // Refresh DataHub's source-backed W/T RECS% column and its stat-key definition.
 // Refresh DataHub's TD(t) totals and TDS% additions in the positional groups.
 // Refresh DataHub/Rosters Career formatting so tiers follow positional ranks.
-const CACHE_NAME = 'DH3.49m-career-positional-rank-tiers';
+// Refresh local 2026 weekly CSV loaders and the renamed weekly/schedule paths.
+const CACHE_NAME = 'DH3.49n-local-weekly-stats';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -88,7 +89,7 @@ const CORE_ASSET_PATHS = [
   // Rosters retains its own lazy team-summary loader and league-wide rank model.
   '/scripts/rosters-team-stats.js',
   '/scripts/nfl-2026-sheets.js',
-  '/data/NFL-2026/Schedule2026.csv',
+  '/data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv',
   '/scripts/leaguehub.js',
   // League Analysis shares a local projection model and a pinned ECharts renderer.
   '/scripts/leaguehub-analysis.js',

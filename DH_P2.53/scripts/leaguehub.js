@@ -3222,10 +3222,10 @@
         const weeks = Analysis.forecastWeeks(leagueInfo, nfl, rosters);
         const matchups = {}, projections = {};
         let nflSchedule = {};
-        // The existing 2026 schedule explicitly identifies byes even when Sleeper
+        // The schedule under NFL-2026_Stats/NFL-Schedule identifies byes even when Sleeper
         // omits a player's weekly row. Never infer other missing forecasts as zero.
         if (weeks.length && Number(leagueInfo.season) === 2026) {
-          const response = await fetch('../data/NFL-2026/Schedule2026.csv', { cache: 'no-store' });
+          const response = await fetch('../data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv', { cache: 'no-store' });
           if (!response.ok) throw new Error('NFL bye schedule could not be loaded.');
           nflSchedule = Object.fromEntries(parseCsvRows(await response.text()).map(row => [row.TM, row]));
           if (!Object.keys(nflSchedule).length) throw new Error('NFL bye schedule is unavailable.');

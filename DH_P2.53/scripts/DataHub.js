@@ -11911,7 +11911,7 @@ const DATAHUB_PLAYER_STAT_HEADER_MAP = {
   paYDS: "pass_yd",
   paTD: "pass_td",
   pa1D: "pass_fd",
-  // DataHub 2026 QB Game Logs: the WK and DH sheets use these exact headers.
+  // DataHub 2026 QB Game Logs: the weekly CSV and DH use these exact headers.
   // Keep their internal keys available to the weekly table and season footer.
   EPA: "epa",
   "EPA/DB": "epa_per_db",
@@ -13375,13 +13375,13 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
       let seasonStats, seasonRanks, weeklyStats;
       if (season === "2026") {
         const source = await ensureDataHub2026Data();
-        // WK/DRK/schedule are modal-only dependencies. Reuse the DH snapshot so
+        // Weekly CSV/DRK/schedule are modal-only dependencies. Reuse the DH snapshot so
         // opening Game Logs or Compare does not change volume thresholds or
         // totals; recorded weeks refine only the Stats scoring exception.
         const weeklySource = await load2026WeeklySourceData({
           seasonRows: source.rawRows,
           parseCsv,
-          scheduleUrl: new URL("../data/NFL-2026/Schedule2026.csv", window.location.href),
+          scheduleUrl: new URL("../data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv", window.location.href),
         });
         source.weeklyRows = weeklySource.weeklyRows;
         if (Object.keys(weeklySource.weekErrors).length) {
@@ -13393,7 +13393,7 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
         const [seasonText, rankText, ...weekTexts] = await Promise.all([
           fetchCsvText(),
           fetchDataHubText(new URL(DATAHUB_COMPARISON_SEASON_RANKS_URL, window.location.href)),
-          ...Array.from({ length: DATAHUB_MAX_WEEKS }, (_, index) => fetchDataHubText(new URL(`../data/NFL-2025_Stats/Weeks/WK${index + 1}.csv`, window.location.href), { allowFailure: true })),
+          ...Array.from({ length: DATAHUB_MAX_WEEKS }, (_, index) => fetchDataHubText(new URL(`../data/NFL-2025_Stats/WeeklyStats/WK${index + 1}.csv`, window.location.href), { allowFailure: true })),
         ]);
         seasonStats = parseDataHubSeasonStatsRows(parseCsv(seasonText));
         seasonRanks = parseDataHubSeasonRanksRows(parseCsv(rankText));
@@ -13473,7 +13473,7 @@ async function fetchDataHubGameLogs(playerId, season = state.currentModalSeason)
 }
 
 function getDataHubCombinedWeeklyStats() {
-  // DH/WK sheets are authoritative for 2026; archived CSVs are authoritative for
+  // DH totals and the weekly CSV are authoritative for 2026; archived CSVs supply
   // 2025. Never overlay a different live Sleeper season onto either dataset.
   return state.weeklyStats;
 }
@@ -15102,7 +15102,7 @@ function getDataHubGameLogStatValue(statKey, stats, is2026RbLog = false, is2026W
     return attempts > 0 ? (Number(stats.mtf) || 0) / attempts : 0;
   }
   if (statKey === "pass_imp_per_att") {
-    // DataHub 2026 QB Game Logs: prefer the weekly sheet's pIMP/A value.
+    // DataHub 2026 QB Game Logs: prefer the weekly CSV's pIMP/A value.
     // Historical 2025 keeps its existing calculated display behavior.
     if (state.currentModalSeason === "2026" && Number.isFinite(stats.pass_imp_per_att)) {
       return stats.pass_imp_per_att;
@@ -16485,7 +16485,7 @@ function renderDataHubConsistencyChart() {
     hydrateDataHubConsistencyProgressCircles(data);
     const hasVisibleStatus = data.axisWeeks.some((week) => data.skippedLabels?.[week]);
     if (!data.chartSeries.length && !hasVisibleStatus) {
-      showDataHubConsistencyEmptyState(chartBox, "No sheet-based fantasy points recorded yet.");
+      showDataHubConsistencyEmptyState(chartBox, "No fantasy points recorded yet.");
     } else {
       hideDataHubConsistencyEmptyState(chartBox);
     }

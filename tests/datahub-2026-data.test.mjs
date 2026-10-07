@@ -16,33 +16,45 @@ const player = { SZN: '2026', SLPR_ID: '4984', 'PLAYER NAME': 'Josh Allen', POS:
 const schedule = [{ TM: 'BUF', 1: '@ HOU', 2: 'vs DET', 7: 'BYE', 18: 'vs NYJ' }];
 const defense = [{ TM: 'HOU', QBRK: '2', RBRK: '11', WRRK: '8', TERK: '19' }, { TM: 'DET', QBRK: '6' }];
 
-test('weekly source URLs select the current native Week 4-7 tabs without dropping text PROJ values', () => {
-  for (const [sheet, gid] of Object.entries({ WK4: '2067451265', WK5: '749604963', WK6: '677856696', WK7: '696122995' })) {
-    const url = new URL(get2026SheetCsvUrl(sheet));
-    assert.match(url.pathname, /\/export$/);
-    assert.equal(url.searchParams.get('gid'), gid);
-    assert.equal(url.searchParams.get('sheet'), sheet);
-    assert.equal(url.searchParams.get('format'), 'csv');
-  }
+// Exercise the actual lazy loader and distinguish the local sources from Sheets.
+function weeklyFixture(csv, failure) {
+  const requests = [];
+  return { requests, options: { seasonRows: [player], parseCsv, fetchImpl: async (url, init) => {
+    assert.equal(init.cache, 'no-store');
+    const parsed = new URL(url);
+    const sheet = parsed.searchParams.get('sheet');
+    const filename = parsed.pathname.split('/').at(-1);
+    requests.push({ sheet, pathname: parsed.pathname });
+    if (sheet === 'DRK') return { ok: true, text: async () => 'TM,QBRK,RBRK,WRRK,TERK\nHOU,2,11,8,19\nDET,6,12,9,20' };
+    if (filename === 'Schedule2026.csv') return { ok: true, text: async () => 'TM,1,2,4,7,18\nBUF,@ HOU,vs DET,@ HOU,BYE,vs NYJ' };
+    assert.equal(filename, '2026_AllWKs.csv', 'Only the combined local file may supply weekly stats');
+    if (failure instanceof Error) throw failure;
+    if (failure) return { ok: false, status: failure };
+    return { ok: true, text: async () => csv };
+  } } };
+}
+
+test('retired 2026 weekly tabs cannot generate a Google Sheets request', () => {
+  for (const week of [1, 4, 7, 18]) assert.throws(() => get2026SheetCsvUrl(`WK${week}`), /2026_AllWKs\.csv/);
 });
 
-test('DataHub loads Week 4 results and retains them when a neighboring export returns HTTP 400', async () => {
-  const fetchImpl = async (url) => {
-    const sheet = new URL(url).searchParams.get('sheet');
-    if (sheet === 'WK5') return { ok: false, status: 400 };
-    const tables = {
-      DRK: 'TM,QBRK,RBRK,WRRK,TERK\nHOU,2,11,8,19',
-      WK4: 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n4,4984,QB,BUF,19.52,1,59,23.4',
-    };
-    return { ok: true, text: async () => sheet ? (tables[sheet] || '') : 'TM,4,18\nBUF,@ HOU,vs NYJ' };
-  };
-  const data = await load2026WeeklySourceData({ seasonRows: [player], parseCsv, scheduleUrl: 'https://test.local/Schedule2026.csv', fetchImpl });
-  assert.deepEqual(data.weeksWithResults, [4]);
+test('DataHub groups unsorted combined CSV rows with one weekly fetch and no weekly Sheets calls', async () => {
+  const fixture = weeklyFixture('WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n4,4984,QB,BUF,19.52,1,59,23.4\n1,4984,QB,BUF,35.66,1,58,19.4\n7,4984,QB,BUF,0,0,0,IR');
+  const data = await load2026WeeklySourceData(fixture.options);
+  assert.deepEqual(data.weeksWithResults, [1, 4]);
   assert.equal(data.weeklyRows[4][0].FPT_PPR, '19.52');
   assert.equal(data.weeklyRows[4][0].PROJ, '23.4');
   assert.equal(data.weeklyRows[4][0].vsRK, '2');
-  assert.match(data.weekErrors[5], /could not load \(400\)/);
+  assert.equal(data.weeklyRows[7][0].PROJ, 'IR');
+  assert.equal(data.weeklyRows[7][0].__hasRecordedStats, false);
+  assert.deepEqual(data.weekErrors, {});
   assert.equal(data.weeklyRows[5][0].FPT_PPR, undefined);
+  assert.equal(data.weeklyRows[18][0].FPT_PPR, undefined);
+  assert.equal(data.weeklyRows[18][0].VS, 'vs NYJ');
+  assert.equal(fixture.requests.length, 3);
+  assert.deepEqual(fixture.requests.map(({ sheet }) => sheet).filter(Boolean), ['DRK']);
+  assert.equal(fixture.requests.filter(({ pathname }) => pathname.endsWith('/NFL-2026_Stats/WeeklyStats/2026_AllWKs.csv')).length, 1);
+  assert.ok(fixture.requests.some(({ pathname }) => pathname.endsWith('/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv')));
 });
 
 test('Overview defaults to Show All for both seasons; other categories retain their qualifiers', () => {
@@ -120,62 +132,65 @@ test('main season loader requests DH only, even when every modal source would fa
   await assert.rejects(load2026SourceData(options), /different season/);
 });
 
-test('lazy weekly loader preserves valid weeks and blanks mismatched, invalid and failed WK sheets', async () => {
-  const requests = [];
-  const tables = {
-    DRK: 'TM,QBRK,RBRK,WRRK,TERK\nHOU,2,11,8,19',
-    WK1: 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P\n1,4984,QB,BUF,35.66,1',
-    WK4: 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P\n3,4984,QB,BUF,20,1',
-    WK5: '<html>Sign in</html>',
-    WK6: 'SZN,SLPR_ID,POS,TM,FPT_PPR,GM_P\n6,4984,QB,BUF,20,1',
-  };
-  const fetchImpl = async (url, init) => {
-    assert.equal(init.cache, 'no-store');
-    const sheet = new URL(url).searchParams.get('sheet');
-    requests.push(sheet);
-    if (sheet === 'WK7') throw new Error('Network unavailable');
-    return { ok: true, text: async () => sheet ? (tables[sheet] || '') : 'TM,1,4,18\nBUF,@ HOU,vs NYJ,vs NYJ' };
-  };
-  const data = await load2026WeeklySourceData({ seasonRows: [player], parseCsv, scheduleUrl: 'https://test.local/Schedule2026.csv', fetchImpl });
-  assert.deepEqual(data.weeksWithResults, [1, 6]);
-  assert.equal(data.weeksOfData, 1);
-  assert.ok(requests.includes('WK18'));
-  assert.ok(!requests.includes('DH'));
-  assert.equal(data.weeklyRows[1][0].vsRK, '2');
-  assert.equal(data.weeklyRows[4][0].VS, 'vs NYJ');
-  for (const week of [4, 5, 7]) {
-    assert.ok(data.weekErrors[week]);
-    assert.equal(data.weeklyRows[week][0].FPT_PPR, undefined);
-    assert.equal(data.weeklyRows[week][0].__hasRecordedStats, false);
+test('failed or malformed combined CSV keeps totals and schedule, with no Sheets fallback', async () => {
+  for (const [csv, failure, message] of [
+    ['', 404, /could not load \(404\)/],
+    ['', new Error('Network unavailable'), /Network unavailable/],
+    ['<html>Sign in</html>', undefined, /missing or invalid columns/],
+    ['SLPR_ID,POS,TM,FPT_PPR\n4984,QB,BUF,99', undefined, /missing or invalid columns/],
+    ['', undefined, /missing or invalid columns/],
+    ['WK,SLPR_ID,POS,TM,FPT_PPR\n2026,4984,QB,BUF,99', undefined, /invalid week number/],
+    ['WK,SLPR_ID,POS,TM,FPT_PPR\n1.5,4984,QB,BUF,99', undefined, /invalid week number/],
+  ]) {
+    const fixture = weeklyFixture(csv, failure);
+    const data = await load2026WeeklySourceData(fixture.options);
+    assert.equal(data.rawRows[0].FPT_PPR, '35.66');
+    assert.deepEqual(data.weeksWithResults, []);
+    assert.equal(Object.keys(data.weekErrors).length, 18);
+    assert.match(data.weekErrors[1], message);
+    assert.equal(data.weeklyRows[1][0].VS, '@ HOU');
+    assert.equal(data.weeklyRows[1][0].FPT_PPR, undefined);
+    assert.equal(data.weeklyRows[1][0].__hasRecordedStats, false);
+    assert.equal(fixture.requests.length, 3);
   }
-  assert.match(data.weekErrors[4], /another week's rows/);
 });
 
-test('weekly WK and legacy SZN headers preserve identical stats, statuses and week identity', async () => {
+test('combined CSV WK and legacy SZN aliases preserve stats, zeroes and literal statuses', async () => {
   for (const header of ['WK', 'SZN']) {
-    const tables = {
-      DRK: 'TM,QBRK,RBRK,WRRK,TERK\nHOU,2,11,8,19',
-      WK1: `${header},SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n1,4984,QB,BUF,-2,1,30,22.5`,
-      WK2: `${header},SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n2,4984,QB,BUF,0,0,0,OUT`,
-      WK3: 'SLPR_ID,POS,TM,FPT_PPR\n4984,QB,BUF,99',
-    };
-    const fetchImpl = async (url) => {
-      const sheet = new URL(url).searchParams.get('sheet');
-      return { ok: true, text: async () => sheet ? (tables[sheet] || '') : 'TM,1,2,18\nBUF,@ HOU,vs DET,vs NYJ' };
-    };
-    const data = await load2026WeeklySourceData({ seasonRows: [player], parseCsv, scheduleUrl: 'https://test.local/Schedule2026.csv', fetchImpl });
+    const fixture = weeklyFixture(`${header},SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,GM_P,SNP,PROJ,recYS%\n1,4984,"Allen, Josh",QB,BUF,-2,1,30,22.5,0\n2,4984,"Allen, Josh",QB,BUF,0,0,0,OUT,NA`);
+    const data = await load2026WeeklySourceData(fixture.options);
     assert.deepEqual(data.weeksWithResults, [1]);
-    assert.deepEqual(Object.keys(data.weekErrors), ['3']);
+    assert.deepEqual(data.weekErrors, {});
     assert.equal(data.rawRows[0].SZN, '2026');
     assert.equal(data.weeklyRows[1][0].SZN, '1');
+    assert.equal(data.weeklyRows[1][0]['PLAYER NAME'], 'Allen, Josh');
     assert.equal(data.weeklyRows[1][0].FPT_PPR, '-2');
-    assert.equal(data.weeklyRows[1][0].GM_P, '1');
-    assert.equal(data.weeklyRows[1][0].PROJ, '22.5');
-    assert.equal(data.weeklyRows[1][0].vsRK, '2');
+    assert.equal(data.weeklyRows[1][0]['recYS%'], '0');
     assert.equal(data.weeklyRows[2][0].SZN, '2');
     assert.equal(data.weeklyRows[2][0].FPT_PPR, '0');
     assert.equal(data.weeklyRows[2][0].SNP, '0');
     assert.equal(data.weeklyRows[2][0].PROJ, 'OUT');
+    assert.equal(data.weeklyRows[2][0]['recYS%'], 'NA');
     assert.equal(data.weeklyRows[3][0].FPT_PPR, undefined);
   }
+});
+
+
+test('the shipped combined CSV preserves all original column values through DataHub grouping', async () => {
+  const csv = fs.readFileSync(new URL('../DH_P2.53/data/NFL-2026_Stats/WeeklyStats/2026_AllWKs.csv', import.meta.url), 'utf8');
+  const fixture = weeklyFixture(csv);
+  const data = await load2026WeeklySourceData(fixture.options);
+  const rows = parseCsv(csv);
+  assert.ok(rows.length > 0);
+  for (const original of rows) {
+    const loaded = data.weeklyRows[Number(original.WK)].find(row => row.SLPR_ID === original.SLPR_ID);
+    assert.ok(loaded, `Missing ${original.SLPR_ID} in Week ${original.WK}`);
+    for (const [key, value] of Object.entries(original)) {
+      // Opponent context intentionally remains schedule/DRK-backed.
+      if (!['VS', 'vsRK'].includes(key)) assert.equal(loaded[key], value, `${key} changed for ${original.SLPR_ID} in Week ${original.WK}`);
+    }
+  }
+  assert.equal(data.weeklyRows[4].find(row => row.SLPR_ID === '4984').FPT_PPR, '19.52');
+  assert.ok(data.weeksWithResults.includes(4));
+  assert.deepEqual(data.weekErrors, {});
 });

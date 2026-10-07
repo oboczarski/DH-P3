@@ -40,8 +40,8 @@ test('Matchups maps the three live tabs to native CSV exports in DH\'s workbook'
     assert.equal(url.searchParams.get('gid'), gid);
     assert.equal(url.searchParams.get('sheet'), sheet);
   }
-  // Adding Matchups must preserve the URL choices of existing DH consumers.
-  assert.equal(new URL(get2026SheetCsvUrl('WK1')).searchParams.get('gid'), '946140193');
+  // Weekly stats moved to the local CSV; remaining workbook feeds stay live.
+  assert.throws(() => get2026SheetCsvUrl('WK1'), /2026_AllWKs\.csv/);
   assert.ok(get2026SheetCsvUrl('DH').includes('/gviz/tq?'));
   assert.ok(get2026SheetCsvUrl('TM_STAT').includes('/gviz/tq?'));
 });

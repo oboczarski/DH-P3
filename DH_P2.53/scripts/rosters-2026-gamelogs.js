@@ -2,7 +2,7 @@
  * Rosters-only 2026 Game Logs
  *
  * This file intentionally does not import or call DataHub code. It owns the
- * workbook/schedule loading and converts the source into the shared roster
+ * season-workbook/weekly-CSV/schedule loading and converts into the shared roster
  * modal state shape exposed by app.js.
  */
 (() => {
@@ -39,7 +39,7 @@
         CL: 'ceiling', 'YPG(t)': 'ypg', paYPG: 'pa_ypg', ruYPG: 'ru_ypg', recYPG: 'rec_ypg', 'AY%': 'ay_pct', PROJ: 'proj', FPT_PPR: 'fpt_ppr'
     };
     const normalizeTeam = (team) => ({ JAC: 'JAX', WSH: 'WAS', LA: 'LAR' })[String(team || '').trim().toUpperCase()] || String(team || '').trim().toUpperCase();
-    // Accept both share-header generations while the user updates DH/WK tabs.
+    // Accept both share-header generations in DH totals and the weekly CSV.
     // This parser remains independently owned by Rosters.
     const normalizeStatHeader = (header) => header.replace(/[\u00a0\u202f]/g, ' ').trim()
         .replace(/^(pa|ru|rec)?TMS$/, '$1TDS%')
@@ -103,21 +103,13 @@
     };
     const appRootUrl = (path) => new URL(`../${path}`, window.location.href).toString();
     const fetchRows = async (sheetName, requiredHeaders) => {
-        // Rosters owns its loader; share only the source URL configuration so
-        // native weekly CSV exports retain OUT/IR/etc. in mixed PROJ columns.
+        // Rosters owns its DH/DRK loader; share only workbook URL configuration.
         const { get2026SheetCsvUrl } = await import('./nfl-2026-sheets.js');
         const url = get2026SheetCsvUrl(sheetName);
         const response = await fetch(url, { cache: 'no-store' });
         if (!response.ok) throw new Error(`Rosters 2026 ${sheetName} could not load (${response.status}).`);
         const text = await response.text();
-        if (!text.trim() && /^WK\d+$/.test(sheetName)) return [];
         const rows = parseCsv(text);
-        // Rosters weekly sheets accept the renamed WK column and older SZN
-        // tabs. Normalize only the internal week alias; DH keeps SZN as a year
-        // and all player/stat cells retain their original source values.
-        if (/^WK\d+$/.test(sheetName)) {
-            rows.forEach((row) => { if ('WK' in row) row.SZN = row.WK; });
-        }
         if (!rows.length || requiredHeaders.some((header) => !(header in rows[0]))) throw new Error(`Rosters 2026 ${sheetName} has missing or invalid columns.`);
         return rows;
     };
@@ -165,7 +157,7 @@
     let seasonRowsLoadPromise = null;
     // Rosters Career needs only DH totals, even when the selected Game Logs
     // year is 2025. Reuse this read in the full loader without activating a year
-    // or making Career depend on WK/DRK/schedule availability.
+    // or making Career depend on weekly CSV/DRK/schedule availability.
     async function ensureRosters2026SeasonRowsLoaded() {
         if (seasonRowsCache) return seasonRowsCache;
         if (!seasonRowsLoadPromise) {
@@ -180,33 +172,38 @@
         if (state.rosters2026GameLogs) return state.rosters2026GameLogs;
         if (loadPromise) return loadPromise;
         loadPromise = (async () => {
-            const scheduleResponse = await fetch(appRootUrl('data/NFL-2026/Schedule2026.csv'), { cache: 'no-store' });
+            const scheduleResponse = await fetch(appRootUrl('data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv'), { cache: 'no-store' });
             if (!scheduleResponse.ok) throw new Error(`Rosters 2026 schedule could not load (${scheduleResponse.status}).`);
             const scheduleRows = parseCsv(await scheduleResponse.text());
             if (!scheduleRows.length || !('TM' in scheduleRows[0]) || !('18' in scheduleRows[0])) throw new Error('Rosters 2026 schedule is invalid.');
-            const [seasonRows, defenseRows] = await Promise.all([
-                ensureRosters2026SeasonRowsLoaded(),
-                fetchRows('DRK', ['TM', 'QBRK', 'RBRK', 'WRRK', 'TERK'])
-            ]);
-            // Rosters league rendering awaits this snapshot. Isolate optional
-            // weekly failures so a deleted/recreated tab cannot blank every
-            // roster. Never relabel another week's rows or invent missing stats.
-            // Bound CSV requests like the independently owned DataHub loader.
+            // Rosters reads the combined weekly file once, independently of
+            // DataHub. Group on WK (legacy SZN accepted) without changing stat
+            // headers, numeric zero, or literal OUT/IR/etc. projection values.
             const weeks = Array.from({ length: 18 }, () => []);
             const weekErrors = {};
-            let nextWeek = 1;
-            await Promise.all(Array.from({ length: 4 }, async () => {
-                while (nextWeek <= 18) {
-                    const week = nextWeek++;
-                    try {
-                        const rows = await fetchRows(`WK${week}`, ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR']);
-                        if (rows.some((row) => isPlayer(row) && Number(row.SZN) !== week)) throw new Error(`WK${week} contains another week's rows.`);
-                        weeks[week - 1] = rows;
-                    } catch (error) {
-                        weekErrors[week] = error.message;
-                    }
+            const weeklyRead = (async () => {
+                const response = await fetch(appRootUrl('data/NFL-2026_Stats/WeeklyStats/2026_AllWKs.csv'), { cache: 'no-store' });
+                if (!response.ok) throw new Error(`Rosters 2026_AllWKs.csv could not load (${response.status}).`);
+                const rows = parseCsv(await response.text());
+                rows.forEach((row) => { if ('WK' in row) row.SZN = row.WK; });
+                if (!rows.length || ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR'].some((header) => !(header in rows[0]))) {
+                    throw new Error('Rosters 2026_AllWKs.csv has missing or invalid columns.');
                 }
-            }));
+                const players = rows.filter(isPlayer);
+                if (players.some((row) => !Number.isInteger(Number(row.SZN)) || Number(row.SZN) < 1 || Number(row.SZN) > 18)) {
+                    throw new Error('Rosters 2026_AllWKs.csv contains an invalid week number.');
+                }
+                players.forEach((row) => { weeks[Number(row.SZN) - 1].push(row); });
+            })().catch((error) => {
+                // Preserve DH totals and schedule context if the weekly file
+                // fails. Missing weeks stay blank; Sheets is never a fallback.
+                for (let week = 1; week <= 18; week++) weekErrors[week] = error.message;
+            });
+            const [seasonRows, defenseRows] = await Promise.all([
+                ensureRosters2026SeasonRowsLoaded(),
+                fetchRows('DRK', ['TM', 'QBRK', 'RBRK', 'WRRK', 'TERK']),
+                weeklyRead
+            ]);
             if (Object.keys(weekErrors).length) {
                 console.warn('Rosters skipped unavailable or invalid 2026 weeks:', weekErrors);
             }
@@ -265,7 +262,7 @@
         state.activeRostersGameLogsSeason = '2026';
         // Season changes invalidate the league-specific modal rank pool too.
         state.calculatedRankCache = null;
-        // 2026 consistency remains sheet-backed, while the weekly table and
+        // 2026 consistency uses the weekly CSV, while the weekly table and
         // summary ranks may use the selected league's Sleeper matchup scores.
         state.matchupDataLoaded = false;
         state.leagueMatchupStats = {};

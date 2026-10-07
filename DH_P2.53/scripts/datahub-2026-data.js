@@ -1,5 +1,5 @@
-// DataHub-only 2026 source. Public CSV reads keep workbook credentials out of
-// the app; DH supplies totals, numbered WK tabs supply results/projections.
+// DataHub-only 2026 sources: DH supplies season totals; the shipped combined
+// weekly CSV supplies results/projections. DRK remains the opponent-rank feed.
 import { get2026SheetCsvUrl } from './nfl-2026-sheets.js';
 
 export const DATAHUB_2026_WORKBOOK = '16fOWHEuPWkNz9AHLCiySjxwW_y4ulLemNaMVc3srE94';
@@ -22,8 +22,8 @@ export function has2026WeekResults(row) {
     || (Number.isFinite(Number(row.FPT_PPR)) && Number(row.FPT_PPR) !== 0);
 }
 
-// Qualifier progression belongs to DH totals, never to the availability of WK
-// tabs. G is the Overview alias of GM_P; after the last byes, 14 games = Week 15.
+// Qualifier progression belongs to DH totals, never to weekly CSV availability.
+// G is the Overview alias of GM_P; after the last byes, 14 games = Week 15.
 export function get2026WeeksOfData(seasonRows) {
   const maxGames = seasonRows.filter(isPlayer).reduce((highest, row) => {
     const games = Number(row.GM_P ?? row.G);
@@ -70,25 +70,15 @@ export function build2026SourceData({ seasonRows, weeklyRows = {}, scheduleRows 
   return { rawRows, weeklyRows: resolvedWeeks, weeksWithResults, weeksOfData: get2026WeeksOfData(seasonRows) };
 }
 
-// Keep DH loading independent of every modal-only source. A malformed WK tab,
+// Keep DH loading independent of every modal-only source. A malformed weekly CSV,
 // unavailable DRK feed or schedule must never prevent the main Stats grid opening.
 function createSheetReader(parseCsv, fetchImpl) {
   return async function sheet(name, requiredHeaders) {
-    // Weekly PROJ cells must retain their literal injury/inactive labels.
-    // DH/DRK continue using the independent named-tab reads.
     const url = get2026SheetCsvUrl(name);
     const response = await fetchImpl(url, { cache: 'no-store' });
     if (!response.ok) throw new Error(`2026 ${name} could not load (${response.status}).`);
     const text = await response.text();
-    // Google returns an empty CSV for numbered tabs that do not exist yet.
-    if (!text.trim() && /^WK\d+$/.test(name)) return [];
     const rows = parseCsv(text);
-    // DataHub weekly sheets now label column A WK. Keep the internal SZN week
-    // alias for existing consumers/validation, while accepting legacy SZN tabs.
-    // DH season totals retain their separate SZN (year) column contract.
-    if (/^WK\d+$/.test(name)) {
-      rows.forEach((row) => { if ('WK' in row) row.SZN = row.WK; });
-    }
     if (!rows.length || requiredHeaders.some((header) => !(header in rows[0]))) {
       throw new Error(`2026 ${name} has missing or invalid columns.`);
     }
@@ -109,8 +99,36 @@ export async function load2026SourceData({ parseCsv, fetchImpl = fetch }) {
 
 // Game Logs and Compare call this only when opened. Invalid weeks stay blank;
 // valid weeks, schedule and position-specific opponent ranks remain available.
-export async function load2026WeeklySourceData({ seasonRows, parseCsv, scheduleUrl, fetchImpl = fetch }) {
+export async function load2026WeeklySourceData({
+  seasonRows, parseCsv,
+  scheduleUrl = new URL('../data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv', import.meta.url),
+  weeklyUrl = new URL('../data/NFL-2026_Stats/WeeklyStats/2026_AllWKs.csv', import.meta.url),
+  fetchImpl = fetch,
+}) {
   const sheet = createSheetReader(parseCsv, fetchImpl);
+  const weeklyRows = {};
+  const weekErrors = {};
+  // Game Logs/Compare fetch the combined CSV once and keep the existing SZN
+  // week alias. Header-based stat mappings and literal PROJ labels stay intact.
+  // Validate week identities before grouping so no row becomes another week.
+  const weeklyRead = (async () => {
+    const response = await fetchImpl(weeklyUrl, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`2026_AllWKs.csv could not load (${response.status}).`);
+    const rows = parseCsv(await response.text());
+    rows.forEach((row) => { if ('WK' in row) row.SZN = row.WK; });
+    if (!rows.length || ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR'].some((header) => !(header in rows[0]))) {
+      throw new Error('2026_AllWKs.csv has missing or invalid columns.');
+    }
+    const players = rows.filter(isPlayer);
+    if (players.some((row) => !Number.isInteger(Number(row.SZN)) || Number(row.SZN) < 1 || Number(row.SZN) > 18)) {
+      throw new Error('2026_AllWKs.csv contains an invalid week number.');
+    }
+    players.forEach((row) => { (weeklyRows[Number(row.SZN)] ||= []).push(row); });
+  })().catch((error) => {
+    // A missing/bad weekly file leaves weekly cells blank while DH totals stay
+    // usable. Never fall back to Sheets or fill missing weeks with season totals.
+    for (let week = 1; week <= 18; week++) weekErrors[week] = error.message;
+  });
   const [defenseRows, scheduleRows] = await Promise.all([
     sheet('DRK', ['TM', 'QBRK', 'RBRK', 'WRRK', 'TERK']),
     fetchImpl(scheduleUrl, { cache: 'no-store' }).then(async (response) => {
@@ -119,24 +137,7 @@ export async function load2026WeeklySourceData({ seasonRows, parseCsv, scheduleU
       if (!rows.length || !('TM' in rows[0]) || !('18' in rows[0])) throw new Error('Invalid 2026 schedule.');
       return rows;
     }),
+    weeklyRead,
   ]);
-  // Probe all numbered tabs on first modal use, with bounded concurrency.
-  const weeklyRows = {};
-  const weekErrors = {};
-  let nextWeek = 1;
-  await Promise.all(Array.from({ length: 4 }, async () => {
-    while (nextWeek <= 18) {
-      const week = nextWeek++;
-      try {
-        const rows = await sheet(`WK${week}`, ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR']);
-        if (rows.some((row) => isPlayer(row) && Number(row.SZN) !== week)) throw new Error(`WK${week} contains another week's rows.`);
-        weeklyRows[week] = rows;
-      } catch (error) {
-        // Never relabel another week's results or manufacture zero-stat games.
-        weeklyRows[week] = [];
-        weekErrors[week] = error.message;
-      }
-    }
-  }));
   return { ...build2026SourceData({ seasonRows, weeklyRows, scheduleRows, defenseRows }), weekErrors };
 }
