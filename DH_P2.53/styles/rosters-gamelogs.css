@@ -6049,7 +6049,8 @@ body[data-page="rosters"] #game-logs-modal #modal-body .career-stats-position-me
 
 /* Career conditional formatting for Passing, Receiving, Rushing, and Total.
    Fantasy Points and Points Per Game keep their original formatting.
-   Matches DataHub's six percentile tiers: <25%, 25%, 55%, 70%, 85%, 92.5%.
+   Tiers 5/4/3/2/1 use positional ranks up to 6/12/18/24/36 for QB/RB/TE
+   and 12/24/36/48/60 for WR. Tier 0 is beyond the last rank limit.
    Edit a group's six colors below, or override these tier effects in that
    group's block. Only stat text changes; row backgrounds and geometry stay intact. */
 body[data-page="rosters"] #game-logs-modal #modal-body .career-stats-cell--formatted {

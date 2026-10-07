@@ -11713,6 +11713,10 @@ const DATAHUB_CAREER_STATS_CSV_PATH = "../data/NFL16-25/NFL-PlayerData_16-25.csv
 // target/reception/carry per-game rates are calculated for older seasons only.
 const DATAHUB_CAREER_ADVANCED_STATS = new Set(["TS%", "TPRR", "YPRR", "SNP%", "MTF/A", "YCO/A", "EXPLSV%", "CPOE", "EPA", "EPA/DB"]);
 const DATAHUB_CAREER_PER_GAME_TOTALS = Object.freeze({ "TGT/G": "TGT", "REC/G": "REC", "CAR/G": "CAR" });
+// Game Logs Career tiers 5 through 1 use inclusive positional-rank limits.
+// WR has wider intervals; QB/RB/TE share limits, with worse ranks in tier 0.
+const DATAHUB_CAREER_FORMATTING_RANK_CUTOFFS = Object.freeze([6, 12, 18, 24, 36]);
+const DATAHUB_CAREER_FORMATTING_WR_RANK_CUTOFFS = Object.freeze([12, 24, 36, 48, 60]);
 const DATAHUB_CAREER_GROUP_ICONS = Object.freeze({
   // DataHub game logs Career table:
   // local group icon markup keeps the self-contained modal independent from
@@ -13758,39 +13762,27 @@ function assignDataHubCareerPositionalRanks(rows) {
   });
 }
 
-function getDataHubCareerFormattingTier(metric, value) {
-  // Career uses the main DataHub table's best-160 floor, flat-range fallback,
-  // inverted performance percentiles, and inclusive six-tier boundaries.
-  if ((metric.isInverted && value > metric.floorValue) || (!metric.isInverted && value < metric.floorValue)) return 0;
-  if (metric.isFlat) return 2;
-  const percentile = getPercentileRank(metric.sorted, value);
-  const performance = metric.isInverted ? 1 - percentile : percentile;
-  return FORMATTING_PERCENTILE_CUTOFFS.reduce((tier, cutoff) => tier + Number(performance >= cutoff), 0);
+function getDataHubCareerFormattingTier(rank, position) {
+  // Career colors follow the same positional rank shown beneath the stat.
+  // Missing/unqualified ranks stay unformatted; INT already ranks in reverse.
+  if (!Number.isInteger(rank) || rank < 1 || !["QB", "RB", "WR", "TE"].includes(position)) return null;
+  const cutoffs = position === "WR" ? DATAHUB_CAREER_FORMATTING_WR_RANK_CUTOFFS : DATAHUB_CAREER_FORMATTING_RANK_CUTOFFS;
+  const interval = cutoffs.findIndex((cutoff) => rank <= cutoff);
+  return interval === -1 ? 0 : 5 - interval;
 }
 
 function assignDataHubCareerFormatting(rows) {
-  // Career heat targets Passing, Receiving, Rushing, and Total only, using
-  // full season/position pools and existing rank qualification. Fantasy Points
-  // and Points Per Game retain their original conditional rank-color helpers.
-  const pools = new Map();
+  // Only Career's four stat groups use these fixed rank intervals, so the same
+  // rank always gets the same tier across stats/seasons, regardless of pool size.
+  // Existing qualification and separate Fantasy Points/PPG colors stay intact.
   rows.forEach((row) => {
     row.__careerFormattingTiers = Object.create(null);
-    if (!String(row.SLPR_ID ?? "").trim() || !["QB", "RB", "WR", "TE"].includes(row.POS)
-      || !(getDataHubCareerNumber(row.G) > 0)) return;
-    const key = `${String(row.SZN).trim()}:${row.POS}`;
-    if (!pools.has(key)) pools.set(key, []);
-    pools.get(key).push(row);
-  });
-  pools.forEach((pool) => {
-    const stats = getDataHubCareerSectionsForPosition(pool[0].POS)
+    const stats = getDataHubCareerSectionsForPosition(row.POS)
       .filter((section) => ["passing", "receiving", "rushing", "total"].includes(section.id))
       .flatMap((section) => section.stats);
     stats.forEach((statKey) => {
-      const candidates = pool.filter((row) => Number.isFinite(row.__careerPositionalRanks?.[statKey]))
-        .map((row) => ({ row, value: getDataHubCareerStatNumber(row, statKey) })).filter(({ value }) => value !== null);
-      if (!candidates.length) return;
-      const metric = createColumnMetric(candidates.map(({ value }) => value), statKey);
-      candidates.forEach(({ row, value }) => { row.__careerFormattingTiers[statKey] = getDataHubCareerFormattingTier(metric, value); });
+      const tier = getDataHubCareerFormattingTier(row.__careerPositionalRanks?.[statKey], row.POS);
+      if (tier !== null) row.__careerFormattingTiers[statKey] = tier;
     });
   });
 }

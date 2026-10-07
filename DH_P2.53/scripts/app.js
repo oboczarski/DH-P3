@@ -1475,10 +1475,10 @@ const CAREER_STATS_CSV_PATH = 'data/NFL16-25/NFL-PlayerData_16-25.csv';
 // calculations independently; no DataHub modules or active-season state are used.
 const CAREER_ADVANCED_STATS = new Set(['TS%', 'TPRR', 'YPRR', 'SNP%', 'MTF/A', 'YCO/A', 'EXPLSV%', 'CPOE', 'EPA', 'EPA/DB']);
 const CAREER_PER_GAME_TOTALS = Object.freeze({ 'TGT/G': 'TGT', 'REC/G': 'REC', 'CAR/G': 'CAR' });
-// Rosters Career mirrors the DataHub table's six inclusive percentile tiers
-// and retained best range without importing another page's renderer/state.
-const CAREER_FORMATTING_PERCENTILE_CUTOFFS = Object.freeze([0.25, 0.55, 0.70, 0.85, 0.925]);
-const CAREER_FORMATTING_TOP_RANGE_LIMIT = 160;
+// Rosters Game Logs Career tiers 5 through 1 use inclusive positional ranks.
+// WR has wider intervals; QB/RB/TE share limits, with worse ranks in tier 0.
+const CAREER_FORMATTING_RANK_CUTOFFS = Object.freeze([6, 12, 18, 24, 36]);
+const CAREER_FORMATTING_WR_RANK_CUTOFFS = Object.freeze([12, 24, 36, 48, 60]);
 const CAREER_STAT_GROUP_ICONS = {
     // Rosters Game Logs modal Career view:
     // stores self-contained column-group SVG markup so this table can be ported
@@ -6683,53 +6683,27 @@ function assignCareerPositionalRanks(rows) {
     });
 }
 
-function getCareerFormattingTier(metric, value) {
-    // Rosters Career mirrors DataHub's performance percentiles: best 160,
-    // floor before the flat-range fallback, and inclusive tiers 0 through 5.
-    if ((metric.isInverted && value > metric.floorValue) || (!metric.isInverted && value < metric.floorValue)) return 0;
-    if (metric.isFlat) return 2;
-    let low = 0;
-    let high = metric.sorted.length;
-    while (low < high) {
-        const middle = Math.floor((low + high) / 2);
-        if (metric.sorted[middle] <= value) low = middle + 1;
-        else high = middle;
-    }
-    const percentile = metric.sorted.length <= 1 ? 0.5 : Math.max(0, Math.min(1, (low - 1) / (metric.sorted.length - 1)));
-    const performance = metric.isInverted ? 1 - percentile : percentile;
-    return CAREER_FORMATTING_PERCENTILE_CUTOFFS.reduce((tier, cutoff) => tier + Number(performance >= cutoff), 0);
+function getCareerFormattingTier(rank, position) {
+    // Rosters Career colors follow the positional rank displayed for this stat.
+    // Missing/unqualified ranks stay unformatted; INT already ranks in reverse.
+    if (!Number.isInteger(rank) || rank < 1 || !['QB', 'RB', 'WR', 'TE'].includes(position)) return null;
+    const cutoffs = position === 'WR' ? CAREER_FORMATTING_WR_RANK_CUTOFFS : CAREER_FORMATTING_RANK_CUTOFFS;
+    const interval = cutoffs.findIndex((cutoff) => rank <= cutoff);
+    return interval === -1 ? 0 : 5 - interval;
 }
 
 function assignCareerFormatting(rows) {
-    // Rosters Career heat targets Passing, Receiving, Rushing, and Total only,
-    // using season/position pools and existing rank qualification. Fantasy Points
-    // and Points Per Game retain their original conditional rank-color helpers.
-    const pools = new Map();
+    // Only Rosters Career's four stat groups use these fixed rank intervals.
+    // Equal ranks get equal tiers across stats/seasons, regardless of pool size;
+    // existing qualification and separate Fantasy Points/PPG colors stay intact.
     rows.forEach((row) => {
         row.__careerFormattingTiers = Object.create(null);
-        if (!String(row.SLPR_ID ?? '').trim() || !['QB', 'RB', 'WR', 'TE'].includes(row.POS)
-            || !(getCareerNumber(row.G) > 0)) return;
-        const key = `${String(row.SZN).trim()}:${row.POS}`;
-        if (!pools.has(key)) pools.set(key, []);
-        pools.get(key).push(row);
-    });
-    pools.forEach((pool) => {
-        const stats = getCareerSectionsForPosition(pool[0].POS)
+        const stats = getCareerSectionsForPosition(row.POS)
             .filter((section) => ['passing', 'receiving', 'rushing', 'total'].includes(section.id))
             .flatMap((section) => section.stats);
         stats.forEach((statKey) => {
-            const candidates = pool.filter((row) => Number.isFinite(row.__careerPositionalRanks?.[statKey]))
-                .map((row) => ({ row, value: getCareerStatNumber(row, statKey) })).filter(({ value }) => value !== null);
-            if (!candidates.length) return;
-            // Career's only inverse stat is INT. Keep this metric independent
-            // from other app.js pages and copy DataHub's retained-range contract.
-            const isInverted = statKey === 'INT';
-            const sorted = candidates.map(({ value }) => value).sort((left, right) => left - right);
-            const retained = sorted.length > CAREER_FORMATTING_TOP_RANGE_LIMIT
-                ? (isInverted ? sorted.slice(0, CAREER_FORMATTING_TOP_RANGE_LIMIT) : sorted.slice(-CAREER_FORMATTING_TOP_RANGE_LIMIT)) : sorted;
-            const metric = { sorted: retained, isInverted, isFlat: retained[0] === retained[retained.length - 1],
-                floorValue: isInverted ? retained[retained.length - 1] : retained[0] };
-            candidates.forEach(({ row, value }) => { row.__careerFormattingTiers[statKey] = getCareerFormattingTier(metric, value); });
+            const tier = getCareerFormattingTier(row.__careerPositionalRanks?.[statKey], row.POS);
+            if (tier !== null) row.__careerFormattingTiers[statKey] = tier;
         });
     });
 }

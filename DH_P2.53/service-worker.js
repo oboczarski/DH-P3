@@ -42,7 +42,8 @@
 // Refresh renamed TDS%/YS% labels, source mappings and the Overview touchdown-share column.
 // Refresh DataHub's source-backed W/T RECS% column and its stat-key definition.
 // Refresh DataHub's TD(t) totals and TDS% additions in the positional groups.
-const CACHE_NAME = 'DH3.49l-stats-touchdown-totals';
+// Refresh DataHub/Rosters Career formatting so tiers follow positional ranks.
+const CACHE_NAME = 'DH3.49m-career-positional-rank-tiers';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
