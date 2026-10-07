@@ -450,7 +450,7 @@ body[data-page="rosters"] .start-sit-matchup-meta .start-sit-total-value {
 body[data-page="rosters"] .start-sit-matchup-inline {
   display: inline-flex;
   justify-content: center;
-  font-size: clamp(9px, 3.2vw, 13px);
+  font-size: clamp(9px, 3.2vw, 16px);
   max-width: 100%;
 }
 body[data-page="rosters"] .start-sit-matchup-opponent {
@@ -476,8 +476,9 @@ body[data-page="rosters"] .start-sit-matchup-info-heading {
   display: block;
   margin-bottom: 3px;
   color: var(--color-text-tertiary);
-  font-size: 8px;
+  font-size: 12px;
   line-height: 1;
+  padding: 1px 3px 0;
 }
 body[data-page="rosters"] .start-sit-matchup-info-grid {
   display: grid;
@@ -1090,7 +1091,8 @@ body[data-page="rosters"] .player-row > .roster-injury-indicator {
 }
 
 .trade-container.start-sit-container .trade-footnote {
-  margin-top: 0.01rem;
+  margin-top: 0.1rem;
+  padding-bottom: 2px;
 }
 
 .trade-header {
