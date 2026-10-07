@@ -1,0 +1,122 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import { buildStatsPositionalRanks } from '../DH_P2.53/scripts/datahub-stats-positional-ranks.js';
+import { getStatLabel } from '../DH_P2.53/scripts/datahub-comparison/comparisonStats.js';
+import { DATAHUB_STAT_SECTIONS } from '../DH_P2.53/scripts/datahub-stats-help.js';
+
+const datahub = fs.readFileSync(new URL('../DH_P2.53/scripts/DataHub.js', import.meta.url), 'utf8');
+const rosters = fs.readFileSync(new URL('../DH_P2.53/scripts/rosters-gamelogs.js', import.meta.url), 'utf8');
+const app = fs.readFileSync(new URL('../DH_P2.53/scripts/app.js', import.meta.url), 'utf8');
+const shares = ['TDS%', 'YS%', 'ruTDS%', 'ruYS%', 'recTDS%', 'recYS%'];
+const oldShares = ['TMS', 'YMS', 'ruTMS', 'ruYMS', 'recTMS', 'recYMS'];
+const keys = ['tds_pct', 'ys_pct', 'rush_tms', 'rush_yms', 'rec_tms', 'rec_yms'];
+
+// Run the real page-local parser/formatter bodies against source rows, without
+// requiring a live workbook that may be midway through its header migration.
+function functionSource(source, name) {
+  const start = source.indexOf(`function ${name}(`);
+  assert.ok(start >= 0, name);
+  return source.slice(start, source.indexOf('\n}', start) + 2);
+}
+
+function objectSource(source, name) {
+  const start = source.indexOf(`const ${name} = {`);
+  assert.ok(start >= 0, name);
+  return source.slice(start, source.indexOf('\n};', start) + 3);
+}
+
+function datahubHarness() {
+  const context = vm.createContext({
+    ALL_COLUMNS: ['POS', 'G', 'RR', ...shares],
+    BLANK_PLACEHOLDER_COLUMNS: new Set(),
+    SOURCE_ALIASES: {},
+    FPTS_COLUMN: 'FPTS',
+    isDataHubRookiesView: () => false,
+    buildDataHubRowMeta: () => ({}),
+  });
+  const names = [
+    'normalizeSheetHeader', 'parseDataHubStatValue', 'normalizeRow', 'sanitizeValue',
+    'toComparableNumber', 'isMissingValue', 'formatDisplayValue', 'formatCellValue',
+    'formatDataHubPercentage', 'parseDataHubSeasonStatsRows', 'parseDataHubWeeklyStatsRows',
+    'parseDataHubSeasonRanksRows', 'getDataHubGamesPlayedValue', 'computePpgValue', 'buildDataHubStatLabels',
+  ];
+  vm.runInContext([
+    objectSource(datahub, 'DATAHUB_PLAYER_STAT_HEADER_MAP'),
+    objectSource(datahub, 'DATAHUB_WEEKLY_META_HEADER_MAP'),
+    ...names.map((name) => functionSource(datahub, name)),
+  ].join('\n'), context);
+  return context;
+}
+
+test('DataHub accepts renamed and historical shares with stable values, ranks and labels', () => {
+  const api = datahubHarness();
+  for (const headers of [shares, oldShares]) {
+    const row = { SLPR_ID: '1', POS: 'WR', TM: 'BUF', GM_P: '1', FPT_PPR: '10' };
+    headers.forEach((header) => { row[header] = '12.5%'; });
+    const season = api.parseDataHubSeasonStatsRows([row])['1'];
+    const weekly = api.parseDataHubWeeklyStatsRows([row])['1'];
+    const rankRow = { SLPR_ID: '1' };
+    headers.forEach((header) => { rankRow[header] = '2'; });
+    const ranks = api.parseDataHubSeasonRanksRows([rankRow])['1'];
+    const labels = api.buildDataHubStatLabels();
+    keys.forEach((key, index) => {
+      assert.equal(season[key], 12.5);
+      assert.equal(weekly[key], 12.5);
+      assert.equal(ranks[key], 2, 'ranks must not be multiplied like percentage values');
+      assert.equal(labels[key], shares[index]);
+    });
+  }
+});
+
+test('table shares normalize once, retain zero/missing distinctions, and rank in consistent units', () => {
+  const api = datahubHarness();
+  const rows = ['1%', '0.01', '12.5', '0', 'NA', undefined].map((value) =>
+    api.normalizeRow({ POS: 'WR', RR: '20', G: '1', 'TDS%': value }));
+  assert.deepEqual(rows.map((row) => row['TDS%']), ['1', '1', '12.5', '0', 'NA', 'NA']);
+  assert.deepEqual(rows.map((row) => api.formatDisplayValue('TDS%', row['TDS%'])),
+    ['1.0%', '1.0%', '12.5%', '0.0%', 'NA', 'NA']);
+  const ranks = buildStatsPositionalRanks(rows, ['TDS%'], '2026', 1);
+  assert.deepEqual(rows.map((row) => ranks.get(row)?.['TDS%']), [2, 2, 1, 4, undefined, undefined]);
+});
+
+test('renamed unavailable cells cannot be overwritten by a legacy share column', () => {
+  const api = datahubHarness();
+  const row = { SLPR_ID: '1', POS: 'WR', 'recYS%': 'NA', recYMS: '50%' };
+  assert.equal(api.normalizeRow(row)['recYS%'], 'NA');
+  assert.equal(api.parseDataHubSeasonStatsRows([row])['1'].rec_yms, undefined);
+  assert.equal(api.parseDataHubWeeklyStatsRows([row])['1'].rec_yms, undefined);
+});
+
+test('shared CSV parser and labels use the same renamed share contract', () => {
+  const context = vm.createContext({ pageType: 'stats', state: {} });
+  vm.runInContext([
+    objectSource(app, 'PLAYER_STAT_HEADER_MAP'),
+    ...['normalizeHeader', 'parseStatValue', 'buildStatLabels'].map((name) => functionSource(app, name)),
+  ].join('\n'), context);
+  const labels = context.buildStatLabels();
+  keys.forEach((key, index) => {
+    assert.equal(labels[key], shares[index]);
+    assert.equal(context.normalizeHeader(oldShares[index]), shares[index]);
+    assert.equal(context.parseStatValue(shares[index], '0.125'), 12.5);
+    assert.equal(context.parseStatValue(shares[index], '0'), 0);
+    assert.equal(context.parseStatValue(shares[index], 'NA'), null);
+  });
+});
+
+test('Overview appends touchdown share before ceiling while glossary and radars use new labels', () => {
+  const context = vm.createContext({});
+  vm.runInContext(`${objectSource(datahub, 'STATS_COLUMN_SETS')}\ncolumns = STATS_COLUMN_SETS.overview;`, context);
+  assert.deepEqual(Array.from(context.columns.slice(-5)), ['IMP/OPP', 'TDS%', 'FPOE', 'CSTY%', 'CL']);
+  const glossary = DATAHUB_STAT_SECTIONS.flatMap((section) => section.items);
+  shares.forEach((label) => assert.ok(glossary.some((item) => item.abbr === label)));
+  assert.ok(glossary.every((item) => !oldShares.includes(item.abbr)));
+  assert.equal(getStatLabel('rec_yms'), 'recYS%');
+  for (const [source, name] of [[datahub, 'DATAHUB_RADAR_STATS_CONFIG'], [rosters, 'ROSTERS_RADAR_STATS_CONFIG']]) {
+    vm.runInContext(`${objectSource(source, name)}\nradars = ${name};`, context);
+    for (const pos of ['WR', 'TE']) {
+      assert.equal(context.radars[pos].labels[context.radars[pos].stats.indexOf('rec_yms')], 'recYS%');
+    }
+  }
+});

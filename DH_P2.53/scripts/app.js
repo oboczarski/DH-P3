@@ -4111,6 +4111,12 @@ function getAdjustedGamesPlayed(playerId, scoringSettings = null) {
 // ✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦
 
 const PLAYER_STAT_HEADER_MAP = {
+    // Shared historical CSV/modal labels use the new share names. Keep stable
+    // receiving keys so Rosters' independently loaded 2026 ranks still match.
+    'TDS%': 'tds_pct', 'YS%': 'ys_pct',
+    'ruTDS%': 'rush_tms', 'ruYS%': 'rush_yms',
+    'recTDS%': 'rec_tms', 'recYS%': 'rec_yms',
+    'paTDS%': 'pass_tms', 'paYS%': 'pass_yms',
   'paATT': 'pass_att',
   'CMP': 'pass_cmp',
   // Weekly CSVs may use `CMP PCT` instead of `CMP%` — treat them the same.
@@ -4201,8 +4207,8 @@ function buildStatLabels() {
             rush_ybc: 'YBC', ybc_per_att: 'YBC/A', car_per_g: 'CAR/G', tgt_per_g: 'TGT/G',
             // Receiving labels belong to Rosters' 2026 modal only; the
             // historical CSV map and the separate Stats page keep their schema.
-            tprr: 'TPRR', rec_yacr: 'YACR', rec_yms: 'recYMS',
-            rec_tms: 'recTMS', tgt_10_plus: '10+ Tgt', ay_per_tgt: 'AY/Tgt', rec_per_g: 'REC/G'
+            tprr: 'TPRR', rec_yacr: 'YACR', rec_yms: 'recYS%',
+            rec_tms: 'recTDS%', tgt_10_plus: '10+ Tgt', ay_per_tgt: 'AY/Tgt', rec_per_g: 'REC/G'
         });
     }
     // Game Logs modal SZN view + shared stats key: always show the updated explosive-rush label.
@@ -4211,6 +4217,8 @@ function buildStatLabels() {
 }
 // Stats that must not use code-derived fallbacks; sheet is source of truth
 const NO_FALLBACK_KEYS = new Set([
+    // Share percentages must come from their source column, never weekly sums.
+    'tds_pct', 'ys_pct', 'rush_tms', 'rush_yms', 'pass_tms', 'pass_yms',
     // Rosters receiving rates use DH/WK values rather than summing weekly ratios.
     'tprr', 'rec_yacr', 'rec_yms', 'rec_tms', 'tgt_10_plus', 'ay_per_tgt', 'rec_per_g',
     'yprr',
@@ -5204,13 +5212,17 @@ function parseCsvLine(line) {
     return result;
 }
 function normalizeHeader(header) {
-    return header.replace(/[\u00a0\u202f]/g, ' ').trim();
+    // Historical CSVs can retain TMS/YMS headers while all modal labels use
+    // TDS%/YS%; the value/rank key remains stable across both spellings.
+    return header.replace(/[\u00a0\u202f]/g, ' ').trim()
+        .replace(/^(pa|ru|rec)?TMS$/, '$1TDS%')
+        .replace(/^(pa|ru|rec)?YMS$/, '$1YS%');
 }
 function parseStatValue(header, value) {
     const trimmed = value.trim();
     // For all non-PROJ columns, PROJ is handled separately
     if (!trimmed || trimmed.toUpperCase() === 'NA') return null;
-    if (header === 'SNP%') {
+    if (header === 'SNP%' || /^(pa|ru|rec)?(TDS|YS)%$/.test(normalizeHeader(header))) {
         const numericPortion = parseFloat(trimmed.replace('%', ''));
         if (Number.isNaN(numericPortion)) return null;
         if (trimmed.includes('%') || numericPortion > 1.5) {

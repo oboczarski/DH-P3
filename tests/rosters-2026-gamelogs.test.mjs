@@ -25,6 +25,31 @@ function createLoader(tables, failures = {}) {
 const season = 'SZN,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,GM_P,paATT\n2026,4984,Josh Allen,QB,BUF,35.66,1,30';
 const defense = 'TM,QBRK,RBRK,WRRK,TERK\nHOU,2,11,8,19\nDET,6,12,9,20';
 
+test('Rosters preserves share values and ranks across DH/WK header renaming', async () => {
+  const newHeaders = 'TDS%,YS%,ruTDS%,ruYS%,recTDS%,recYS%';
+  const legacyHeaders = 'TMS,YMS,ruTMS,ruYMS,recTMS,recYMS';
+  for (const headers of [newHeaders, legacyHeaders]) {
+    const window = createLoader({
+      DH: season.replace('\n', `,${headers}\n`) + ',0.125,12.5%,25,0,1%,NA',
+      DRK: defense,
+      WK1: `WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,${headers}\n1,4984,QB,BUF,35.66,1,58,0.125,12.5%,25,0,1%,NA`,
+    });
+    const snapshot = await window.activateRosters2026GameLogs();
+    for (const stats of [snapshot.seasonStats['4984'], snapshot.weeklyStats[1]['4984']]) {
+      assert.equal(stats.tds_pct, 12.5);
+      assert.equal(stats.ys_pct, 12.5);
+      assert.equal(stats.rush_tms, 25);
+      assert.equal(stats.rush_yms, 0);
+      assert.equal(stats.rec_tms, 1);
+      assert.equal(stats.rec_yms, undefined);
+    }
+    assert.equal(snapshot.seasonRanks['4984'].tds_pct, 1);
+    assert.equal(snapshot.seasonRanks['4984'].rush_yms, 1);
+    assert.equal(snapshot.seasonRanks['4984'].rec_tms, 1);
+    assert.equal(snapshot.seasonRanks['4984'].rec_yms, undefined);
+  }
+});
+
 test('Rosters loads mixed WK and legacy SZN weekly headers without changing stats or statuses', async () => {
   const window = createLoader({
     DH: season,

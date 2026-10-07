@@ -599,6 +599,8 @@ const STATS_COLUMN_SETS = {
     "OPP",
     "IMP",
     "IMP/OPP",
+    // Overview (ALL): append the source-backed touchdown share to Overview Stats.
+    "TDS%",
     "FPOE",
     "CSTY%",
     "CL",
@@ -1121,6 +1123,11 @@ const COLUMN_ICONS = {
 // Stats table headers; its column data and formatting are unchanged.
 const CAR_PER_GAME_HEADER_ICON_MARKUP = '<path d="M80-180v-80h57q-47-42-72-99.5T40-480q0-107 67-189.5T280-774v82q-72 20-116 78.5T120-481q0 50 21 93.5t59 75.5v-68h80v200H80Zm320-6v-82q72-20 116-78.5T560-479q0-50-21-93.5T480-648v68h-80v-200h200v80h-57q47 42 72 99.5T640-480q0 107-67 189.5T400-186Zm340 26v-488l-44 44-56-56 140-140 140 140-57 56-43-43v487h-80Z"/>';
 const STATS_COLUMN_ICON_OVERRIDES = Object.freeze({
+  // Overview touchdown share uses Material Symbols donut_large (outlined fill1,
+  // 24px), a distinct glyph unused by the other DataHub column headers.
+  overview: Object.freeze({
+    "TDS%": '<path d="M441-82Q287-97 184-211T81-480q0-155 103-269t257-129v120q-104 14-172 93t-68 185q0 106 68 185t172 93v120Zm80 0v-120q94-12 159-78t79-160h120q-14 143-114.5 243.5T521-82Zm238-438q-14-94-79-160t-159-78v-120q143 14 243.5 114.5T879-520H759Z"/>',
+  }),
   rushing: Object.freeze({
     // YBC's supplied glyph rotates 90 degrees counterclockwise around the
     // Material viewBox center in the RB Stats table header.
@@ -1138,7 +1145,7 @@ const STATS_COLUMN_ICON_OVERRIDES = Object.freeze({
     // step_over shows progress after the catch; pie_chart shows receiving yard share.
     // TPRR and recYPG retain their existing stat icons from the receiving view.
     "YACR": '<path d="M480-200q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM163-480q14-119 104-199.5T479-760q73 0 135 29.5T720-650v-110h80v280H520v-80h168q-32-54-86.5-87T480-680q-88 0-155 57t-81 143h-81Z"/>',
-    "recYMS": '<path d="M520-520v-356q143 15 241.5 114T876-520H520ZM441-85q-152-15-254.5-128T84-480q0-155 102.5-268T441-876v791Zm79 0v-356h356q-14 143-113.5 242.5T520-85Z"/>',
+    "recYS%": '<path d="M520-520v-356q143 15 241.5 114T876-520H520ZM441-85q-152-15-254.5-128T84-480q0-155 102.5-268T441-876v791Zm79 0v-356h356q-14 143-113.5 242.5T520-85Z"/>',
   }),
   // QB 2026 additions use the requested filled Material Symbols through the same
   // inline registry as the RB headers, with CAR/G retaining its shared icon.
@@ -1158,14 +1165,14 @@ const STATS_COLUMN_ICON_OVERRIDES = Object.freeze({
 const STATS_RECEIVING_COLUMN_ICON_OVERRIDES_2026 = Object.freeze({
   "TGT/G": STATS_COLUMN_ICON_OVERRIDES.rushing["TGT/G"],
   YACR: STATS_COLUMN_ICON_OVERRIDES.rushing.YACR,
-  recYMS: STATS_COLUMN_ICON_OVERRIDES.rushing.recYMS,
+  "recYS%": STATS_COLUMN_ICON_OVERRIDES.rushing["recYS%"],
   // REC/G uses stacked_line_chart to distinguish catch volume per game from yards.
   "REC/G": '<path d="m140-100-60-60 300-300 160 160 284-320 56 56-340 384-160-160-240 240Zm0-240-60-60 300-300 160 160 284-320 56 56-340 384-160-160-240 240Z"/>',
   "10+ Tgt": '<path d="M400-400h80q33 0 56.5-23.5T560-480v-160q0-33-23.5-56.5T480-720h-40q-33 0-56.5 23.5T360-640v40q0 33 23.5 56.5T440-520h40v40h-80v80Zm80-200h-40v-40h40v40ZM320-240q-33 0-56.5-23.5T240-320v-480q0-33 23.5-56.5T320-880h480q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H320ZM160-80q-33 0-56.5-23.5T80-160v-560h80v560h560v80H160Zm500-360h80v-80h80v-80h-80v-80h-80v80h-80v80h80v80Z"/>', // filter_9_plus: ten or more.
   AY: '<path d="M340-80v-60l80-60v-220L80-320v-80l340-200v-220q0-25 17.5-42.5T480-880q25 0 42.5 17.5T540-820v220l340 200v80L540-420v220l80 60v60l-140-40-140 40Z"/>', // flight: air yards.
   "recIMP/R": '<path d="M360-720h80v-80h-80v80Zm160 0v-80h80v80h-80ZM360-400v-80h80v80h-80Zm320-160v-80h80v80h-80Zm0 160v-80h80v80h-80Zm-160 0v-80h80v80h-80Zm160-320v-80h80v80h-80Zm-240 80v-80h80v80h-80ZM200-160v-640h80v80h80v80h-80v80h80v80h-80v320h-80Zm400-320v-80h80v80h-80Zm-160 0v-80h80v80h-80Zm-80-80v-80h80v80h-80Zm160 0v-80h80v80h-80Zm80-80v-80h80v80h-80Z"/>', // sports_score: receiving impact per reception.
   "AY/Tgt": '<path d="M160-760v-80h640v80H160Zm280 640v-408L336-424l-56-56 200-200 200 200-56 56-104-104v408h-80Z"/>', // vertical_align_top: target depth.
-  recTMS: '<path d="M593-520q-9-26-27.5-45.5T521-594v-284q143 14 243.5 114.5T879-520H593ZM441-82Q287-97 184-211T81-480q0-155 103-269t257-129v284q-36 13-58 44.5T361-480q0 38 22 68.5t58 43.5v286Zm80 0v-286q26-9 44.5-27.5T593-440h286q-14 143-114.5 243.5T521-82Z"/>', // donut_small: receiving touchdown share.
+  "recTDS%": '<path d="M593-520q-9-26-27.5-45.5T521-594v-284q143 14 243.5 114.5T879-520H593ZM441-82Q287-97 184-211T81-480q0-155 103-269t257-129v284q-36 13-58 44.5T361-480q0 38 22 68.5t58 43.5v286Zm80 0v-286q26-9 44.5-27.5T593-440h286q-14 143-114.5 243.5T521-82Z"/>', // donut_small: receiving touchdown share.
 });
 
 // ---------------------------------------------------------------------------
@@ -1417,7 +1424,8 @@ const BASE_COLUMN_GROUPS = Object.freeze({
       icon: OVERVIEW_STATS_GROUP_ICON_MARKUP,
       iconViewBox: DATAHUB_MATERIAL_SYMBOL_VIEW_BOX,
       iconClassName: "stats-table__group-header-icon--overview-stats-material",
-      columns: ["G", "SNP%", "YDS(t)", "YPG(t)", "OPP", "IMP", "IMP/OPP"],
+      // Keep TDS% last in this group, before Ceiling & Consistency.
+      columns: ["G", "SNP%", "YDS(t)", "YPG(t)", "OPP", "IMP", "IMP/OPP", "TDS%"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
     }),
@@ -1633,8 +1641,8 @@ const STATS_RUSHING_GROUP_COLUMNS_2026 = Object.freeze({
   ]),
   RECEIVING: Object.freeze([
     // 2026 RB Stats: insert the route/catch rates beside their source stats,
-    // then finish the Receiving group with per-game yards and yard market share.
-    "REC", "recYDS", "recTD", "YPRR", "TS%", "TPRR", "TGT", "TGT/G", "YAC", "YACR", "rec1D", "recYPG", "recYMS",
+    // then finish the Receiving group with per-game yards and yard share.
+    "REC", "recYDS", "recTD", "YPRR", "TS%", "TPRR", "TGT", "TGT/G", "YAC", "YACR", "rec1D", "recYPG", "recYS%",
   ]),
 });
 const STATS_RUSHING_COLUMN_GROUPS_2026 = Object.freeze(BASE_COLUMN_GROUPS.rushing.map((group) => Object.freeze({
@@ -1657,7 +1665,7 @@ const STATS_RECEIVING_GROUP_COLUMNS_2026 = Object.freeze({
   ]),
   "RECEIVING EFFICIENCY": Object.freeze([
     "TS%", "YPRR", "TPRR", "1DRR", "recYPG", "TGT/G", "recIMP/R",
-    "YACR", "AY%", "AY/Tgt", "YPR", "REC/G", "recYMS", "recTMS",
+    "YACR", "AY%", "AY/Tgt", "YPR", "REC/G", "recYS%", "recTDS%",
   ]),
 });
 const STATS_RECEIVING_COLUMN_GROUPS_2026 = Object.freeze(BASE_COLUMN_GROUPS.receiving.map((group) => Object.freeze({
@@ -2458,6 +2466,7 @@ const COLUMN_WIDTHS = {
   OPP: 90,
   IMP: 88,
   "IMP/OPP": 102,
+  "TDS%": 96,
   "CSTY%": 94,
   CL: 86,
   paYDS: 104,
@@ -2520,9 +2529,9 @@ const COLUMN_WIDTHS = {
   TPRR: 88,
   "1DRR": 88,
   recYPG: 96,
-  recYMS: 96,
+  "recYS%": 96,
   // W/T additions reserve space for their literal headers and rate values.
-  recTMS: 96,
+  "recTDS%": 96,
   "10+ Tgt": 98,
   "recIMP/R": 106,
   "AY/Tgt": 92,
@@ -2617,6 +2626,7 @@ const MOBILE_COLUMN_WIDTHS = {
   OPP: 44,
   IMP: 44,
   "IMP/OPP": 62,
+  "TDS%": 58,
   "CSTY%": 55,
   CL: 47,
   paYDS: 56,
@@ -2680,9 +2690,9 @@ const MOBILE_COLUMN_WIDTHS = {
   TPRR: 52,
   "1DRR": 52,
   recYPG: 58,
-  recYMS: 58,
+  "recYS%": 58,
   // Compact W/T additions stay in the existing horizontal scrolling pane.
-  recTMS: 58,
+  "recTDS%": 58,
   "10+ Tgt": 62,
   "recIMP/R": 70,
   "AY/Tgt": 58,
@@ -4073,7 +4083,11 @@ function getKtcSheetEntity(sheetData, playerId, entityKey) {
 }
 
 function normalizeSheetHeader(header) {
-  return String(header || "").replace(/[\u00a0\u202f]/g, " ").trim();
+  // DataHub share labels follow the renamed DH/WK headers. Accept historical
+  // TMS/YMS exports while preserving the existing internal stat/rank keys.
+  return String(header || "").replace(/[\u00a0\u202f]/g, " ").trim()
+    .replace(/^(pa|ru|rec)?TMS$/, "$1TDS%")
+    .replace(/^(pa|ru|rec)?YMS$/, "$1YS%");
 }
 
 function buildNormalizedSheetRow(row) {
@@ -7944,7 +7958,7 @@ function getDataHubComparisonRowAlias(statKey) {
     rec_fd: "rec1D",
     rec_yar: "YAC",
     rec_ypg: "recYPG",
-    rec_yms: "recYMS",
+    rec_yms: "recYS%",
     team_pass_pct: "TmPa%",
     ts_per_rr: "TS%",
     first_down_rec_rate: "1DRR",
@@ -9766,7 +9780,7 @@ function createHeaderCell(column, columnIconColor) {
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--position-material");
     }
-    if (["TIER", "AGE", "G", "Gs", "FPTS", "OPP", "IMP/OPP", "tTD", "40dsh"].includes(column.name)) {
+    if (["TIER", "AGE", "G", "Gs", "FPTS", "OPP", "IMP/OPP", "TDS%", "tTD", "40dsh"].includes(column.name)) {
       // DataHub filled Material stat column icons:
       // these requested 960-viewBox paths apply to every matching DataHub
       // table column while CSS keeps the visual treatment page-scoped.
@@ -11086,10 +11100,25 @@ function handleViewportResize() {
 // the final layout column name directly on the enriched source row.
 function normalizeRow(sourceRow) {
   const normalized = {};
+  // Table share columns accept both header generations during the workbook
+  // update. An explicit new header, including an unavailable cell, wins.
+  const shareSource = { ...sourceRow };
+  Object.entries(sourceRow).forEach(([header, value]) => {
+    const renamedHeader = normalizeSheetHeader(header);
+    if (renamedHeader !== header && !(renamedHeader in sourceRow)) shareSource[renamedHeader] = value;
+  });
+  sourceRow = shareSource;
 
   for (const columnName of ALL_COLUMNS) {
     if (BLANK_PLACEHOLDER_COLUMNS.has(columnName)) {
       normalized[columnName] = "";
+      continue;
+    }
+
+    // Keep share percentages in percentage points for sorting and positional
+    // ranks as well as display; absent values stay unavailable, valid zero stays zero.
+    if (/^(pa|ru|rec)?(TDS|YS)%$/.test(columnName)) {
+      normalized[columnName] = sanitizeValue(parseDataHubStatValue(columnName, sourceRow[columnName]));
       continue;
     }
 
@@ -11325,6 +11354,14 @@ function formatDisplayValue(columnName, value) {
     return numericValue == null ? formatCellValue(value) : numericValue.toFixed(1);
   }
 
+  // Share columns always show the renamed percentage units, including the
+  // Overview TDS% column; no share is calculated from other player statistics.
+  if (/^(pa|ru|rec)?(TDS|YS)%$/.test(columnName)) {
+    // normalizeRow has already converted fractions; do not rescale a 1% share.
+    const numericValue = toComparableNumber(value);
+    return numericValue == null ? formatCellValue(value) : formatDataHubPercentage(numericValue);
+  }
+
   // New QB table fields use the Game Logs parsing/formatting contract, keeping
   // missing cells unavailable and underlying DH values unrounded for sorting.
   if (is2026PassingStatsView() && ["EPA", "DB", "BLTZ%", "TmPa%", "CAR/G"].includes(columnName)) {
@@ -11345,20 +11382,19 @@ function formatDisplayValue(columnName, value) {
   }
 
   // RB receiving rates keep the workbook's units: TPRR is a decimal ratio,
-  // YACR is yards per reception, and recYMS is a percentage of team receiving yards.
-  if (is2026RushingStatsView() && ["TPRR", "YACR", "recYMS"].includes(columnName)) {
+  // and YACR is yards per reception. Shares are formatted above for every view.
+  if (is2026RushingStatsView() && ["TPRR", "YACR"].includes(columnName)) {
     const numericValue = parseDataHubStatValue(columnName, value);
     if (numericValue == null) return formatCellValue(value);
-    if (columnName === "recYMS") return formatDataHubPercentage(numericValue);
     return numericValue.toFixed(columnName === "TPRR" ? 3 : 1);
   }
 
   // W/T Stats uses DH units without rounding the stored sorting/rank values.
   // Route/reception ratios retain three decimals; yards/per-game values retain tenths.
-  if (is2026ReceivingStatsView() && ["TS%", "AY%", "recYMS", "recTMS", "TPRR", "1DRR", "recIMP/R", "recYPG", "TGT/G", "REC/G", "YACR", "AY/Tgt"].includes(columnName)) {
+  if (is2026ReceivingStatsView() && ["TS%", "AY%", "TPRR", "1DRR", "recIMP/R", "recYPG", "TGT/G", "REC/G", "YACR", "AY/Tgt"].includes(columnName)) {
     const numericValue = parseDataHubStatValue(columnName, value);
     if (numericValue == null) return formatCellValue(value);
-    if (["TS%", "AY%", "recYMS", "recTMS"].includes(columnName)) return formatDataHubPercentage(numericValue);
+    if (["TS%", "AY%"].includes(columnName)) return formatDataHubPercentage(numericValue);
     if (["TPRR", "1DRR", "recIMP/R"].includes(columnName)) return numericValue.toFixed(3);
     if (["recYPG", "TGT/G", "REC/G", "YACR", "AY/Tgt"].includes(columnName)) return numericValue.toFixed(1);
   }
@@ -11761,6 +11797,8 @@ const DATAHUB_STATS_KEY_SECTIONS = [
       { abbr: "MTF/A", desc: "Missed Tackles per Attempt" },
       { abbr: "ru1D", desc: "Rushing First Downs" },
       { abbr: "ruTD", desc: "Rushing Touchdowns" },
+      { abbr: "ruTDS%", desc: "Rushing Touchdown Share" },
+      { abbr: "ruYS%", desc: "Rushing Yard Share" },
       { abbr: "ruYDS", desc: "Rushing Yards" },
       { abbr: "YCO", desc: "Yards After Contact" },
       { abbr: "YCO/A", desc: "Yards After Contact per Attempt" },
@@ -11784,8 +11822,8 @@ const DATAHUB_STATS_KEY_SECTIONS = [
       { abbr: "recYDS", desc: "Receiving Yards" },
       // Explain the expanded RB receiving columns in this page's modal key.
       { abbr: "recYPG", desc: "Receiving Yards per Game" },
-      { abbr: "recYMS", desc: "Receiving Yard Market Share" },
-      { abbr: "recTMS", desc: "Receiving Touchdown Market Share" },
+      { abbr: "recYS%", desc: "Receiving Yard Share" },
+      { abbr: "recTDS%", desc: "Receiving Touchdown Share" },
       { abbr: "RR", desc: "Routes Run" },
       { abbr: "RZ Tgt", desc: "Red Zone Targets" },
       { abbr: "TGT", desc: "Targets" },
@@ -11821,10 +11859,20 @@ const DATAHUB_STATS_KEY_SECTIONS = [
       { abbr: "VALUE", desc: "Trade Value" },
       { abbr: "YDS(t)", desc: "Total Yards" },
       { abbr: "YPG(t)", desc: "Yards per Game (Total)" },
+      { abbr: "TDS%", desc: "Touchdown Share" },
+      { abbr: "YS%", desc: "Yard Share" },
     ],
   },
 ];
 const DATAHUB_PLAYER_STAT_HEADER_MAP = {
+  // Renamed total/rushing shares remain source-backed. Receiving shares below
+  // retain rec_yms/rec_tms so existing Season and radar rank consumers agree.
+  "TDS%": "tds_pct",
+  "YS%": "ys_pct",
+  "ruTDS%": "rush_tms",
+  "ruYS%": "rush_yms",
+  "paTDS%": "pass_tms",
+  "paYS%": "pass_yms",
   paATT: "pass_att",
   CMP: "pass_cmp",
   "CMP PCT": "cmp_pct",
@@ -11884,9 +11932,9 @@ const DATAHUB_PLAYER_STAT_HEADER_MAP = {
   // 2026 RB receiving rates come directly from DH/WK for both modal views.
   YACR: "rec_yacr",
   TPRR: "tprr",
-  recYMS: "rec_yms",
+  "recYS%": "rec_yms",
   // W/T DH/WK headers are parsed directly for weekly/Season values and ranks.
-  recTMS: "rec_tms",
+  "recTDS%": "rec_tms",
   "10+ Tgt": "tgt_10_plus",
   "AY/Tgt": "ay_per_tgt",
   YPR: "ypr",
@@ -11932,12 +11980,12 @@ const DATAHUB_RADAR_STATS_CONFIG = {
   },
   WR: {
     stats: ["fpts", "ppg", "yds_total", "imp", "rec_tgt", "ts_per_rr", "rec", "yprr", "rec_yar", "rec_yms", "csty_pct", "ceiling"],
-    labels: ["FPTS", "PPG", "YDS(t)", "IMP(TD+1D)", "TGT", "TS%", "REC", "YPRR", "YAC", "recYMS", "CSTY%", "CL"],
+    labels: ["FPTS", "PPG", "YDS(t)", "IMP(TD+1D)", "TGT", "TS%", "REC", "YPRR", "YAC", "recYS%", "CSTY%", "CL"],
     maxRank: 72,
   },
   TE: {
     stats: ["fpts", "ppg", "yds_total", "imp", "rec_tgt", "ts_per_rr", "rec", "yprr", "rec_yar", "rec_yms", "csty_pct", "ceiling"],
-    labels: ["FPTS", "PPG", "YDS(t)", "IMP(TD+1D)", "TGT", "TS%", "REC", "YPRR", "YAC", "recYMS", "CSTY%", "CL"],
+    labels: ["FPTS", "PPG", "YDS(t)", "IMP(TD+1D)", "TGT", "TS%", "REC", "YPRR", "YAC", "recYS%", "CSTY%", "CL"],
     maxRank: 24,
   },
 };
@@ -12111,6 +12159,8 @@ const DATAHUB_LEAGUE_ABBR_OVERRIDES = {
 };
 const DATAHUB_STAT_LABELS = buildDataHubStatLabels();
 const DATAHUB_NO_FALLBACK_KEYS = new Set([
+  // Share fields use the supplied season percentage, never a weekly sum.
+  "tds_pct", "ys_pct", "rush_tms", "rush_yms", "pass_tms", "pass_yms",
   // Receiving rates must stay unavailable when DH/WK omits the source value.
   "tprr", "rec_yacr", "rec_yms",
   "rec_tms", "tgt_10_plus", "ay_per_tgt", "rec_per_g",
@@ -13416,6 +13466,7 @@ function parseDataHubSeasonStatsRows(rows) {
     const stats = {};
     Object.entries(row).forEach(([header, value]) => {
       const normalizedHeader = normalizeSheetHeader(header);
+      if (normalizedHeader !== header && normalizedHeader in row) return;
       if (normalizedHeader === "SLPR_ID") {
         return;
       }
@@ -13479,6 +13530,7 @@ function parseDataHubWeeklyStatsRows(rows) {
     const stats = { pos: String(row.POS || "").trim().toUpperCase() };
     Object.entries(row).forEach(([header, value]) => {
       const normalizedHeader = normalizeSheetHeader(header);
+      if (normalizedHeader !== header && normalizedHeader in row) return;
       if (normalizedHeader === "SLPR_ID") {
         return;
       }
@@ -13520,7 +13572,7 @@ function parseDataHubStatValue(header, value) {
   }
   // QB percentages and receiving yard/TD shares accept explicit percentages,
   // fractions, or percentage points. TPRR remains a decimal ratio from DH/WK.
-  if (["SNP%", "BLTZ%", "TmPa%", "recYMS", "recTMS"].includes(header)) {
+  if (["SNP%", "BLTZ%", "TmPa%"].includes(header) || /^(pa|ru|rec)?(TDS|YS)%$/.test(normalizeSheetHeader(header))) {
     const numericPortion = Number.parseFloat(trimmedValue.replace("%", ""));
     if (!Number.isFinite(numericPortion)) {
       return null;

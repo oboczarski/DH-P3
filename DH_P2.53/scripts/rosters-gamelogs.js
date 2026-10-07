@@ -22,6 +22,9 @@ const ROSTERS_GAMELOG_STAT_SECTIONS = [
     stat("YDS(t) / tYDS", "Total Yards", ["YDS(t)", "tYDS", "ttlYDS", "yds_total"]),
     stat("YPG(t)", "Total Yards per Game", ["ypg"]),
     stat("tTD", "Total Touchdowns", ["ttlTD"]),
+    // Share abbreviations match DH/WK; legacy aliases remain searchable only.
+    stat("TDS%", "Touchdown Share", ["TMS", "tds_pct"], "Percentage of team touchdowns."),
+    stat("YS%", "Yard Share", ["YMS", "ys_pct"], "Percentage of team yards."),
     stat("OPP", "Opportunities", ["opp"], "Pass Attempts + carries + targets.",
       "Opportunities (paATT + CAR + TGT)"),
     // IMP header tooltip uses the requested shorthand; the key keeps its definition.
@@ -79,6 +82,8 @@ const ROSTERS_GAMELOG_STAT_SECTIONS = [
     stat("ruYDS", "Rushing Yards", ["rush_yd"]),
     stat("ruYPG", "Rushing Yards per Game", ["ru_ypg"]),
     stat("ruTD", "Rushing Touchdowns", ["rush_td"]),
+    stat("ruTDS%", "Rushing Touchdown Share", ["ruTMS", "rush_tms"], "Percentage of team rushing touchdowns."),
+    stat("ruYS%", "Rushing Yard Share", ["ruYMS", "rush_yms"], "Percentage of team rushing yards."),
     stat("ru1D", "Rushing First Downs", ["rush_fd"]),
     // Impact definitions belong in their stat-family key sections; they add
     // reference text through the existing glossary renderer, not table columns.
@@ -107,9 +112,9 @@ const ROSTERS_GAMELOG_STAT_SECTIONS = [
     stat("recYPG", "Receiving Yards per Game", ["rec_ypg"]),
     // Rosters keeps its own RB receiving help rather than importing DataHub's
     // glossary; these aliases cover the 2026 Season and weekly modal labels.
-    stat("recYMS", "Receiving Yard Market Share", ["rec_yms"], "Percentage of team receiving yards."),
+    stat("recYS%", "Receiving Yard Share", ["recYMS", "rec_yms"], "Percentage of team receiving yards."),
     // Rosters' independent help covers the current WR/TE additions.
-    stat("recTMS", "Receiving Touchdown Market Share", ["rec_tms"], "Percentage of team receiving touchdowns."),
+    stat("recTDS%", "Receiving Touchdown Share", ["recTMS", "rec_tms"], "Percentage of team receiving touchdowns."),
     stat("recTD", "Receiving Touchdowns", ["rec_td"]),
     stat("rec1D", "Receiving First Downs", ["rec_fd"]),
     stat("recIMP", "Receiving Impact Plays", [], "Receiving first downs + receiving touchdowns"),
@@ -179,6 +184,8 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
       { abbr: "MTF/A", desc: "Missed Tackles per Attempt" },
       { abbr: "ru1D", desc: "Rushing First Downs" },
       { abbr: "ruTD", desc: "Rushing Touchdowns" },
+      { abbr: "ruTDS%", desc: "Rushing Touchdown Share" },
+      { abbr: "ruYS%", desc: "Rushing Yard Share" },
       { abbr: "ruYDS", desc: "Rushing Yards" },
       { abbr: "YCO", desc: "Yards After Contact" },
       { abbr: "YCO/A", desc: "Yards After Contact per Attempt" },
@@ -202,8 +209,8 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
       { abbr: "recYDS", desc: "Receiving Yards" },
       // Explain the expanded RB receiving columns in Rosters' own modal key.
       { abbr: "recYPG", desc: "Receiving Yards per Game" },
-      { abbr: "recYMS", desc: "Receiving Yard Market Share" },
-      { abbr: "recTMS", desc: "Receiving Touchdown Market Share" },
+      { abbr: "recYS%", desc: "Receiving Yard Share" },
+      { abbr: "recTDS%", desc: "Receiving Touchdown Share" },
       { abbr: "RR", desc: "Routes Run" },
       { abbr: "RZ Tgt", desc: "Red Zone Targets" },
       { abbr: "TGT", desc: "Targets" },
@@ -238,6 +245,8 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
       { abbr: "VALUE", desc: "Trade Value" },
       { abbr: "YDS(t)", desc: "Total Yards" },
       { abbr: "YPG(t)", desc: "Yards per Game (Total)" },
+      { abbr: "TDS%", desc: "Touchdown Share" },
+      { abbr: "YS%", desc: "Yard Share" },
     ],
   },
 ];
@@ -482,12 +491,12 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
   },
   WR: {
     stats: ["fpts", "ppg", "yds_total", "imp", "rec_tgt", "ts_per_rr", "rec", "yprr", "rec_yar", "rec_yms", "csty_pct", "ceiling"],
-    labels: ["FPTS", "PPG", "YDS(t)", "IMP(TD+1D)", "TGT", "TS%", "REC", "YPRR", "YAC", "recYMS", "CSTY%", "CL"],
+    labels: ["FPTS", "PPG", "YDS(t)", "IMP(TD+1D)", "TGT", "TS%", "REC", "YPRR", "YAC", "recYS%", "CSTY%", "CL"],
     maxRank: 72,
   },
   TE: {
     stats: ["fpts", "ppg", "yds_total", "imp", "rec_tgt", "ts_per_rr", "rec", "yprr", "rec_yar", "rec_yms", "csty_pct", "ceiling"],
-    labels: ["FPTS", "PPG", "YDS(t)", "IMP(TD+1D)", "TGT", "TS%", "REC", "YPRR", "YAC", "recYMS", "CSTY%", "CL"],
+    labels: ["FPTS", "PPG", "YDS(t)", "IMP(TD+1D)", "TGT", "TS%", "REC", "YPRR", "YAC", "recYS%", "CSTY%", "CL"],
     maxRank: 24,
   },
 };

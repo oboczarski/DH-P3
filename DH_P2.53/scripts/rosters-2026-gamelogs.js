@@ -8,6 +8,11 @@
 (() => {
     const POSITIONS = new Set(['QB', 'RB', 'WR', 'TE']);
     const STAT_MAP = {
+        // Rosters owns its share mappings. Stable keys preserve Season/footer
+        // ranks and Performance values when the workbook headers are renamed.
+        'TDS%': 'tds_pct', 'YS%': 'ys_pct',
+        'ruTDS%': 'rush_tms', 'ruYS%': 'rush_yms',
+        'paTDS%': 'pass_tms', 'paYS%': 'pass_yms',
         paATT: 'pass_att', CMP: 'pass_cmp', 'CMP PCT': 'cmp_pct', 'CMP%': 'cmp_pct',
         // Rosters 2026 QB Game Logs: read these exact WK/DH passing headers for
         // the weekly table and its season footer; 2025 CSV parsing stays in app.js.
@@ -26,14 +31,19 @@
         TGT: 'rec_tgt', REC: 'rec', recYDS: 'rec_yd', recTD: 'rec_td', rec1D: 'rec_fd', YAC: 'rec_yar', YPR: 'ypr',
         // Rosters owns these 2026 receiving mappings for weekly/Season views
         // and positional ranks; missing sheet fields remain unavailable.
-        TPRR: 'tprr', YACR: 'rec_yacr', recYMS: 'rec_yms',
+        TPRR: 'tprr', YACR: 'rec_yacr', "recYS%": 'rec_yms',
         // WR/TE production, efficiency, and weekly additions use exact DH/WK headers.
-        recTMS: 'rec_tms', '10+ Tgt': 'tgt_10_plus', 'AY/Tgt': 'ay_per_tgt', 'REC/G': 'rec_per_g',
+        "recTDS%": 'rec_tms', '10+ Tgt': 'tgt_10_plus', 'AY/Tgt': 'ay_per_tgt', 'REC/G': 'rec_per_g',
         RR: 'rr', 'RZ Tgt': 'rz_tgt', 'TS%': 'ts_per_rr', 'CSTY%': 'csty_pct', YPRR: 'yprr', '1DRR': 'first_down_rec_rate',
         IMP: 'imp', FUM: 'fum', SNP: 'snp', 'SNP%': 'snp_pct', 'YDS(t)': 'yds_total', FPOE: 'fpoe', aFPOE: 'fpoe',
         CL: 'ceiling', 'YPG(t)': 'ypg', paYPG: 'pa_ypg', ruYPG: 'ru_ypg', recYPG: 'rec_ypg', 'AY%': 'ay_pct', PROJ: 'proj', FPT_PPR: 'fpt_ppr'
     };
     const normalizeTeam = (team) => ({ JAC: 'JAX', WSH: 'WAS', LA: 'LAR' })[String(team || '').trim().toUpperCase()] || String(team || '').trim().toUpperCase();
+    // Accept both share-header generations while the user updates DH/WK tabs.
+    // This parser remains independently owned by Rosters.
+    const normalizeStatHeader = (header) => header.replace(/[\u00a0\u202f]/g, ' ').trim()
+        .replace(/^(pa|ru|rec)?TMS$/, '$1TDS%')
+        .replace(/^(pa|ru|rec)?YMS$/, '$1YS%');
     const csvLine = (line) => {
         const values = [];
         let value = '';
@@ -73,7 +83,9 @@
     const parseStats = (row, weekly = false) => {
         const stats = {};
         Object.entries(row || {}).forEach(([header, rawValue]) => {
-            const key = header.replace(/[\u00a0\u202f]/g, ' ').trim();
+            const key = normalizeStatHeader(header);
+            // An explicit renamed column wins even when its cell is unavailable.
+            if (key !== header && key in row) return;
             if (['SLPR_ID', 'SZN', 'POS', 'TM', 'PLAYER NAME', 'GM_P'].includes(key)) return;
             if (key === 'VS') { if (String(rawValue || '').trim()) stats.opponent = String(rawValue).trim(); return; }
             if (key === 'vsRK') { const rank = numberValue(rawValue); if (rank !== null) stats.opponent_rank = rank; return; }
@@ -81,9 +93,9 @@
             if (!statKey) return;
             if (statKey === 'proj') { stats.proj = String(rawValue ?? '').trim(); return; }
             let number = numberValue(rawValue);
-            // QB percentages and receiving market shares accept fractions or
+            // QB percentages and yard/touchdown shares accept fractions or
             // percentage points; TPRR retains its source decimal-ratio units.
-            if (['SNP%', 'BLTZ%', 'TmPa%', 'recYMS', 'recTMS'].includes(key) && number !== null && !String(rawValue).includes('%') && number <= 1.5) number *= 100;
+            if ((['SNP%', 'BLTZ%', 'TmPa%'].includes(key) || /^(pa|ru|rec)?(TDS|YS)%$/.test(key)) && number !== null && !String(rawValue).includes('%') && number <= 1.5) number *= 100;
             if (number !== null) stats[statKey] = number;
         });
         if (weekly) stats.__hasRecordedStats = Boolean(row.__hasRecordedStats);

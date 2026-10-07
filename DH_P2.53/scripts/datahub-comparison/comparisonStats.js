@@ -278,7 +278,9 @@ const STAT_DEFINITIONS = Object.freeze({
   rec_fd: Object.freeze({ key: "rec_fd", label: "rec1D", decimals: 0 }),
   rec_yar: Object.freeze({ key: "rec_yar", label: "YAC", decimals: 0 }),
   rec_ypg: Object.freeze({ key: "rec_ypg", label: "recYPG", decimals: 1 }),
-  rec_yms: Object.freeze({ key: "rec_yms", label: "recYMS", unit: "%", decimals: 1, percent: true }),
+  // Comparison uses the new share label with the existing key, preserving the
+  // source-backed season values and per-player positional ranks.
+  rec_yms: Object.freeze({ key: "rec_yms", label: "recYS%", unit: "%", decimals: 1, percent: true }),
   rr: Object.freeze({ key: "rr", label: "RR", decimals: 0 }),
   ypr: Object.freeze({ key: "ypr", label: "YPR", decimals: 2 }),
   yprr: Object.freeze({ key: "yprr", label: "YPRR", decimals: 2 }),

@@ -39,7 +39,8 @@
 // Refresh inline week labels and the Rosters-owned Start/Sit matchup-info chips.
 // Refresh Start/Sit's opponent/position headings, per-game chips and FPA footer.
 // Refresh Start/Sit's internal chip dividers, per-game rank colors and Allowed footer.
-const CACHE_NAME = 'DH3.49i-start-sit-dividers-colors';
+// Refresh renamed TDS%/YS% labels, source mappings and the Overview touchdown-share column.
+const CACHE_NAME = 'DH3.49j-stat-share-labels';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
