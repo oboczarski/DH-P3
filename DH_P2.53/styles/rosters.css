@@ -834,7 +834,7 @@ body[data-page="rosters"] .player-row > .roster-injury-indicator {
   position: absolute;
   top: 1px;
   right: 1px;
-  z-index: 2;
+  z-index: 1;
   padding: 1px 3px;
   border-radius: 6px 7px 6px 6px;
   background: rgb(32 40 54 / 78%);
