@@ -23,8 +23,8 @@ const ROSTERS_GAMELOG_STAT_SECTIONS = [
     stat("YPG(t)", "Total Yards per Game", ["ypg"]),
     stat("tTD", "Total Touchdowns", ["ttlTD"]),
     // Share abbreviations match DH/WK; legacy aliases remain searchable only.
-    stat("TDS%", "Touchdown Share", ["TMS", "tds_pct"], "Percentage of team touchdowns."),
-    stat("YS%", "Yard Share", ["YMS", "ys_pct"], "Percentage of team yards."),
+    stat("TDS%", "Touchdowns Market Share", ["TMS", "tds_pct"], "Percentage of team touchdowns."),
+    stat("YS%", "Yards Market Share", ["YMS", "ys_pct"], "Percentage of team yards."),
     stat("OPP", "Opportunities", ["opp"], "Pass Attempts + carries + targets.",
       "Opportunities (paATT + CAR + TGT)"),
     // IMP header tooltip uses the requested shorthand; the key keeps its definition.
@@ -73,7 +73,7 @@ const ROSTERS_GAMELOG_STAT_SECTIONS = [
     stat("PRS%", "Pressure Rate", ["prs_pct"]),
     stat("BLTZ%", "Blitz Rate", ["blitz_pct"]),
     stat("DP%", "Deep Pass Rate", ["dp_pct"]),
-    stat("TmPa%", "Team Passing Share", ["team_pass_pct"]),
+    stat("TmPa%", "Team Pass Rate", ["team_pass_pct"]),
   ] },
   { id: "rushing", label: "Rushing", tone: "rushing", items: [
     stat("CAR", "Carries", ["rush_att"]),
@@ -82,8 +82,8 @@ const ROSTERS_GAMELOG_STAT_SECTIONS = [
     stat("ruYDS", "Rushing Yards", ["rush_yd"]),
     stat("ruYPG", "Rushing Yards per Game", ["ru_ypg"]),
     stat("ruTD", "Rushing Touchdowns", ["rush_td"]),
-    stat("ruTDS%", "Rushing Touchdown Share", ["ruTMS", "rush_tms"], "Percentage of team rushing touchdowns."),
-    stat("ruYS%", "Rushing Yard Share", ["ruYMS", "rush_yms"], "Percentage of team rushing yards."),
+    stat("ruTDS%", "Rushing Touchdowns Market Share", ["ruTMS", "rush_tms"], "Percentage of team rushing touchdowns."),
+    stat("ruYS%", "Rushing Yards Market Share", ["ruYMS", "rush_yms"], "Percentage of team rushing yards."),
     stat("ru1D", "Rushing First Downs", ["rush_fd"]),
     // Impact definitions belong in their stat-family key sections; they add
     // reference text through the existing glossary renderer, not table columns.
@@ -112,9 +112,9 @@ const ROSTERS_GAMELOG_STAT_SECTIONS = [
     stat("recYPG", "Receiving Yards per Game", ["rec_ypg"]),
     // Rosters keeps its own RB receiving help rather than importing DataHub's
     // glossary; these aliases cover the 2026 Season and weekly modal labels.
-    stat("recYS%", "Receiving Yard Share", ["recYMS", "rec_yms"], "Percentage of team receiving yards."),
+    stat("recYS%", "Receiving Yards Market Share", ["recYMS", "rec_yms"], "Percentage of team receiving yards."),
     // Rosters' independent help covers the current WR/TE additions.
-    stat("recTDS%", "Receiving Touchdown Share", ["recTMS", "rec_tms"], "Percentage of team receiving touchdowns."),
+    stat("recTDS%", "Receiving Touchdowns Market Share", ["recTMS", "rec_tms"], "Percentage of team receiving touchdowns."),
     stat("recTD", "Receiving Touchdowns", ["rec_td"]),
     stat("rec1D", "Receiving First Downs", ["rec_fd"]),
     stat("recIMP", "Receiving Impact Plays", [], "Receiving first downs + receiving touchdowns"),
