@@ -496,13 +496,13 @@ body[data-page="rosters"] .start-sit-matchup-info-chip {
   padding: 5px 2px;
   border: 1px solid rgba(170, 187, 255, 0.1);
   border-radius: 5px;
-  background: rgba(170, 187, 255, 0.04);
+  background: rgba(170, 187, 255, 0.00);
   font-variant-numeric: tabular-nums;
 }
 body[data-page="rosters"] .start-sit-matchup-info-label {
   color: var(--color-text-tertiary);
-  font-size: clamp(5.5px, 4cqi, 8px);
-  line-height: 1.15;
+  font-size: clamp(5.5px, 5cqi, 8.5px);
+  line-height: 1.1;
   letter-spacing: -0.025em;
   white-space: nowrap;
 }
@@ -515,7 +515,7 @@ body[data-page="rosters"] .start-sit-matchup-info-value {
 }
 body[data-page="rosters"] .start-sit-matchup-info-value small {
   margin-left: 1px;
-  font-size: 0.6em;
+  font-size: 0.7em;
   font-weight: 400;
   color: var(--color-text-tertiary);
 }
@@ -544,11 +544,11 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
   cursor: default;
 }
 @media (max-width:520px) {
-  body[data-page="rosters"] .start-sit-matchup-meta {gap: 0.45rem;}
+  body[data-page="rosters"] .start-sit-matchup-meta {gap: 0.45rem;border-bottom: 1px solid #dde2;max-width: 83%;}
   body[data-page="rosters"] .start-sit-total-label {
     font-size: clamp(0.68rem, 2.9vw, 0.9rem);
   }
-  body[data-page="rosters"] .start-sit-matchup-info-heading {font-size: 10px;padding: 4px 2px 0;}
+  body[data-page="rosters"] .start-sit-matchup-info-heading {font-size: 13px;padding: 4px 3px 0;font-weight: 600;}
   body[data-page="rosters"] .start-sit-matchup-info-grid {gap: 0px;}
   /* Narrow preview columns need their full chip width for complete labels. */
   body[data-page="rosters"] .start-sit-matchup-info-chip {padding: 3px 0;}
