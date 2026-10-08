@@ -1508,6 +1508,11 @@ body[data-page="rosters"] :where(#game-logs-modal) .game-logs-loading-spinner::a
   content: "";
   position: absolute;
   inset: 0;
+  /* Rosters Game Logs: size the ring/glow from their symmetric insets instead
+     of the shared loader's fixed dimensions, keeping both centered in 56px. */
+  width: auto;
+  height: auto;
+  box-sizing: border-box;
   border-radius: inherit;
 }
 

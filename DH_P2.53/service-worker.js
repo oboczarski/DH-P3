@@ -45,7 +45,8 @@
 // Refresh DataHub/Rosters Career formatting so tiers follow positional ranks.
 // Refresh local 2026 weekly CSV loaders and the renamed weekly/schedule paths.
 // Refresh Rosters Trade Preview injury badges beside the player's age.
-const CACHE_NAME = 'DH3.49o-preview-injury-placement';
+// Refresh the Rosters-only Game Logs ring/glow sizing so the loader stays centered.
+const CACHE_NAME = 'DH3.49p-rosters-loader-centered';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
