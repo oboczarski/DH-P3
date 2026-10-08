@@ -9375,8 +9375,8 @@ function createPlayerRow(player, teamName) {
     const rawKtcPosRankNumber = ktcPosRankMatch ? Number.parseInt(ktcPosRankMatch[1], 10) : null;
     const ktcPosRankNumber = Number.isFinite(rawKtcPosRankNumber) && rawKtcPosRankNumber > 0 ? rawKtcPosRankNumber : null;
     // Rosters player cards show the existing Sleeper/upcoming injury designation
-    // in an absolute corner indicator. BYE/numeric/unknown projection values
-    // are not injuries; keeping this outside the flex rows preserves every view's geometry.
+    // beside the age in Trade Preview, or in the corner in other roster views.
+    // BYE/numeric/unknown projection values are not injuries.
     const injuryDesignation = pageType === 'rosters'
         ? player.injuryDesignation || getSleeperInjuryDesignation(player.id) || getUpcomingProjectionDesignation(player.id)
         : null;
@@ -9394,7 +9394,7 @@ function createPlayerRow(player, teamName) {
         ? `<span class="condensed-team-tag">${teamTagHTML}</span>`
         : '';
     const tradePreviewAgeHtml = isTradePreviewCard
-        ? `<span class="trade-preview-age"><span class="player-age">${player.age || '?'}</span><span class="trade-preview-age-unit"> y.o.</span></span>`
+        ? `<span class="trade-preview-age"><span class="player-age">${player.age || '?'}</span><span class="trade-preview-age-unit"> y.o.</span>${injuryBadgeHtml}</span>`
         : '';
     const tradePreviewAdpHtml = `<span class="player-adp-wrapper trade-preview-adp-wrapper">ADP:<span class="value player-adp">${adpValue}</span></span>`;
     const tradePreviewTeamHtml = isTradePreviewCard
@@ -9435,7 +9435,7 @@ function createPlayerRow(player, teamName) {
         : '';
     row.innerHTML = `
                 ${rosterWatermarkHtml}
-                ${injuryBadgeHtml}
+                ${isTradePreviewCard ? '' : injuryBadgeHtml}
                 ${mainLineHtml}
                 ${metaLineHtml}
                 ${valueLineHtml}

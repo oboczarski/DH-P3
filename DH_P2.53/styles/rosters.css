@@ -828,12 +828,9 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
   transition: opacity 0.2s ease;
 }
 
-/* Rosters injury indicators sit above the watermark and outside the card's
-   flex flow, so desktop/mobile and condensed/trade cards keep identical sizes. */
-body[data-page="rosters"] .player-row > .roster-injury-indicator {
-  position: absolute;
-  top: 1px;
-  right: 1px;
+/* Rosters injury indicators retain the same colors and badge treatment in
+   both the corner placement and Trade Preview's inline age placement. */
+body[data-page="rosters"] .player-row .roster-injury-indicator {
   z-index: 1;
   padding: 1px 3px;
   border-radius: 6px 7px 6px 6px;
@@ -844,6 +841,13 @@ body[data-page="rosters"] .player-row > .roster-injury-indicator {
   letter-spacing: 0.02em;
   white-space: nowrap;
   pointer-events: none;
+}
+
+/* Regular roster and Start/Sit cards keep their injury badge out of flex flow. */
+body[data-page="rosters"] .player-row > .roster-injury-indicator {
+  position: absolute;
+  top: 1px;
+  right: 1px;
 }
 
 /* Condensed view: smaller watermark to match compact card size */
@@ -3458,6 +3462,13 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trad
   margin-left: 0.08rem;
   font-size: 0.52rem;
   color: var(--color-text-secondary);
+}
+
+/* Side-by-side team previews group the injury designation immediately after
+   age, including condensed cards, so it cannot overlap the far-right logo. */
+body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-age > .roster-injury-indicator {
+  flex: 0 0 auto;
+  margin-left: 0.18rem;
 }
 
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-team-slot {

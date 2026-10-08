@@ -44,7 +44,8 @@
 // Refresh DataHub's TD(t) totals and TDS% additions in the positional groups.
 // Refresh DataHub/Rosters Career formatting so tiers follow positional ranks.
 // Refresh local 2026 weekly CSV loaders and the renamed weekly/schedule paths.
-const CACHE_NAME = 'DH3.49n-local-weekly-stats';
+// Refresh Rosters Trade Preview injury badges beside the player's age.
+const CACHE_NAME = 'DH3.49o-preview-injury-placement';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
