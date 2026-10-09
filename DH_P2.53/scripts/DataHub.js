@@ -1,6 +1,6 @@
 import { get2026QualifierOptions } from "./datahub-stats-season.js";
 import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSeasonRankQualified } from "./datahub-stats-positional-ranks.js";
-import { load2026SourceData, load2026WeeklySourceData } from "./datahub-2026-data.js";
+import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js";
 import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js";
 
@@ -3060,6 +3060,7 @@ const ROOKIE_CSV_URLS_BY_CATEGORY = Object.freeze({
 });
 
 let supplementalDataPromise = null;
+let dataHub2026ProjectionPreparationPromise = null;
 let rookieDataPromise = null;
 let dataHubComparisonModulePromise = null;
 let dataHubComparisonStylesPromise = null;
@@ -3087,6 +3088,9 @@ function initializeApp() {
       "Building out the Data Hub. Loading season stats, rankings, player values, and ADP feeds.",
   });
   loadInitialData();
+  // Warm future projections immediately without adding them to the page's
+  // loading barrier. DRK/schedule and all modal rendering remain on demand.
+  void prepareDataHub2026Projections().catch((error) => console.warn("DataHub projection preload failed.", error));
 
   if (document.fonts?.ready) {
     document.fonts.ready
@@ -3908,6 +3912,22 @@ async function ensureDataHub2026Data() {
     }).finally(() => { state.stats2026Promise = null; });
   }
   return state.stats2026Promise;
+}
+
+// Share only this page's background CSV/projection work with Game Logs and
+// Compare. Neither main Stats loading nor the 2025 snapshot waits for it.
+function prepareDataHub2026Projections() {
+  if (!dataHub2026ProjectionPreparationPromise) {
+    dataHub2026ProjectionPreparationPromise = (async () => {
+      const weeklySource = await load2026WeeklyCsvData({ parseCsv });
+      const projectionSource = await load2026ProjectionSourceData({ weeklySource, parseCsv });
+      if (Object.keys(projectionSource.projectionErrors).length) {
+        console.warn("DataHub skipped unavailable 2026 projections:", projectionSource.projectionErrors);
+      }
+      return { weeklySource, projectionSource };
+    })().catch((error) => { dataHub2026ProjectionPreparationPromise = null; throw error; });
+  }
+  return dataHub2026ProjectionPreparationPromise;
 }
 
 function getDataHubStatsRowsForSeason(season = state.statsSeason) {
@@ -13381,6 +13401,7 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
         const weeklySource = await load2026WeeklySourceData({
           seasonRows: source.rawRows,
           parseCsv,
+          ...await prepareDataHub2026Projections(),
           scheduleUrl: new URL("../data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv", window.location.href),
         });
         source.weeklyRows = weeklySource.weeklyRows;

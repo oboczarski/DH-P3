@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import { build2026SourceData, has2026WeekResults, get2026WeeksOfData, load2026SourceData, load2026WeeklySourceData } from '../DH_P2.53/scripts/datahub-2026-data.js';
+import { build2026SourceData, has2026WeekResults, get2026WeeksOfData, load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from '../DH_P2.53/scripts/datahub-2026-data.js';
 import { get2026QualifierOptions } from '../DH_P2.53/scripts/datahub-stats-season.js';
-import { get2026SheetCsvUrl } from '../DH_P2.53/scripts/nfl-2026-sheets.js';
+import { get2026SheetCsvUrl, get2026ProjectionWeeks, get2026ProjectionCsvUrl } from '../DH_P2.53/scripts/nfl-2026-sheets.js';
 
 const source = fs.readFileSync(new URL('../DH_P2.53/scripts/DataHub.js', import.meta.url), 'utf8');
 const context = vm.createContext({ get2026QualifierOptions, VIEW_FILTER_CONFIGS: { stats: { defaultCategory: 'overview' } } });
@@ -193,4 +193,88 @@ test('the shipped combined CSV preserves all original column values through Data
   assert.equal(data.weeklyRows[4].find(row => row.SLPR_ID === '4984').FPT_PPR, '19.52');
   assert.ok(data.weeksWithResults.includes(4));
   assert.deepEqual(data.weekErrors, {});
+});
+
+test('projection URL configuration selects only published weeks after the CSV cutoff', () => {
+  assert.deepEqual(get2026ProjectionWeeks(4), [5, 6, 7]);
+  assert.deepEqual(get2026ProjectionWeeks(6), [7]);
+  assert.deepEqual(get2026ProjectionWeeks(18), []);
+  assert.throws(() => get2026ProjectionWeeks(NaN), /cutoff/);
+  const url = new URL(get2026ProjectionCsvUrl(5));
+  assert.equal(url.pathname.split('/').at(-1), 'export');
+  assert.equal(url.searchParams.get('gid'), '749604963');
+  assert.equal(url.searchParams.get('sheet'), 'WK5');
+});
+
+test('DataHub future projections preserve zero/status text without importing sheet results or rereading CSV', async () => {
+  const fixture = weeklyFixture('WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n4,4984,QB,BUF,19.52,1,59,23.4');
+  const weeklySource = await load2026WeeklyCsvData(fixture.options);
+  const requests = [];
+  const projectionSource = await load2026ProjectionSourceData({ weeklySource, parseCsv, fetchImpl: async (url) => {
+    const week = Number(new URL(url).searchParams.get('sheet').slice(2));
+    requests.push(week);
+    const value = { 5: '0', 6: 'OUT', 7: 'BYE' }[week];
+    return { ok: true, text: async () => `WK,SLPR_ID,PLAYER NAME,POS,TM,PROJ,FPT_PPR,GM_P,SNP\n${week},4984,Josh Allen,QB,BUF,${value},999,1,90` };
+  } });
+  assert.deepEqual(requests.sort(), [5, 6, 7]);
+  const data = await load2026WeeklySourceData({ ...fixture.options, weeklySource, projectionSource });
+  assert.equal(fixture.requests.filter(({ pathname }) => pathname.endsWith('2026_AllWKs.csv')).length, 1);
+  assert.equal(data.weeklyRows[4][0].PROJ, '23.4');
+  assert.equal(data.weeklyRows[4][0].FPT_PPR, '19.52');
+  for (const [week, value] of [[5, '0'], [6, 'OUT'], [7, 'BYE']]) {
+    assert.equal(data.weeklyRows[week][0].PROJ, value);
+    assert.equal(data.weeklyRows[week][0].FPT_PPR, undefined);
+    assert.equal(data.weeklyRows[week][0].SNP, undefined);
+    assert.equal(data.weeklyRows[week][0].__hasRecordedStats, false);
+  }
+  assert.deepEqual(data.weeksWithResults, [4]);
+  assert.equal(data.weeksOfData, 1);
+  assert.equal(data.rawRows[0].FPT_PPR, '35.66');
+});
+
+test('DataHub isolates failed or mislabeled future tabs and skips Sheets when CSV cutoff is unavailable', async () => {
+  const weeklySource = { weeklyRows: {}, latestRecordedWeek: 4, weekErrors: {} };
+  for (const [csv, status, message] of [
+    ['', 400, /could not load/],
+    ['WK,SLPR_ID,POS,TM,PROJ\n6,4984,QB,BUF,22.0', 200, /another week/],
+    ['<html>Sign in</html>', 200, /invalid columns/],
+  ]) {
+    const result = await load2026ProjectionSourceData({ weeklySource, parseCsv, fetchImpl: async (url) => {
+      const week = Number(new URL(url).searchParams.get('sheet').slice(2));
+      return week === 5 ? { ok: status === 200, status, text: async () => csv }
+        : { ok: true, text: async () => `SZN,SLPR_ID,POS,TM,PROJ\n${week},4984,QB,BUF,IR` };
+    } });
+    assert.match(result.projectionErrors[5], message);
+    assert.equal(result.projectionRows[6][0].PROJ, 'IR');
+    assert.equal(result.projectionRows[7][0].PROJ, 'IR');
+  }
+  const skipped = await load2026ProjectionSourceData({ weeklySource: { ...weeklySource, weekErrors: { 1: 'CSV unavailable' } }, parseCsv,
+    fetchImpl: () => { assert.fail('A missing cutoff cannot request completed weeks'); } });
+  assert.deepEqual(skipped.projectionRows, {});
+});
+
+test('DataHub background preparation is single-flight and cannot block initial Stats readiness', async () => {
+  let release;
+  const held = new Promise((resolve) => { release = resolve; });
+  let csvCalls = 0;
+  let projectionCalls = 0;
+  let hidden = false;
+  const ctx = vm.createContext({
+    parseCsv, state: { statsSeason: '2026' }, console: { warn() {}, error() {} },
+    load2026WeeklyCsvData: async () => { csvCalls++; return { weeklyRows: {}, weekErrors: {}, latestRecordedWeek: 4 }; },
+    load2026ProjectionSourceData: async () => { projectionCalls++; await held; return { projectionRows: {}, projectionErrors: {} }; },
+    fetchCsvText: async () => '', applyCsvText() {}, ensureDataHub2026Data: async () => ({}),
+    hideOverlay() { hidden = true; }, ensureDataHubSupplementalData: async () => {}, rebuildDataHubRows() {}, ensureDataHubRookieData: async () => {},
+  });
+  vm.runInContext('let dataHub2026ProjectionPreparationPromise = null;'
+    + source.slice(source.indexOf('function prepareDataHub2026Projections()'), source.indexOf('function getDataHubStatsRowsForSeason('))
+    + source.slice(source.indexOf('async function loadInitialData()'), source.indexOf('// Keep this request shared by the table')), ctx);
+  const pending = ctx.prepareDataHub2026Projections();
+  assert.equal(ctx.prepareDataHub2026Projections(), pending);
+  await ctx.loadInitialData();
+  assert.equal(hidden, true, 'Stats must become ready while projection response is still pending');
+  release();
+  await pending;
+  assert.equal(csvCalls, 1);
+  assert.equal(projectionCalls, 1);
 });

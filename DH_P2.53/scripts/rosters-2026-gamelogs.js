@@ -155,6 +155,92 @@
     let loadPromise = null;
     let seasonRowsCache = null;
     let seasonRowsLoadPromise = null;
+    let weeklyRowsLoadPromise = null;
+    let projectionsLoadPromise = null;
+    let projectionSource = null;
+    let scheduleCache = new Map();
+    let defenseCache = new Map();
+    // Rosters starts this small local read at page boot to find completed
+    // weeks. The full modal loader reuses it, without preloading DRK/schedule.
+    function ensureRosters2026WeeklyRowsLoaded() {
+        if (!weeklyRowsLoadPromise) weeklyRowsLoadPromise = (async () => {
+            const weeks = Array.from({ length: 18 }, () => []);
+            const weekErrors = {};
+            try {
+                const response = await fetch(appRootUrl('data/NFL-2026_Stats/WeeklyStats/2026_AllWKs.csv'), { cache: 'no-store' });
+                if (!response.ok) throw new Error(`Rosters 2026_AllWKs.csv could not load (${response.status}).`);
+                const rows = parseCsv(await response.text());
+                rows.forEach((row) => { if ('WK' in row) row.SZN = row.WK; });
+                if (!rows.length || ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR'].some((header) => !(header in rows[0]))) {
+                    throw new Error('Rosters 2026_AllWKs.csv has missing or invalid columns.');
+                }
+                const players = rows.filter(isPlayer);
+                if (players.some((row) => !Number.isInteger(Number(row.SZN)) || Number(row.SZN) < 1 || Number(row.SZN) > 18)) {
+                    throw new Error('Rosters 2026_AllWKs.csv contains an invalid week number.');
+                }
+                players.forEach((row) => { weeks[Number(row.SZN) - 1].push(row); });
+            } catch (error) {
+                // Missing results remain blank. Without a valid CSV cutoff,
+                // projection preparation cannot request any weekly Sheets.
+                for (let week = 1; week <= 18; week++) weekErrors[week] = error.message;
+            }
+            const latestRecordedWeek = weeks.reduce((latest, rows, index) => rows.some(hasRecordedStats) ? index + 1 : latest, 0);
+            return { weeks, weekErrors, latestRecordedWeek };
+        })();
+        return weeklyRowsLoadPromise;
+    }
+    // Apply only raw future PROJ cells to the Rosters-owned 2026 snapshot.
+    // Cached 2025 state, completed results, season ranks and chart cutoffs stay
+    // independent. Late arrivals also update an already-created 2026 snapshot.
+    function applyRosters2026Projections(snapshot) {
+        if (!snapshot || !projectionSource) return;
+        snapshot.projectionErrors = projectionSource.projectionErrors;
+        Object.entries(projectionSource.projectionRows).forEach(([week, rows]) => {
+            if (Number(week) <= snapshot.latestRecordedWeek) return;
+            rows.forEach((row) => {
+                const id = String(row.SLPR_ID);
+                if (!snapshot.weeklyStats[week][id]) {
+                    const team = normalizeTeam(row.TM);
+                    const opponent = String(scheduleCache.get(team)?.[week] || '').trim();
+                    const opponentTeam = normalizeTeam(opponent.replace(/^(?:@|vs\.?)\s*/i, ''));
+                    const rank = numberValue(defenseCache.get(opponentTeam)?.[{ QB: 'QBRK', RB: 'RBRK', WR: 'WRRK', TE: 'TERK' }[row.POS]]);
+                    snapshot.weeklyStats[week][id] = parseStats({ VS: opponent, vsRK: rank >= 1 && rank <= 32 ? rank : '', __hasRecordedStats: false }, true);
+                }
+                snapshot.weeklyStats[week][id].proj = row.PROJ;
+            });
+        });
+    }
+    // Rosters independently parses the same configured projection exports as
+    // DataHub. Do not import its loader/state or carry any Sheets stats across.
+    function ensureRosters2026ProjectionsLoaded() {
+        if (!projectionsLoadPromise) projectionsLoadPromise = (async () => {
+            const local = await ensureRosters2026WeeklyRowsLoaded();
+            const projectionRows = {};
+            const projectionErrors = {};
+            if (!Object.keys(local.weekErrors).length) {
+                const { get2026ProjectionWeeks, get2026ProjectionCsvUrl } = await import('./nfl-2026-sheets.js');
+                await Promise.all(get2026ProjectionWeeks(local.latestRecordedWeek).map(async (week) => {
+                    try {
+                        const response = await fetch(get2026ProjectionCsvUrl(week), { cache: 'no-store' });
+                        if (!response.ok) throw new Error(`WK${week} projections could not load (${response.status}).`);
+                        const rows = parseCsv(await response.text());
+                        if (!rows.length || !('WK' in rows[0] || 'SZN' in rows[0])
+                            || ['SLPR_ID', 'POS', 'TM', 'PROJ'].some((header) => !(header in rows[0]))) {
+                            throw new Error(`WK${week} projections have missing or invalid columns.`);
+                        }
+                        const players = rows.filter(isPlayer);
+                        if (players.some((row) => Number(row.WK ?? row.SZN) !== week)) throw new Error(`WK${week} contains another week's rows.`);
+                        projectionRows[week] = players.map((row) => ({ SLPR_ID: row.SLPR_ID, POS: row.POS, TM: row.TM, PROJ: String(row.PROJ ?? '').trim() }));
+                    } catch (error) { projectionErrors[week] = error.message; }
+                }));
+            }
+            projectionSource = { projectionRows, projectionErrors };
+            applyRosters2026Projections(window.state.rosters2026GameLogs);
+            if (Object.keys(projectionErrors).length) console.warn('Rosters skipped unavailable 2026 projections:', projectionErrors);
+            return projectionSource;
+        })().catch((error) => { projectionsLoadPromise = null; throw error; });
+        return projectionsLoadPromise;
+    }
     // Rosters Career needs only DH totals, even when the selected Game Logs
     // year is 2025. Reuse this read in the full loader without activating a year
     // or making Career depend on weekly CSV/DRK/schedule availability.
@@ -176,43 +262,22 @@
             if (!scheduleResponse.ok) throw new Error(`Rosters 2026 schedule could not load (${scheduleResponse.status}).`);
             const scheduleRows = parseCsv(await scheduleResponse.text());
             if (!scheduleRows.length || !('TM' in scheduleRows[0]) || !('18' in scheduleRows[0])) throw new Error('Rosters 2026 schedule is invalid.');
-            // Rosters reads the combined weekly file once, independently of
-            // DataHub. Group on WK (legacy SZN accepted) without changing stat
-            // headers, numeric zero, or literal OUT/IR/etc. projection values.
-            const weeks = Array.from({ length: 18 }, () => []);
-            const weekErrors = {};
-            const weeklyRead = (async () => {
-                const response = await fetch(appRootUrl('data/NFL-2026_Stats/WeeklyStats/2026_AllWKs.csv'), { cache: 'no-store' });
-                if (!response.ok) throw new Error(`Rosters 2026_AllWKs.csv could not load (${response.status}).`);
-                const rows = parseCsv(await response.text());
-                rows.forEach((row) => { if ('WK' in row) row.SZN = row.WK; });
-                if (!rows.length || ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR'].some((header) => !(header in rows[0]))) {
-                    throw new Error('Rosters 2026_AllWKs.csv has missing or invalid columns.');
-                }
-                const players = rows.filter(isPlayer);
-                if (players.some((row) => !Number.isInteger(Number(row.SZN)) || Number(row.SZN) < 1 || Number(row.SZN) > 18)) {
-                    throw new Error('Rosters 2026_AllWKs.csv contains an invalid week number.');
-                }
-                players.forEach((row) => { weeks[Number(row.SZN) - 1].push(row); });
-            })().catch((error) => {
-                // Preserve DH totals and schedule context if the weekly file
-                // fails. Missing weeks stay blank; Sheets is never a fallback.
-                for (let week = 1; week <= 18; week++) weekErrors[week] = error.message;
-            });
-            const [seasonRows, defenseRows] = await Promise.all([
+            const [seasonRows, defenseRows, local] = await Promise.all([
                 ensureRosters2026SeasonRowsLoaded(),
                 fetchRows('DRK', ['TM', 'QBRK', 'RBRK', 'WRRK', 'TERK']),
-                weeklyRead
+                ensureRosters2026WeeklyRowsLoaded()
             ]);
+            const { weeks, weekErrors, latestRecordedWeek } = local;
             if (Object.keys(weekErrors).length) {
                 console.warn('Rosters skipped unavailable or invalid 2026 weeks:', weekErrors);
             }
             const players = seasonRows.filter(isPlayer);
             const weeksOfData = weeks.reduce((count, rows) => count + (rows.some(hasRecordedStats) ? 1 : 0), 0);
-            const latestRecordedWeek = weeks.reduce((latest, rows, index) => rows.some((row) => isPlayer(row) && hasRecordedStats(row)) ? index + 1 : latest, 0);
             const playersById = new Map(players.map((row) => [String(row.SLPR_ID), row]));
             const schedule = new Map(scheduleRows.map((row) => [normalizeTeam(row.TM), row]));
             const defense = new Map(defenseRows.map((row) => [normalizeTeam(row.TM), row]));
+            scheduleCache = schedule;
+            defenseCache = defense;
             const weeklyStats = {};
             for (let week = 1; week <= 18; week += 1) {
                 const recorded = new Map((weeks[week - 1] || []).filter((row) => playersById.has(String(row.SLPR_ID))).map((row) => [String(row.SLPR_ID), row]));
@@ -242,9 +307,13 @@
             });
             // Card fantasy ranks keep their existing volume pool. Game Logs
             // owns the expanded stat/summary pool requested for this modal.
+            // Future schedule placeholders are projection weeks even if a tab
+            // is not published yet; they must never count as played results.
+            const projectionWeeks = Object.fromEntries(Array.from({ length: 18 - latestRecordedWeek }, (_, index) => [latestRecordedWeek + index + 1, true]));
             const snapshot = { seasonStats, seasonRanks: buildRanks(players, weeksOfData, latestRecordedWeek),
                 cardSeasonRanks: buildRanks(players, weeksOfData, latestRecordedWeek, false), weeklyStats,
-                latestRecordedWeek, rankQualifierWeeks: Math.max(1, weeksOfData), weekErrors };
+                latestRecordedWeek, rankQualifierWeeks: Math.max(1, weeksOfData), weekErrors, projectionWeeks };
+            applyRosters2026Projections(snapshot);
             state.rosters2026GameLogs = snapshot;
             return snapshot;
         })().finally(() => { loadPromise = null; });
@@ -257,7 +326,10 @@
         state.playerSeasonRanks = snapshot.seasonRanks;
         state.playerWeeklyStats = snapshot.weeklyStats;
         state.weeklyStats = snapshot.weeklyStats;
-        state.playerProjectionWeeks = {};
+        state.playerProjectionWeeks = snapshot.projectionWeeks;
+        // A historical modal may leave week 18 active. Reset to the upcoming
+        // CSV week before app.js refreshes the actual NFL week from Sleeper.
+        state.currentNflWeek = Math.min(18, snapshot.latestRecordedWeek + 1);
         state.liveWeeklyStats = {};
         state.activeRostersGameLogsSeason = '2026';
         // Season changes invalidate the league-specific modal rank pool too.
@@ -271,6 +343,7 @@
     }
     window.ensureRosters2026GameLogsLoaded = ensureRosters2026GameLogsLoaded;
     window.ensureRosters2026SeasonRowsLoaded = ensureRosters2026SeasonRowsLoaded;
+    window.ensureRosters2026ProjectionsLoaded = ensureRosters2026ProjectionsLoaded;
     window.activateRosters2026GameLogs = activateRosters2026GameLogs;
     window.getRosters2026PlayerRanks = (playerId) => {
         const snapshot = window.state.rosters2026GameLogs;
@@ -283,4 +356,9 @@
             gamesPlayed: Number(stats.games_played || 0)
         };
     };
+    // Start future projections as soon as Rosters' deferred script runs. This
+    // promise is deliberately outside every page/league loading barrier.
+    if (window.document?.body?.dataset.page === 'rosters') {
+        void ensureRosters2026ProjectionsLoaded().catch((error) => console.warn('Rosters projection preload failed.', error));
+    }
 })();

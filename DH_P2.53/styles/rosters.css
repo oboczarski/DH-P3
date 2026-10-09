@@ -428,6 +428,52 @@ body[data-page="rosters"] .start-sit-name {
 body[data-page="rosters"] .start-sit-name-text {
   white-space: normal;
 }
+/* Rosters desktop Start/Sit preview: apply the requested name/tag/metric
+   typography at the existing 820px desktop boundary. Mobile bases above stay
+   untouched; body scoping prevents these overrides reaching another page. */
+@media (min-width: 820px) {
+  body[data-page="rosters"] .start-sit-name {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.58rem;
+    font-weight: 600;
+    font-size: 0.86rem;
+    color: var(--color-text-primary);
+    text-align: center;
+    line-height: 1;
+  }
+  body[data-page="rosters"] .start-sit-name-text {
+    text-align: center;
+    font-size: 1.03rem;
+    white-space: nowrap;
+    font-weight: 400;
+  }
+  body[data-page="rosters"] .start-sit-metric {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.135rem;
+    font-size: 0.94rem;
+    text-align: center;
+    font-weight: 600;
+    line-height: 1;
+  }
+  body[data-page="rosters"] .start-sit-inline-tag {
+    flex-shrink: 0;
+    padding: 0.18rem 0.32rem;
+    line-height: 1;
+    font-size: 13px;
+  }
+  body[data-page="rosters"] .start-sit-metric-unit {
+    color: #9296a3;
+    font-size: 0.75rem;
+  }
+  body[data-page="rosters"] .start-sit-rank-pos {
+    font-size: 0.82rem;
+    filter: saturate(2);
+  }
+}
 body[data-page="rosters"] .start-sit-total-label {
   margin-right: 0;
   white-space: nowrap;

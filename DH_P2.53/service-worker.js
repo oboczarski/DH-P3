@@ -46,7 +46,8 @@
 // Refresh local 2026 weekly CSV loaders and the renamed weekly/schedule paths.
 // Refresh Rosters Trade Preview injury badges beside the player's age.
 // Refresh the Rosters-only Game Logs ring/glow sizing so the loader stays centered.
-const CACHE_NAME = 'DH3.49p-rosters-loader-centered';
+// Refresh future-week background projections and desktop Start/Sit typography.
+const CACHE_NAME = 'DH3.49q-background-projections';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

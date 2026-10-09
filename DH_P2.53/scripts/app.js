@@ -2709,6 +2709,8 @@ async function handleStartSitButtonClick() {
         if (activeLeagueSeason === 2026 && typeof window.activateRosters2026GameLogs === 'function') {
             // Start/Sit always uses the current-season projection source even if
             // the user most recently viewed historical 2025 Game Logs.
+            // Reuse the background Sheets read before selections copy PROJ.
+            await window.ensureRosters2026ProjectionsLoaded();
             await window.activateRosters2026GameLogs();
             await ensureSleeperLiveStats();
         } else if (playerStatsSheetsLoadPromise) {
@@ -3426,6 +3428,9 @@ async function activateRosters2025GameLogs() {
 }
 async function fetchGameLogs(playerId) {
     if (pageType === 'rosters' && state.currentGameLogsSeason === '2026') {
+        // Game Logs shares Rosters' boot-time projection request; awaiting here
+        // affects only modal readiness, never the page/league loading overlay.
+        await window.ensureRosters2026ProjectionsLoaded();
         await window.activateRosters2026GameLogs();
         // Sleeper matchup points are the authoritative league-specific source
         // for the weekly table and summary totals. Keep workbook FPT_PPR in
@@ -7768,7 +7773,9 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
                     // Rosters weekly PROJ: zero snaps without an explicit
                     // designation use the requested OUT fallback.
                     const weekSnp = stats?.snp;
-                    if (typeof weekSnp === 'number' && weekSnp === 0) {
+                    // Future CSV placeholders can have zero snaps. Their live
+                    // projection must stay numeric until that week is recorded.
+                    if (typeof weekSnp === 'number' && weekSnp === 0 && !(pageType === 'rosters' && state.currentGameLogsSeason === '2026' && isProjectionWeek)) {
                         const upperProj = (projValue || '').trim().toUpperCase();
                         const firstToken = upperProj.split(/\s+/)[0]?.replace(/[^A-Z]/g, '') || '';
                         if (!KNOWN_DESIGNATIONS.has(firstToken)) {

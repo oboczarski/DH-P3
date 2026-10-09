@@ -10,8 +10,9 @@ const appSource = fs.readFileSync(new URL('../DH_P2.53/scripts/app.js', import.m
 
 // Exercise Rosters' actual independent loader with CSV responses, including its
 // normal dynamic import of the shared URL configuration. No DOM is required.
-function createLoader(tables, failures = {}) {
+function createLoader(tables, failures = {}, boot = false) {
   const window = { state: {}, location: { href: 'https://test.local/rosters/rosters.html' }, requests: [] };
+  if (boot) window.document = { body: { dataset: { page: 'rosters' } } };
   const context = vm.createContext({ window, URL, console: { warn() {} }, fetch: async (url, init) => {
     assert.equal(init.cache, 'no-store');
     const parsed = new URL(url);
@@ -22,7 +23,7 @@ function createLoader(tables, failures = {}) {
     if (failures[key] instanceof Error) throw failures[key];
     if (failures[key]) return { ok: false, status: failures[key] };
     if (sheet) {
-      assert.ok(['DH', 'DRK'].includes(sheet), 'Weekly stats cannot request Sheets tabs');
+      assert.ok(['DH', 'DRK'].includes(sheet) || /^WK[1-7]$/.test(sheet), 'Only mapped projection tabs may supplement DH/DRK');
       return { ok: true, text: async () => tables[sheet] || '' };
     }
     if (filename === 'Schedule2026.csv') {
@@ -191,5 +192,69 @@ test('a failed background 2025 CSV load cannot erase active Rosters 2026 data an
     await context.fetchPlayerStatsSheets();
     assert.equal(Object.keys(state.playerSeasonStats).length, 0);
     assert.equal(Object.keys(state.playerWeeklyStats).length, 0);
+  }
+});
+
+test('Rosters boot starts unfinished projections without delaying its result snapshot and shares all requests', async () => {
+  let release;
+  const held = new Promise((resolve) => { release = resolve; });
+  const projections = (week, proj) => `WK,SLPR_ID,POS,TM,PROJ,FPT_PPR,SNP\n${week},4984,QB,BUF,${proj},999,99`;
+  const window = createLoader({ DH: season, DRK: defense,
+    '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n4,4984,QB,BUF,19.52,1,59,23.4',
+    WK5: held.then(() => projections(5, '22.0')), WK6: projections(6, '0'), WK7: projections(7, 'BYE'),
+  }, {}, true);
+  const first = window.ensureRosters2026ProjectionsLoaded();
+  assert.equal(window.ensureRosters2026ProjectionsLoaded(), first);
+  const snapshot = await window.activateRosters2026GameLogs();
+  assert.equal(snapshot.weeklyStats[5]['4984'].proj, undefined, 'League snapshot must resolve while projection network is pending');
+  const historical = { 5: { '4984': { proj: '2025 projection' } } };
+  window.state.activeRostersGameLogsSeason = '2025';
+  window.state.playerWeeklyStats = historical;
+  release();
+  await first;
+  assert.equal(window.state.playerWeeklyStats, historical, 'Late 2026 projections cannot activate or change historical data');
+  assert.equal(snapshot.weeklyStats[5]['4984'].proj, '22.0');
+  assert.equal(snapshot.weeklyStats[6]['4984'].proj, '0');
+  assert.equal(snapshot.weeklyStats[7]['4984'].proj, 'BYE');
+  assert.equal(snapshot.weeklyStats[4]['4984'].proj, '23.4');
+  assert.equal(snapshot.weeklyStats[4]['4984'].fpt_ppr, 19.52);
+  assert.equal(snapshot.weeklyStats[5]['4984'].fpt_ppr, undefined);
+  assert.equal(snapshot.weeklyStats[5]['4984'].snp, undefined);
+  assert.equal(snapshot.weeklyStats[5]['4984'].__hasRecordedStats, false);
+  assert.equal(snapshot.latestRecordedWeek, 4);
+  assert.equal(snapshot.rankQualifierWeeks, 1);
+  await window.activateRosters2026GameLogs();
+  assert.equal(window.state.currentNflWeek, 5);
+  assert.equal(window.state.playerProjectionWeeks[5], true);
+  assert.equal(window.state.playerProjectionWeeks[4], undefined);
+  assert.deepEqual(window.requests.map(({ sheet }) => sheet).filter((sheet) => /^WK/.test(sheet)).sort(), ['WK5', 'WK6', 'WK7']);
+  assert.equal(window.requests.filter(({ pathname }) => pathname.endsWith('2026_AllWKs.csv')).length, 1);
+});
+
+test('Rosters future tabs preserve statuses, reject the wrong week and contain individual failures', async () => {
+  const window = createLoader({ DH: season, DRK: defense,
+    '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP\n4,4984,QB,BUF,19.52,1,59',
+    WK5: 'SZN,SLPR_ID,POS,TM,PROJ\n5,4984,QB,BUF,OUT\n5,99999,RB,BUF,PUP',
+    WK6: 'WK,SLPR_ID,POS,TM,PROJ\n5,4984,QB,BUF,22.0',
+  }, { WK7: 400 });
+  const result = await window.ensureRosters2026ProjectionsLoaded();
+  const snapshot = await window.activateRosters2026GameLogs();
+  assert.equal(snapshot.weeklyStats[5]['4984'].proj, 'OUT');
+  assert.equal(snapshot.weeklyStats[5]['99999'].proj, 'PUP');
+  assert.equal(snapshot.weeklyStats[5]['99999'].__hasRecordedStats, false);
+  assert.equal(snapshot.seasonStats['99999'], undefined);
+  assert.match(result.projectionErrors[6], /another week/);
+  assert.match(result.projectionErrors[7], /could not load/);
+  assert.equal(snapshot.weeklyStats[6]['4984'].proj, undefined);
+  assert.equal(snapshot.weeklyStats[7]['4984'].proj, undefined);
+  assert.equal(snapshot.seasonStats['4984'].fpts_ppr, 35.66);
+});
+
+test('Rosters skips projection Sheets if its CSV is invalid or no published future weeks remain', async () => {
+  for (const csv of ['<html>Sign in</html>', 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP\n18,4984,QB,BUF,19.52,1,59']) {
+    const window = createLoader({ '2026_AllWKs.csv': csv });
+    const projections = await window.ensureRosters2026ProjectionsLoaded();
+    assert.equal(Object.keys(projections.projectionRows).length, 0);
+    assert.equal(window.requests.length, 1);
   }
 });
