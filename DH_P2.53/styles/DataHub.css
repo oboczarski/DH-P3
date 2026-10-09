@@ -2595,7 +2595,7 @@ body[data-page="datahub"] .qualifier-row__controls {
     0 10px 24px rgba(0, 0, 0, 0.16);
   color: rgba(221, 232, 247, 0.9);
   font: inherit;
-  text-align: left;
+  text-align: center;
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -2844,7 +2844,6 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
 .team-filter__trigger {
   position: relative;
   display: flex;
-  align-items: center;
   width: 100%;
   min-height: 34px;
   padding: 0 28px 0 12px;
@@ -2858,8 +2857,9 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
     0 10px 24px rgba(0, 0, 0, 0.16);
   color: rgba(221, 232, 247, 0.9);
   font: inherit;
-  text-align: left;
+  text-align: right;
   cursor: pointer;
+  justify-content: center;
 }
 
 .team-filter__trigger::after {
@@ -6767,7 +6767,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   body[data-page="datahub"] .qualifier-row__controls {
     /* Compact Stats controls leave room for All Teams and the season on mobile. */
-    grid-template-columns: minmax(0, 0.7fr) minmax(0, 0.6fr) auto 1px minmax(0, 0.7fr) 1px minmax(0, 0.73fr);
+    grid-template-columns: minmax(0, 0.69fr) minmax(0, 0.55fr) auto 1px minmax(0, 0.7fr) 1px minmax(0, 0.8fr);
     gap: 4px;
   }
 
