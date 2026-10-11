@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import { getDataHubWeeklyColumns, getDataHubWeeklyColumnGroups } from '../DH_P2.53/scripts/datahub-stats-period.js';
 
 const source = fs.readFileSync(new URL('../DH_P2.53/scripts/DataHub.js', import.meta.url), 'utf8');
 function functionSource(name) {
@@ -15,10 +16,11 @@ function harness() {
   const state = { activePageView: 'stats', activeCategory: 'overview', statsSeason: '2026',
     focusHiddenGroupsByView: new Map(), tradeMarketColumnFilters: { ktc: true, adp: true },
     sort: { column: 'FPTS', direction: 'desc' } };
-  const context = vm.createContext({ state });
+  const context = vm.createContext({ state, getDataHubWeeklyColumns, getDataHubWeeklyColumnGroups });
   const config = source.slice(source.indexOf('const PAGE_TITLES'), source.indexOf('const DATAHUB_HERO_CHART_CONFIGS'))
     + source.slice(source.indexOf('const ONE_QB_MARKET_DATA_COLUMNS'), source.indexOf('const state = {'));
   const names = ['is2026PassingStatsView', 'is2026RushingStatsView', 'is2026ReceivingStatsView',
+    'isDataHubWeeklyStatsView',
     'getActiveColumnSet', 'getActiveColumnGroups', 'getFocusColumnGroups', 'getFocusViewKey',
     'getFocusHiddenGroups', 'getFocusedColumnSet', 'getFocusedColumnGroups',
     'shouldFilterTradeMarketColumns', 'isTradeMarketColumnVisible', 'getVisibleTradeMarketColumns',
@@ -49,6 +51,27 @@ test('every active schema exposes its statistical groups and protects General/In
       api.getFocusHiddenGroups().clear();
       assert.deepEqual(asArray(api.getFocusedColumnSet()), full, 'all columns restore in source order');
     }
+  }
+});
+
+test('weekly schemas retain the 2026 group order, remove only requested stats, and restore season columns', () => {
+  const api = harness();
+  for (const category of ['overview', 'passing', 'rushing', 'receiving']) {
+    Object.assign(api.state, { activeCategory: category, statsWeek: null });
+    const columns = asArray(api.getActiveColumnSet());
+    const groups = api.getActiveColumnGroups();
+    api.state.statsWeek = 4;
+    assert.deepEqual(asArray(api.getActiveColumnSet()), getDataHubWeeklyColumns(columns));
+    const weeklyGroups = api.getActiveColumnGroups();
+    assert.deepEqual(asArray(weeklyGroups).map(group => group.label), asArray(groups).map(group => group.label));
+    assert.deepEqual(asArray(weeklyGroups).flatMap(group => asArray(group.columns)), asArray(groups).flatMap(group => getDataHubWeeklyColumns(asArray(group.columns))));
+    api.state.statsWeek = null;
+    assert.deepEqual(asArray(api.getActiveColumnSet()), columns);
+    api.state.activePageView = 'rookies-career';
+    const rookieColumns = asArray(api.getActiveColumnSet());
+    api.state.statsWeek = 4;
+    assert.deepEqual(asArray(api.getActiveColumnSet()), rookieColumns, 'weekly exclusions stay inside Stats');
+    api.state.activePageView = 'stats';
   }
 });
 

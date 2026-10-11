@@ -1,4 +1,5 @@
 import { get2026QualifierOptions } from "./datahub-stats-season.js";
+import { getDataHubStatsPeriodOptions, getDataHubWeeklyColumns, getDataHubWeeklyColumnGroups, getDataHubWeeklyTableSourceRows } from "./datahub-stats-period.js";
 import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSeasonRankQualified } from "./datahub-stats-positional-ranks.js";
 import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js";
@@ -2074,7 +2075,7 @@ function resetStatsQualifierDefaultsForCategory(category = state.activeCategory)
 // filter. 2025 keeps its existing full-season thresholds and selection behavior.
 function getStatsQualifierOptions(category = state.activeCategory, qualifierStat = state.statsFilters.qualifierStat) {
   if (state.statsSeason === "2026") {
-    return get2026QualifierOptions(qualifierStat, state.stats2026.weeksOfData);
+    return get2026QualifierOptions(qualifierStat, getStatsTableQualifierWeeks());
   }
   return (getStatsQualifierConfig(category).stats?.[qualifierStat] || []).map((threshold) => ({
     value: String(threshold),
@@ -2814,6 +2815,12 @@ const state = {
   // DataHub 2026 has its own live workbook snapshot. Keep historical 2025 rows
   // separate, and derive qualifiers from the highest games played in DH.
   statsSeason: "2026",
+  // A table-only week selection leaves the season snapshots used by Game Logs,
+  // Compare and Trade Values intact. The boot-time CSV read supplies these rows.
+  statsWeek: null,
+  statsWeeklySource: null,
+  statsWeeklyRows: {},
+  statsWeeklyPositionalRanks: {},
   stats2026: { rows: [], rawRows: [], weeklyRows: {}, weeksOfData: 1, loaded: false },
   // Stats-only position ranks are tied to each season's full qualified source,
   // so table search, category, and Show All never change a displayed rank.
@@ -3000,6 +3007,9 @@ const controlMounts = Array.from(document.querySelectorAll("[data-control-scope]
   qualifierThresholdMenu: root.querySelector('[data-qualifier-menu="threshold"]'),
   qualifierShowAll: root.querySelector("[data-qualifier-show-all]"),
   statsSeasonSelect: root.querySelector("[data-stats-season]"),
+  statsSeasonShell: root.querySelector("[data-stats-season-shell]"),
+  statsSeasonValue: root.querySelector("[data-stats-season-value]"),
+  statsSeasonMenu: root.querySelector("[data-stats-season-menu]"),
   teamFilterShell: root.querySelector("[data-team-filter-shell]"),
   teamFilterToggle: root.querySelector("[data-team-filter-toggle]"),
   teamFilterValue: root.querySelector("[data-team-filter-value]"),
@@ -3454,26 +3464,21 @@ function attachEventListeners() {
       refreshGrid();
     });
 
-    // Both responsive season selectors share one Stats state. Restore each
-    // season's filters independently so 2026 tier keys never reach 2025 filters.
-    mount.statsSeasonSelect?.addEventListener("change", (event) => {
-      const season = event.target.value;
-      if (state.activePageView !== "stats" || !["2026", "2025"].includes(season) || season === state.statsSeason) return;
-      state.statsFiltersBySeason[state.statsSeason] = { category: state.activeCategory, filters: state.statsFilters };
-      state.statsSeason = season;
-      const saved = state.statsFiltersBySeason[season];
-      state.statsFilters = saved?.category === state.activeCategory
-        ? saved.filters
-        : createDefaultStatsQualifierState(state.activeCategory, season);
-      closeAllDataHubQualifierMenus();
-      closeAllDataHubTeamMenus();
-      syncUiState();
-      refreshGrid();
+    // Custom period controls share one selection across desktop/mobile, with
+    // roving keyboard focus and independently saved filters for each period.
+    mount.statsSeasonSelect?.addEventListener("click", () => toggleDataHubStatsSeasonMenu(mount));
+    mount.statsSeasonSelect?.addEventListener("keydown", (event) => {
+      if (!["ArrowDown", "ArrowUp"].includes(event.key)) return;
+      event.preventDefault();
+      toggleDataHubStatsSeasonMenu(mount, { forceOpen: true });
     });
-    mount.statsSeasonSelect?.addEventListener("focus", () => {
-      closeAllDataHubQualifierMenus();
-      closeAllDataHubTeamMenus();
+    mount.statsSeasonMenu?.addEventListener("click", (event) => {
+      const option = event.target.closest("[data-stats-period-option]");
+      if (!(option instanceof HTMLButtonElement)) return;
+      selectDataHubStatsPeriod(option.dataset.statsPeriodOption);
+      closeAllDataHubStatsSeasonMenus({ restoreFocus: true });
     });
+    mount.statsSeasonMenu?.addEventListener("keydown", (event) => handleStatsSeasonMenuKeydown(event, mount));
 
     teamFilterToggle?.addEventListener("click", () => {
       if (state.activePageView !== "stats") {
@@ -3483,6 +3488,7 @@ function attachEventListeners() {
       const shouldOpen = teamFilterMenu?.hidden !== false;
       closeAllDataHubTeamMenus();
       closeAllDataHubQualifierMenus();
+      closeAllDataHubStatsSeasonMenus();
       if (teamFilterMenu) {
         teamFilterMenu.hidden = !shouldOpen;
       }
@@ -3621,6 +3627,9 @@ function attachEventListeners() {
     if (!event.target?.closest?.("[data-qualifier-dropdown]")) {
       closeAllDataHubQualifierMenus();
     }
+    if (!event.target?.closest?.("[data-stats-season-shell]")) {
+      closeAllDataHubStatsSeasonMenus();
+    }
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && state.isChartModalOpen) {
@@ -3630,6 +3639,7 @@ function attachEventListeners() {
       closeSortMetaDropdown();
       closeAllDataHubTeamMenus();
       closeAllDataHubQualifierMenus();
+      closeAllDataHubStatsSeasonMenus({ restoreFocus: true });
     }
   });
 
@@ -3947,6 +3957,12 @@ function prepareDataHub2026Projections() {
   if (!dataHub2026ProjectionPreparationPromise) {
     dataHub2026ProjectionPreparationPromise = (async () => {
       const weeklySource = await load2026WeeklyCsvData({ parseCsv });
+      // Publish completed-week choices as soon as CSV results arrive; slow
+      // future projection exports never delay the menu or its table data.
+      state.statsWeeklySource = weeklySource;
+      rebuildDataHubWeeklyStatsRows();
+      syncUiState();
+      refreshGrid();
       const projectionSource = await load2026ProjectionSourceData({ weeklySource, parseCsv });
       if (Object.keys(projectionSource.projectionErrors).length) {
         console.warn("DataHub skipped unavailable 2026 projections:", projectionSource.projectionErrors);
@@ -3959,6 +3975,36 @@ function prepareDataHub2026Projections() {
 
 function getDataHubStatsRowsForSeason(season = state.statsSeason) {
   return season === "2026" ? state.stats2026.rows : state.statsRowsBase;
+}
+
+function getStatsPeriodValue() {
+  return state.statsWeek ? `2026-wk-${state.statsWeek}` : state.statsSeason;
+}
+
+function isDataHubWeeklyStatsView() {
+  return state.activePageView === "stats" && state.statsSeason === "2026" && Boolean(state.statsWeek);
+}
+
+// Weekly volume filters and scoring exceptions use a single game's period.
+// Full-season qualifiers still advance only from DH's games-played metadata.
+function getStatsTableQualifierWeeks() {
+  return isDataHubWeeklyStatsView() ? 1 : state.stats2026.weeksOfData;
+}
+
+function selectDataHubStatsPeriod(value) {
+  const option = getDataHubStatsPeriodOptions(state.statsWeeklySource?.weeklyRows).find((item) => item.value === value);
+  if (state.activePageView !== "stats" || !option || value === getStatsPeriodValue()) return;
+  state.statsFiltersBySeason[getStatsPeriodValue()] = { category: state.activeCategory, filters: state.statsFilters };
+  state.statsSeason = option.season;
+  state.statsWeek = option.week;
+  const saved = state.statsFiltersBySeason[value];
+  state.statsFilters = saved?.category === state.activeCategory
+    ? saved.filters : createDefaultStatsQualifierState(state.activeCategory, option.season);
+  closeAllDataHubQualifierMenus();
+  closeAllDataHubTeamMenus();
+  closeSortMetaDropdown();
+  syncUiState();
+  refreshGrid();
 }
 
 async function fetchCsvText() {
@@ -4498,6 +4544,7 @@ function rebuildDataHubRows() {
 
   state.statsRowsBase = statsRowsBase;
   state.stats2026.rows = stats2026Rows;
+  rebuildDataHubWeeklyStatsRows();
   rebuildStatsPositionalRanks();
   state.tradeRowsBase = tradeRowsBase;
   if (state.rookieDataLoaded) {
@@ -4517,6 +4564,22 @@ function rebuildStatsPositionalRanks() {
   const columns = [...Object.values(STATS_COLUMN_SETS).flat(), ...STATS_PASSING_COLUMNS_2026, ...STATS_RUSHING_COLUMNS_2026, ...STATS_RECEIVING_COLUMNS_2026];
   state.statsPositionalRanksBySeason["2025"] = buildStatsPositionalRanks(state.statsRowsBase, columns, "2025", 18, getStatsElapsedWeeks("2025"));
   state.statsPositionalRanksBySeason["2026"] = buildStatsPositionalRanks(state.stats2026.rows, columns, "2026", state.stats2026.weeksOfData, getStatsElapsedWeeks("2026"));
+}
+
+// Normalize each completed week's own CSV lines through the existing table
+// formatter. Enrichment supplies market metadata only, never season statistics.
+function rebuildDataHubWeeklyStatsRows() {
+  const sourceRows = state.statsWeeklySource?.weeklyRows || {};
+  const lookups = { oneQbLookup: state.ktcSheetData["1-QB"]?.byPlayerId || {},
+    sflxLookup: state.ktcSheetData.SFLX?.byPlayerId || {}, adpLookup: state.adpByPlayerId || {} };
+  const columns = [...Object.values(STATS_COLUMN_SETS).flat(), ...STATS_PASSING_COLUMNS_2026, ...STATS_RUSHING_COLUMNS_2026, ...STATS_RECEIVING_COLUMNS_2026];
+  state.statsWeeklyRows = {};
+  state.statsWeeklyPositionalRanks = {};
+  getDataHubStatsPeriodOptions(sourceRows).filter((option) => option.week).forEach(({ week }) => {
+    const rows = getDataHubWeeklyTableSourceRows(sourceRows, week).map((row) => normalizeRow(enrichSeasonRow(row, lookups)));
+    state.statsWeeklyRows[week] = rows;
+    state.statsWeeklyPositionalRanks[week] = buildStatsPositionalRanks(rows, getDataHubWeeklyColumns(columns), "2026", 1, 1);
+  });
 }
 
 // Use the same recorded-week cutoff as Game Logs' divider when WK data exists.
@@ -4559,7 +4622,9 @@ function getActiveRowsForView(pageView = state.activePageView) {
     return [...(state.rookieCareerRowsByCategory[state.activeCategory] || [])];
   }
 
-  return [...getDataHubStatsRowsForSeason()];
+  return isDataHubWeeklyStatsView()
+    ? [...(state.statsWeeklyRows[state.statsWeek] || [])]
+    : [...getDataHubStatsRowsForSeason()];
 }
 
 function buildTradeRowsBase({ sflxSheetData, oneQbSheetData, adpLookup, statsRowsByPlayerId, fantasy2026RowsByPlayerId }) {
@@ -4819,7 +4884,7 @@ function resolveDataHubContentView(pageTab = state.activePageTab) {
 }
 
 function getDataHubHeroTitle(pageTab = state.activePageTab) {
-  if (pageTab === "stats") return `${state.statsSeason} Stats & Advanced Analytics`;
+  if (pageTab === "stats") return `${state.statsSeason}${state.statsWeek ? ` WK·${state.statsWeek}` : ""} Stats & Advanced Analytics`;
   return PAGE_TITLES[pageTab]
     || PAGE_TITLES[resolveDataHubContentView(pageTab)]
     || PAGE_TITLES.stats;
@@ -8094,25 +8159,25 @@ function is2026ReceivingStatsView() {
 }
 
 function getActiveColumnSet() {
-  if (is2026ReceivingStatsView()) return STATS_RECEIVING_COLUMNS_2026;
-  if (is2026RushingStatsView()) return STATS_RUSHING_COLUMNS_2026;
-  if (is2026PassingStatsView()) return STATS_PASSING_COLUMNS_2026;
   const viewSets = PAGE_VIEW_COLUMN_SETS[state.activePageView] || PAGE_VIEW_COLUMN_SETS.stats;
-  const columns = viewSets[state.activeCategory]
+  const columns = is2026ReceivingStatsView() ? STATS_RECEIVING_COLUMNS_2026
+    : is2026RushingStatsView() ? STATS_RUSHING_COLUMNS_2026
+    : is2026PassingStatsView() ? STATS_PASSING_COLUMNS_2026
+    : viewSets[state.activeCategory]
     || viewSets[getDefaultCategory(state.activePageView)]
     || PAGE_VIEW_COLUMN_SETS.stats.overview;
-  return getVisibleTradeMarketColumns(columns);
+  return isDataHubWeeklyStatsView() ? getDataHubWeeklyColumns(columns) : getVisibleTradeMarketColumns(columns);
 }
 
 function getActiveColumnGroups() {
-  if (is2026ReceivingStatsView()) return STATS_RECEIVING_COLUMN_GROUPS_2026;
-  if (is2026RushingStatsView()) return STATS_RUSHING_COLUMN_GROUPS_2026;
-  if (is2026PassingStatsView()) return STATS_PASSING_COLUMN_GROUPS_2026;
   const viewGroups = PAGE_VIEW_COLUMN_GROUPS[state.activePageView] || PAGE_VIEW_COLUMN_GROUPS.stats;
-  const groups = viewGroups[state.activeCategory]
+  const groups = is2026ReceivingStatsView() ? STATS_RECEIVING_COLUMN_GROUPS_2026
+    : is2026RushingStatsView() ? STATS_RUSHING_COLUMN_GROUPS_2026
+    : is2026PassingStatsView() ? STATS_PASSING_COLUMN_GROUPS_2026
+    : viewGroups[state.activeCategory]
     || viewGroups[getDefaultCategory(state.activePageView)]
     || PAGE_VIEW_COLUMN_GROUPS.stats.overview;
-  return getVisibleTradeMarketColumnGroups(groups);
+  return isDataHubWeeklyStatsView() ? getDataHubWeeklyColumnGroups(groups) : getVisibleTradeMarketColumnGroups(groups);
 }
 
 // FOCUS derives its options before applying its own visibility mask, so hidden
@@ -8678,6 +8743,7 @@ function openSortMetaDropdown({ focusSelected = false } = {}) {
     return;
   }
 
+  closeAllDataHubStatsSeasonMenus();
   renderSortMetaMenu();
   sortMetaMenu.hidden = false;
   [focusMetaPill, sortMetaPill].forEach((pill) => pill?.setAttribute("aria-expanded", "true"));
@@ -8868,6 +8934,7 @@ function syncStatsQualifierControls(mount) {
   const isStatsView = state.activePageView === "stats";
   mount.qualifierRow.hidden = !isStatsView;
   if (!isStatsView) {
+    closeAllDataHubStatsSeasonMenus();
     if (mount.teamFilterMenu) {
       mount.teamFilterMenu.hidden = true;
     }
@@ -8939,7 +9006,7 @@ function syncStatsQualifierControls(mount) {
     qualifiersActive,
   });
 
-  if (mount.statsSeasonSelect) mount.statsSeasonSelect.value = state.statsSeason;
+  syncStatsSeasonMenu(mount);
 
   const teamOptions = getDataHubTeamOptions();
   syncSelectedStatsTeamsToOptions(teamOptions);
@@ -8977,6 +9044,105 @@ function syncQualifierSelectOptions(select, options, selectedValue) {
   select.value = options.some((option) => option.value === selectedValue)
     ? selectedValue
     : (options[0]?.value || "");
+}
+
+// DataHub's compact period list is custom on every device. Keep its scroll and
+// keyboard focus during background CSV/enrichment refreshes and mirror selection.
+function syncStatsSeasonMenu(mount) {
+  const menu = mount.statsSeasonMenu;
+  const toggle = mount.statsSeasonSelect;
+  if (!menu || !toggle || !mount.statsSeasonValue) return;
+  const options = getDataHubStatsPeriodOptions(state.statsWeeklySource?.weeklyRows);
+  const value = getStatsPeriodValue();
+  const selected = options.find((option) => option.value === value) || options[0];
+  mount.statsSeasonValue.textContent = selected.label;
+  toggle.title = selected.label;
+  toggle.setAttribute("aria-label", `Stats period: ${selected.label}`);
+  toggle.setAttribute("aria-expanded", String(!menu.hidden));
+  const signature = `${options.map((option) => option.value).join("|")}|${value}`;
+  if (menu.dataset.signature === signature) return;
+  const focusedValue = menu.contains(document.activeElement) ? document.activeElement.dataset.statsPeriodOption : null;
+  const scrollTop = menu.scrollTop;
+  const fragment = document.createDocumentFragment();
+  options.forEach((option) => {
+    if (option.divider) {
+      const divider = document.createElement("div");
+      divider.className = "stats-season-menu__divider";
+      divider.setAttribute("role", "presentation");
+      fragment.append(divider);
+    }
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `stats-season-menu__option${option.week ? " stats-season-menu__option--week" : ""}`;
+    button.dataset.statsPeriodOption = option.value;
+    button.setAttribute("role", "option");
+    button.setAttribute("aria-selected", String(option.value === value));
+    button.tabIndex = option.value === (focusedValue || value) ? 0 : -1;
+    const label = document.createElement("span");
+    label.textContent = option.label;
+    const check = document.createElement("span");
+    check.className = "stats-season-menu__check";
+    check.setAttribute("aria-hidden", "true");
+    check.textContent = "✓";
+    button.append(label, check);
+    fragment.append(button);
+  });
+  menu.replaceChildren(fragment);
+  menu.dataset.signature = signature;
+  if (focusedValue) menu.querySelector(`[data-stats-period-option="${focusedValue}"]`)?.focus({ preventScroll: true });
+  menu.scrollTop = scrollTop;
+}
+
+function toggleDataHubStatsSeasonMenu(mount, { forceOpen = false } = {}) {
+  if (state.activePageView !== "stats" || !mount.statsSeasonMenu) return;
+  const shouldOpen = forceOpen || mount.statsSeasonMenu.hidden;
+  closeAllDataHubStatsSeasonMenus();
+  closeAllDataHubQualifierMenus();
+  closeAllDataHubTeamMenus();
+  closeSortMetaDropdown();
+  mount.statsSeasonMenu.hidden = !shouldOpen;
+  mount.statsSeasonShell.dataset.open = String(shouldOpen);
+  mount.statsSeasonSelect.setAttribute("aria-expanded", String(shouldOpen));
+  if (shouldOpen) {
+    const options = Array.from(mount.statsSeasonMenu.querySelectorAll("[data-stats-period-option]"));
+    const selected = options.find((option) => option.getAttribute("aria-selected") === "true") || options[0];
+    options.forEach((option) => { option.tabIndex = option === selected ? 0 : -1; });
+    selected?.focus({ preventScroll: true });
+    selected?.scrollIntoView({ block: "nearest" });
+  }
+}
+
+function closeAllDataHubStatsSeasonMenus({ restoreFocus = false } = {}) {
+  controlMounts.forEach((mount) => {
+    if (!mount.statsSeasonMenu) return;
+    const wasOpen = !mount.statsSeasonMenu.hidden;
+    mount.statsSeasonMenu.hidden = true;
+    mount.statsSeasonShell.dataset.open = "false";
+    mount.statsSeasonSelect.setAttribute("aria-expanded", "false");
+    if (restoreFocus && wasOpen) mount.statsSeasonSelect.focus({ preventScroll: true });
+  });
+}
+
+function handleStatsSeasonMenuKeydown(event, mount) {
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeAllDataHubStatsSeasonMenus({ restoreFocus: true });
+    return;
+  }
+  // Let Tab move to the next control before hiding the focused list option.
+  if (event.key === "Tab") {
+    setTimeout(() => closeAllDataHubStatsSeasonMenus(), 0);
+    return;
+  }
+  if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+  event.preventDefault();
+  const options = Array.from(mount.statsSeasonMenu.querySelectorAll("[data-stats-period-option]"));
+  const current = options.indexOf(document.activeElement);
+  const index = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1
+    : (current + (event.key === "ArrowDown" ? 1 : -1) + options.length) % options.length;
+  options.forEach((option, optionIndex) => { option.tabIndex = optionIndex === index ? 0 : -1; });
+  options[index]?.focus({ preventScroll: true });
+  options[index]?.scrollIntoView({ block: "nearest" });
 }
 
 function syncQualifierDropdownControl(mount, config) {
@@ -9142,6 +9308,7 @@ function toggleDataHubQualifierMenu(mount, kind) {
   const shouldOpen = menu.hidden !== false;
   closeAllDataHubQualifierMenus();
   closeAllDataHubTeamMenus();
+  closeAllDataHubStatsSeasonMenus();
   menu.hidden = !shouldOpen;
   shell.dataset.open = String(shouldOpen);
   toggle.setAttribute("aria-expanded", String(shouldOpen));
@@ -10376,6 +10543,7 @@ function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
 }
 
 function getStatsPositionalRank(row, columnName) {
+  if (isDataHubWeeklyStatsView()) return state.statsWeeklyPositionalRanks[state.statsWeek]?.get(row)?.[columnName] ?? null;
   return state.statsPositionalRanksBySeason[state.statsSeason]?.get(row)?.[columnName] ?? null;
 }
 
@@ -11011,10 +11179,10 @@ function matchesStatsQualifierFilter(row) {
   // their selected filtering behavior; team and position filters still apply.
   const positionalStat = { QB: "paATT", RB: "CAR", WR: "RR", TE: "RR" }[row.POS];
   const defaultThreshold = state.statsSeason === "2026"
-    ? get2026QualifierOptions(positionalStat, state.stats2026.weeksOfData).find((option) => option.isDefault)?.threshold
+    ? get2026QualifierOptions(positionalStat, getStatsTableQualifierWeeks()).find((option) => option.isDefault)?.threshold
     : ({ QB: 200, RB: 100, WR: 220, TE: 220 })[row.POS];
   if (state.statsFilters.qualifierStat === positionalStat && thresholdValue === defaultThreshold
-    && hasStatsScoringQualifierException(row, getStatsElapsedWeeks())) return true;
+    && hasStatsScoringQualifierException(row, isDataHubWeeklyStatsView() ? 1 : getStatsElapsedWeeks())) return true;
 
   if (!Number.isFinite(qualifierValue) || !Number.isFinite(thresholdValue)) {
     return false;
@@ -11282,6 +11450,7 @@ function handleViewportResize() {
   cancelAnimationFrame(resizeFrame);
   resizeFrame = requestAnimationFrame(() => {
     closeAllDataHubTeamMenus();
+    closeAllDataHubStatsSeasonMenus();
     const nextCompact = isCompactViewport();
     if (nextCompact !== state.isCompactViewport) {
       if (!nextCompact && state.isChartModalOpen) {

@@ -264,6 +264,7 @@ test('DataHub background preparation is single-flight and cannot block initial S
     load2026WeeklyCsvData: async () => { csvCalls++; return { weeklyRows: {}, weekErrors: {}, latestRecordedWeek: 4 }; },
     load2026ProjectionSourceData: async () => { projectionCalls++; await held; return { projectionRows: {}, projectionErrors: {} }; },
     fetchCsvText: async () => '', applyCsvText() {}, ensureDataHub2026Data: async () => ({}),
+    rebuildDataHubWeeklyStatsRows() {}, syncUiState() {}, refreshGrid() {},
     hideOverlay() { hidden = true; }, ensureDataHubSupplementalData: async () => {}, rebuildDataHubRows() {}, ensureDataHubRookieData: async () => {},
   });
   vm.runInContext('let dataHub2026ProjectionPreparationPromise = null;'

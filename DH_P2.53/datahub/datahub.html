@@ -24,7 +24,7 @@
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23060d16'/%3E%3Cpath d='M19 20.5h17.5c5.8 0 9.5 3.2 9.5 8.4 0 3.7-1.9 6.3-5.2 7.3 4.1.8 6.7 4 6.7 8.4 0 5.8-4 9.4-10.6 9.4H19V20.5Zm8.2 13.2h7c2.5 0 3.9-1.2 3.9-3.3 0-2.2-1.5-3.3-4.3-3.3h-6.7v6.6Zm0 13.9h7.8c2.9 0 4.5-1.3 4.5-3.7 0-2.4-1.7-3.7-4.8-3.7h-7.5v7.4Z' fill='%23dff5ff'/%3E%3C/svg%3E"
     />
     <!-- DataHub shell assets: keep the reference bundle intact and only repoint files for the DH-P3 page/script/style layout. -->
-    <link rel="stylesheet" href="../styles/DataHub.css?v=DH3.49r-focus-sort-menu" />
+    <link rel="stylesheet" href="../styles/DataHub.css?v=DH3.49s-datahub-weekly-menu" />
   </head>
   <body data-page="datahub">
     <!-- Decorative background layers for the standalone reference shell. -->
@@ -540,13 +540,15 @@
                 <div class="team-filter__menu" data-team-filter-menu role="listbox" hidden></div>
               </div>
 
-              <!-- Stats-only season selector mirrors across desktop and mobile. -->
+              <!-- DataHub period menu mirrors the season/recorded-week selection
+                   on both layouts; its options come from the local weekly CSV. -->
               <span class="qualifier-divider" aria-hidden="true"></span>
-              <div class="qualifier-field qualifier-field--season">
-                <select class="qualifier-select stats-season-select" data-stats-season aria-label="Stats season">
-                  <option value="2026" selected>2026 SZN</option>
-                  <option value="2025">2025 SZN</option>
-                </select>
+              <div class="qualifier-field qualifier-field--season" data-stats-season-shell>
+                <button type="button" class="qualifier-select stats-season-select" data-stats-season
+                  aria-label="Stats period: 2026 Season" aria-haspopup="listbox" aria-expanded="false" aria-controls="stats-season-menu-desktop">
+                  <span class="stats-season-select__value" data-stats-season-value>2026 Season</span>
+                </button>
+                <div id="stats-season-menu-desktop" class="stats-season-menu" data-stats-season-menu role="listbox" aria-label="Stats season and week" hidden></div>
               </div>
             </div>
           </div>
@@ -845,13 +847,14 @@
                 <div class="team-filter__menu" data-team-filter-menu role="listbox" hidden></div>
               </div>
 
-              <!-- Stats-only season selector mirrors across desktop and mobile. -->
+              <!-- Mobile owns its menu DOM and shares the desktop period state. -->
               <span class="qualifier-divider" aria-hidden="true"></span>
-              <div class="qualifier-field qualifier-field--season">
-                <select class="qualifier-select stats-season-select" data-stats-season aria-label="Stats season">
-                  <option value="2026" selected>2026 SZN</option>
-                  <option value="2025">2025 SZN</option>
-                </select>
+              <div class="qualifier-field qualifier-field--season" data-stats-season-shell>
+                <button type="button" class="qualifier-select stats-season-select" data-stats-season
+                  aria-label="Stats period: 2026 Season" aria-haspopup="listbox" aria-expanded="false" aria-controls="stats-season-menu-mobile">
+                  <span class="stats-season-select__value" data-stats-season-value>2026 Season</span>
+                </button>
+                <div id="stats-season-menu-mobile" class="stats-season-menu" data-stats-season-menu role="listbox" aria-label="Stats season and week" hidden></div>
               </div>
             </div>
           </div>
@@ -1582,7 +1585,7 @@
          depending on the Stats page head assets. -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-    <!-- Refresh the page-owned shared FOCUS/SORTED BY menu and table visibility controls. -->
-    <script type="module" src="../scripts/DataHub.js?v=DH3.49r-focus-sort-menu"></script>
+    <!-- Refresh DataHub's page-owned custom period menu and weekly Stats views. -->
+    <script type="module" src="../scripts/DataHub.js?v=DH3.49s-datahub-weekly-menu"></script>
   </body>
 </html>

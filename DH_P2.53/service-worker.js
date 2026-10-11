@@ -48,7 +48,8 @@
 // Refresh the Rosters-only Game Logs ring/glow sizing so the loader stays centered.
 // Refresh future-week background projections and desktop Start/Sit typography.
 // Refresh DataHub's shared FOCUS/SORTED BY menu and column-group visibility.
-const CACHE_NAME = 'DH3.49r-focus-sort-menu';
+// Refresh DataHub's custom season/week menu and CSV-backed weekly Stats views.
+const CACHE_NAME = 'DH3.49s-datahub-weekly-menu';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -87,6 +88,8 @@ const CORE_ASSET_PATHS = [
   // DataHub imports its page key and table header glossary during startup.
   '/scripts/datahub-stats-help.js',
   '/scripts/datahub-stats-season.js',
+  // The period menu and weekly schema adapter belong only to DataHub Stats.
+  '/scripts/datahub-stats-period.js',
   '/scripts/datahub-2026-data.js',
   // The DataHub team pane owns its lazy TM_STAT reader; the CSV stays uncached.
   '/scripts/datahub-team-stats.js',
