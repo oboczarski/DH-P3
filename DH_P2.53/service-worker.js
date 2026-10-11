@@ -51,7 +51,8 @@
 // Refresh DataHub's custom season/week menu and CSV-backed weekly Stats views.
 // Refresh Focus/Sort's frozen headings, Ranks-style indicators and Toggle All.
 // Refresh DataHub's proportional mobile meta pills and deduplicated sort options.
-const CACHE_NAME = 'DH3.49u-mobile-meta-proportions';
+// Refresh both team-modal injury badges and Rosters Start/Sit logos/desktop widths.
+const CACHE_NAME = 'DH3.49v-team-injuries-start-sit-layout';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

@@ -9596,6 +9596,13 @@ function renderStartSitPreview() {
         const team = metric?.team || String(selection.matchup?.opponent || (selection.matchup?.isBye ? 'BYE' : '—'))
             .trim().replace(/^(?:vs\.?|@)\s*/i, '').toUpperCase();
         const heading = `${team} vs. ${pos}:`;
+        // Rosters Start/Sit headings put the opponent logo directly after its
+        // label on both breakpoints. Validate aliases against the NFL team map so
+        // every team has its local SVG while BYE/unknown labels have no logo.
+        const logoTeam = ({ WSH: 'WAS', JAC: 'JAX', LA: 'LAR' })[team] || team;
+        const logoKey = logoTeam !== 'FA' && Object.hasOwn(TEAM_COLORS, logoTeam) ? logoTeam.toLowerCase() : '';
+        const teamLogo = logoKey ? `<img class="start-sit-matchup-info-logo" src="../assets/NFL_logos_svg/${logoKey}.svg" alt="" aria-hidden="true" width="16" height="16" decoding="async">` : '';
+        const headingMarkup = `<span>${escapeHtml(team)}</span>${teamLogo}<span>vs. ${escapeHtml(pos)}:</span>`;
         const sosColor = metric?.sosRank != null ? getOpponentRankColor(metric.sosRank) : '';
         // Start/Sit's per-game values share the existing matchup rank palette:
         // actual uses the published positional matchup rank, expected uses the
@@ -9627,7 +9634,7 @@ function renderStartSitPreview() {
                 title: metric ? `Actual vs. expected: ${deltaValue} points per game across ${metric.games} ${metric.games === 1 ? 'game' : 'games'}.` : unavailable,
             },
         ];
-        return `<section class="start-sit-matchup-info" aria-label="${escapeHtml(heading)} matchup info for ${escapeHtml(selection.label)}" aria-busy="${loading}"><span class="start-sit-matchup-info-heading">${escapeHtml(heading)}</span><div class="start-sit-matchup-info-grid">${chips.map(chip => `<div class="start-sit-matchup-info-chip" title="${escapeHtml(chip.title)}"><span class="start-sit-matchup-info-label">${chip.label}</span><span class="start-sit-matchup-info-value ${chip.className || ''}"${chip.color ? ` style="color: ${chip.color};"` : ''}>${chip.value}</span></div>`).join('')}</div></section>`;
+        return `<section class="start-sit-matchup-info" aria-label="${escapeHtml(heading)} matchup info for ${escapeHtml(selection.label)}" aria-busy="${loading}"><span class="start-sit-matchup-info-heading">${headingMarkup}</span><div class="start-sit-matchup-info-grid">${chips.map(chip => `<div class="start-sit-matchup-info-chip" title="${escapeHtml(chip.title)}"><span class="start-sit-matchup-info-label">${chip.label}</span><span class="start-sit-matchup-info-value ${chip.className || ''}"${chip.color ? ` style="color: ${chip.color};"` : ''}>${chip.value}</span></div>`).join('')}</div></section>`;
     };
     tradeSimulator.innerHTML = `
                             <div class="trade-container glass-panel start-sit-container">

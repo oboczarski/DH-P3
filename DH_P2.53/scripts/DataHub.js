@@ -13014,7 +13014,14 @@ async function dataHubUpdateTeamSummary(team, season, revision) {
 function dataHubTeamCard(player) {
   const escape = dataHubEscapeHtml;
   const fptsRank = dataHubTeamFptsRank(player);
-  const rankMarkup = fptsRank ? `<span class="team-player-fpts-rank" title="Season PPR FPTS position rank" style="color:${escape(dataHubTeamStatColor(player, 'fpts'))}">${escape(fptsRank)}</span>` : '';
+  // DataHub team-modal cards show the current Sleeper injury beside the position
+  // tag. Keep an unranked injured player's base position; BYE/unknown text is omitted.
+  const injury = parseDataHubInjuryDesignation(state.sleeperPlayers?.[player.id]?.injury_status);
+  const injuryCode = injury?.designation !== 'BYE' && Object.hasOwn(DATAHUB_INJURY_DESIGNATION_COLORS, injury?.designation)
+    ? injury.designation : '';
+  const positionLabel = fptsRank || (injuryCode ? player.pos : '');
+  const rankMarkup = positionLabel ? `<span class="team-player-fpts-rank" title="${fptsRank ? 'Season PPR FPTS position rank' : 'Player position'}" style="color:${escape(fptsRank ? dataHubTeamStatColor(player, 'fpts') : 'var(--team-position-color)')}">${escape(positionLabel)}</span>` : '';
+  const injuryMarkup = injuryCode ? `<span class="team-player-injury" role="img" aria-label="Injury designation: ${escape(injuryCode)}" style="color:${escape(DATAHUB_INJURY_DESIGNATION_COLORS[injuryCode])}">${escape(injuryCode)}</span>` : '';
   // Restore the team card's ten requested metrics in two five-stat rows:
   // general/valuation first, then position-specific production, with native colors.
   const basic = [['Age', 'age', 'decimal', 'Player age'], ['G', 'games_played', 'integer', 'Games played'], ['FPTS', 'fpts', 'decimal', 'Season PPR fantasy points'], ['PPG', 'ppg', 'decimal', 'PPR fantasy points per game'], ['KTC', 'ktc', 'integer', 'KeepTradeCut value']];
@@ -13025,8 +13032,8 @@ function dataHubTeamCard(player) {
     const color = isZero ? '' : dataHubTeamStatColor(player, key);
     return `<span class="team-player-stat${key === 'ktc' ? ' team-player-stat--ktc' : ''}" title="${escape(title)}"><span class="team-player-stat-label">${escape(label)}</span><span class="team-player-stat-value${isZero ? ' team-player-stat-value--zero' : ''}"${color ? ` style="color:${escape(color)}"` : ''}>${escape(dataHubTeamFormat(value, format))}</span></span>`;
   }).join('')}</span>`;
-  return `<button type="button" class="team-player-card" data-team-player-id="${escape(player.id)}" aria-label="Open ${escape(player.name)} Game Logs${fptsRank ? `, season FPTS rank ${escape(fptsRank)}` : ''}" title="${escape(player.name)} — open Game Logs">
-    <span class="team-player-card-heading"><span class="team-player-name">${escape(player.name)}</span>${rankMarkup}<span class="team-player-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></span>
+  return `<button type="button" class="team-player-card" data-team-player-id="${escape(player.id)}" aria-label="Open ${escape(player.name)} Game Logs${fptsRank ? `, season FPTS rank ${escape(fptsRank)}` : ''}${injuryCode ? `, injury designation ${escape(injuryCode)}` : ''}" title="${escape(player.name)} — open Game Logs">
+    <span class="team-player-card-heading"><span class="team-player-name">${escape(player.name)}</span>${rankMarkup}${injuryMarkup}<span class="team-player-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></span>
     ${statMarkup(basic, false)}${statMarkup(dataHubTeamStatColumns[player.pos], true)}
   </button>`;
 }

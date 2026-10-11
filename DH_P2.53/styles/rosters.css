@@ -435,6 +435,11 @@ body[data-page="rosters"] .start-sit-name-text {
    typography at the existing 820px desktop boundary. Mobile bases above stay
    untouched; body scoping prevents these overrides reaching another page. */
 @media (min-width: 820px) {
+  /* Desktop Start/Sit narrows only its player chips and matchup strips; the
+     centered mobile widths and equal divider gutters remain at their base sizes. */
+  body[data-page="rosters"] .start-sit-preview-column .trade-assets {
+    width: 86%;
+  }
   body[data-page="rosters"] .start-sit-name {
     display: inline-flex;
     align-items: center;
@@ -527,7 +532,11 @@ body[data-page="rosters"] .start-sit-matchup-info {
   background: radial-gradient(115% 76% at 0% 0%, rgb(215 225 255 / 0.101) 0%, rgb(219 230 255 / 0.05) 38%, transparent 134%) padding-box, radial-gradient(115% 76% at 100% 100%, rgb(215 225 255 / 0.081) 0%, rgb(219 230 255 / 0.048) 28%, transparent 94%) padding-box, conic-gradient(from -104deg, #FFFFFF10 0deg, #FFFFFF30 20deg, #FFFFFF20 104deg, #FFF6FF1f 112deg, #FFFFFF15 133deg, #FFFFFF10 153deg, #FFFFFF2f 230deg, #FFFFFF20 265deg, #FFFFFF1a 280deg, #FFFFFF18 300deg, #FFFFFF00 368deg) border-area;
 }
 body[data-page="rosters"] .start-sit-matchup-info-heading {
-  display: block;
+  /* Keep the opponent label, its logo and the position centered as one heading. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
   margin-bottom: 0px;
   color: var(--color-text-tertiary);
   font-size: 14px;
@@ -535,6 +544,19 @@ body[data-page="rosters"] .start-sit-matchup-info-heading {
   padding: 2px 3px 0;
   font-weight: 600;
   text-align: -webkit-center;
+}
+body[data-page="rosters"] .start-sit-matchup-info-logo {
+  display: block;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+/* Apply the desktop strip width after its full-width mobile base rule. */
+@media (min-width: 820px) {
+  body[data-page="rosters"] .start-sit-matchup-info {
+    width: 90%;
+  }
 }
 body[data-page="rosters"] .start-sit-matchup-info-grid {
   display: grid;

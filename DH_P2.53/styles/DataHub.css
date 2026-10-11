@@ -16474,6 +16474,9 @@ body[data-page="datahub"] #game-logs-modal .team-player-name {
 }
 /* Keep the FPTS rank beside the name without allowing the rank or arrow to wrap. */
 body[data-page="datahub"] #game-logs-modal .team-player-fpts-rank {flex: 0 0 auto;font-size: 11px;font-weight: 550;line-height: 1;font-variant-numeric: normal;white-space: nowrap;padding: 3px 3px;border: 1px solid #bbc2;border-radius: 6px;background: linear-gradient(148deg, rgb(37 47 69 / 95%), rgb(20 29 40));}
+/* Team-modal injury badges stay inline immediately after the position tag;
+   their page/modal scope leaves Stats rows and other player cards unchanged. */
+body[data-page="datahub"] #game-logs-modal .team-player-injury { flex: 0 0 auto; padding: 1px 3px; border-radius: 6px; background: rgb(32 40 54 / 78%); font-size: 8px; font-weight: 750; line-height: 1; letter-spacing: .02em; white-space: nowrap; }
 body[data-page="datahub"] #game-logs-modal .team-player-arrow { display: grid; place-items: center; flex: 0 0 auto; margin-left: auto; width: 12px; height: 12px; border-radius: 50%; color: var(--team-position-color); background: color-mix(in srgb, var(--team-position-color) 10%, transparent); }
 body[data-page="datahub"] #game-logs-modal .team-player-arrow svg { display: block; width: 12px; height: 12px; }
 body[data-page="datahub"] #game-logs-modal .team-modal-back svg { display: block; width: 12px; height: 12px; flex: 0 0 auto; }
