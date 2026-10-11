@@ -6623,7 +6623,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     --datahub-grid-meta-label-gap: 1px;
     align-items: end;
     gap: 8px;
-    margin: 0 15px 7px;
+    margin: 0 2px 7px 10px;
   }
 
   .grid-shell__meta .active-view-meta,
@@ -6659,11 +6659,14 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      counter can sit on that same baseline without the old translateY shim. */
   .grid-shell__meta .meta-count {
     transform: none;
-    width: 47px;
-    text-wrap-mode: nowrap;
+    width: 30px;
+    text-wrap-mode: wrap;
     padding: 0 2px;
     justify-content: center;
     letter-spacing: -0.02em;
+    font-size: 9px;
+    text-align: center;
+    line-height: 0.8;
   }
 
   .sort-meta-control {
@@ -7858,7 +7861,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .meta-value {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 
   .app-header--mobile {
