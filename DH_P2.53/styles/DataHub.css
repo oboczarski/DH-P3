@@ -16186,17 +16186,56 @@ body[data-page="datahub"] .stats-table .stats-position-metric__rank {
     font-size: 1.035em;
   }
 
-  /* Position, rank toggle, and sort occupy fixed slots on the Stats table;
-     the rank pill stays between the other two controls on phone widths. */
-  body[data-page="datahub"][data-datahub-view="stats"] .grid-shell__meta {
+  /* Mobile DataHub meta pills: retain the approximate 393px width proportions
+     (Position 50, Ranks 71, Focus 89, Sort 89, count 31) as the row grows.
+     Every adjacent pill has a 6px gap; views without Ranks omit its track.
+     Desktop layout and the shared dropdown's own width remain independent. */
+  body[data-page="datahub"] .grid-shell__meta {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 50fr) repeat(2, minmax(0, 89fr)) minmax(0, 31fr);
     align-items: end;
+    gap: 6px;
   }
 
-  body[data-page="datahub"][data-datahub-view="stats"] .grid-shell__meta .pos-ranks-meta {
-    justify-self: center;
+  body[data-page="datahub"][data-datahub-view="stats"] .grid-shell__meta {
+    grid-template-columns: minmax(0, 50fr) minmax(0, 71fr) repeat(2, minmax(0, 89fr)) minmax(0, 31fr);
+  }
+
+  /* Let the pill pair and count participate in the same proportional row.
+     Keep the pair's positioned wrapper as the shared dropdown anchor. */
+  body[data-page="datahub"] .grid-shell__meta .meta-pill-wrap {
+    display: contents;
+  }
+
+  body[data-page="datahub"] .grid-shell__meta .focus-sort-meta-control {
+    grid-column: span 2;
+    width: 100%;
+    min-width: 0;
+    gap: 6px;
+  }
+
+  body[data-page="datahub"] .grid-shell__meta .active-view-meta,
+  body[data-page="datahub"] .grid-shell__meta .sort-meta-control,
+  body[data-page="datahub"] .grid-shell__meta .pos-ranks-meta {
+    justify-self: stretch;
+    justify-items: stretch;
     row-gap: 3px;
+  }
+
+  body[data-page="datahub"] .grid-shell__meta .active-view-meta .meta-value,
+  body[data-page="datahub"] .grid-shell__meta .pos-ranks-meta__pill,
+  body[data-page="datahub"] .grid-shell__meta .meta-pill--button,
+  body[data-page="datahub"] .grid-shell__meta .meta-count {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  body[data-page="datahub"] .grid-shell__meta .meta-pill__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   body[data-page="datahub"] .grid-shell__meta .pos-ranks-meta__label {

@@ -50,7 +50,8 @@
 // Refresh DataHub's shared FOCUS/SORTED BY menu and column-group visibility.
 // Refresh DataHub's custom season/week menu and CSV-backed weekly Stats views.
 // Refresh Focus/Sort's frozen headings, Ranks-style indicators and Toggle All.
-const CACHE_NAME = 'DH3.49t-focus-menu-refinements';
+// Refresh DataHub's proportional mobile meta pills and deduplicated sort options.
+const CACHE_NAME = 'DH3.49u-mobile-meta-proportions';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

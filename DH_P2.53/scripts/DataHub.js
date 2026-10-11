@@ -8557,7 +8557,13 @@ function renderSortMetaMenu() {
   sortList.setAttribute("role", "listbox");
   sortList.setAttribute("aria-label", "Sort table by");
   sortList.append(createSortMetaDefaultMenuOption());
-  getActiveSortableColumns().forEach((columnName) => sortList.append(createSortMetaMenuOption(columnName)));
+  // The top row already represents this view's default stat (FPTS in Stats).
+  // Omit its duplicate and PLAYER from this menu only; table-header sorting
+  // and the remaining stat options retain their existing behavior.
+  const defaultSort = getActiveDefaultSort(state.activePageView);
+  getActiveSortableColumns()
+    .filter((columnName) => columnName !== defaultSort.column && columnName !== "PLAYER")
+    .forEach((columnName) => sortList.append(createSortMetaMenuOption(columnName)));
   sortColumn.append(sortList);
   scroller.append(focusColumn, sortColumn);
   sortMetaMenu.replaceChildren(headers, scroller);
