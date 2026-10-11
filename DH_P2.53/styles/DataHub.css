@@ -3378,7 +3378,7 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
   align-items: center;
   height: 28px;
   min-height: 27px;
-  padding: 0 9px;
+  padding: 0 0px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   font-size: 0.68rem;
@@ -16233,8 +16233,6 @@ body[data-page="datahub"] .stats-table .stats-position-metric__rank {
 
   body[data-page="datahub"] .grid-shell__meta .meta-pill__label {
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
