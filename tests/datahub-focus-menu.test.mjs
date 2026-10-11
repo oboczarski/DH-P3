@@ -22,7 +22,7 @@ function harness() {
   const names = ['is2026PassingStatsView', 'is2026RushingStatsView', 'is2026ReceivingStatsView',
     'isDataHubWeeklyStatsView',
     'getActiveColumnSet', 'getActiveColumnGroups', 'getFocusColumnGroups', 'getFocusViewKey',
-    'getFocusHiddenGroups', 'getFocusedColumnSet', 'getFocusedColumnGroups',
+    'getFocusHiddenGroups', 'toggleAllFocusGroups', 'getFocusedColumnSet', 'getFocusedColumnGroups',
     'shouldFilterTradeMarketColumns', 'isTradeMarketColumnVisible', 'getVisibleTradeMarketColumns',
     'getVisibleTradeMarketColumnGroups', 'getDefaultCategory', 'getViewFilterConfig', 'getActiveFrozenColumnGroups',
     'isSortableColumn', 'isDataHubRookiesView', 'isDataHubRookiesCareerView', 'getActiveSortableColumns'];
@@ -30,6 +30,26 @@ function harness() {
   return context;
 }
 const asArray = (value) => Array.from(value);
+
+test('Toggle All hides fully enabled groups and restores both partial and fully disabled selections', () => {
+  const api = harness();
+  for (const [view, category, week] of [['stats', 'passing', null], ['stats', 'receiving', 4],
+    ['adp-values', 'all', null], ['rookies-career', 'overview', null], ['rookies-trade', 'all', null]]) {
+    Object.assign(api.state, { activePageView: view, activeCategory: category, statsWeek: week });
+    const full = asArray(api.getActiveColumnSet());
+    const groups = api.getFocusColumnGroups();
+    api.toggleAllFocusGroups();
+    assert.ok(groups.every(group => api.getFocusHiddenGroups().has(group.label)), 'all on becomes all off');
+    assert.ok(api.getFocusedColumnGroups().every(group => group.label === 'INFO'), 'protected Info remains');
+    assert.equal(api.getFocusedColumnSet()[1], 'PLAYER', 'General remains');
+    api.toggleAllFocusGroups();
+    assert.deepEqual(asArray(api.getFocusedColumnSet()), full, 'all off becomes all on in original order');
+    api.getFocusHiddenGroups().add(groups[0].label);
+    api.toggleAllFocusGroups();
+    assert.ok(groups.every(group => !api.getFocusHiddenGroups().has(group.label)), 'one off becomes all on');
+    assert.deepEqual(asArray(api.getFocusedColumnSet()), full);
+  }
+});
 
 test('every active schema exposes its statistical groups and protects General/Info', () => {
   const api = harness();

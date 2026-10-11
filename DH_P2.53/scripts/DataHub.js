@@ -3548,11 +3548,11 @@ function attachEventListeners() {
   });
 
   sortMetaMenu?.addEventListener("click", (event) => {
-    const focusOption = event.target.closest("[data-focus-group], [data-focus-clear]");
+    const focusOption = event.target.closest("[data-focus-group], [data-focus-toggle-all]");
     if (focusOption instanceof HTMLButtonElement) {
       const hiddenGroups = getFocusHiddenGroups();
-      if (focusOption.hasAttribute("data-focus-clear")) {
-        getFocusColumnGroups().forEach((group) => hiddenGroups.add(group.label));
+      if (focusOption.hasAttribute("data-focus-toggle-all")) {
+        toggleAllFocusGroups();
       } else {
         const groupLabel = focusOption.dataset.focusGroup;
         if (!getFocusColumnGroups().some((group) => group.label === groupLabel)) return;
@@ -8199,6 +8199,19 @@ function getFocusHiddenGroups() {
   return state.focusHiddenGroupsByView.get(key);
 }
 
+function toggleAllFocusGroups() {
+  // FOCUS bulk action applies only to the current view's toggleable groups.
+  // All on means hide all; any off means restore all. General/Info never enter
+  // this list, and hidden groups from other views/market filters stay intact.
+  const groups = getFocusColumnGroups();
+  const hiddenGroups = getFocusHiddenGroups();
+  const allOn = groups.every((group) => !hiddenGroups.has(group.label));
+  groups.forEach((group) => {
+    if (allOn) hiddenGroups.add(group.label);
+    else hiddenGroups.delete(group.label);
+  });
+}
+
 function getFocusedColumnSet() {
   const hiddenGroups = getFocusHiddenGroups();
   const hiddenColumns = new Set(getFocusColumnGroups()
@@ -8516,37 +8529,44 @@ function renderSortMetaMenu() {
   // these controls. View changes start at the top with the new view's groups.
   const viewKey = getFocusViewKey();
   const sameView = sortMetaMenu.dataset.viewKey === viewKey;
-  const savedScroll = sameView ? sortMetaMenu.scrollTop : 0;
+  const savedScroll = sameView ? (sortMetaMenu.querySelector(".sort-meta-menu__scroll")?.scrollTop || 0) : 0;
   const focusedButton = sortMetaMenu.contains(document.activeElement) ? document.activeElement : null;
   const focusedGroup = focusedButton?.dataset.focusGroup;
-  const focusedClear = focusedButton?.hasAttribute("data-focus-clear");
+  const focusedToggleAll = focusedButton?.hasAttribute("data-focus-toggle-all");
+  // Headers sit outside the shared scroll surface so both stay frozen even
+  // when FOCUS reaches its sticky stop and the sort options keep scrolling.
+  const headers = document.createElement("div");
+  headers.className = "sort-meta-menu__headers";
+  headers.append(createSortMetaSectionHeading("FOCUS"), createSortMetaSectionHeading("SORTED BY"));
+  const scroller = document.createElement("div");
+  scroller.className = "sort-meta-menu__scroll";
   const focusColumn = document.createElement("section");
   focusColumn.className = "sort-meta-menu__focus";
   focusColumn.setAttribute("aria-label", "Focus column groups");
-  focusColumn.append(createSortMetaSectionHeading("FOCUS"));
-  const clear = document.createElement("button");
-  clear.type = "button";
-  clear.className = "focus-meta-clear";
-  clear.dataset.focusClear = "true";
-  clear.textContent = "Clear All";
-  focusColumn.append(clear);
+  const toggleAll = document.createElement("button");
+  toggleAll.type = "button";
+  toggleAll.className = "focus-meta-toggle-all";
+  toggleAll.dataset.focusToggleAll = "true";
+  toggleAll.textContent = "Toggle All";
+  focusColumn.append(toggleAll);
   getFocusColumnGroups().forEach((group) => focusColumn.append(createFocusMetaOption(group)));
 
   const sortColumn = document.createElement("section");
   sortColumn.className = "sort-meta-menu__sort";
-  sortColumn.append(createSortMetaSectionHeading("SORTED BY"));
   const sortList = document.createElement("div");
   sortList.setAttribute("role", "listbox");
   sortList.setAttribute("aria-label", "Sort table by");
   sortList.append(createSortMetaDefaultMenuOption());
   getActiveSortableColumns().forEach((columnName) => sortList.append(createSortMetaMenuOption(columnName)));
   sortColumn.append(sortList);
-  sortMetaMenu.replaceChildren(focusColumn, sortColumn);
+  scroller.append(focusColumn, sortColumn);
+  sortMetaMenu.replaceChildren(headers, scroller);
   sortMetaMenu.dataset.viewKey = viewKey;
-  sortMetaMenu.scrollTop = savedScroll;
-  if (sameView && (focusedGroup || focusedClear)) {
+  scroller.scrollTop = savedScroll;
+  syncFocusMetaOptions();
+  if (sameView && (focusedGroup || focusedToggleAll)) {
     const replacement = Array.from(focusColumn.querySelectorAll("button")).find((button) =>
-      focusedClear ? button.hasAttribute("data-focus-clear") : button.dataset.focusGroup === focusedGroup,
+      focusedToggleAll ? button.hasAttribute("data-focus-toggle-all") : button.dataset.focusGroup === focusedGroup,
     );
     replacement?.focus({ preventScroll: true });
   }
@@ -8578,6 +8598,7 @@ function createFocusMetaOption(group) {
   const toggle = document.createElement("span");
   toggle.className = "focus-meta-option__toggle";
   toggle.setAttribute("aria-hidden", "true");
+  toggle.textContent = "✔︎";
   button.append(label, toggle);
   return button;
 }
@@ -8590,6 +8611,9 @@ function syncFocusMetaOptions() {
   sortMetaMenu?.querySelectorAll("[data-focus-group]").forEach((button) => {
     button.setAttribute("aria-checked", String(!hiddenGroups.has(button.dataset.focusGroup)));
   });
+  const allOn = getFocusColumnGroups().every((group) => !hiddenGroups.has(group.label));
+  sortMetaMenu?.querySelector("[data-focus-toggle-all]")?.setAttribute("aria-label",
+    allOn ? "Toggle All: hide all statistical column groups" : "Toggle All: show all statistical column groups");
 }
 
 function createSortMetaColumnIcon(columnName) {
@@ -8607,9 +8631,9 @@ function scheduleSortMetaLayout() {
     sortMetaLayoutFrame = 0;
     if (!isSortMetaDropdownOpen()) return;
     const focusColumn = sortMetaMenu.querySelector(".sort-meta-menu__focus");
-    if (focusColumn) {
-      const style = getComputedStyle(sortMetaMenu);
-      const availableHeight = sortMetaMenu.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+    const scroller = sortMetaMenu.querySelector(".sort-meta-menu__scroll");
+    if (focusColumn && scroller) {
+      const availableHeight = scroller.clientHeight;
       // One native scroller moves both columns. A negative sticky offset lets
       // long FOCUS lists scroll until their last toggle reaches the bottom;
       // then only the taller sort list continues, with no spacer or jump.
@@ -8790,7 +8814,7 @@ function handleSortMetaMenuKeydown(event) {
 
   const inFocusColumn = document.activeElement?.closest?.(".sort-meta-menu__focus");
   const options = Array.from(sortMetaMenu.querySelectorAll(inFocusColumn
-    ? "[data-focus-clear], [data-focus-group]" : "[data-sort-column]"));
+    ? "[data-focus-toggle-all], [data-focus-group]" : "[data-sort-column]"));
   if (!options.length) {
     return;
   }

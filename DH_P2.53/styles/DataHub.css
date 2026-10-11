@@ -3485,22 +3485,20 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
 }
 
 .sort-meta-menu {
+  /* Give FOCUS a little more room without changing the popup's user-set
+     width. The fixed header row and shared scroller use identical tracks. */
+  --sort-meta-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
   position: absolute;
   top: calc(100% + 8px);
   left: 50%;
   z-index: 45;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: start;
+  display: flex;
+  flex-direction: column;
   gap: 0;
   width: min(270px, calc(100vw - 24px));
   max-height: min(338px, 52vh);
   padding: 8px;
-  overflow: auto;
-  overscroll-behavior: contain;
-  overflow-anchor: none;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(151, 184, 229, 0.3) transparent;
+  overflow: hidden;
   border: 1px solid rgba(151, 184, 229, 0.18);
   border-radius: 18px;
   background:
@@ -3514,6 +3512,27 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
 
 .sort-meta-menu[hidden] {
   display: none !important;
+}
+
+/* Both column titles stay outside the native scroll surface. Options retain
+   the coordinated scroll/sticky behavior below this fixed, divided row. */
+.sort-meta-menu__headers {
+  display: grid;
+  grid-template-columns: var(--sort-meta-columns);
+  flex: 0 0 auto;
+}
+
+.sort-meta-menu__scroll {
+  display: grid;
+  grid-template-columns: var(--sort-meta-columns);
+  align-items: start;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  overflow-anchor: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(151, 184, 229, 0.3) transparent;
 }
 
 /* Native shared scrolling: the shorter FOCUS section sticks only after its
@@ -3533,7 +3552,8 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
 }
 
 .sort-meta-menu__heading {
-  margin: 3px 3px 9px;
+  margin: 0;
+  padding: 3px 3px 9px;
   color: rgba(169, 188, 215, 0.8);
   font-size: 0.58rem;
   font-weight: 800;
@@ -3541,7 +3561,12 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
   line-height: 1.3;
 }
 
-.focus-meta-clear,
+.sort-meta-menu__heading:last-child {
+  padding-left: 10px;
+  border-left: 1px solid rgba(151, 184, 229, 0.19);
+}
+
+.focus-meta-toggle-all,
 .focus-meta-option {
   width: 100%;
   border: 0;
@@ -3553,7 +3578,7 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
   text-align: left;
 }
 
-.focus-meta-clear {
+.focus-meta-toggle-all {
   min-height: 34px;
   margin-bottom: 4px;
   padding: 4px 6px;
@@ -3565,7 +3590,7 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
 
 .focus-meta-option {
   display: grid;
-  grid-template-columns: 13px minmax(0, 1fr) 20px;
+  grid-template-columns: 13px minmax(0, 1fr) 16px;
   align-items: center;
   gap: 6px;
   min-height: 46px;
@@ -3579,8 +3604,8 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
   overflow-wrap: normal;
 }
 
-.focus-meta-clear:hover,
-.focus-meta-clear:focus-visible,
+.focus-meta-toggle-all:hover,
+.focus-meta-toggle-all:focus-visible,
 .focus-meta-option:hover,
 .focus-meta-option:focus-visible {
   outline: none;
@@ -3588,41 +3613,33 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
   color: rgba(240, 247, 255, 0.98);
 }
 
-.focus-meta-clear:focus-visible,
+.focus-meta-toggle-all:focus-visible,
 .focus-meta-option:focus-visible {
   box-shadow: inset 0 0 0 1px rgba(116, 239, 255, 0.4);
 }
 
+/* FOCUS switches mirror the Ranks pill's checked gradient circle. Their 16px
+   indicator is slightly smaller than Ranks' 18px, with the same off state. */
 .focus-meta-option__toggle {
-  position: relative;
-  width: 20px;
-  height: 12px;
-  border: 1px solid rgba(155, 176, 205, 0.32);
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #fff9;
   border-radius: 999px;
-  background: rgba(74, 93, 121, 0.45);
-  transition: background 140ms ease, border-color 140ms ease;
-}
-
-.focus-meta-option__toggle::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgb(163 178 202);
-  transition: transform 140ms ease, background 140ms ease;
+  background: radial-gradient(#fff0 0%, #fff2 65%, #0000 73%);
+  box-shadow: inset 0 0 0 1px rgba(214, 230, 255, 0.12), 0 1px 4px rgba(0, 0, 0, 0.3);
+  color: transparent;
+  font-size: 0.55rem;
+  line-height: 1;
+  opacity: 0.68;
 }
 
 .focus-meta-option[aria-checked="true"] .focus-meta-option__toggle {
-  border-color: rgba(91, 230, 205, 0.55);
-  background: rgba(41, 191, 162, 0.29);
-}
-
-.focus-meta-option[aria-checked="true"] .focus-meta-option__toggle::after {
-  transform: translateX(8px);
-  background: rgb(135 248 220);
+  background: linear-gradient(90deg, rgba(116, 239, 255, 0.88), rgba(217, 125, 255, 0.82));
+  box-shadow: 0 0 0 1px rgba(124, 208, 255, 0.16), 0 0 14px rgba(116, 239, 255, 0.12);
+  color: #e6ecff;
+  opacity: 0.9;
 }
 
 /* Match the table's icon geometry/colors, while sizing only popup glyphs. */

@@ -49,7 +49,8 @@
 // Refresh future-week background projections and desktop Start/Sit typography.
 // Refresh DataHub's shared FOCUS/SORTED BY menu and column-group visibility.
 // Refresh DataHub's custom season/week menu and CSV-backed weekly Stats views.
-const CACHE_NAME = 'DH3.49s-datahub-weekly-menu';
+// Refresh Focus/Sort's frozen headings, Ranks-style indicators and Toggle All.
+const CACHE_NAME = 'DH3.49t-focus-menu-refinements';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
