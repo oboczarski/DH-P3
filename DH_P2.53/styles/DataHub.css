@@ -3408,19 +3408,17 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
 
 .meta-pill--button:hover,
 .meta-pill--button[aria-expanded="true"] {
-  border-color: rgba(151, 221, 255, 0.3);
-  color: rgba(214, 255, 243, 0.96);
-  background:
-    linear-gradient(180deg, rgba(129, 215, 255, 0.14), rgba(162, 127, 255, 0.08)),
-    rgba(10, 18, 30, 0.62);
+  color: rgb(42 48 61);
+  background: linear-gradient(176deg, rgb(152 171 218 / 67%), rgb(61 77 99));
+  text-shadow: 0.3px 1px 1px #aabd;
+  color: rgb(211 222 234 / 94%);
+  background: linear-gradient(176deg, rgb(52 62 86 / 86%), rgb(27 38 52));
+  text-shadow: 1px 1px 2px #0005;
 }
 
 .meta-pill--button:focus-visible {
   outline: none;
-  box-shadow:
-    0 0 0 1px rgba(151, 221, 255, 0.56),
-    0 0 0 6px rgba(92, 170, 255, 0.18),
-    inset 0 0 18px var(--success-glow);
+  box-shadow: 0 0 0 1px rgba(151, 221, 255, 0.06),    0 0 4px 0px rgba(92, 170, 255, 0.18);
 }
 
 .meta-pill__icon {
@@ -3484,7 +3482,7 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
 
 .focus-sort-meta-control .meta-pill--button {
   width: 100%;
-  max-width: 90px;
+  max-width: 88px;
 }
 
 .sort-meta-label {
@@ -6873,7 +6871,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     --datahub-grid-meta-label-gap: 1px;
     align-items: end;
     gap: 8px;
-    margin: 0 2px 7px 10px;
+    margin: 0 2px 7px 8px;
   }
 
   .grid-shell__meta .active-view-meta,
@@ -6888,7 +6886,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     color: rgb(182 200 233 / 87%);
     font-size: 0.72rem;
     letter-spacing: 0.03em;
-    min-width: 46px;
+    min-width: 50px;
+    max-width: 52px;
     justify-content: center;
   }
 
@@ -6901,7 +6900,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .meta-pill-wrap {
-    gap: 6px;
+    gap: 5px;
   }
 
   /* Mobile row-count chip alignment:
@@ -6909,7 +6908,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      counter can sit on that same baseline without the old translateY shim. */
   .grid-shell__meta .meta-count {
     transform: none;
-    width: 30px;
+    width: 31px;
     text-wrap-mode: wrap;
     padding: 0 2px;
     justify-content: center;
@@ -6925,7 +6924,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .meta-pill--button {
-    min-width: 85px;
+    min-width: 88px;
     margin-top: 0;
   }
 
@@ -6935,7 +6934,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .focus-sort-meta-control {
-    gap: 6px;
+    gap: 5px;
   }
 
   /* Mobile hero order:
