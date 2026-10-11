@@ -2663,28 +2663,31 @@ body[data-page="datahub"] .stats-season-menu__option {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   width: 100%;
-  min-height: 40px;
-  padding: 9px 8px;
+  min-height: 30px;
+  padding: 8px 8px 8px 11px;
   border: 1px solid transparent;
   border-radius: 15px;
   background: transparent;
   color: #e1edfa;
   font: inherit;
   font-size: 0.66rem;
-  font-weight: 720;
+  font-weight: 700;
   letter-spacing: 0.01em;
   text-align: left;
   white-space: nowrap;
   cursor: pointer;
+  margin-bottom: 2px;
 }
 
 body[data-page="datahub"] .stats-season-menu__option--week {
-  min-height: 36px;
-  padding-left: 22px;
+  min-height: 30px;
   color: #b2c3d9;
-  font-weight: 440;
+  font-weight: 400;
+  padding: 8px 0 8px 4px;
+  margin-bottom: 0;
+  font-size: 0.62rem;
 }
 
 body[data-page="datahub"] .stats-season-menu__option:hover {
@@ -2702,22 +2705,27 @@ body[data-page="datahub"] .stats-season-menu__option[aria-selected="true"] {
   border-color: rgba(126, 221, 248, 0.24);
   background: linear-gradient(110deg, rgba(80, 162, 191, 0.23), rgba(112, 138, 220, 0.14));
   color: #c5f3ff;
+  margin-bottom: 1px;
 }
 
 body[data-page="datahub"] .stats-season-menu__check {
-  flex: 0 0 15px;
+  flex: 0 0 0px;
   color: #9ee9f8;
-  font-size: 0.85rem;
+  font-size: 0;
   visibility: hidden;
 }
 
 body[data-page="datahub"] .stats-season-menu__option[aria-selected="true"] .stats-season-menu__check {
   visibility: visible;
+  flex: 0 0 0px;
+  color: #8cecff;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 body[data-page="datahub"] .stats-season-menu__divider {
   height: 1px;
-  margin: 6px 10px;
+  margin: 4px 10px;
   background: linear-gradient(90deg, transparent, rgba(165, 192, 224, 0.22) 15%, rgba(165, 192, 224, 0.22) 85%, transparent);
 }
 
