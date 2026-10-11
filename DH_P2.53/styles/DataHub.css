@@ -3382,12 +3382,12 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
 .meta-pill {
   appearance: none;
   border: 1px solid rgb(114 200 255 / 24%);
-  gap: 6px;
+  gap: 3px;
   color: rgb(136 232 253 / 75%);
   font: inherit;
   font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
   box-shadow: none;
 }
 
@@ -3477,6 +3477,7 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
 
 .focus-sort-meta-control .meta-pill--button {
   width: 100%;
+  max-width: 90px;
 }
 
 .sort-meta-label {
@@ -3548,6 +3549,7 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
   min-width: 0;
   padding-left: 7px;
   border-left: 1px solid rgba(151, 184, 229, 0.19);
+  margin-top: 2px;
 }
 
 .sort-meta-menu__heading {
@@ -3670,7 +3672,7 @@ body[data-page="datahub"] .sort-meta-menu .sort-meta-option__column-icon {
   min-height: 26px;
   padding: 4px 3px;
   border: 0;
-  border-radius: 9px;
+  border-radius: 0;
   background: transparent;
   color: rgba(196, 212, 236, 0.82);
   font: inherit;
@@ -3679,6 +3681,7 @@ body[data-page="datahub"] .sort-meta-menu .sort-meta-option__column-icon {
   letter-spacing: 0.01em;
   text-align: left;
   cursor: pointer;
+  border-bottom: 1px solid #68768636;
 }
 
 .sort-meta-option:hover,
@@ -3698,6 +3701,8 @@ body[data-page="datahub"] .sort-meta-menu .sort-meta-option__column-icon {
   box-shadow:
     inset 0 0 0 1px rgba(116, 239, 255, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  margin: 2px 0;
 }
 
 /* First SORTED BY row resets the configured default, displaying only its
@@ -6913,7 +6918,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .meta-pill--button {
-    min-width: 78px;
+    min-width: 85px;
     margin-top: 0;
   }
 
