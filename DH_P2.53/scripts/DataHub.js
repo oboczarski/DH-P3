@@ -2837,6 +2837,9 @@ const state = {
   // keep KTC and ADP visibility in page-local state. DIFF columns are derived
   // from both sources, so they hide whenever either market source is disabled.
   tradeMarketColumnFilters: createDefaultTradeMarketColumnFilterState(),
+  // FOCUS owns session-only visibility per page/category/season; sorting and
+  // source/rank calculations continue to use the complete active schema.
+  focusHiddenGroupsByView: new Map(),
   searchText: "",
   rawSeasonRows: [],
   statsRowsBase: [],
@@ -2923,8 +2926,11 @@ const posRanksMeta = document.querySelector("[data-pos-ranks-meta]");
 const posRanksToggle = document.querySelector("[data-pos-ranks-toggle]");
 const rowCount = document.querySelector("#row-count");
 const sortMetaPill = document.querySelector("#sort-meta-pill");
+const focusMetaPill = document.querySelector("#focus-meta-pill");
 const sortMetaControl = document.querySelector("[data-sort-meta-control]");
 const sortMetaMenu = document.querySelector("#sort-meta-menu");
+let activeSortMetaTrigger = sortMetaPill;
+let sortMetaLayoutFrame = 0;
 const chartToggleButton = document.querySelector("[data-chart-modal-toggle]");
 const chartModal = document.querySelector("#datahub-chart-modal");
 const chartModalOverlay = chartModal?.querySelector(".datahub-chart-modal__overlay");
@@ -3096,6 +3102,7 @@ function initializeApp() {
     document.fonts.ready
       .then(() => {
         updatePageTabsGlint();
+        scheduleSortMetaLayout();
       })
       .catch(() => {});
   }
@@ -3518,25 +3525,40 @@ function attachEventListeners() {
     });
   });
 
-  // Top-of-table sort dropdown:
-  // targets the DataHub grid meta chip and gives the same sort cycle as the
-  // table headers, so users can choose a sort column without horizontal table
-  // header taps. The listener stays page-local to this standalone bundle.
-  sortMetaPill?.addEventListener("click", (event) => {
-    event.stopPropagation();
-    toggleSortMetaDropdown();
-  });
-
-  sortMetaPill?.addEventListener("keydown", (event) => {
-    if (event.key !== "ArrowDown") {
-      return;
-    }
-
-    event.preventDefault();
-    openSortMetaDropdown({ focusSelected: true });
+  // Both DataHub meta pills control the same popup. Remember its opener so
+  // Escape and sort selection return keyboard focus to the correct pill.
+  [focusMetaPill, sortMetaPill].forEach((pill) => {
+    pill?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      activeSortMetaTrigger = pill;
+      toggleSortMetaDropdown();
+    });
+    pill?.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowDown") return;
+      event.preventDefault();
+      activeSortMetaTrigger = pill;
+      openSortMetaDropdown({ focusSelected: true });
+    });
   });
 
   sortMetaMenu?.addEventListener("click", (event) => {
+    const focusOption = event.target.closest("[data-focus-group], [data-focus-clear]");
+    if (focusOption instanceof HTMLButtonElement) {
+      const hiddenGroups = getFocusHiddenGroups();
+      if (focusOption.hasAttribute("data-focus-clear")) {
+        getFocusColumnGroups().forEach((group) => hiddenGroups.add(group.label));
+      } else {
+        const groupLabel = focusOption.dataset.focusGroup;
+        if (!getFocusColumnGroups().some((group) => group.label === groupLabel)) return;
+        if (hiddenGroups.has(groupLabel)) hiddenGroups.delete(groupLabel);
+        else hiddenGroups.add(groupLabel);
+      }
+      // Visibility changes only rebuild table presentation, preserving the
+      // sorted rows, qualifiers and popup scroll/focus for successive toggles.
+      renderTable();
+      syncFocusMetaOptions();
+      return;
+    }
     const option = event.target.closest("[data-sort-column]");
     if (!(option instanceof HTMLButtonElement)) {
       return;
@@ -3558,6 +3580,11 @@ function attachEventListeners() {
   });
 
   sortMetaMenu?.addEventListener("keydown", handleSortMetaMenuKeydown);
+  // Resize/font changes recalculate the native sticky stop and pill midpoint.
+  const sortMetaResizeObserver = new ResizeObserver(scheduleSortMetaLayout);
+  if (sortMetaMenu) sortMetaResizeObserver.observe(sortMetaMenu);
+  if (sortMetaControl) sortMetaResizeObserver.observe(sortMetaControl);
+  window.addEventListener("resize", scheduleSortMetaLayout);
 
   chartToggleButton?.addEventListener("click", () => {
     if (state.isChartModalOpen) {
@@ -8088,6 +8115,40 @@ function getActiveColumnGroups() {
   return getVisibleTradeMarketColumnGroups(groups);
 }
 
+// FOCUS derives its options before applying its own visibility mask, so hidden
+// groups stay available to restore. Match only the exact General/Info headers:
+// "GENERAL PROD. & EFF." remains a normal toggleable statistical group.
+function getFocusColumnGroups() {
+  return getActiveColumnGroups().filter((group) =>
+    group.columns.length && !["GENERAL", "INFO"].includes(String(group.label).toUpperCase()),
+  );
+}
+
+function getFocusViewKey() {
+  return [state.activePageView, state.activeCategory, state.activePageView === "stats" ? state.statsSeason : ""].join("|");
+}
+
+function getFocusHiddenGroups() {
+  const key = getFocusViewKey();
+  if (!state.focusHiddenGroupsByView.has(key)) state.focusHiddenGroupsByView.set(key, new Set());
+  return state.focusHiddenGroupsByView.get(key);
+}
+
+function getFocusedColumnSet() {
+  const hiddenGroups = getFocusHiddenGroups();
+  const hiddenColumns = new Set(getFocusColumnGroups()
+    .filter((group) => hiddenGroups.has(group.label))
+    .flatMap((group) => group.columns));
+  return getActiveColumnSet().filter((columnName) => !hiddenColumns.has(columnName));
+}
+
+function getFocusedColumnGroups() {
+  const visibleColumns = new Set(getFocusedColumnSet());
+  return getActiveColumnGroups()
+    .map((group) => ({ ...group, columns: group.columns.filter((column) => visibleColumns.has(column)) }))
+    .filter((group) => group.columns.length);
+}
+
 function shouldFilterTradeMarketColumns(pageView = state.activePageView) {
   return pageView === "adp-values";
 }
@@ -8386,23 +8447,117 @@ function renderSortMetaMenu() {
     return;
   }
 
-  const columns = getActiveSortableColumns();
-  const fragment = document.createDocumentFragment();
+  // Keep popup position and keyboard focus when a live FOCUS toggle redraws
+  // these controls. View changes start at the top with the new view's groups.
+  const viewKey = getFocusViewKey();
+  const sameView = sortMetaMenu.dataset.viewKey === viewKey;
+  const savedScroll = sameView ? sortMetaMenu.scrollTop : 0;
+  const focusedButton = sortMetaMenu.contains(document.activeElement) ? document.activeElement : null;
+  const focusedGroup = focusedButton?.dataset.focusGroup;
+  const focusedClear = focusedButton?.hasAttribute("data-focus-clear");
+  const focusColumn = document.createElement("section");
+  focusColumn.className = "sort-meta-menu__focus";
+  focusColumn.setAttribute("aria-label", "Focus column groups");
+  focusColumn.append(createSortMetaSectionHeading("FOCUS"));
+  const clear = document.createElement("button");
+  clear.type = "button";
+  clear.className = "focus-meta-clear";
+  clear.dataset.focusClear = "true";
+  clear.textContent = "Clear All";
+  focusColumn.append(clear);
+  getFocusColumnGroups().forEach((group) => focusColumn.append(createFocusMetaOption(group)));
 
-  fragment.append(createSortMetaDefaultMenuOption());
-
-  columns.forEach((columnName) => {
-    fragment.append(createSortMetaMenuOption(columnName));
-  });
-
-  if (!columns.length) {
-    const empty = document.createElement("div");
-    empty.className = "sort-meta-menu__empty";
-    empty.textContent = "No sortable columns";
-    fragment.append(empty);
+  const sortColumn = document.createElement("section");
+  sortColumn.className = "sort-meta-menu__sort";
+  sortColumn.append(createSortMetaSectionHeading("SORTED BY"));
+  const sortList = document.createElement("div");
+  sortList.setAttribute("role", "listbox");
+  sortList.setAttribute("aria-label", "Sort table by");
+  sortList.append(createSortMetaDefaultMenuOption());
+  getActiveSortableColumns().forEach((columnName) => sortList.append(createSortMetaMenuOption(columnName)));
+  sortColumn.append(sortList);
+  sortMetaMenu.replaceChildren(focusColumn, sortColumn);
+  sortMetaMenu.dataset.viewKey = viewKey;
+  sortMetaMenu.scrollTop = savedScroll;
+  if (sameView && (focusedGroup || focusedClear)) {
+    const replacement = Array.from(focusColumn.querySelectorAll("button")).find((button) =>
+      focusedClear ? button.hasAttribute("data-focus-clear") : button.dataset.focusGroup === focusedGroup,
+    );
+    replacement?.focus({ preventScroll: true });
   }
+  scheduleSortMetaLayout();
+}
 
-  sortMetaMenu.replaceChildren(fragment);
+function createSortMetaSectionHeading(text) {
+  const heading = document.createElement("h3");
+  heading.className = "sort-meta-menu__heading";
+  heading.textContent = text;
+  return heading;
+}
+
+function createFocusMetaOption(group) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "focus-meta-option";
+  button.dataset.focusGroup = group.label;
+  button.setAttribute("role", "switch");
+  button.setAttribute("aria-checked", String(!getFocusHiddenGroups().has(group.label)));
+  button.setAttribute("aria-label", `${group.label} columns`);
+  const label = document.createElement("span");
+  label.className = "focus-meta-option__label";
+  label.textContent = group.label;
+  // Reuse the actual group-header renderer, including filled Material glyphs,
+  // viewBox and group colors, instead of introducing a second icon registry.
+  const icon = buildGroupHeaderRow([], [group]).querySelector("svg");
+  if (icon) button.append(icon);
+  const toggle = document.createElement("span");
+  toggle.className = "focus-meta-option__toggle";
+  toggle.setAttribute("aria-hidden", "true");
+  button.append(label, toggle);
+  return button;
+}
+
+function syncFocusMetaOptions() {
+  // Keep existing popup nodes during toggles: replacing a sticky column can
+  // make native scroll anchoring reset the menu even after restoring scrollTop.
+  // Updating switch states in place also retains touch and keyboard focus.
+  const hiddenGroups = getFocusHiddenGroups();
+  sortMetaMenu?.querySelectorAll("[data-focus-group]").forEach((button) => {
+    button.setAttribute("aria-checked", String(!hiddenGroups.has(button.dataset.focusGroup)));
+  });
+}
+
+function createSortMetaColumnIcon(columnName) {
+  const colors = buildColumnIconColorMap([...getActiveFrozenColumnGroups(), ...getActiveColumnGroups()]);
+  // The header renderer owns category-specific glyphs and filled-icon hooks.
+  // Reuse its SVG so menu icons remain identical even for shared stat aliases.
+  const icon = createHeaderCell({ name: columnName, width: 0 }, colors.get(columnName)).querySelector("svg.stats-table__head-icon");
+  if (icon) icon.classList.add("sort-meta-option__column-icon");
+  return icon;
+}
+
+function scheduleSortMetaLayout() {
+  if (sortMetaLayoutFrame) return;
+  sortMetaLayoutFrame = requestAnimationFrame(() => {
+    sortMetaLayoutFrame = 0;
+    if (!isSortMetaDropdownOpen()) return;
+    const focusColumn = sortMetaMenu.querySelector(".sort-meta-menu__focus");
+    if (focusColumn) {
+      const style = getComputedStyle(sortMetaMenu);
+      const availableHeight = sortMetaMenu.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+      // One native scroller moves both columns. A negative sticky offset lets
+      // long FOCUS lists scroll until their last toggle reaches the bottom;
+      // then only the taller sort list continues, with no spacer or jump.
+      sortMetaMenu.style.setProperty("--focus-sticky-top", `${Math.min(0, availableHeight - focusColumn.offsetHeight)}px`);
+    }
+    // Anchor at the pills' midpoint; clamp only if a narrow viewport would
+    // clip the menu. Its original desktop/mobile widths remain unchanged.
+    const pills = [focusMetaPill, sortMetaPill].map((pill) => pill.getBoundingClientRect());
+    const midpoint = (pills[0].left + pills[0].width / 2 + pills[1].left + pills[1].width / 2) / 2;
+    const width = sortMetaMenu.getBoundingClientRect().width;
+    const left = Math.max(9, Math.min(midpoint - width / 2, document.documentElement.clientWidth - width - 9));
+    sortMetaMenu.style.left = `${left - sortMetaControl.getBoundingClientRect().left}px`;
+  });
 }
 
 function createSortMetaDefaultMenuOption() {
@@ -8413,6 +8568,7 @@ function createSortMetaDefaultMenuOption() {
   button.type = "button";
   button.className = "sort-meta-option sort-meta-option--default";
   button.dataset.sortColumn = defaultSort.column;
+  button.dataset.columnName = defaultSort.column;
   button.dataset.sortDefault = "true";
   button.setAttribute("role", "option");
   button.setAttribute("aria-selected", String(isActive));
@@ -8423,25 +8579,15 @@ function createSortMetaDefaultMenuOption() {
   );
 
   const label = document.createElement("span");
-  label.className = "sort-meta-option__label sort-meta-option__label--default";
-
-  const prefix = document.createElement("span");
-  prefix.className = "sort-meta-option__default-prefix";
-  prefix.textContent = "default:";
-
-  const value = document.createElement("span");
-  value.className = "sort-meta-option__default-value";
-  value.textContent = defaultLabel;
-
-  label.append(prefix, value);
+  label.className = "sort-meta-option__label";
+  label.textContent = defaultLabel;
 
   const stateWrap = document.createElement("span");
   stateWrap.className = "sort-meta-option__state";
 
   // Sort dropdown default option:
   // targets the first menu row only and always resets the table to the active
-  // view's baseline column/direction, without adding the "default:" prefix to
-  // the closed sort chip itself.
+  // view's baseline column/direction. Its visible label is only the stat name.
   if (isActive) {
     const sortIcon = createSortIndicatorIcon(defaultSort.column);
     if (sortIcon) {
@@ -8455,6 +8601,8 @@ function createSortMetaDefaultMenuOption() {
   directionText.textContent = defaultSort.direction.toUpperCase();
   stateWrap.append(directionText);
 
+  const columnIcon = createSortMetaColumnIcon(defaultSort.column);
+  if (columnIcon) button.append(columnIcon);
   button.append(label, stateWrap);
   return button;
 }
@@ -8467,6 +8615,7 @@ function createSortMetaMenuOption(columnName) {
   button.type = "button";
   button.className = "sort-meta-option";
   button.dataset.sortColumn = columnName;
+  button.dataset.columnName = columnName;
   button.setAttribute("role", "option");
   button.setAttribute("aria-selected", String(isActive));
   button.classList.toggle("is-active", isActive);
@@ -8500,6 +8649,8 @@ function createSortMetaMenuOption(columnName) {
     stateWrap.append(directionText);
   }
 
+  const columnIcon = createSortMetaColumnIcon(columnName);
+  if (columnIcon) button.append(columnIcon);
   button.append(label, stateWrap);
   return button;
 }
@@ -8516,7 +8667,7 @@ function isDefaultSortActive() {
 
 function applyDefaultSortState() {
   // DataHub sort default reset:
-  // used by the menu-only "default:" row so the top option always returns the
+  // used by the menu's first row so the top option always returns the
   // current table view to its configured baseline sort.
   state.sort = getActiveDefaultSort(state.activePageView);
   applySortedRows();
@@ -8529,14 +8680,16 @@ function openSortMetaDropdown({ focusSelected = false } = {}) {
 
   renderSortMetaMenu();
   sortMetaMenu.hidden = false;
-  sortMetaPill.setAttribute("aria-expanded", "true");
+  [focusMetaPill, sortMetaPill].forEach((pill) => pill?.setAttribute("aria-expanded", "true"));
   sortMetaControl?.classList.add("is-open");
+  scheduleSortMetaLayout();
 
   if (focusSelected) {
     requestAnimationFrame(() => {
       const selectedOption = sortMetaMenu.querySelector('[aria-selected="true"]');
       const firstOption = sortMetaMenu.querySelector("[data-sort-column]");
-      (selectedOption || firstOption)?.focus?.();
+      const focusOption = sortMetaMenu.querySelector("[data-focus-group]");
+      (activeSortMetaTrigger === focusMetaPill ? focusOption : (selectedOption || firstOption))?.focus?.();
     });
   }
 }
@@ -8547,11 +8700,11 @@ function closeSortMetaDropdown({ restoreFocus = false } = {}) {
   }
 
   sortMetaMenu.hidden = true;
-  sortMetaPill.setAttribute("aria-expanded", "false");
+  [focusMetaPill, sortMetaPill].forEach((pill) => pill?.setAttribute("aria-expanded", "false"));
   sortMetaControl?.classList.remove("is-open");
 
   if (restoreFocus) {
-    sortMetaPill.focus?.();
+    activeSortMetaTrigger?.focus?.();
   }
 }
 
@@ -8569,7 +8722,9 @@ function handleSortMetaMenuKeydown(event) {
     return;
   }
 
-  const options = Array.from(sortMetaMenu.querySelectorAll("[data-sort-column]"));
+  const inFocusColumn = document.activeElement?.closest?.(".sort-meta-menu__focus");
+  const options = Array.from(sortMetaMenu.querySelectorAll(inFocusColumn
+    ? "[data-focus-clear], [data-focus-group]" : "[data-sort-column]"));
   if (!options.length) {
     return;
   }
@@ -8587,6 +8742,15 @@ function handleSortMetaMenuKeydown(event) {
     const direction = event.key === "ArrowDown" ? 1 : -1;
     const nextIndex = (currentIndex + direction + options.length) % options.length;
     options[nextIndex].focus();
+    return;
+  }
+
+  if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+    event.preventDefault();
+    const target = event.key === "ArrowLeft"
+      ? sortMetaMenu.querySelector("[data-focus-group]")
+      : sortMetaMenu.querySelector('[aria-selected="true"], [data-sort-column]');
+    target?.focus();
     return;
   }
 
@@ -9077,7 +9241,7 @@ function updateRowCount() {
 // The shell only rebuilds when the table structure changes; sorts/searches
 // simply repopulate the tbody nodes and preserve scroll positions.
 function renderTable() {
-  const allColumns = getActiveColumnSet();
+  const allColumns = getFocusedColumnSet();
   const stickyColumnCount = getStickyColumnCount();
   const frozenNames = allColumns.slice(0, stickyColumnCount);
   const scrollNames = allColumns.slice(stickyColumnCount);
@@ -9118,6 +9282,8 @@ function getGridShellKey() {
     state.activePageView,
     state.activeCategory,
     getTradeMarketColumnStateKey(),
+    getFocusViewKey(),
+    getFocusedColumnSet().join(","),
     state.isCompactViewport ? "compact" : "regular",
   ].join("|");
 }
@@ -9148,7 +9314,7 @@ function createGridShell({ frozenCols, frozenWidth, scrollCols, scrollWidth }) {
   const scrollHeaderTable = buildHeaderTable(
     scrollCols,
     scrollWidth,
-    getActiveColumnGroups(),
+    getFocusedColumnGroups(),
     "scroll-header",
   );
   scrollHeaderInner.append(scrollHeaderTable);
@@ -9299,7 +9465,7 @@ function createTableBase(columns, totalWidth, paneType, ariaLabel) {
 function renderGridBodyRows(refs) {
   // Compute group-start columns for the scroll body so each body row can carry
   // a left-border class that visually connects to the group header row borders.
-  const activeGroups = getActiveColumnGroups();
+  const activeGroups = getFocusedColumnGroups();
   const scrollGroupStartCols = getGroupStartColumnSet(activeGroups);
 
   renderTableBody(refs.frozenBodyTbody, refs.frozenColumns, false);

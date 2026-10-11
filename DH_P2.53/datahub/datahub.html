@@ -24,7 +24,7 @@
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23060d16'/%3E%3Cpath d='M19 20.5h17.5c5.8 0 9.5 3.2 9.5 8.4 0 3.7-1.9 6.3-5.2 7.3 4.1.8 6.7 4 6.7 8.4 0 5.8-4 9.4-10.6 9.4H19V20.5Zm8.2 13.2h7c2.5 0 3.9-1.2 3.9-3.3 0-2.2-1.5-3.3-4.3-3.3h-6.7v6.6Zm0 13.9h7.8c2.9 0 4.5-1.3 4.5-3.7 0-2.4-1.7-3.7-4.8-3.7h-7.5v7.4Z' fill='%23dff5ff'/%3E%3C/svg%3E"
     />
     <!-- DataHub shell assets: keep the reference bundle intact and only repoint files for the DH-P3 page/script/style layout. -->
-    <link rel="stylesheet" href="../styles/DataHub.css?v=DH3.49m-career-positional-rank-tiers" />
+    <link rel="stylesheet" href="../styles/DataHub.css?v=DH3.49r-focus-sort-menu" />
   </head>
   <body data-page="datahub">
     <!-- Decorative background layers for the standalone reference shell. -->
@@ -994,32 +994,45 @@
             </button>
           </div>
           <div class="meta-pill-wrap">
-            <!-- DataHub table sort dropdown:
-                 Targets the top-of-table sort summary. The label is outside
-                 the chip, while DataHub.js turns the chip into a dropdown so
-                 users can sort without tapping table headers. -->
-            <div class="sort-meta-control" data-sort-meta-control>
-              <p id="sort-meta-label" class="meta-label sort-meta-label">SORTED BY</p>
-              <div class="sort-meta-dropdown">
+            <!-- DataHub shared Focus/Sort menu: equal-width adjacent pills
+                 anchor one menu at their midpoint. General/Info stay protected. -->
+            <div class="focus-sort-meta-control" data-sort-meta-control>
+              <div class="sort-meta-control">
+                <p id="focus-meta-label" class="meta-label">FOCUS</p>
+                <button
+                  id="focus-meta-pill"
+                  class="meta-pill meta-pill--button"
+                  type="button"
+                  aria-haspopup="dialog"
+                  aria-expanded="false"
+                  aria-controls="sort-meta-menu"
+                  aria-label="Focus table columns"
+                >
+                  <span class="meta-pill__label">FOCUS</span>
+                  <svg class="meta-pill__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+                </button>
+              </div>
+              <div class="sort-meta-control">
+                <p id="sort-meta-label" class="meta-label sort-meta-label">SORTED BY</p>
                 <button
                   id="sort-meta-pill"
                   class="meta-pill meta-pill--button"
                   type="button"
-                  aria-haspopup="listbox"
+                  aria-haspopup="dialog"
                   aria-expanded="false"
                   aria-controls="sort-meta-menu"
                   aria-labelledby="sort-meta-label sort-meta-pill-label"
                 >
                   <span id="sort-meta-pill-label" class="meta-pill__label">FPTS</span>
                 </button>
-                <div
-                  id="sort-meta-menu"
-                  class="sort-meta-menu"
-                  role="listbox"
-                  aria-labelledby="sort-meta-label"
-                  hidden
-                ></div>
               </div>
+              <div
+                id="sort-meta-menu"
+                class="sort-meta-menu"
+                role="dialog"
+                aria-label="Focus columns and sort table"
+                hidden
+              ></div>
             </div>
             <span id="row-count" class="meta-count">0 rows</span>
           </div>
@@ -1569,7 +1582,7 @@
          depending on the Stats page head assets. -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-    <!-- Restore original Fantasy/PPG formatting; keep tier palettes on the four stat groups. -->
-    <script type="module" src="../scripts/DataHub.js?v=DH3.49q-background-projections"></script>
+    <!-- Refresh the page-owned shared FOCUS/SORTED BY menu and table visibility controls. -->
+    <script type="module" src="../scripts/DataHub.js?v=DH3.49r-focus-sort-menu"></script>
   </body>
 </html>

@@ -3362,14 +3362,19 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* DataHub sort meta dropdown:
-   Targets the top-of-table sort chip only. The menu lists the active table's
-   sortable columns and stays scoped to the grid meta area so it cannot affect
-   hero filters, More navigation, or modal controls. */
-.sort-meta-dropdown {
+/* DataHub FOCUS/SORTED BY pills: equal grid tracks give both buttons the
+   sort pill's intrinsic width. This wrapper alone anchors the shared popup;
+   the surrounding grid-shell__meta keeps its existing responsive layout. */
+.focus-sort-meta-control {
   position: relative;
-  display: inline-flex;
-  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: max-content;
+}
+
+.focus-sort-meta-control .meta-pill--button {
+  width: 100%;
 }
 
 .sort-meta-label {
@@ -3379,14 +3384,20 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
 .sort-meta-menu {
   position: absolute;
   top: calc(100% + 8px);
-  right: 0;
+  left: 50%;
   z-index: 45;
   display: grid;
-  gap: 4px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 0;
   width: min(270px, calc(100vw - 24px));
   max-height: min(338px, 52vh);
   padding: 8px;
   overflow: auto;
+  overscroll-behavior: contain;
+  overflow-anchor: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(151, 184, 229, 0.3) transparent;
   border: 1px solid rgba(151, 184, 229, 0.18);
   border-radius: 18px;
   background:
@@ -3402,20 +3413,138 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
   display: none !important;
 }
 
+/* Native shared scrolling: the shorter FOCUS section sticks only after its
+   last option is visible. JS measures this offset after layout/font changes;
+   SORTED BY continues inside the same wheel/touch/keyboard scroll surface. */
+.sort-meta-menu__focus {
+  position: sticky;
+  top: var(--focus-sticky-top, 0px);
+  padding-right: 7px;
+  min-width: 0;
+}
+
+.sort-meta-menu__sort {
+  min-width: 0;
+  padding-left: 7px;
+  border-left: 1px solid rgba(151, 184, 229, 0.19);
+}
+
+.sort-meta-menu__heading {
+  margin: 3px 3px 9px;
+  color: rgba(169, 188, 215, 0.8);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+}
+
+.focus-meta-clear,
+.focus-meta-option {
+  width: 100%;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: rgba(196, 212, 236, 0.85);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.focus-meta-clear {
+  min-height: 34px;
+  margin-bottom: 4px;
+  padding: 4px 6px;
+  color: rgb(147 216 243);
+  font-size: 0.66rem;
+  font-weight: 700;
+  box-shadow: inset 0 -1px 0 rgba(151, 184, 229, 0.15);
+}
+
+.focus-meta-option {
+  display: grid;
+  grid-template-columns: 13px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 3px;
+  min-height: 46px;
+  padding: 6px 1px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.focus-meta-option__label {
+  overflow-wrap: normal;
+}
+
+.focus-meta-clear:hover,
+.focus-meta-clear:focus-visible,
+.focus-meta-option:hover,
+.focus-meta-option:focus-visible {
+  outline: none;
+  background: rgba(86, 118, 164, 0.18);
+  color: rgba(240, 247, 255, 0.98);
+}
+
+.focus-meta-clear:focus-visible,
+.focus-meta-option:focus-visible {
+  box-shadow: inset 0 0 0 1px rgba(116, 239, 255, 0.4);
+}
+
+.focus-meta-option__toggle {
+  position: relative;
+  width: 20px;
+  height: 12px;
+  border: 1px solid rgba(155, 176, 205, 0.32);
+  border-radius: 999px;
+  background: rgba(74, 93, 121, 0.45);
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.focus-meta-option__toggle::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgb(163 178 202);
+  transition: transform 140ms ease, background 140ms ease;
+}
+
+.focus-meta-option[aria-checked="true"] .focus-meta-option__toggle {
+  border-color: rgba(91, 230, 205, 0.55);
+  background: rgba(41, 191, 162, 0.29);
+}
+
+.focus-meta-option[aria-checked="true"] .focus-meta-option__toggle::after {
+  transform: translateX(8px);
+  background: rgb(135 248 220);
+}
+
+/* Match the table's icon geometry/colors, while sizing only popup glyphs. */
+body[data-page="datahub"] .focus-meta-option .stats-table__group-header-icon,
+body[data-page="datahub"] .sort-meta-menu .sort-meta-option__column-icon {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  transform: none;
+}
+
 .sort-meta-option {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: 15px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
   width: 100%;
-  min-height: 34px;
-  padding: 0 10px;
+  min-height: 38px;
+  padding: 5px 3px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 9px;
   background: transparent;
   color: rgba(196, 212, 236, 0.82);
   font: inherit;
-  font-size: 0.74rem;
+  font-size: 0.66rem;
   font-weight: 700;
   letter-spacing: 0.01em;
   text-align: left;
@@ -3441,10 +3570,8 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* Sort dropdown default row:
-   Targets the first menu option only. It exposes the active table view's
-   configured default sort as `default: <stat>` without changing the closed
-   sort-chip label. */
+/* First SORTED BY row resets the configured default, displaying only its
+   stat name and matching header icon without an extra prefix. */
 .sort-meta-option--default {
   margin-bottom: 4px;
   background:
@@ -3459,31 +3586,14 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
 
 .sort-meta-option__label {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.sort-meta-option__label--default {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
-}
-
-.sort-meta-option__default-prefix {
-  color: rgba(177, 192, 215, 0.72);
-  font-weight: 700;
-}
-
-.sort-meta-option__default-value {
-  color: inherit;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
 }
 
 .sort-meta-option__state {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  min-width: 32px;
+  gap: 2px;
   justify-content: flex-end;
   color: rgb(90 245 209);
 }
@@ -3494,7 +3604,7 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
 }
 
 .sort-meta-option__direction {
-  font-size: 0.58rem;
+  font-size: 0.48rem;
   letter-spacing: 0.06em;
 }
 
@@ -6684,6 +6794,10 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     max-height: min(304px, 50vh);
   }
 
+  .focus-sort-meta-control {
+    gap: 6px;
+  }
+
   /* Mobile hero order:
      targets the DataHub title, tabs, and action row so the new page title
      renders above the tabs on small screens while the controls stay inside the
@@ -7098,6 +7212,46 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"] .dh-pos-badge__dot {
     width: 5px;
     height: 5px;
+  }
+}
+
+/* Narrow phones compact only the two new popup triggers within their existing
+   meta slot. Equal tracks and the original 246px menu remain intact; Position,
+   Pos Ranks, row count and grid-shell__meta retain their own layout rules. */
+@media (max-width: 389px) {
+  .focus-sort-meta-control {
+    width: clamp(114px, calc(100vw - 206px), 164px);
+  }
+
+  .focus-sort-meta-control .meta-pill--button {
+    min-width: 0;
+    padding: 0 4px;
+    gap: 3px;
+    font-size: 0.68rem;
+  }
+
+  .focus-sort-meta-control .meta-pill__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .focus-sort-meta-control .meta-pill__icon,
+  .focus-sort-meta-control .meta-pill__sort-icon {
+    width: 10px;
+    height: 10px;
+    flex: 0 0 10px;
+  }
+}
+
+@media (max-width: 359px) {
+  .focus-sort-meta-control .meta-pill--button {
+    font-size: 0.625rem;
+  }
+
+  .focus-sort-meta-control .meta-pill__chevron {
+    display: none;
   }
 }
 

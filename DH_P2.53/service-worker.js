@@ -47,7 +47,8 @@
 // Refresh Rosters Trade Preview injury badges beside the player's age.
 // Refresh the Rosters-only Game Logs ring/glow sizing so the loader stays centered.
 // Refresh future-week background projections and desktop Start/Sit typography.
-const CACHE_NAME = 'DH3.49q-background-projections';
+// Refresh DataHub's shared FOCUS/SORTED BY menu and column-group visibility.
+const CACHE_NAME = 'DH3.49r-focus-sort-menu';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
