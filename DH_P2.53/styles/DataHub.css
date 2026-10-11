@@ -3482,7 +3482,7 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
 
 .focus-sort-meta-control .meta-pill--button {
   width: 100%;
-  max-width: 88px;
+  max-width: 89px;
 }
 
 .sort-meta-label {
@@ -6921,7 +6921,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .meta-pill--button {
-    min-width: 88px;
+    min-width: 89px;
     margin-top: 0;
   }
 
