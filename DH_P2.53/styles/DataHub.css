@@ -3567,7 +3567,7 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
   display: grid;
   grid-template-columns: 13px minmax(0, 1fr) 20px;
   align-items: center;
-  gap: 3px;
+  gap: 6px;
   min-height: 46px;
   padding: 6px 1px;
   font-size: 0.6rem;
