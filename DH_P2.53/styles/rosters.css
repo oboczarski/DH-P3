@@ -515,12 +515,16 @@ body[data-page="rosters"] .start-sit-matchup-info {
   container-type: inline-size;
   /* Use both 0.2rem column gutters for the four labels while staying inside
      the column's border box; player/projection rows retain their own spacing. */
-  width: calc(100% + 0.4rem);
+  width: calc(100% + 0.1rem);
   min-width: 0;
+  border: 1px solid #5565;
+  border-radius: 9px;
+  margin: 0 0px;
+  background: radial-gradient(115% 76% at 0% 0%, rgb(215 225 255 / 0.101) 0%, rgb(219 230 255 / 0.05) 38%, transparent 134%) padding-box, radial-gradient(115% 76% at 100% 100%, rgb(215 225 255 / 0.081) 0%, rgb(219 230 255 / 0.048) 28%, transparent 94%) padding-box, conic-gradient(from -104deg, #FFFFFF10 0deg, #FFFFFF30 20deg, #FFFFFF20 104deg, #FFF6FF1f 112deg, #FFFFFF15 133deg, #FFFFFF10 153deg, #FFFFFF2f 230deg, #FFFFFF20 265deg, #FFFFFF1a 280deg, #FFFFFF18 300deg, #FFFFFF00 368deg) border-area;
 }
 body[data-page="rosters"] .start-sit-matchup-info-heading {
   display: block;
-  margin-bottom: 3px;
+  margin-bottom: 0px;
   color: var(--color-text-tertiary);
   font-size: 12px;
   line-height: 1;
@@ -530,7 +534,7 @@ body[data-page="rosters"] .start-sit-matchup-info-grid {
   display: grid;
   --start-sit-info-gap: 3px;
   /* Signed point differences need more width than the two per-game FPA values. */
-  grid-template-columns: 1.05fr 1fr 1.15fr 1.2fr;
+  grid-template-columns: 0.95fr 0.95fr 1.25fr 1.2fr;
   gap: var(--start-sit-info-gap);
 }
 body[data-page="rosters"] .start-sit-matchup-info-chip {
@@ -584,13 +588,17 @@ body[data-page="rosters"] .start-sit-matchup-breakdown {
   border: 0;
   background: transparent;
   padding: 0.2rem;
-  color: #b8c4ff;
+  color: #b8c4ffcf;
   font-size: 0.73rem;
   line-height: 1.3;
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 2px;
+  text-decoration-color: #7483a399;
   cursor: pointer;
   margin-bottom: -0.24em;
+  font-family: 'Google Sans Flex';
+  font-variation-settings: "slnt" -4;
+  letter-spacing: -0.02em;
 }
 body[data-page="rosters"] .start-sit-matchup-breakdown:focus-visible {
   outline: 2px solid #74efff;
@@ -603,12 +611,12 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
   cursor: default;
 }
 @media (max-width:520px) {
-  body[data-page="rosters"] .start-sit-matchup-meta {gap: 0.45rem;border-bottom: 1px solid #dde2;max-width: 83%;}
+  body[data-page="rosters"] .start-sit-matchup-meta {gap: 0.45rem;border-bottom: 0px solid #dde2;max-width: 83%;}
   body[data-page="rosters"] .start-sit-total-label {
     font-size: clamp(0.68rem, 2.9vw, 0.9rem);
   }
-  body[data-page="rosters"] .start-sit-matchup-info-heading {font-size: 13px;padding: 4px 3px 0;font-weight: 600;}
-  body[data-page="rosters"] .start-sit-matchup-info-grid {--start-sit-info-gap: 0px;}
+  body[data-page="rosters"] .start-sit-matchup-info-heading {font-size: 13px;padding: 4px 3px 0;font-weight: 600;text-align: center;}
+  body[data-page="rosters"] .start-sit-matchup-info-grid {--start-sit-info-gap: 0px;padding: 2px;border-radius: 9px;}
   /* Narrow preview columns need their full chip width for complete labels. */
   body[data-page="rosters"] .start-sit-matchup-info-chip {padding: 3px 0;}
   body[data-page="rosters"] .start-sit-matchup-opponent .start-sit-matchup-sep { margin-inline: 0.2rem; }
