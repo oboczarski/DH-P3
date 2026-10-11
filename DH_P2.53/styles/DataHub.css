@@ -6893,7 +6893,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .sort-meta-menu {
-    width: min(246px, calc(100vw - 18px));
+    width: min(262px, calc(100vw - 18px));
     max-height: min(304px, 50vh);
   }
 
