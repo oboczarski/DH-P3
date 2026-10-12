@@ -826,9 +826,9 @@ window.renderPlayerRadarChart = function(playerId, position) {
   desktopHover.addEventListener('change', hideTooltip);
 
 // TEAM DIRECTORY MODEL START
-// Rosters Game Logs team directory: only the selected season's source rows
-// define membership (DH in 2026). The player index supplies metadata, never extra
-// players; page search, qualification, and league ownership do not hide source rows.
+// Rosters Game Logs team directory: KTC workbook players and team assignments
+// define membership, including players with no season-stats row. The selected
+// season still owns every result/rank; missing statistics remain unavailable.
 const rostersTeamPositions = ['QB', 'RB', 'WR', 'TE'];
 const rostersTeamNames = {
   ARI: 'Arizona Cardinals', ATL: 'Atlanta Falcons', BAL: 'Baltimore Ravens', BUF: 'Buffalo Bills',
@@ -920,36 +920,37 @@ function rostersTeamPlayers(team) {
   const teamKey = rostersTeamKey(team);
   const seasonStats = state.playerSeasonStats || {};
   const playerIndex = state.players || {};
-  const rowsById = new Map();
-  const ids = Object.keys(seasonStats);
+  // Combine both KTC formats without duplicate players. Active-format metadata
+  // and values win; the other format keeps players absent from the active tab.
+  const activeLookup = (state.isSuperflex ? state.sflxData : state.oneQbData) || {};
+  const fallbackLookup = (state.isSuperflex ? state.oneQbData : state.sflxData) || {};
+  const ids = Object.keys({ ...fallbackLookup, ...activeLookup });
   const elapsedWeeks = getRostersGameLogsElapsedWeeks();
   const snapshot = state.currentGameLogsSeason === '2026' ? state.rosters2026GameLogs : state.rosters2025GameLogs;
-  const qualifiedIds = new Set(ids.filter(id => isRostersGameLogsRankQualified(seasonStats[id], seasonStats[id]?.pos,
+  const qualifiedIds = new Set(Object.keys(seasonStats).filter(id => isRostersGameLogsRankQualified(seasonStats[id], seasonStats[id]?.pos,
     state.currentGameLogsSeason, elapsedWeeks, snapshot?.rankQualifierWeeks || elapsedWeeks)));
   const derivedRanks = rostersTeamDerivedRanks(seasonStats, qualifiedIds);
   const players = [];
   for (const id of ids) {
     const player = playerIndex[id] || {};
-    const source = seasonStats[id];
-    if (!source || typeof source !== 'object') continue;
-    const row = rowsById.get(id);
-    const meta = row?.__meta || {};
-    const pos = String(source?.pos || meta.pos || player.position || player.fantasy_positions?.[0] || '').toUpperCase();
+    const source = seasonStats[id] || {};
+    const valuation = activeLookup[id] || fallbackLookup[id];
+    const fallback = fallbackLookup[id] || {};
+    const pos = String(valuation.pos || fallback.pos || source.pos || player.position || player.fantasy_positions?.[0] || '').toUpperCase();
     if (!rostersTeamPositions.includes(pos)) continue;
-    // The selected season's team takes precedence over today's player index so
-    // historical/traded players cannot leak into the wrong team's season view.
-    if (rostersTeamKey(source?.team || meta.team || player.team) !== teamKey) continue;
-    const valuation = (state.isSuperflex ? (state.sflxData?.[id] || state.oneQbData?.[id]) : (state.oneQbData?.[id] || state.sflxData?.[id])) || {};
-    const name = String(player.full_name || `${player.first_name || ''} ${player.last_name || ''}`.trim()
-      || meta.fullName || meta.name || valuation.name || `Player ${id}`).trim();
+    // The KTC team owns directory membership; historical stat teams and today's
+    // Sleeper index cannot move a player out of the team listed in the workbook.
+    if (rostersTeamKey(valuation.team || fallback.team) !== teamKey) continue;
+    const name = String(valuation.name || fallback.name || player.full_name || `${player.first_name || ''} ${player.last_name || ''}`.trim()
+      || `Player ${id}`).trim();
     const ktc = rostersTeamNumber(valuation.ktc);
-    const age = rostersTeamNumber(source.age ?? meta.age ?? valuation.age ?? player.age);
+    const age = rostersTeamNumber(source.age ?? valuation.age ?? player.age);
     // Player Game Logs expects a position-prefixed rank string, including when
     // a valuation feed supplies only a numeric rank.
-    const rank = String(valuation.posRank ?? meta.posRankText ?? '').match(/\d+/)?.[0];
+    const rank = String(valuation.posRank ?? '').match(/\d+/)?.[0];
     const seasonRanks = state.playerSeasonRanks?.[id] || {};
     players.push({ id, name, fullName: name, pos, team: teamKey, ktc, age,
-      posRank: rank ? `${pos}·${rank}` : null, overallRank: valuation.overallRank ?? meta.overallKtcRank,
+      posRank: rank ? `${pos}·${rank}` : null, overallRank: valuation.overallRank,
       stats: rostersTeamStats(source, pos), statRanks: { ...derivedRanks[id], ...seasonRanks,
         // Team cards display source PPR totals, so reuse the matching season ranks.
         fpts: seasonRanks.fpts ?? seasonRanks.fpts_ppr ?? seasonRanks.fpt_ppr,

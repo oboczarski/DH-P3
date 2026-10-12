@@ -3735,6 +3735,9 @@ function parseSheetData(csvText) {
         }
         if (!sleeperId || sleeperId === 'NA') return;
         dataMap[sleeperId] = {
+            // Retain the KTC sheet name for team-modal players missing Sleeper
+            // metadata or a season-stats row; the existing player ID stays the key.
+            name: getColumnValue(columns, ['PLAYER NAME', 'PLAYER', 'NAME']) || null,
             pos: pos || null,
             team: team || null,
             age: age,
@@ -9596,13 +9599,13 @@ function renderStartSitPreview() {
         const team = metric?.team || String(selection.matchup?.opponent || (selection.matchup?.isBye ? 'BYE' : '—'))
             .trim().replace(/^(?:vs\.?|@)\s*/i, '').toUpperCase();
         const heading = `${team} vs. ${pos}:`;
-        // Rosters Start/Sit headings put the opponent logo directly after its
+        // Rosters Start/Sit headings put the opponent logo directly before its
         // label on both breakpoints. Validate aliases against the NFL team map so
         // every team has its local SVG while BYE/unknown labels have no logo.
         const logoTeam = ({ WSH: 'WAS', JAC: 'JAX', LA: 'LAR' })[team] || team;
         const logoKey = logoTeam !== 'FA' && Object.hasOwn(TEAM_COLORS, logoTeam) ? logoTeam.toLowerCase() : '';
         const teamLogo = logoKey ? `<img class="start-sit-matchup-info-logo" src="../assets/NFL_logos_svg/${logoKey}.svg" alt="" aria-hidden="true" width="16" height="16" decoding="async">` : '';
-        const headingMarkup = `<span>${escapeHtml(team)}</span>${teamLogo}<span>vs. ${escapeHtml(pos)}:</span>`;
+        const headingMarkup = `${teamLogo}<span>${escapeHtml(team)}</span><span>vs. ${escapeHtml(pos)}:</span>`;
         const sosColor = metric?.sosRank != null ? getOpponentRankColor(metric.sosRank) : '';
         // Start/Sit's per-game values share the existing matchup rank palette:
         // actual uses the published positional matchup rank, expected uses the
@@ -9738,12 +9741,19 @@ function renderStartSitPreview() {
             breakdownHtml = `<button type="button" class="start-sit-matchup-breakdown" data-start-sit-matchup-id="${escapeHtml(selection.id)}" aria-haspopup="dialog" aria-label="Matchup Breakdown for ${escapeHtml(selection.label)}"${canBreakdown ? '' : ' disabled title="No opponent defense available"'}>Matchup Breakdown</button>`;
             const rankParts = rankText.split('·');
             const rankNumberDisplay = rankParts.length > 1 ? rankParts.slice(1).join('·') : 'NA';
+            // Each compared player's own team logo follows the name. Keep this
+            // distinct from the opponent logo in the matchup heading below.
+            const playerTeamRaw = String(selection.team || '').trim().toUpperCase();
+            const playerTeam = ({ WSH: 'WAS', JAC: 'JAX', LA: 'LAR' })[playerTeamRaw] || playerTeamRaw;
+            const playerTeamLogo = playerTeam !== 'FA' && Object.hasOwn(TEAM_COLORS, playerTeam)
+                ? `<img class="start-sit-player-team-logo" src="../assets/NFL_logos_svg/${playerTeam.toLowerCase()}.svg" alt="${escapeHtml(playerTeam)}" width="18" height="18" decoding="async">` : '';
             assetsHTML = `
                         <div class="trade-asset-chip start-sit-chip">
                             <div class="start-sit-chip-body">
                                 <span class="start-sit-name">
                                     <span class="start-sit-inline-tag player-tag" data-pos="${selection.pos}">${selection.pos}</span>
                                     <span class="start-sit-name-text">${escapeHtml(selection.label)}</span>
+                                    ${playerTeamLogo}
                                 </span>
                                 <span class="start-sit-metric"><span class="start-sit-metric-value" style="color: ${ppgColor};">${ppgText}</span><span class="start-sit-metric-unit">PPG</span><span class="start-sit-metric-sep">•</span><span class="start-sit-rank"><span class="start-sit-rank-pos" style="color: ${posColor};">${posForColor}</span><span class="start-sit-rank-dot">·</span><span class="start-sit-rank-number" style="color: ${rankColor};">${rankNumberDisplay}</span></span></span>
                             </div>

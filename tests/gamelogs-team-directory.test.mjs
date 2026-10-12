@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 // Exercise both page-owned directory models from the shipped source. Fixtures
-// cover source-only membership, season/team isolation, missing values, TD mapping,
+// cover KTC membership, selected-season stats, missing values, TD mapping,
 // and reuse of the shipped positional formatting rather than a test-only palette.
 function readFunction(text, name) {
   const start = text.indexOf(`function ${name}(`);
@@ -23,19 +23,28 @@ function model(page, fixture = {}) {
   const filename = page === 'datahub' ? 'DataHub.js' : 'rosters-gamelogs.js';
   const text = fs.readFileSync(new URL(`../DH_P2.53/scripts/${filename}`, import.meta.url), 'utf8');
   const source = text.split('// TEAM DIRECTORY MODEL START')[1].split('// TEAM DIRECTORY MODEL END')[0];
+  // Existing metric fixtures abbreviate KTC rows; supply their sheet identity
+  // while explicit KTC metadata below can override season/Sleeper assignments.
+  const sheetRows = values => Object.fromEntries(Object.entries(values || {}).map(([id, value]) => [id, {
+    pos: fixture.stats?.[id]?.pos || fixture.players?.[id]?.position,
+    team: fixture.stats?.[id]?.team || fixture.players?.[id]?.team,
+    ...value,
+  }]));
+  const oneQb = sheetRows(fixture.values), sflx = sheetRows(fixture.sflx);
   const state = {
     players: fixture.players || {}, sleeperPlayers: fixture.players || {},
     playerSeasonStats: fixture.stats || {}, currentModalSeason: fixture.season || '2026', currentGameLogsSeason: fixture.season || '2026',
     playerSeasonRanks: fixture.ranks || {}, modalRankCache: fixture.summary || {},
     currentGameLogsPlayerRanks: { posRank: 99, ppgPosRank: 99 },
-    oneQbData: fixture.values || {}, sflxData: fixture.sflx || {}, isSuperflex: Boolean(fixture.isSuperflex),
+    oneQbData: oneQb, sflxData: sflx, isSuperflex: Boolean(fixture.isSuperflex),
+    ktcLookups: { '1-QB': oneQb, SFLX: sflx }, primaryTab: fixture.isSuperflex ? 'SFLX' : '1-QB',
   };
   const qualified = new Set(fixture.qualified || Object.keys(state.playerSeasonStats));
   const qualifiedStats = new Set([...qualified].map(id => state.playerSeasonStats[id]));
   const context = vm.createContext({ state, getDataHubStatsRowsForSeason: () => fixture.rows || [],
     getDataHubGameLogsQualifiedIds: () => qualified, getRostersGameLogsElapsedWeeks: () => 3,
     isRostersGameLogsRankQualified: stats => qualifiedStats.has(stats),
-    getActiveKtcLookup: () => fixture.isSuperflex ? fixture.sflx || {} : fixture.values || {} });
+    getActiveKtcLookup: () => fixture.isSuperflex ? sflx : oneQb });
   const appSource = page === 'datahub' ? text : fs.readFileSync(new URL('../DH_P2.53/scripts/app.js', import.meta.url), 'utf8');
   const colorName = page === 'datahub' ? 'getDataHubConditionalColorByRank' : 'getConditionalColorByRank';
   const ageName = page === 'datahub' ? 'getDataHubVitalsColor' : 'getVitalsColor';
@@ -91,7 +100,7 @@ for (const page of ['datahub', 'rosters']) {
     assert.equal(stats.cmp_pct, 80);
     assert.equal(api.stats(undefined, 'RB').games_played, undefined);
   });
-  test(`${page}: source players group by position and KTC; Sleeper-only players are excluded`, () => {
+  test(`${page}: every KTC team player appears without requiring season stats or Sleeper metadata`, () => {
     const api = model(page, {
       players: {
         q: { full_name: 'Quarterback', position: 'QB', team: 'BUF' },
@@ -104,27 +113,38 @@ for (const page of ['datahub', 'rosters']) {
         d: { full_name: 'Defender', position: 'LB', team: 'BUF' },
         other: { full_name: 'Other team', position: 'WR', team: 'NYJ' },
         sleeperOnly: { full_name: 'Outside DH', position: 'WR', team: 'BUF' },
-      }, values: { q: { ktc: 100 }, r1: { ktc: 300 }, r2: { ktc: 900, posRank: 2 }, r4: { ktc: 0 }, w: { ktc: 800 } },
+      }, values: { q: { ktc: 100 }, r1: { ktc: 300 }, r2: { ktc: 900, posRank: 2 }, r3: {}, r4: { ktc: 0 }, w: { ktc: 800 }, t: {},
+        ktcOnly: { name: 'KTC-only Receiver', pos: 'WR', team: 'BUF', age: 22, ktc: 1000 },
+        d: { pos: 'LB', team: 'BUF' }, other: { pos: 'WR', team: 'NYJ' },
+        pick: { pos: 'RDP', team: 'BUF', ktc: 9000 } },
       stats: { q: { pos: 'QB', team: 'BUF' }, r1: { pos: 'RB', team: 'BUF' },
         r2: { pos: 'RB', team: 'BUF', games_played: 0, fpts_ppr: 0 }, r3: { pos: 'RB', team: 'BUF' },
         r4: { pos: 'RB', team: 'BUF' }, w: { pos: 'WR', team: 'BUF' }, t: { pos: 'TE', team: 'BUF' },
-        d: { pos: 'LB', team: 'BUF' }, other: { pos: 'WR', team: 'NYJ' }, nullSource: null },
+        d: { pos: 'LB', team: 'BUF' }, other: { pos: 'WR', team: 'NYJ' },
+        statsOnly: { pos: 'WR', team: 'BUF', fpts_ppr: 100 }, nullSource: null },
     });
     const players = api.players('BUF');
-    assert.deepEqual(Array.from(players, p => p.id), ['q', 'r2', 'r1', 'r4', 'r3', 'w', 't']);
+    assert.deepEqual(Array.from(players, p => p.id), ['q', 'r2', 'r1', 'r4', 'r3', 'ktcOnly', 'w', 't']);
+    const missing = players.find(p => p.id === 'ktcOnly');
+    assert.equal(missing.name, 'KTC-only Receiver');
+    assert.equal(missing.age, 22);
+    assert.equal(missing.stats.fpts, null);
+    assert.equal(api.format(missing.stats.fpts), '—');
     assert.equal(players.find(p => p.id === 'r3').stats.fpts, null);
     assert.equal(players.find(p => p.id === 'r2').stats.fpts, 0);
     assert.equal(players.find(p => p.id === 'r2').posRank, 'RB·2');
   });
-  test(`${page}: season team membership wins over current metadata and aliases match`, () => {
+  test(`${page}: KTC team membership wins over historical stats and Sleeper, with normalized aliases`, () => {
     const api = model(page, { players: {
       traded: { position: 'WR', team: 'BUF', full_name: 'Traded player' },
       alias: { position: 'RB', team: 'JAC', full_name: 'Alias player' },
-    }, stats: { traded: { pos: 'WR', team: 'WSH' }, orphan: { pos: 'TE', team: 'WAS', games_played: 3 },
-      alias: { pos: 'RB', team: 'JAC' } } });
+    }, values: { traded: { pos: 'WR', team: 'WSH' }, orphan: { pos: 'TE', team: 'WAS' }, alias: { pos: 'RB', team: 'JAC' } },
+    stats: { traded: { pos: 'WR', team: 'BUF', fpts_ppr: 40 }, orphan: { pos: 'TE', team: 'BUF', games_played: 3 },
+      alias: { pos: 'RB', team: 'KC' } } });
     assert.equal(api.players('BUF').length, 0);
     assert.deepEqual(Array.from(api.players('WAS'), p => p.id).sort(), ['orphan', 'traded']);
     assert.deepEqual(Array.from(api.players('JAX'), p => p.id), ['alias']);
+    assert.equal(api.players('WAS').find(p => p.id === 'traded').stats.fpts, 40);
     assert.equal(api.key('LA'), 'LAR');
   });
   test(`${page}: labels and receiving YAC mapping match the requested contract`, () => {
@@ -142,6 +162,21 @@ for (const page of ['datahub', 'rosters']) {
       values: { a: { ktc: 100 }, b: { ktc: 200 } }, sflx: { a: { ktc: 300 }, b: { ktc: 250 } }, isSuperflex: true };
     assert.deepEqual(Array.from(model(page, fixture).players('BUF'), p => p.id), ['a', 'b']);
     assert.deepEqual(Array.from(model(page, { ...fixture, isSuperflex: false }).players('BUF'), p => p.id), ['b', 'a']);
+  });
+  test(`${page}: both KTC tabs supply membership once and active-format team metadata wins`, () => {
+    const fixture = { values: {
+      shared: { name: 'Shared', pos: 'QB', team: 'BUF', ktc: 100 },
+      oneOnly: { name: 'One QB only', pos: 'WR', team: 'BUF', ktc: 200 },
+    }, sflx: {
+      shared: { name: 'Shared', pos: 'QB', team: 'NYJ', ktc: 300 },
+      sflxOnly: { name: 'Superflex only', pos: 'TE', team: 'BUF', ktc: 400 },
+    } };
+    const oneQb = model(page, fixture), sflx = model(page, { ...fixture, isSuperflex: true });
+    assert.deepEqual(Array.from(oneQb.players('BUF'), p => p.id), ['shared', 'oneOnly', 'sflxOnly']);
+    assert.equal(oneQb.players('NYJ').length, 0);
+    assert.deepEqual(Array.from(sflx.players('BUF'), p => p.id), ['oneOnly', 'sflxOnly']);
+    assert.deepEqual(Array.from(sflx.players('NYJ'), p => p.id), ['shared']);
+    assert.equal(sflx.players('NYJ')[0].ktc, 300);
   });
   test(`${page}: new G and TD(t) ranks use every team's position pool, qualification and competition ties`, () => {
     const stats = {
@@ -166,7 +201,7 @@ for (const page of ['datahub', 'rosters']) {
     const api = model(page, { stats: {
       a: { pos: 'WR', team: 'BUF', games_played: 3, fpts_ppr: 30, rec_tgt: 8, rec: 0, rec_yd: 90 },
       b: { pos: 'WR', team: 'BUF', games_played: 3, fpts_ppr: 15, rec_tgt: 4 },
-    }, players: { a: { age: 25 }, b: { age: 30 } }, values: { a: { ktc: 5000, posRank: 13 } },
+    }, players: { a: { age: 25 }, b: { age: 30 } }, values: { a: { ktc: 5000, posRank: 13 }, b: {} },
     ranks: { a: { fpts: 13, ppg: 25, rec_tgt: 37, rec: 49, games_played: 61 },
       b: { fpts_ppr: 73, ppg: null } }, summary: { a: { posRank: 13, ppgPosRank: 25 }, b: { posRank: 73 } } });
     const a = api.players('BUF').find(p => p.id === 'a'), b = api.players('BUF').find(p => p.id === 'b');

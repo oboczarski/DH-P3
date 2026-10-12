@@ -430,6 +430,22 @@ body[data-page="rosters"] .start-sit-name {
 }
 body[data-page="rosters"] .start-sit-name-text {
   white-space: normal;
+  /* Reserve room for the fixed team logo: mobile names can wrap, while the
+     desktop nowrap rule uses an ellipsis when a long name exhausts its column. */
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Start/Sit keeps each player's team logo immediately after the name, with a
+   fixed icon size so the name can use the remaining space on narrow phones. */
+body[data-page="rosters"] .start-sit-player-team-logo {
+  display: block;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
 }
 /* Rosters desktop Start/Sit preview: apply the requested name/tag/metric
    typography at the existing 820px desktop boundary. Mobile bases above stay
@@ -532,7 +548,7 @@ body[data-page="rosters"] .start-sit-matchup-info {
   background: radial-gradient(115% 76% at 0% 0%, rgb(215 225 255 / 0.101) 0%, rgb(219 230 255 / 0.05) 38%, transparent 134%) padding-box, radial-gradient(115% 76% at 100% 100%, rgb(215 225 255 / 0.081) 0%, rgb(219 230 255 / 0.048) 28%, transparent 94%) padding-box, conic-gradient(from -104deg, #FFFFFF10 0deg, #FFFFFF30 20deg, #FFFFFF20 104deg, #FFF6FF1f 112deg, #FFFFFF15 133deg, #FFFFFF10 153deg, #FFFFFF2f 230deg, #FFFFFF20 265deg, #FFFFFF1a 280deg, #FFFFFF18 300deg, #FFFFFF00 368deg) border-area;
 }
 body[data-page="rosters"] .start-sit-matchup-info-heading {
-  /* Keep the opponent label, its logo and the position centered as one heading. */
+  /* Keep the opponent logo, its label and the position centered as one heading. */
   display: flex;
   align-items: center;
   justify-content: center;

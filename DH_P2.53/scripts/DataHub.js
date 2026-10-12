@@ -12843,9 +12843,9 @@ function buildDataHubModalRankCache(rows, season = "2025") {
 
 
 // TEAM DIRECTORY MODEL START
-// Data Hub Game Logs team directory: only the selected season's source rows
-// define membership (DH in 2026). The player index supplies metadata, never extra
-// players; page search, qualification, and league ownership do not hide source rows.
+// DataHub Game Logs team directory: KTC workbook players and team assignments
+// define membership, including players with no season-stats row. The selected
+// season still owns every result/rank; missing statistics remain unavailable.
 const dataHubTeamPositions = ['QB', 'RB', 'WR', 'TE'];
 const dataHubTeamNames = {
   ARI: 'Arizona Cardinals', ATL: 'Atlanta Falcons', BAL: 'Baltimore Ravens', BUF: 'Buffalo Bills',
@@ -12938,23 +12938,27 @@ function dataHubTeamPlayers(team) {
   const seasonStats = state.playerSeasonStats || {};
   const playerIndex = state.sleeperPlayers || {};
   const rowsById = new Map(getDataHubStatsRowsForSeason(state.currentModalSeason).map(row => [String(row.__meta.playerId), row]));
-  const ids = Object.keys(seasonStats);
+  // Include players listed in either KTC format once. The active format owns
+  // values/team metadata when both contain the player; the other fills omissions.
+  const activeLookup = getActiveKtcLookup() || {};
+  const fallbackLookup = (state.primaryTab === 'SFLX' ? state.ktcLookups?.['1-QB'] : state.ktcLookups?.SFLX) || {};
+  const ids = Object.keys({ ...fallbackLookup, ...activeLookup });
   const derivedRanks = dataHubTeamDerivedRanks(seasonStats, getDataHubGameLogsQualifiedIds(state.currentModalSeason));
   const players = [];
   for (const id of ids) {
     const player = playerIndex[id] || {};
-    const source = seasonStats[id];
-    if (!source || typeof source !== 'object') continue;
+    const source = seasonStats[id] || {};
+    const valuation = activeLookup[id] || fallbackLookup[id];
+    const fallback = fallbackLookup[id] || {};
     const row = rowsById.get(id);
     const meta = row?.__meta || {};
-    const pos = String(source?.pos || meta.pos || player.position || player.fantasy_positions?.[0] || '').toUpperCase();
+    const pos = String(valuation.pos || fallback.pos || source.pos || meta.pos || player.position || player.fantasy_positions?.[0] || '').toUpperCase();
     if (!dataHubTeamPositions.includes(pos)) continue;
-    // The selected season's team takes precedence over today's player index so
-    // historical/traded players cannot leak into the wrong team's season view.
-    if (dataHubTeamKey(source?.team || meta.team || player.team) !== teamKey) continue;
-    const valuation = getActiveKtcLookup()?.[id] || {};
-    const name = String(player.full_name || `${player.first_name || ''} ${player.last_name || ''}`.trim()
-      || meta.fullName || meta.name || valuation.name || `Player ${id}`).trim();
+    // KTC's current team is authoritative for this directory even when a traded
+    // player's selected-season stat row still names a previous team.
+    if (dataHubTeamKey(valuation.team || fallback.team) !== teamKey) continue;
+    const name = String(valuation.name || fallback.name || player.full_name || `${player.first_name || ''} ${player.last_name || ''}`.trim()
+      || meta.fullName || meta.name || `Player ${id}`).trim();
     const ktc = dataHubTeamNumber(valuation.ktc);
     const age = dataHubTeamNumber(source.age ?? meta.age ?? valuation.age ?? player.age);
     // Player Game Logs expects a position-prefixed rank string, including when

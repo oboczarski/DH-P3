@@ -53,7 +53,8 @@
 // Refresh DataHub's proportional mobile meta pills and deduplicated sort options.
 // Refresh both team-modal injury badges and Rosters Start/Sit logos/desktop widths.
 // Refresh DataHub Compare's active-format KTC values and descending picker order.
-const CACHE_NAME = 'DH3.49w-compare-ktc-sort';
+// Refresh KTC-owned team membership and both opponent/player Start/Sit logos.
+const CACHE_NAME = 'DH3.49x-ktc-team-directory-logos';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
