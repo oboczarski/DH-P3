@@ -431,6 +431,30 @@ body[data-page="rosters"] .start-sit-name {
 body[data-page="rosters"] .start-sit-name-text {
   white-space: normal;
 }
+/* Mobile Start/Sit chips must shrink around the new name-side team logo.
+   Allow long names to wrap inside the chip while its position/logo stay inline;
+   desktop typography and the preview's column/divider widths remain unchanged. */
+@media (max-width: 819px) {
+  body[data-page="rosters"] .start-sit-preview-column .start-sit-chip {
+    min-width: 0;
+  }
+  body[data-page="rosters"] .start-sit-name-text {
+    overflow-wrap: anywhere;
+  }
+}
+/* Small phones use compact inner gutters/name text beside the position and
+   team logo, leaving both preview widths and desktop typography intact. */
+@media (max-width: 360px) {
+  body[data-page="rosters"] .start-sit-preview-column .trade-assets {
+    padding-inline: 0.25rem;
+  }
+  body[data-page="rosters"] .start-sit-name {
+    gap: 3px;
+  }
+  body[data-page="rosters"] .start-sit-name-text {
+    font-size: 0.78rem;
+  }
+}
 /* Rosters desktop Start/Sit preview: apply the requested name/tag/metric
    typography at the existing 820px desktop boundary. Mobile bases above stay
    untouched; body scoping prevents these overrides reaching another page. */
@@ -545,7 +569,10 @@ body[data-page="rosters"] .start-sit-matchup-info-heading {
   font-weight: 600;
   text-align: -webkit-center;
 }
-body[data-page="rosters"] .start-sit-matchup-info-logo {
+/* Start/Sit owns both inline logo placements; fixed sizes keep each logo beside
+   its opponent label or player name without shrinking at narrow widths. */
+body[data-page="rosters"] .start-sit-matchup-info-logo,
+body[data-page="rosters"] .start-sit-player-team-logo {
   display: block;
   flex: 0 0 auto;
   width: 16px;
