@@ -54,7 +54,8 @@
 // Refresh both team-modal injury badges and Rosters Start/Sit logos/desktop widths.
 // Refresh DataHub Compare's active-format KTC values and descending picker order.
 // Refresh Rosters Start/Sit's opponent-logo order and inline player-team logos.
-const CACHE_NAME = 'DH3.49x-start-sit-team-logos';
+// Refresh DataHub Compare's responsive gradient areas beneath weekly lines.
+const CACHE_NAME = 'DH3.49y-compare-area-gradients';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

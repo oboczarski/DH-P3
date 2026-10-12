@@ -7420,7 +7420,7 @@ async function ensureDataHubComparisonModule() {
     dataHubComparisonModulePromise = Promise.all([
       import(DATAHUB_COMPARISON_REACT_URL),
       import(DATAHUB_COMPARISON_REACT_DOM_URL),
-      import("./datahub-comparison/DataHubComparisonModal.js?v=DH3.49w-compare-ktc-sort"),
+      import("./datahub-comparison/DataHubComparisonModal.js?v=DH3.49y-compare-area-gradients"),
     ])
       .then(([reactModule, reactDomModule, comparisonModule]) => {
         const React = reactModule.default || reactModule;

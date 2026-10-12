@@ -182,6 +182,30 @@ function buildThresholdGradient(player, playerIndex, statKey, thresholds, axis) 
   };
 }
 
+function buildWeeklyAreaGradient(player, playerIndex, isMobile) {
+  // DataHub Compare weekly areas: carry each player's existing palette into
+  // a richer tint beneath the curve, then ease to fully transparent at the
+  // plot floor. Relative coordinates keep the fade proportional on resize;
+  // compact charts use less opacity so their dense labels remain prominent.
+  const palette = getPlayerPalette(player, playerIndex);
+  const peakOpacity = isMobile ? 0.3 : 0.38;
+  return {
+    type: "linear",
+    x: 0,
+    y: 0,
+    x2: 0,
+    y2: 1,
+    global: false,
+    colorStops: [
+      { offset: 0, color: hexToRgba(palette.high, peakOpacity) },
+      { offset: 0.34, color: hexToRgba(palette.highMid, peakOpacity * 0.58) },
+      { offset: 0.66, color: hexToRgba(palette.lowMid, peakOpacity * 0.22) },
+      { offset: 0.88, color: hexToRgba(palette.low, peakOpacity * 0.045) },
+      { offset: 1, color: hexToRgba(palette.low, 0) },
+    ],
+  };
+}
+
 function getPointThresholdColor(player, playerIndex, statKey, thresholds, rawValue) {
   const value = toFiniteNumber(rawValue);
   const palette = getPlayerPalette(player, playerIndex);
@@ -436,7 +460,6 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
   // keep team marks subordinate to the value/rank labels so adjacent weeks stay
   // readable in both the desktop pair and the compact stacked mobile charts.
   const symbolSize = isMobile ? 12 : 15;
-  const areaOpacity = isMobile ? 0.025 : 0.035;
   const labelPadding = isMobile ? [2, 3, 2, 3] : [3, 5, 3, 5];
 
   return {
@@ -684,8 +707,12 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
           opacity: 1,
         },
         areaStyle: {
-          opacity: areaOpacity,
-          color: gradient,
+          // Fill to the visible plot floor, including negative-valued stats
+          // and inverted lower-is-better axes. Keeping the area on this line
+          // series preserves its exact smoothing and skipped-week behavior.
+          origin: axis.inverse ? "end" : "start",
+          opacity: 1,
+          color: buildWeeklyAreaGradient(player, paletteIndex, isMobile),
         },
         label: {
           show: false,
@@ -718,6 +745,8 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
         emphasis: {
           focus: "series",
           lineStyle: { width: isMobile ? 3.2 : 3.8 },
+          // The gradient's stops own its alpha; hover must retain that fade.
+          areaStyle: { opacity: 1 },
         },
         data: dataPoints,
       };

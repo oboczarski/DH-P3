@@ -17,9 +17,11 @@ import {
   normalizePlayerSearchText,
   toFiniteNumber,
 } from "./comparisonStats.js";
+// Version the weekly renderer with the lazy modal so cached imports pick up
+// the new under-line gradients when this comparison bundle is refreshed.
 import {
   buildWeeklyChartOption,
-} from "./comparisonChartOptions.js";
+} from "./comparisonChartOptions.js?v=DH3.49y-compare-area-gradients";
 
 const POSITION_FILTERS = Object.freeze([
   { key: "all", label: "All" },
