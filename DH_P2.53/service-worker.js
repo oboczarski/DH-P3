@@ -54,7 +54,8 @@
 // Refresh both team-modal injury badges and Rosters Start/Sit logos/desktop widths.
 // Refresh DataHub Compare's active-format KTC values and descending picker order.
 // Refresh Rosters Start/Sit's opponent-logo order and inline player-team logos.
-const CACHE_NAME = 'DH3.49x-start-sit-team-logos';
+// Refresh Rosters' complete Start/Sit analytics island and Overview source fields.
+const CACHE_NAME = 'DH3.50-start-sit-dashboard';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -81,12 +82,15 @@ const CORE_ASSET_PATHS = [
   '/styles/rosters.css',
   // Rosters Game Logs owns its modal styling without loading DataHub.css.
   '/styles/rosters-gamelogs.css',
+  // Start/Sit presentation and charts remain independently owned by Rosters.
+  '/styles/rosters-start-sit-dashboard.css',
   '/styles/leaguehub.css',
   '/styles/research.css',
   '/styles/ownership.css',
   '/styles/contact.css',
   '/scripts/app.js',
   '/scripts/rosters-gamelogs.js',
+  '/scripts/rosters-start-sit-dashboard.js',
   '/scripts/stats.js',
   '/scripts/DataHub.js',
   '/scripts/datahub-stats-positional-ranks.js',

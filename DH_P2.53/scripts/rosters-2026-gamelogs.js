@@ -35,6 +35,10 @@
         // WR/TE production, efficiency, and weekly additions use exact DH/WK headers.
         "recTDS%": 'rec_tms', '10+ Tgt': 'tgt_10_plus', 'AY/Tgt': 'ay_per_tgt', 'REC/G': 'rec_per_g',
         RR: 'rr', 'RZ Tgt': 'rz_tgt', 'TS%': 'ts_per_rr', 'CSTY%': 'csty_pct', YPRR: 'yprr', '1DRR': 'first_down_rec_rate',
+        // Mixed-position Rosters comparison mirrors the DataHub Overview fields.
+        // Read these exact source columns; never invent touchdowns/opportunities
+        // or derive a missing impact rate from other season/weekly cells.
+        'TD(t)': 'td_total', OPP: 'opp', 'IMP/OPP': 'imp_per_opp',
         IMP: 'imp', FUM: 'fum', SNP: 'snp', 'SNP%': 'snp_pct', 'YDS(t)': 'yds_total', FPOE: 'fpoe', aFPOE: 'fpoe',
         CL: 'ceiling', 'YPG(t)': 'ypg', paYPG: 'pa_ypg', ruYPG: 'ru_ypg', recYPG: 'rec_ypg', 'AY%': 'ay_pct', PROJ: 'proj', FPT_PPR: 'fpt_ppr'
     };
