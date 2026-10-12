@@ -7420,7 +7420,7 @@ async function ensureDataHubComparisonModule() {
     dataHubComparisonModulePromise = Promise.all([
       import(DATAHUB_COMPARISON_REACT_URL),
       import(DATAHUB_COMPARISON_REACT_DOM_URL),
-      import("./datahub-comparison/DataHubComparisonModal.js"),
+      import("./datahub-comparison/DataHubComparisonModal.js?v=DH3.49w-compare-ktc-sort"),
     ])
       .then(([reactModule, reactDomModule, comparisonModule]) => {
         const React = reactModule.default || reactModule;
@@ -7496,6 +7496,9 @@ async function openDataHubComparisonModal(triggerButton = null) {
       ensureDataHubComparisonStyles(),
       ensureDataHubComparisonModule(),
       ensureDataHubComparisonStatsData(season),
+      // Compare needs the background valuation feed before taking its snapshot
+      // so opening early still sorts the picker by the active format's KTC.
+      ensureDataHubSupplementalData(),
     ]);
     if (season !== state.statsSeason) return;
     const payload = buildDataHubComparisonPayload();
@@ -7991,6 +7994,9 @@ function buildDataHubComparisonPlayer(row, combinedWeeklyStats = getDataHubCombi
     teamLogoSrc: getDataHubComparisonTeamLogoSrc(team),
     age: Number.isFinite(meta.age) ? meta.age : toComparableNumber(row.AGE),
     rank: Number.isFinite(meta.rank) ? meta.rank : toComparableNumber(row.RK),
+    // Compare picker sorting uses the current 1QB/SFLX lookup directly; row
+    // metadata can predate background enrichment. Preserve zero and missing.
+    ktc: toComparableNumber(getActiveKtcLookup()?.[playerId]?.ktc),
     fpts: Number.isFinite(seasonStats.fpts) ? seasonStats.fpts : meta.fpts,
     ppg: Number.isFinite(seasonStats.ppg) ? seasonStats.ppg : meta.ppg,
     hasGameLogsSupport: true,

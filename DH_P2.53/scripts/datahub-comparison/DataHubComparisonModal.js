@@ -65,12 +65,12 @@ function playerMatchesPositionFilter(player, positionFilter) {
 }
 
 function sortSearchResults(left, right) {
-  // Compare picker browsing: keep the FPTS/name order stable when a player is
-  // selected, instead of moving the focused option to the top of the list.
-  const leftFpts = toFiniteNumber(left.fpts) ?? -Infinity;
-  const rightFpts = toFiniteNumber(right.fpts) ?? -Infinity;
-  if (leftFpts !== rightFpts) {
-    return rightFpts - leftFpts;
+  // Compare picker browsing: list the active format's highest KTC values first,
+  // put missing values last, and keep equal values in name order on selection.
+  const leftKtc = toFiniteNumber(left.ktc) ?? -Infinity;
+  const rightKtc = toFiniteNumber(right.ktc) ?? -Infinity;
+  if (leftKtc !== rightKtc) {
+    return rightKtc - leftKtc;
   }
   return getPlayerName(left).localeCompare(getPlayerName(right));
 }

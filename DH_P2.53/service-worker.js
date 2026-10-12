@@ -52,7 +52,8 @@
 // Refresh Focus/Sort's frozen headings, Ranks-style indicators and Toggle All.
 // Refresh DataHub's proportional mobile meta pills and deduplicated sort options.
 // Refresh both team-modal injury badges and Rosters Start/Sit logos/desktop widths.
-const CACHE_NAME = 'DH3.49v-team-injuries-start-sit-layout';
+// Refresh DataHub Compare's active-format KTC values and descending picker order.
+const CACHE_NAME = 'DH3.49w-compare-ktc-sort';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
