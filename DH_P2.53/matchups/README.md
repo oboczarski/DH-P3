@@ -27,7 +27,18 @@ model or chart. They already normalize header capitalization and accept `WK`
 or `WEEK` in the player source. Zero and negative scores are retained, and the
 existing source-disagreement audit does not overwrite either source.
 
+The FPA sheet can pre-fill `VS_TM` formulas in unused rows, exporting `#VALUE!`
+after the last player. Matchups ignores rows only when every column except
+`VS_TM` is blank, including gaps between populated weeks. Those unused rows do
+not count as players or source records. Any populated row still receives the
+existing week, player, score, opponent and duplicate checks.
+
 Sheet gids and native CSV headers were checked against the live workbook during
 integration. Adding weekly rows or `wN` opponent columns uses the existing
 parsers without requiring a CSV rebuild. Reload the page to read Sheet updates.
 An inaccessible sheet or invalid schema appears in the existing load-error panel.
+
+For Week 5, add the player results with `WK=5` to FPA, extend FPFA's opponent
+columns with `w5`, and update the published FPFA summaries and FPF offense
+averages/ranks. Weeks and coverage are discovered from the sources; no weekly
+gid or code change is needed for Matchups.

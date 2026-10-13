@@ -55,7 +55,8 @@
 // Refresh DataHub Compare's active-format KTC values and descending picker order.
 // Refresh Rosters Start/Sit's opponent-logo order and inline player-team logos.
 // Refresh DataHub Compare's responsive gradient areas beneath weekly lines.
-const CACHE_NAME = 'DH3.49y-compare-area-gradients';
+// Refresh Matchups' live FPA parser so unused VS_TM formula rows do not block weekly updates.
+const CACHE_NAME = 'DH3.49z-matchups-unused-sheet-rows';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

@@ -114,8 +114,14 @@
   function readSource(text, { name = "FPAv2.csv", season = 2026 } = {}) {
     const parsed = parseCSV(text, REQUIRED_COLUMNS.filter(column => column !== "WEEK"));
     if (!parsed.headers.includes("WEEK") && !parsed.headers.includes("WK")) throw new Error("Missing required columns: WEEK or WK.");
+    // Matchups' live FPA sheet pre-fills VS_TM formulas below the player data.
+    // Ignore a row only when every other column is blank; populated records still
+    // require a valid week, player, score and VS. Audit only actual source rows.
+    const records = parsed.records.filter(({ values: row }) =>
+      parsed.headers.some(column => column !== "VS_TM" && row[column] !== "")
+    );
     const results = [], excluded = [], seen = new Set(), gamesByKey = new Map();
-    for (const { values: row, line } of parsed.records) {
+    for (const { values: row, line } of records) {
       if (parsed.headers.includes("WEEK") && parsed.headers.includes("WK") && row.WEEK !== row.WK) {
         throw new Error(`Line ${line}: WEEK and WK disagree.`);
       }
@@ -190,8 +196,8 @@
       minWeek: weeks[0], maxWeek: weeks.at(-1),
       diagnostics: { missingPositions, unpairedGames },
       audit: {
-        sourceRows: parsed.records.length, usedRows: results.length, excludedRows: excluded.length,
-        sourcePlayers: new Set(parsed.records.map(({ values: row }) => row.SLPR_ID || row["PLAYER NAME"])).size,
+        sourceRows: records.length, usedRows: results.length, excludedRows: excluded.length,
+        sourcePlayers: new Set(records.map(({ values: row }) => row.SLPR_ID || row["PLAYER NAME"])).size,
         matchedPlayers: new Set(results.map(row => row.playerId)).size,
         zeroResults: results.filter(row => row.cents === 0).length,
         negativeResults: results.filter(row => row.cents < 0).length,

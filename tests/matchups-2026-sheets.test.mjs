@@ -31,6 +31,12 @@ const offense = [
 ].join('\n');
 const csvBySheet = { FPA: weekly, FPFA: summary, FPF: offense };
 const response = (text, status = 200) => ({ ok: status === 200, status, text: async () => text });
+// Match the live FPA export: VS owns matchup data; unused VS_TM formulas can
+// return #VALUE! while every source field in that row remains empty.
+const weeklyWithTeam = weekly.split('\r\n').map((line, index) =>
+  `${line},${index === 0 ? 'VS_TM' : line.endsWith('BAL') ? 'BAL' : 'ARI'}`
+).join('\r\n');
+const unusedFormulaRow = `${','.repeat(7)}#VALUE!`;
 
 test('Matchups maps the three live tabs to native CSV exports in DH\'s workbook', () => {
   for (const [sheet, gid] of [['FPF', '2006116709'], ['FPFA', '1845231826'], ['FPA', '1398845421']]) {
@@ -89,6 +95,80 @@ test('each load reads updated sheets rather than retaining an earlier snapshot',
   revision = 'updated';
   assert.equal((await load2026MatchupSources({ fetchImpl })).weekly.csv, 'updated');
   assert.equal(requests, 6);
+});
+
+test('unused VS_TM formula rows preserve all player results and audit counts', () => {
+  for (const header of ['WK', 'WEEK']) {
+    const clean = weeklyWithTeam.replace(/^WK,/, `${header},`);
+    const expected = Data.readSource(clean);
+    const model = Data.readSource(`${clean}\r\n${Array(490).fill(unusedFormulaRow).join('\r\n')}`);
+    assert.deepEqual(model.results, expected.results);
+    assert.deepEqual(model.games, expected.games);
+    assert.deepEqual(model.audit, expected.audit);
+    assert.equal(model.audit.sourceRows, 8);
+    assert.equal(model.audit.sourcePlayers, 8);
+    assert.equal(model.audit.zeroResults, 1);
+    assert.equal(model.audit.negativeResults, 1);
+    assert.equal(model.maxWeek, 1);
+  }
+  assert.throws(() => Data.readSource(`${weeklyWithTeam.split('\r\n')[0]}\r\n${unusedFormulaRow}`), /No usable matchup results/);
+});
+
+test('unused-row handling never bypasses validation for populated records', () => {
+  for (const week of ['', '0', '5.5', '23', '#VALUE!']) {
+    assert.throws(() => Data.readSource(`${weeklyWithTeam}\r\n${week},9,Week Five,QB,ARI,12,vs BAL,BAL`), /Line 10: WEEK must be an integer from 1 to 22/);
+  }
+  // Even an otherwise empty row with a real player ID remains a source record.
+  assert.throws(() => Data.readSource(`${weeklyWithTeam}\r\n,9,,,,,,#VALUE!`), /Line 10: WEEK must/);
+  assert.throws(() => Data.readSource(`${weeklyWithTeam}\r\n5,9,Week Five,QB,ARI,,vs BAL,#VALUE!`), /Line 10: FPT_PPR must be a number/);
+  assert.throws(() => Data.readSource(`${weeklyWithTeam}\r\n5,9,Week Five,QB,ARI,12,#VALUE!,#VALUE!`), /Line 10: Invalid VS value/);
+  assert.throws(() => Data.readSource(`${weeklyWithTeam}\r\n${unusedFormulaRow}\r\n${weeklyWithTeam.split('\r\n')[1]}`), /Line 11: duplicate player result/);
+  assert.throws(() => Data.readSource(`${weeklyWithTeam}\r\n1,2,Runner,RB,ARI,0,vs BAL,BAL,extra`), /expected 8 columns, found 9/);
+});
+
+test('a fresh Week 5 update extends games, published summaries and charts across unused-row gaps', async () => {
+  const week5 = weeklyWithTeam.split('\r\n').slice(1).map(line =>
+    line.replace(/^1,/, '5,').replace('10.25', '15.25')
+  ).join('\r\n');
+  const updated = {
+    FPA: `${weeklyWithTeam}\r\n${unusedFormulaRow}\r\n${week5}\r\n${unusedFormulaRow}`,
+    FPFA: summary.split('\n').map((line, index) => {
+      const cells = line.split(',');
+      cells.splice(2, 0, index === 0 ? 'w5' : cells[1]);
+      return cells.join(',').replaceAll('90.1', '110.1');
+    }).join('\n'),
+    FPF: offense.replaceAll('11.1', '16.1'),
+  };
+  let revision = csvBySheet, requests = 0;
+  const fetchImpl = async url => {
+    requests++;
+    return response(revision[new URL(url).searchParams.get('sheet')]);
+  };
+  const previous = await load2026MatchupSources({ fetchImpl });
+  assert.equal(Data.readSource(previous.weekly.csv).maxWeek, 1);
+  revision = updated;
+  const sources = await load2026MatchupSources({ fetchImpl });
+  const model = Data.readSource(sources.weekly.csv);
+  const published = Data.readFPFA(sources.summary.csv);
+  const offenses = Data.readOffenses(sources.offense.csv);
+  assert.equal(requests, 6);
+  assert.deepEqual(model.weeks, [1, 5]);
+  assert.deepEqual(published.weeks, [1, 5]);
+  assert.equal(model.maxWeek, 5);
+  assert.equal(model.audit.sourceRows, 16);
+  assert.equal(model.audit.sourcePlayers, 8);
+  assert.equal(model.audit.zeroResults, 2);
+  assert.equal(model.audit.negativeResults, 2);
+  assert.equal(Data.selectResults(model, { from: 5, to: 5 }).length, 8);
+  const season = Data.matchupAnalysis(model, published, {}, offenses);
+  const qb = season.byTeam.get('BAL').metrics.QB;
+  assert.equal(qb.actual.total, 110.1); // Keep the updated published FPFA total.
+  assert.equal(qb.sosRank, 9);
+  assert.equal(qb.entries.find(entry => entry.week === 5).actual, 15.25);
+  assert.equal(qb.entries.find(entry => entry.week === 5).expected, 16.1);
+  const week = Data.matchupAnalysis(model, published, { from: 5, to: 5 }, offenses);
+  assert.equal(week.byTeam.get('BAL').metrics.QB.actual.total, 15.25);
+  assert.equal(Lab.build(season, 'QB').dumbbell.find(row => row.team === 'BAL').actualTotal, 110.1);
 });
 
 test('SOS preserves each published ascending positional vRK across venue and week filters', () => {
