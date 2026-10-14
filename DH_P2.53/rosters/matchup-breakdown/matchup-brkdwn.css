@@ -144,7 +144,7 @@ tbody tr:last-child td { border-bottom:0; }
 tbody tr:hover td { background:#aabbff09; }
 th button { color:inherit; font:inherit; border:0; padding:1px 0; width:100%; text-align:inherit; }
 .sortArrow { color:#88b8ff; margin-left:3px; font-size:9px; }
-.playerTableScroll {max-height: 160px;min-height: 160px;}
+.playerTableScroll {max-height: 180px;min-height: 160px;}
 .playerTable th:first-child, .playerTable td:first-child { width:35px; color:var(--dim); }
 .playerTable th:last-child, .playerTable td:last-child { text-align:right; width:64px; }
 .playerTable td:last-child { font-weight:550; }
@@ -190,8 +190,8 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .positionToggle button { flex:1; min-width:0; font-size:10px; padding:5px 7px; }
   .venueMenuLabel { font-size:10px; }
   .glass-panel { border-radius:12px; }
-  .defensePanel { padding:10px; }
-  .defenseHeader { gap:7px; margin-bottom:8px; }
+  .defensePanel {padding: 6px 10px 9px;}
+  .defenseHeader {gap:7px;margin-bottom: 4px;}
   .defenseLogo { width:42px; height:37px; border-radius:10px; }
   .defenseLogo img { width:36px; height:30px; }
   .defenseHeader h2 { font-size:17px; }
@@ -226,7 +226,7 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
 }
 @media (max-width:400px) {
   /* At 320px the five-card row needs its width for labels, not side padding. */
-  .metricStrip { gap:2px; }
+  .metricStrip {gap:2px;margin-bottom: 3px;}
   .metricValue {font-size:14px;text-align: center;}
   .metricLabel {font-size: 7px;font-weight: 800;text-align: center;letter-spacing: -0.05em;}
   .metricSub {font-size: 8px;text-align: center;letter-spacing: -0.02em;}
