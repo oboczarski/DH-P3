@@ -93,16 +93,16 @@ svg { display:block; }
 .metricMobile { display:none; }
 .is-easy { color:var(--mint); }
 .is-tough { color:var(--pink); }
-.smallMuted { color:var(--dim); font-size:9px; }
+.smallMuted {color:var(--dim);font-size: 11px;}
 .sectionHeading {display:flex;align-items:center;gap:8px;margin-bottom: 0px;min-height:19px;}
 .sectionHeading > .smallMuted { margin-left:auto; }
 .sectionHeading > .iconButton { margin-left:auto; }
-.iconButton { width:27px; height:26px; display:inline-flex; align-items:center; justify-content:center; flex:none; border:1px solid var(--border); background:#aabbff08; border-radius:7px; color:#a5accb; }
+.iconButton {width: 24px;height: 24px;display:inline-flex;align-items:center;justify-content:center;flex:none;border:1px solid var(--border);background:#aabbff08;border-radius:7px;color:#a5accb;}
 .iconButton:hover { background:#aabbff18; color:#e8efff; }
 .chartLegend { display:flex; gap:10px; margin-left:auto; color:var(--muted); font-size:8px; }
 .chartLegend span { display:flex; align-items:center; gap:4px; }
 .chartHeading { flex-wrap:wrap; }
-.chartHeaderControls {display:flex;align-items:center;justify-content: center;flex-wrap: balance;gap: 4px;}
+.chartHeaderControls {display:flex;align-items:center;justify-content: center;flex-wrap: balance;gap: 4px;flex-wrap: nowrap;}
 .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
 .positionToggle.chartPositionToggle button {min-width: 40px;padding: 3px 6px;font-size:9px;border-radius:6px;}
 .chartHeaderControls .chartLegend { margin-left:0; white-space:nowrap; }
@@ -198,7 +198,7 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .fieldLabel {font-size: 9px;}
   .panelSubtitle { font-size:9px; }
   /* All five mobile summary cards stay on one row, including both rank cards. */
-  .metricStrip { grid-template-columns:repeat(5,minmax(0,1fr)); gap:3px; margin-bottom:8px; }
+  .metricStrip {grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;margin-bottom: 4px;}
   .metricStrip > .metric,
   .metricStrip > .metric:nth-child(n+4) { grid-column:auto; }
   .metric { padding:6px 3px; border-radius:7px; }
@@ -210,7 +210,7 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .metricMobile { display:inline; }
   .chartLegend { font-size:7px; gap:8px; }
   .sectionHeading h3 { font-size:11px; }
-  .weeklyMatchups { margin-bottom:8px; gap:4px; }
+  .weeklyMatchups {margin-bottom: 5px;gap:4px;margin: 0px 0 4px;}
   .weekMatchup {font-size:8px;padding: 3px 3px 1px;gap: 5px;}
   .playerTable th, .playerTable td { padding:5px; }
   .playerTable th { font-size:8px; }
