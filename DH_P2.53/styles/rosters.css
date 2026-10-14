@@ -373,7 +373,7 @@ body[data-page="rosters"] #starfield::after {
   min-height: 2.2rem;
   flex: 0 0 auto;
   text-align: center;
-  padding: 0.45rem 1rem;
+  padding: 0.45rem 0.7rem;
   margin: 0 auto;
   background: #1E1F30da !important;
 }
@@ -439,7 +439,8 @@ body[data-page="rosters"] .start-sit-name-text {
     min-width: 0;
   }
   body[data-page="rosters"] .start-sit-name-text {
-    overflow-wrap: anywhere;
+    overflow-wrap: none;
+    text-wrap-mode: nowrap;
   }
 }
 /* Small phones use compact inner gutters/name text beside the position and
@@ -463,6 +464,7 @@ body[data-page="rosters"] .start-sit-name-text {
      centered mobile widths and equal divider gutters remain at their base sizes. */
   body[data-page="rosters"] .start-sit-preview-column .trade-assets {
     width: 86%;
+    padding: 0.45rem 1rem;
   }
   body[data-page="rosters"] .start-sit-name {
     display: inline-flex;
