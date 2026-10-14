@@ -85,7 +85,7 @@ svg { display:block; }
 /* The defense summary includes the positional SOS card without shrinking its typography. */
 .metricStrip {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap: 10px;margin-bottom: 6px;}
 .metric {padding: 5px 14px;min-width:0;border:1px solid #ffffff10;border-radius:9px;background:linear-gradient(180deg,#8f94a616,#8f94a609);box-shadow:inset 4px 5px 12px #ffffff04;}
-.metricLabel {font-size: 9px;color:var(--muted);white-space:nowrap;text-transform: uppercase;text-align: center;}
+.metricLabel {font-size: 9px;color:var(--muted);white-space:nowrap;text-align: center;}
 .metricValue {margin:2px 0 1px;font-size:23px;line-height:1.1;letter-spacing:-.5px;font-weight:550;font-variant-numeric:tabular-nums;text-align: center;}
 .metricValue small {font-size: 15px;color:var(--dim);margin-left:3px;font-weight:400;}
 .metricSub {font-size: 10px;color:var(--dim);text-wrap-mode: nowrap;text-align: center;}
@@ -257,4 +257,29 @@ dialog { font:inherit; }
      its top team/venue controls and reclaim their space; expanded-table controls remain available. */
   .matchupDialog #analysis > .expandedControls { display:none; }
   .matchupDialog > .dialogBody {padding-top: 4px;}
+}
+
+/* Summary percent units remain slightly smaller at every modal breakpoint. */
+.metricValue .metricPercent { font-size:.8em; margin-left:1px; }
+/* Desktop defense selection: one alphabetized list per conference. Mobile
+   retains the original division layout in the expanded player picker. */
+.teamPickerDesktop { display:none; }
+.teamPickerMobile { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; grid-column:1 / -1; }
+@media (width > 620px) {
+  [data-picker-kind="team"] .teamPicker__panel { width:min(530px,calc(100vw - 28px)); grid-template-columns:1fr; }
+  .teamPickerMobile { display:none; }
+  .teamPickerDesktop { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .teamPickerConference { display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .teamPickerConference__title { display:flex; align-items:center; justify-content:center; gap:7px; font-size:11px; font-weight:600; margin:2px 0 5px; }
+  .teamPickerConference__title img { width:18px; height:18px; object-fit:contain; }
+  .teamPickerConference .teamOption { justify-content:flex-start; padding:5px 8px; gap:8px; border-radius:8px; letter-spacing:0; }
+  .teamOption__name { font-size:11px; font-weight:550; text-align:left; }
+}
+/* This foreground layer has no inherited point stroke/filter to soften text. */
+.weeklySection .weeklyDataLabels .chartValue { stroke:none; paint-order:stroke fill; }
+
+@media (max-width:620px) {
+  /* Only mobile Matchup Breakdown tightens the wrapped row below Week by week.
+     Players faced, expanded-table headings and desktop spacing stay independent. */
+  .matchupDialog .weeklySection > .sectionHeading.chartHeading { row-gap:2px; }
 }

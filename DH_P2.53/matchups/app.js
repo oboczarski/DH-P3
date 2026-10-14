@@ -7,7 +7,8 @@
   const POSITIONS = ["QB", "RB", "WR", "TE", "ALL"];
   const COLORS = { QB: "#ffb2d8", RB: "#75e0b7", WR: "#63b0de", TE: "#ab9bff", ALL: "#aabaff" };
   const LABELS = { QB: "quarterbacks", RB: "running backs", WR: "wide receivers", TE: "tight ends", ALL: "all positions" };
-  // Restore the original division picker and its team-logo glow colors.
+  // Division order remains the mobile picker and polar-chart order. Desktop
+  // defense menus group teams by conference and alphabetize their full names.
   const DIVISIONS = [
     { conf: "AFC", name: "East", teams: ["BUF", "MIA", "NE", "NYJ"] },
     { conf: "AFC", name: "North", teams: ["BAL", "CIN", "CLE", "PIT"] },
@@ -31,7 +32,7 @@
   const VENUES = { all: "All games", home: "At home", away: "On the road" };
   const pickerRoots = [...document.querySelectorAll("[data-picker-kind]")];
   const state = { team: "BAL", pos: "QB", venue: "all", mode: "points", query: "", hideZero: true,
-    heatSort: { pos: "QB", direction: "desc" }, playerSort: { key: "week", direction: "desc" } };
+    heatSort: { pos: "QB", direction: "desc" }, playerSort: { key: "week", direction: "desc", activeKey: null, step: 0 } };
   let model = null, summary = null, offenses = null, analysis = null, openPicker = null;
   const tooltips = new Map();
 
@@ -52,9 +53,17 @@
   function buildPickers() {
     for (const root of pickerRoots) {
       const isTeam = root.dataset.pickerKind === "team", label = isTeam ? "Opponent defense" : "Defense venue";
-      const options = isTeam ? DIVISIONS.map(division => `<div class="teamPickerDiv" role="group" aria-label="${division.conf} ${division.name}">
+      const mobileTeams = DIVISIONS.map(division => `<div class="teamPickerDiv" role="group" aria-label="${division.conf} ${division.name}">
         <div class="teamPickerDiv__title" aria-hidden="true"><img class="teamPickerDiv__confLogo" src="assets/NFL-Tags_webp/${division.conf.toLowerCase()}.webp" alt=""><span>${division.name}</span></div>
-        ${division.teams.filter(team => model.defenses.includes(team)).map(team => `<button type="button" class="teamOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${team}" aria-label="${esc(Data.TEAM_NAMES[team])}" title="${esc(Data.TEAM_NAMES[team])}">${pickerLogo(team)}<span class="teamOption__code">${team}</span></button>`).join("")}</div>`).join("") :
+        ${division.teams.filter(team => model.defenses.includes(team)).map(team => `<button type="button" class="teamOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${team}" aria-label="${esc(Data.TEAM_NAMES[team])}" title="${esc(Data.TEAM_NAMES[team])}">${pickerLogo(team)}<span class="teamOption__code">${team}</span></button>`).join("")}</div>`).join("");
+      const desktopTeams = ["AFC", "NFC"].map(conference => {
+        const teams = DIVISIONS.filter(division => division.conf === conference).flatMap(division => division.teams)
+          .filter(team => model.defenses.includes(team)).sort((a, b) => Data.TEAM_NAMES[a].localeCompare(Data.TEAM_NAMES[b]));
+        return `<div class="teamPickerConference" role="group" aria-label="${conference}">
+          <div class="teamPickerConference__title"><img src="assets/NFL-Tags_webp/${conference.toLowerCase()}.webp" alt="">${conference}</div>
+          ${teams.map(team => `<button type="button" class="teamOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${team}" aria-label="${esc(Data.TEAM_NAMES[team])}">${pickerLogo(team)}<span class="teamOption__name">${esc(Data.TEAM_NAMES[team])}</span></button>`).join("")}</div>`;
+      }).join("");
+      const options = isTeam ? `<div class="teamPickerDesktop">${desktopTeams}</div><div class="teamPickerMobile">${mobileTeams}</div>` :
         Object.entries(VENUES).map(([value, text]) => `<button type="button" class="teamOption venueOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${value}">${text}</button>`).join("");
       root.innerHTML = `<button type="button" class="teamPicker__btn" id="${root.id}Btn" data-picker-toggle="${root.id}" aria-haspopup="listbox" aria-expanded="false" aria-controls="${root.id}Panel" aria-label="${label}"><span class="teamPicker__left"></span><span class="teamPicker__chev" aria-hidden="true">▾</span></button><div class="teamPicker__panel" id="${root.id}Panel" popover="manual" role="listbox" aria-label="${label} options">${options}</div>`;
     }
@@ -86,7 +95,7 @@
     const placeAbove = box.height > below && above > below;
     panel.style.maxHeight = `${Math.max(36, placeAbove ? above : below)}px`;
     panel.style.top = `${placeAbove ? Math.max(padding, anchor.top - gap - Math.min(box.height, above)) : anchor.bottom + gap}px`;
-    const options = [...panel.querySelectorAll("[data-picker-value]")];
+    const options = [...panel.querySelectorAll("[data-picker-value]")].filter(option => option.getClientRects().length);
     const selected = options.find(option => option.getAttribute("aria-selected") === "true");
     focusPickerOption(last ? options.at(-1) : selected || options[0]);
   }
@@ -101,7 +110,7 @@
     if (event.key === "Tab") { closePicker(true); return; }
     if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
     event.preventDefault();
-    const options = [...$(`${root.id}Panel`).querySelectorAll("[data-picker-value]")];
+    const options = [...$(`${root.id}Panel`).querySelectorAll("[data-picker-value]")].filter(option => option.getClientRects().length);
     const index = options.indexOf(document.activeElement);
     const next = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : (index + (event.key === "ArrowUp" ? -1 : 1) + options.length) % options.length;
     focusPickerOption(options[next]);
@@ -168,7 +177,8 @@
     $("defenseTitle").textContent = Data.TEAM_NAMES[state.team];
     $("defenseSubtitle").textContent = `vs. ${LABELS[state.pos]} · ${venueLabel()}`;
     $("selectedPosition").textContent = state.pos; $("selectedPosition").dataset.pos = state.pos;
-    const deltaValue = c.deltaPct !== null ? `${signed(c.deltaPct)}%` : signed(c.delta, 2);
+    // Summary copy controls its own case; the percent unit is sized separately.
+    const deltaValue = c.deltaPct !== null ? `${signed(c.deltaPct)}<span class="metricPercent">%</span>` : signed(c.delta, 2);
     const baselineNote = c.expectedTotal !== null ? `${fmt(c.expectedAvg, 1)} per game` : analysis.summaryAvailable ? "Not supplied in FPFA" : "Opponent average unavailable";
     // The SOS card uses the positional season vRK, with low ranks colored easy
     // like the published matchup ranks. It never reverses or re-ranks the feed.
@@ -176,11 +186,11 @@
     // desktop text and every underlying comparison retain their existing precision.
     const sosColor = heatColor({ rank: c.sosRank, pool: Data.TEAMS.length, rankOrder: "descending" });
     $("metrics").innerHTML = `
-      <div class="metric"><div class="metricLabel">Actual FPA</div><div class="metricValue"><span class="metricDesktop">${fmt(stat.total)}</span><span class="metricMobile">${fmt(stat.total, 1)}</span></div><div class="metricSub">${fmt(stat.avg, 1)} per game</div></div>
-      <div class="metric"><div class="metricLabel">Expected FPA</div><div class="metricValue">${fmt(c.expectedTotal, 1)}</div><div class="metricSub">${baselineNote}</div></div>
-      <div class="metric"><div class="metricLabel">Vs expected</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
-      <div class="metric"><div class="metricLabel" title="Rank 1 = ${stat.rankOrder === "descending" ? "most" : "fewest"} points allowed">Matchup rank</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub"><span class="metricDesktop">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</span><span class="metricMobile">${stat.games} game${stat.games === 1 ? "" : "s"}</span></div></div>
-      <div class="metric metric--sos" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS Ranking</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub"><span class="metricDesktop">1 easy · 32 tough</span><span class="metricMobile">1 → 32</span></div></div>`;
+      <div class="metric"><div class="metricLabel">ACTUAL FPA</div><div class="metricValue"><span class="metricDesktop">${fmt(stat.total)}</span><span class="metricMobile">${fmt(stat.total, 1)}</span></div><div class="metricSub">${fmt(stat.avg, 1)} per game</div></div>
+      <div class="metric"><div class="metricLabel">EXPECTED FPA</div><div class="metricValue">${fmt(c.expectedTotal, 1)}</div><div class="metricSub">${baselineNote}</div></div>
+      <div class="metric"><div class="metricLabel">vs EXPECTED</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
+      <div class="metric"><div class="metricLabel" title="Rank 1 = ${stat.rankOrder === "descending" ? "most" : "fewest"} points allowed">MATCHUP RK</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub"><span class="metricDesktop">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</span><span class="metricMobile">${stat.games} game${stat.games === 1 ? "" : "s"}</span></div></div>
+      <div class="metric metric--sos" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub"><span class="metricDesktop">1 easy · 32 tough</span><span class="metricMobile">1 → 32</span></div></div>`;
   }
   function width(id) {
     const element = $(id), style = getComputedStyle(element);
@@ -221,18 +231,22 @@
     entries.forEach((entry, i) => {
       if (entry.expected === null) finish(); else segment.push(`${x(i)},${y(entry.expected)}`);
     }); finish();
+    let labels = "";
     entries.forEach((entry, i) => {
       const key = `week:${entry.week}`;
       tooltips.set(key, `<strong>${state.team} vs. ${state.pos} · Week ${entry.week}</strong><br>Actual: ${fmt(entry.actual)} PPR points<br>Expected: ${fmt(entry.expected, 1)} · ${entry.offense || "Opponent"} season average<br>Offense rank: ${entry.offenseRank === null ? "—" : `#${entry.offenseRank}`}<br><span class="tooltipMuted">${entry.venue === "home" ? "Defense at home" : "Defense away"}</span>`);
       if (entry.actual !== null) {
         const labelY = entry.actual >= 0 ? y(entry.actual) - 7 : Math.min(bottom - 6, y(entry.actual) + 13);
-        content += `<g class="chartPoint" role="img" tabindex="0" data-tooltip="${key}" aria-label="Week ${entry.week}: ${fmt(entry.actual)} actual, ${fmt(entry.expected, 1)} expected ${state.pos} points"><rect x="${x(i) - barWidth / 2}" y="${Math.min(y(0), y(entry.actual))}" width="${barWidth}" height="${Math.max(2, Math.abs(y(entry.actual) - y(0)))}" rx="4" fill="url(#weekly-bar)"/><text class="chartValue" x="${x(i)}" y="${labelY}" text-anchor="middle">${fmt(entry.actual, 1)}</text></g>`;
+        content += `<g class="chartPoint" role="img" tabindex="0" data-tooltip="${key}" aria-label="Week ${entry.week}: ${fmt(entry.actual)} actual, ${fmt(entry.expected, 1)} expected ${state.pos} points"><rect x="${x(i) - barWidth / 2}" y="${Math.min(y(0), y(entry.actual))}" width="${barWidth}" height="${Math.max(2, Math.abs(y(entry.actual) - y(0)))}" rx="4" fill="url(#weekly-bar)"/></g>`;
+        labels += `<text class="chartValue" x="${x(i)}" y="${labelY}" text-anchor="middle">${fmt(entry.actual, 1)}</text>`;
       }
       const delta = entry.actual !== null && entry.expected !== null ? entry.actual - entry.expected : 0;
       const expectedFill = delta > 1e-9 ? "#8af7ffb5" : delta < -1e-9 ? "#e3b3ffa8" : "#aabaff";
       if (entry.expected !== null) content += `<circle class="chartPoint" cx="${x(i)}" cy="${y(entry.expected)}" r="3" style="fill:${expectedFill}" tabindex="0" role="img" data-tooltip="${key}" aria-label="${entry.offense || "Opponent"} expected Week ${entry.week} ${state.pos}: ${fmt(entry.expected, 1)} points"/>`;
       if (entries.length <= 10 || i % 2 === 0) content += `<text x="${x(i)}" y="${bottom + 14}" text-anchor="middle">W${entry.week}</text>`;
     });
+    // SVG paint order puts this unfiltered label layer above bars, lines and dots.
+    content += `<g class="weeklyDataLabels" aria-hidden="true" pointer-events="none">${labels}</g>`;
     $("weeklyChart").innerHTML = frame(W, H, `${state.team} ${state.pos}: actual weekly totals versus opposing offense averages`, content);
   }
 
@@ -312,6 +326,15 @@
 
   // The player list is directly below the bars and shares their matchup scope.
   // Search/hide-zero/sort only change records displayed, never FPA aggregates.
+  // Players faced and its expanded table share a three-click cycle. The third
+  // click restores latest week, highest exact score, then player-name order;
+  // display rounding never changes the score used to sort or total records.
+  function cyclePlayerSort(key) {
+    const step = state.playerSort.activeKey === key ? state.playerSort.step + 1 : 1;
+    const firstDirection = key === "pts" ? "desc" : "asc";
+    state.playerSort = step === 3 ? { key: "week", direction: "desc", activeKey: null, step: 0 } :
+      { key, direction: step === 1 ? firstDirection : firstDirection === "desc" ? "asc" : "desc", activeKey: key, step };
+  }
   function selectedPlayers() {
     const getters = { week: row => row.week, player: row => row.player, team: row => row.playerTeam || "", vs: row => row.vs, pts: row => row.cents };
     const sort = state.playerSort;
@@ -324,7 +347,7 @@
   function playersTable(rows) {
     const columns = [["week", "Wk", ""], ["player", "Player", ""], ["team", "Offense", "offenseColumn"], ["vs", "Player VS", ""], ["pts", "PPR", ""]];
     const head = columns.map(([key, label, className]) => `<th class="${className}" scope="col" aria-sort="${state.playerSort.key === key ? state.playerSort.direction === "desc" ? "descending" : "ascending" : "none"}"><button type="button" data-player-sort="${key}" aria-label="Sort players by ${label}">${label}${state.playerSort.key === key ? `<span class="sortArrow">${state.playerSort.direction === "desc" ? "↓" : "↑"}</span>` : ""}</button></th>`).join("");
-    const body = rows.length ? rows.map(row => `<tr><td>W${row.week}</td><td>${state.pos === "ALL" ? `<span class="playerPosition" data-pos="${row.pos}">${row.pos}</span>` : ""}<span class="playerName">${esc(row.player)}</span></td><td class="offenseColumn"><span class="offenseCell" title="${esc(Data.TEAM_NAMES[row.playerTeam] || "Offense not supplied")}">${logo(row.playerTeam)}${row.playerTeam || "—"}</span></td><td><span class="playerOpponent">${esc(row.vs)}</span></td><td class="${row.cents < 0 ? "scoreNegative" : row.cents === 0 ? "scoreZero" : ""}">${fmt(row.pts)}</td></tr>`).join("") : `<tr><td colspan="5">${empty("No matching player results", "Change the matchup or clear the player filters.")}<div class="emptyState"><button type="button" data-clear-search>Clear player filters</button></div></td></tr>`;
+    const body = rows.length ? rows.map(row => `<tr><td>W${row.week}</td><td>${state.pos === "ALL" ? `<span class="playerPosition" data-pos="${row.pos}">${row.pos}</span>` : ""}<span class="playerName">${esc(row.player)}</span></td><td class="offenseColumn"><span class="offenseCell" title="${esc(Data.TEAM_NAMES[row.playerTeam] || "Offense not supplied")}">${logo(row.playerTeam)}${row.playerTeam || "—"}</span></td><td><span class="playerOpponent">${esc(row.vs)}</span></td><td class="${row.cents < 0 ? "scoreNegative" : row.cents === 0 ? "scoreZero" : ""}">${fmt(row.pts, 1)}</td></tr>`).join("") : `<tr><td colspan="5">${empty("No matching player results", "Change the matchup or clear the player filters.")}<div class="emptyState"><button type="button" data-clear-search>Clear player filters</button></div></td></tr>`;
     return `<caption class="srOnly">${state.pos} recorded player scores against ${state.team}, ${weekLabel()}, ${venueLabel()}</caption><thead><tr>${head}</tr></thead><tbody>${body}</tbody>`;
   }
   function renderPlayers() {
@@ -337,7 +360,7 @@
     if ($("playersDialog").open) $("expandedTable").innerHTML = playersTable(rows);
     const label = `${rows.length} player record${rows.length === 1 ? "" : "s"}${state.hideZero ? " · scores below 1 hidden" : ""}`;
     $("playerCount").textContent = label; $("expandedCount").textContent = label;
-    $("playerTotal").textContent = `${fmt(total)} displayed PPR points`;
+    $("playerTotal").textContent = `${fmt(total, 1)} displayed PPR points`;
   }
   function choose(team, pos = state.pos) {
     if (!model.defenses.includes(team) || !POSITIONS.includes(pos)) return;
@@ -429,8 +452,7 @@
         state.heatSort.pos = target.dataset.heatSort; renderHeatmap();
       } else if (target.dataset.playerSort) {
         const key = target.dataset.playerSort;
-        state.playerSort.direction = state.playerSort.key === key ? state.playerSort.direction === "desc" ? "asc" : "desc" : ["week", "pts"].includes(key) ? "desc" : "asc";
-        state.playerSort.key = key; renderPlayers();
+        cyclePlayerSort(key); renderPlayers();
       } else if (target.hasAttribute("data-clear-search")) { state.query = ""; state.hideZero = false; renderPlayers(); }
     });
     document.addEventListener("keydown", event => {

@@ -17,7 +17,8 @@
   const color = value => am5.color(value);
   const teamMarkup = team => `<span class="labTeam"><img src="assets/NFL-Tags_webp/${team.toLowerCase()}.webp" alt=""><strong>${team}</strong></span>`;
   const venueText = () => current.venue === "home" ? "Defense at home" : current.venue === "away" ? "Defense away" : "All games";
-  // HTML headings/legends use normal CSS. Canvas text reads these CSS properties.
+  // HTML headings, legends and stacked-bar values use normal CSS.
+  // Other chart text reads these CSS properties before rendering to canvas.
   function textStyle(host) {
     const css = getComputedStyle(host);
     const value = (name, fallback) => css.getPropertyValue(`--am-${name}`).trim() || fallback;
@@ -56,7 +57,7 @@
     const button = host.closest("[data-amchart-panel]").querySelector("[data-lab-focus]");
     const scene = { id: definition.id, root, text, styleSignature: JSON.stringify(text), subtitle: $(`${definition.id}Subtitle`),
       markers: new Set(), signature: null, spotlight: button?.getAttribute("aria-pressed") === "true",
-      button, labelRenderers: [], paint: null, setData: null, select: () => selectMarkers(scene) };
+      button, labelRenderers: [], nativeLabels: new Map(), paint: null, setData: null, select: () => selectMarkers(scene) };
     scenes.set(definition.id, scene); return scene;
   }
   function xy(scene, settings = {}) {
@@ -141,13 +142,18 @@
     totals.strokes.template.set("forceHidden", true);
     totals.bullets.push((root, series, item) => {
       const row = item.dataContext;
-      const label = am5.Label.new(root, { text: fmt(row.avg, 2), centerY: am5.percent(50), dx: 7,
+      // Only stacked-bar values use browser-rendered HTML text. Keeping them
+      // in amCharts Label bullets preserves positioning, tooltips and selection,
+      // while avoiding the canvas text bitmap's blur at mobile pixel densities.
+      const label = am5.Label.new(root, { text: fmt(row.avg, 1), html: `<span class="compositionDataLabel" data-composition-label-team="${row.team}">${fmt(row.avg, 1)}</span>`, centerY: am5.percent(50), dx: 7,
         fontSize: scene.text.labelSize, paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0, tooltipText: cellTooltip(row) });
-      register(scene, row, label, selected => label.setAll({ fill: color(selected ? scene.text.selectedColor : scene.text.labelColor), fontWeight: selected ? scene.text.selectedWeight : scene.text.labelWeight }));
+      register(scene, row, label, selected => label.setAll({ fill: color(selected ? scene.text.selectedColor : scene.text.labelColor), fontWeight: selected ? scene.text.selectedWeight : scene.text.labelWeight,
+        html: `<span class="compositionDataLabel${selected ? ' is-selected' : ''}" data-composition-label-team="${row.team}">${fmt(row.avg, 1)}</span>` }));
+      scene.nativeLabels.set(row.team, label);
       return am5.Bullet.new(root, { sprite: label });
     });
     scene.setData = view => {
-      scene.markers.clear();
+      scene.markers.clear(); scene.nativeLabels.clear();
       scene.subtitle.textContent = `ALL POSITIONS · FPA PER GAME · 32 DEFENSES · SORT: ${stackSort} ↓ · ${venueText().toUpperCase()}`;
       const rows = [...view.breakdown].sort((a, b) => {
         const first = a[stackSort], second = b[stackSort];
@@ -396,6 +402,19 @@
       }, { rootMargin: "200px 0px" }); definitions.forEach(definition => observer.observe($(definition.id)));
     } else definitions.forEach(definition => observed.add(definition.id));
   }
+  // amCharts forwards clicks from HTML bullets, but its canvas hover detector
+  // cannot see native text. Bridge only composition labels to the public hover
+  // methods so their original scoring tooltips and keyboard focus stay intact.
+  function nativeCompositionLabel(target) {
+    const node = target?.closest?.("#labBreakdown [data-composition-label-team]");
+    const sprite = node && scenes.get("labBreakdown")?.nativeLabels.get(node.dataset.compositionLabelTeam);
+    return sprite && !sprite.isDisposed() ? sprite : null;
+  }
+  document.addEventListener("pointerover", event => nativeCompositionLabel(event.target)?.hover());
+  document.addEventListener("pointerout", event => {
+    const sprite = nativeCompositionLabel(event.target);
+    if (sprite && sprite !== nativeCompositionLabel(event.relatedTarget)) sprite.unhover();
+  });
   document.addEventListener("click", event => {
     const sortButton = event.target.closest("[data-stack-sort]");
     if (sortButton && Model.POSITIONS.includes(sortButton.dataset.stackSort)) {
