@@ -169,11 +169,11 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
 :where(body[data-page="matchups"]) .panelSubtitle { font-size:10px; color:var(--muted); }
 /* The defense summary includes the positional SOS card without shrinking its typography. */
 :where(body[data-page="matchups"]) .metricStrip {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom: 6px;}
-:where(body[data-page="matchups"]) .metric {padding: 5px 14px;min-width:0;border:1px solid #ffffff10;border-radius:9px;background:linear-gradient(180deg,#8f94a616,#8f94a609);box-shadow:inset 4px 5px 12px #ffffff04;}
+:where(body[data-page="matchups"]) .metric {padding: 5px 9px;min-width:0;border:1px solid #ffffff10;border-radius:9px;background:linear-gradient(180deg,#8f94a616,#8f94a609);box-shadow:inset 4px 5px 12px #ffffff04;}
 :where(body[data-page="matchups"]) .metricLabel { font-size:8px; color:var(--muted); white-space:nowrap; }
-:where(body[data-page="matchups"]) .metricValue { margin:2px 0 1px; font-size:23px; line-height:1.1; letter-spacing:-.5px; font-weight:550; font-variant-numeric:tabular-nums; }
-:where(body[data-page="matchups"]) .metricValue small { font-size:10px; color:var(--dim); margin-left:3px; font-weight:400; }
-:where(body[data-page="matchups"]) .metricSub { font-size:8px; color:var(--dim); }
+:where(body[data-page="matchups"]) .metricValue {margin:2px 0 1px;font-size: 20px;line-height:1.1;letter-spacing:-.5px;font-weight:550;font-variant-numeric:tabular-nums;}
+:where(body[data-page="matchups"]) .metricValue small {font-size: 13px;color:var(--dim);margin-left:3px;font-weight:400;}
+:where(body[data-page="matchups"]) .metricSub {font-size: 11px;color:var(--dim);text-wrap-mode: nowrap;}
 /* Compact mobile text changes display precision/labels only, never source calculations. */
 :where(body[data-page="matchups"]) .metricMobile { display:none; }
 :where(body[data-page="matchups"]) .is-easy { color:var(--mint); }
@@ -205,11 +205,11 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
 :where(body[data-page="matchups"]) .zeroLine { stroke:#aabbff; stroke-opacity:.3; }
 :where(body[data-page="matchups"]) .chartPoint {cursor:pointer;outline:none;r: 5.5;fill: #e3b3ffa8;stroke: #f0f8ff9e;filter: drop-shadow(0px 3px 3px #0004);}
 :where(body[data-page="matchups"]) .chartPoint:focus-visible circle,:where(body[data-page="matchups"]) .chartPoint:focus-visible rect { stroke:#fff; stroke-width:2; }
-:where(body[data-page="matchups"]) .weeklyMatchups { display:grid; grid-template-columns:repeat(auto-fit,minmax(80px,1fr)); gap:5px; margin:4px 0 10px; }
+:where(body[data-page="matchups"]) .weeklyMatchups {display:grid;grid-template-columns: repeat(auto-fit,minmax(40px,1fr));gap:5px;margin:4px 0 10px;}
 :where(body[data-page="matchups"]) .expectedLine {fill:none;stroke:url(#weekly-expected-line);stroke-width: 6px;stroke-dasharray: 1;filter: drop-shadow(0px 2px 4px #0008);}
 /* Weekly chips keep the week to the left of the opponent label/logo stack.
    Retain the responsive grid and logo dimensions as additional weeks arrive. */
-:where(body[data-page="matchups"]) .weekMatchup {display:flex;justify-content:center;align-items:center;gap: 9px;padding:4px 5px;color:var(--muted);background:#8f94a608;border:1px solid #aabbff10;border-radius:7px;font-size:9px;}
+:where(body[data-page="matchups"]) .weekMatchup {display:flex;justify-content:center;align-items:center;gap: 6px;padding:4px 5px;color:var(--muted);background:#8f94a608;border:1px solid #aabbff10;border-radius:7px;font-size:9px;}
 :where(body[data-page="matchups"]) .weekOpponentStack {display:flex;flex-direction:column;align-items:center;gap: 0px;min-width:0;}
 :where(body[data-page="matchups"]) .weekMatchup .weekOpponent {max-width:100%;text-align:center;line-height: 1;}
 :where(body[data-page="matchups"]) .weekMatchup img { width:19px; height:18px; object-fit:contain; }
@@ -233,7 +233,7 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
 :where(body[data-page="matchups"]) tbody tr:hover td { background:#aabbff09; }
 :where(body[data-page="matchups"]) th button { color:inherit; font:inherit; border:0; padding:1px 0; width:100%; text-align:inherit; }
 :where(body[data-page="matchups"]) .sortArrow { color:#88b8ff; margin-left:3px; font-size:9px; }
-:where(body[data-page="matchups"]) .playerTableScroll {max-height: 160px;min-height: 160px;}
+:where(body[data-page="matchups"]) .playerTableScroll {max-height: 180px;min-height: 160px;}
 :where(body[data-page="matchups"]) .playerTable th:first-child,:where(body[data-page="matchups"]) .playerTable td:first-child { width:35px; color:var(--dim); }
 :where(body[data-page="matchups"]) .playerTable th:last-child,:where(body[data-page="matchups"]) .playerTable td:last-child { text-align:right; width:64px; }
 :where(body[data-page="matchups"]) .playerTable td:last-child { font-weight:550; }
@@ -390,7 +390,7 @@ body:where([data-page="matchups"])::before { content:""; position:fixed; inset:0
   :where(body[data-page="matchups"]) .metricMobile { display:inline; }
   :where(body[data-page="matchups"]) .chartLegend { font-size:7px; gap:8px; }
   :where(body[data-page="matchups"]) .sectionHeading h3 { font-size:11px; }
-  :where(body[data-page="matchups"]) .weeklyMatchups { margin-bottom:8px; gap:4px; }
+  :where(body[data-page="matchups"]) .weeklyMatchups {margin-bottom:8px;gap:4px;}
   :where(body[data-page="matchups"]) .weekMatchup { font-size:8px; padding:3px; }
   :where(body[data-page="matchups"]) .playerTable th,:where(body[data-page="matchups"]) .playerTable td { padding:5px; }
   :where(body[data-page="matchups"]) .playerTable th { font-size:8px; }
