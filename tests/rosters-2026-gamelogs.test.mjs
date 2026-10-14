@@ -40,6 +40,36 @@ function createLoader(tables, failures = {}, boot = false) {
 const season = 'SZN,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,GM_P,paATT\n2026,4984,Josh Allen,QB,BUF,35.66,1,30';
 const defense = 'TM,QBRK,RBRK,WRRK,TERK\nHOU,2,11,8,19\nDET,6,12,9,20';
 
+test('Rosters accepts spaced DRK rank headers before activating the league card snapshot', async () => {
+  for (const headers of ['QB RK,RB RK,WR RK,TE RK', 'qb rk,rb rk,wr rk,te rk', 'QB\u00a0RK,RB\u202fRK,WR RK,TE RK']) {
+    const window = createLoader({
+      DH: season,
+      DRK: `Team,TM,${headers}\nHouston Texans,HOU,2,11,8,19\nDetroit Lions,DET,6,12,9,20`,
+      '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP\n1,4984,QB,BUF,35.66,1,58',
+    });
+    const snapshot = await window.activateRosters2026GameLogs();
+    assert.equal(window.state.activeRostersGameLogsSeason, '2026');
+    assert.equal(snapshot.seasonStats['4984'].fpts_ppr, 35.66);
+    assert.equal(snapshot.weeklyStats[1]['4984'].opponent_rank, 2);
+    assert.equal(snapshot.weeklyStats[2]['4984'].opponent_rank, 6);
+    assert.equal(window.getRosters2026PlayerRanks('4984').total_pts, '35.7');
+  }
+});
+
+test('DRK header adaptation preserves explicit compact cells and rejects missing rank columns', async () => {
+  const tables = {
+    DH: season,
+    DRK: 'TM,QBRK,QB RK,RBRK,RB RK,WRRK,WR RK,TERK,TE RK\nHOU,,2,7,11,8,13,19,21\nDET,6,5,12,10,9,7,20,17',
+    '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP\n1,4984,QB,BUF,35.66,1,58',
+  };
+  const window = createLoader(tables);
+  const snapshot = await window.activateRosters2026GameLogs();
+  assert.equal(snapshot.weeklyStats[1]['4984'].opponent_rank, undefined);
+  assert.equal(snapshot.weeklyStats[2]['4984'].opponent_rank, 6);
+  const missing = createLoader({ ...tables, DRK: 'TM,QB RK,RB RK,WR RK\nHOU,2,11,8' });
+  await assert.rejects(missing.activateRosters2026GameLogs(), /DRK has missing or invalid columns/);
+});
+
 test('Rosters preserves share values and ranks across DH/weekly CSV header renaming', async () => {
   const newHeaders = 'TDS%,YS%,ruTDS%,ruYS%,recTDS%,recYS%';
   const legacyHeaders = 'TMS,YMS,ruTMS,ruYMS,recTMS,recYMS';
@@ -147,8 +177,13 @@ test('Rosters parses the shipped combined weekly file through its existing stat 
   assert.equal(allen.snp, 59);
   assert.equal(allen.proj, '23.4');
   assert.equal(allen.__hasRecordedStats, true);
-  assert.equal(snapshot.latestRecordedWeek, 4);
-  assert.equal(snapshot.rankQualifierWeeks, 4);
+  // This smoke check reads the changing shipped results file. Its first WK
+  // field is numeric; discover completed weeks instead of freezing Week 4.
+  const sourceWeeks = [...new Set(csv.split(/\r?\n/).slice(1)
+    .map(line => Number(/^"?(\d+)"?,/.exec(line)?.[1]))
+    .filter(week => Number.isInteger(week) && week >= 1 && week <= 18))];
+  assert.equal(snapshot.latestRecordedWeek, Math.max(...sourceWeeks));
+  assert.equal(snapshot.rankQualifierWeeks, sourceWeeks.length);
   assert.equal(Object.keys(snapshot.weekErrors).length, 0);
 });
 

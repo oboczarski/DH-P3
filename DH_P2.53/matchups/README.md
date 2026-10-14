@@ -38,6 +38,13 @@ integration. Adding weekly rows or `wN` opponent columns uses the existing
 parsers without requiring a CSV rebuild. Reload the page to read Sheet updates.
 An inaccessible sheet or invalid schema appears in the existing load-error panel.
 
+FPFA discovers every `wN` opponent column dynamically. A `BYE` cell (case
+insensitive), blank, or another supported no-opponent marker is omitted from
+the team's opponents and games played; the week column remains part of the
+source period. Published totals, averages and ranks stay unchanged. Later
+opponents after a bye are parsed normally, and unrecognized team codes still
+produce a validation error.
+
 For Week 5, add the player results with `WK=5` to FPA, extend FPFA's opponent
 columns with `w5`, and update the published FPFA summaries and FPF offense
 averages/ranks. Weeks and coverage are discovered from the sources; no weekly

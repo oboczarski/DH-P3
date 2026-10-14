@@ -82,6 +82,41 @@ test('the independently owned model matches every source metric, venue and playe
   assert.equal(store.snapshot.model.audit.negativeResults, 1);
 });
 
+test('Start/Sit prepares updated sources with bye weeks, later games and unused FPA formulas', async () => {
+  const lines = weekly.split('\n');
+  const week6 = lines.slice(1).filter(line => line.startsWith('1,')).map(line => line.replace(/^1,/, '6,'));
+  const updatedWeekly = [
+    `${lines[0]},VS_TM`, ...lines.slice(1).map(line => `${line},`),
+    `${','.repeat(7)}#VALUE!`, ...week6.map(line => `${line},`), `${','.repeat(7)}#VALUE!`,
+  ].join('\n');
+  const updatedSummary = summary.split('\n').map((line, index) => {
+    const cells = line.split(',');
+    cells.splice(3, 0, ...(index === 0 ? ['w5', 'w6'] : [' BYE ', cells[1]]));
+    return cells.join(',');
+  }).join('\n');
+  const sources = { ...bySheet, FPA: updatedWeekly, FPFA: updatedSummary };
+  const store = createMatchupStore({ fetchImpl: async url => response(sources[new URL(url).searchParams.get('sheet')]) });
+  await store.prepare();
+  assert.equal(store.status, 'ready');
+  assert.deepEqual(store.snapshot.summary.weeks, [1, 2, 5, 6]);
+  assert.equal(store.snapshot.model.audit.sourceRows, 18);
+  assert.equal(store.snapshot.model.audit.sourcePlayers, 8);
+  for (const venue of ['all', 'home', 'away']) {
+    assert.deepEqual(store.analysis(venue), sourceData.matchupAnalysis(
+      sourceData.readSource(updatedWeekly, { name: '2026-Wkly / FPA' }),
+      sourceData.readFPFA(updatedSummary, { name: '2026-Wkly / FPFA' }),
+      { venue }, sourceData.readOffenses(offense, { name: '2026-Wkly / FPF' })
+    ));
+  }
+  const metric = store.preview({ basePos: 'QB', matchup: { opponent: 'BAL' } });
+  assert.equal(metric.games, 3);
+  assert.deepEqual(metric.entries.map(game => game.week), [1, 2, 6]);
+  assert.equal(metric.actual.total, 90.1);
+  assert.equal(metric.actual.avg, 45);
+  assert.equal(metric.sosRank, 1);
+  assert.equal(metric.deltaPerGame, 9.9 / 3);
+});
+
 test('preview keeps matchup rank and SOS while panel scoring comparisons remain unchanged', async () => {
   const store = createMatchupStore({ fetchImpl: fetchFixture });
   await store.prepare();

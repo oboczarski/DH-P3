@@ -20,6 +20,12 @@ and warms its copied logos. Concurrent consumers reuse the same pending promise.
 Data is reused only within the current document; reloading reads current sheets.
 Failures display an error/retry state, without bundled or historical fallbacks.
 
+The independently owned parser accepts `BYE` (case insensitive) in every FPFA
+`wN` opponent column without adding an opponent or played game. Later week
+columns remain automatic, and published totals, averages and ranks stay intact.
+Unused FPA rows with all columns blank except formula-generated `VS_TM` are
+ignored; populated rows still require the original result validation.
+
 Only DH's existing `scripts/nfl-2026-sheets.js` workbook URL configuration is
 shared. Published FPFA totals/averages/ranks remain the season-to-date authority;
 FPA records supply weekly actual scores/player results, and FPF offense averages

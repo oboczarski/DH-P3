@@ -1,7 +1,7 @@
 // Rosters-owned defense panel: retain the current panel renderer, chart geometry,
 // tooltips, filters and player expansion in an isolated modal, with no Matchups imports.
-import Data from './model.js?v=DH3.49d-matchups-mobile-nav-injuries';
-import { createMatchupStore, resolveMatchupSelection } from './data.js?v=DH3.49d-matchups-mobile-nav-injuries';
+import Data from './model.js?v=DH3.50-byes-rosters-data';
+import { createMatchupStore, resolveMatchupSelection } from './data.js?v=DH3.50-byes-rosters-data';
 
 export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
   if (document.body?.dataset.page !== 'rosters') throw new Error('Matchup Breakdown belongs to Rosters.');

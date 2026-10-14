@@ -56,7 +56,9 @@
 // Refresh Rosters Start/Sit's opponent-logo order and inline player-team logos.
 // Refresh DataHub Compare's responsive gradient areas beneath weekly lines.
 // Refresh Matchups' live FPA parser so unused VS_TM formula rows do not block weekly updates.
-const CACHE_NAME = 'DH3.49z-matchups-unused-sheet-rows';
+// Refresh Matchups' FPFA parser to accept BYE markers without counting them as games.
+// Refresh Rosters' spaced DRK rank headers and its own BYE/unused-formula-row parser.
+const CACHE_NAME = 'DH3.50-byes-rosters-data';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

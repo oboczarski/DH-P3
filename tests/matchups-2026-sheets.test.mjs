@@ -198,6 +198,82 @@ test('SOS preserves each published ascending positional vRK across venue and wee
   assert.equal(awayTE.expectedRank, 1); // Venue ranks do not replace the published SOS.
 });
 
+test('FPFA discovers later weeks and skips BYE without adding games or changing supplied metrics', () => {
+  // Recorded games before and after byes exercise counts, weekly entries and
+  // venue comparisons while FPFA continues to own its published season metrics.
+  const playedWeeks = [1, 6, 18];
+  const source = [weekly.split('\r\n')[0], ...playedWeeks.flatMap(week =>
+    weekly.split('\r\n').slice(1).map(line => line.replace(/^1,/, `${week},`))
+  )].join('\r\n');
+  const model = Data.readSource(source), offenses = Data.readOffenses(offense);
+  const base = summary.split('\n').map((line, index) => {
+    const cells = line.split(',');
+    cells.splice(2, 0, ...(index === 0 ? ['w6', 'w18'] : [cells[1], cells[1]]));
+    return cells.join(',');
+  }).join('\n');
+  const expected = Data.readFPFA(base);
+  for (const marker of ['BYE', 'bye', ' bYe ']) {
+    const withByes = base.split('\n').map((line, index) => {
+      const cells = line.split(',');
+      cells.splice(3, 0, index === 0 ? 'w10' : marker);
+      cells.splice(2, 0, index === 0 ? 'W5' : marker);
+      return cells.join(',');
+    }).join('\n');
+    const published = Data.readFPFA(withByes);
+    assert.deepEqual(published.weeks, [1, 5, 6, 10, 18]);
+    for (const team of ['BAL', 'ARI']) {
+      assert.deepEqual(published.byTeam.get(team).opponents, expected.byTeam.get(team).opponents);
+      assert.deepEqual(published.byTeam.get(team).metrics, expected.byTeam.get(team).metrics);
+      assert.deepEqual(published.byTeam.get(team).opponents.map(game => game.week), playedWeeks);
+    }
+    for (const scope of [{}, { venue: 'home' }, { venue: 'away' }, { from: 5, to: 5 }]) {
+      const analysis = Data.matchupAnalysis(model, published, scope, offenses);
+      assert.deepEqual(analysis, Data.matchupAnalysis(model, expected, scope, offenses));
+      if (!Object.keys(scope).length) {
+        for (const pos of positions) {
+          const metric = analysis.byTeam.get('BAL').metrics[pos];
+          assert.equal(metric.games, 3);
+          assert.deepEqual(metric.entries.map(game => game.week), playedWeeks);
+        }
+        const qb = analysis.byTeam.get('BAL').metrics.QB;
+        assert.equal(qb.actual.total, 90.1);
+        assert.equal(qb.actual.avg, 30);
+        assert.equal(qb.sosRank, 9);
+        assert.equal(Lab.build(analysis, 'QB').dumbbell.find(row => row.team === 'BAL').games, 3);
+      }
+      if (scope.from === 5) {
+        const qb = analysis.byTeam.get('BAL').metrics.QB;
+        assert.equal(qb.games, 0);
+        assert.equal(qb.actual.total, null);
+        assert.equal(qb.expectedTotal, null);
+        assert.deepEqual(qb.entries, []);
+      }
+    }
+  }
+});
+
+test('FPFA keeps supported no-opponent markers distinct from invalid opponent codes', () => {
+  for (const marker of ['', 'NA', 'N/A', '-', '—', '–', 'BYE']) {
+    const withWeek5 = summary.split('\n').map((line, index) => {
+      const cells = line.split(',');
+      cells.splice(2, 0, index === 0 ? 'w5' : marker);
+      return cells.join(',');
+    }).join('\n');
+    const published = Data.readFPFA(withWeek5);
+    assert.deepEqual(published.weeks, [1, 5]);
+    assert.equal(published.byTeam.get('BAL').opponents.length, 1);
+    assert.equal(published.byTeam.get('ARI').opponents.length, 1);
+  }
+  for (const invalid of ['BYEE', 'XYZ', '#VALUE!']) {
+    const withInvalid = summary.split('\n').map((line, index) => {
+      const cells = line.split(',');
+      cells.splice(2, 0, index === 0 ? 'w5' : invalid);
+      return cells.join(',');
+    }).join('\n');
+    assert.throws(() => Data.readFPFA(withInvalid), /Line 2: unknown FPFA opponent .* in W5/);
+  }
+});
+
 test('a failed, empty or inaccessible sheet rejects the set without a bundled fallback', async () => {
   for (const broken of [response('', 503), response('  '), new Error('Network unavailable')]) {
     await assert.rejects(load2026MatchupSources({ fetchImpl: async url => {

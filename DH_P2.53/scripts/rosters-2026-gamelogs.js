@@ -110,6 +110,16 @@
         if (!response.ok) throw new Error(`Rosters 2026 ${sheetName} could not load (${response.status}).`);
         const text = await response.text();
         const rows = parseCsv(text);
+        // Rosters' live DRK export now labels ranks as "QB RK", etc. Adapt
+        // only its four positional rank headers before validating the snapshot,
+        // preserving supplied cells and giving explicit compact headers priority.
+        if (sheetName === 'DRK') {
+            rows.forEach((row) => POSITIONS.forEach((pos) => {
+                const key = `${pos}RK`;
+                const header = Object.keys(row).find((name) => name.replace(/\s+/g, '').toUpperCase() === key);
+                if (!(key in row) && header) row[key] = row[header];
+            }));
+        }
         if (!rows.length || requiredHeaders.some((header) => !(header in rows[0]))) throw new Error(`Rosters 2026 ${sheetName} has missing or invalid columns.`);
         return rows;
     };

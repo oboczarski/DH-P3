@@ -317,7 +317,10 @@
         return value === "" ? null : Number(value);
       };
       const opponents = weekColumns.flatMap(column => {
-        if (!row[column] || row[column].toUpperCase() === "NA") return [];
+        // Matchups' FPFA wN columns include BYE once the bye weeks begin.
+        // Keep each week in the source period, but omit no-opponent markers
+        // from games played; published averages and ranks remain authoritative.
+        if (UNKNOWN_OPPONENTS.has(row[column].toUpperCase())) return [];
         const offense = canonicalTeam(row[column]);
         if (!TEAMS.includes(offense)) throw new Error(`Line ${line}: unknown FPFA opponent “${row[column]}” in ${column}.`);
         return [{ week: Number(column.slice(1)), offense }];

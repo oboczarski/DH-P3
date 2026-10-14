@@ -111,8 +111,14 @@ const Data = (() => {
   function readSource(text, { name = "FPAv2.csv", season = 2026 } = {}) {
     const parsed = parseCSV(text, REQUIRED_COLUMNS.filter(column => column !== "WEEK"));
     if (!parsed.headers.includes("WEEK") && !parsed.headers.includes("WK")) throw new Error("Missing required columns: WEEK or WK.");
+    // Rosters' own FPA parser ignores unused VS_TM formula rows below player
+    // data. Any populated source field still requires full record validation;
+    // only real source records contribute to the player/row audit.
+    const records = parsed.records.filter(({ values: row }) =>
+      parsed.headers.some(column => column !== "VS_TM" && row[column] !== "")
+    );
     const results = [], excluded = [], seen = new Set(), gamesByKey = new Map();
-    for (const { values: row, line } of parsed.records) {
+    for (const { values: row, line } of records) {
       if (parsed.headers.includes("WEEK") && parsed.headers.includes("WK") && row.WEEK !== row.WK) {
         throw new Error(`Line ${line}: WEEK and WK disagree.`);
       }
@@ -187,8 +193,8 @@ const Data = (() => {
       minWeek: weeks[0], maxWeek: weeks.at(-1),
       diagnostics: { missingPositions, unpairedGames },
       audit: {
-        sourceRows: parsed.records.length, usedRows: results.length, excludedRows: excluded.length,
-        sourcePlayers: new Set(parsed.records.map(({ values: row }) => row.SLPR_ID || row["PLAYER NAME"])).size,
+        sourceRows: records.length, usedRows: results.length, excludedRows: excluded.length,
+        sourcePlayers: new Set(records.map(({ values: row }) => row.SLPR_ID || row["PLAYER NAME"])).size,
         matchedPlayers: new Set(results.map(row => row.playerId)).size,
         zeroResults: results.filter(row => row.cents === 0).length,
         negativeResults: results.filter(row => row.cents < 0).length,
@@ -308,7 +314,10 @@ const Data = (() => {
         return value === "" ? null : Number(value);
       };
       const opponents = weekColumns.flatMap(column => {
-        if (!row[column] || row[column].toUpperCase() === "NA") return [];
+        // Rosters' Start/Sit panel accepts BYE in every FPFA wN column.
+        // A bye keeps the source week but adds no opponent or played game;
+        // published totals, averages and SOS ranks retain their source values.
+        if (UNKNOWN_OPPONENTS.has(row[column].toUpperCase())) return [];
         const offense = canonicalTeam(row[column]);
         if (!TEAMS.includes(offense)) throw new Error(`Line ${line}: unknown FPFA opponent “${row[column]}” in ${column}.`);
         return [{ week: Number(column.slice(1)), offense }];
