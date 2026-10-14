@@ -276,32 +276,38 @@ body[data-page="rosters"] .ss-identity {
 }
 body[data-page="rosters"] .ss-identity::after { content: ''; position: absolute; width: 140px; height: 140px; right: -88px; top: -85px; border-radius: 50%; border: 1px solid rgba(var(--ss-player-rgb), .12); box-shadow: 0 0 0 13px rgba(var(--ss-player-rgb), .016), 0 0 0 26px rgba(var(--ss-player-rgb), .012); pointer-events: none; }
 body[data-page="rosters"] .ss-identity-top { display: flex; align-items: center; gap: 6px; height: 24px; }
-body[data-page="rosters"] .ss-player-number { color: var(--ss-player); font-size: 7px; letter-spacing: 1.1px; }
-body[data-page="rosters"] .ss-identity-top .ss-position { padding: 2px 4px; font-size: 8px; }
+body[data-page="rosters"] .ss-player-number {color: var(--ss-player);font-size: 10px;letter-spacing: 1.1px;}
+body[data-page="rosters"] .ss-identity-top .ss-position {padding: 1px 5px;font-size: 10px;}
 body[data-page="rosters"] .ss-identity-team { display: flex; align-items: center; gap: 3px; margin-left: auto; }
-body[data-page="rosters"] .ss-identity-team img { width: 22px; height: 22px; object-fit: contain; }
+body[data-page="rosters"] .ss-identity-team img {width: 37px;height: 32px;object-fit: contain;padding: 0 5px;border: 1px solid transparent;color: transparent;background: 
+linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), 
+linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, 
+linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;border-radius: 11px;}
 body[data-page="rosters"] .ss-identity-team > span { display: none; }
-body[data-page="rosters"] .ss-player-name { display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; width: 100%; min-height: 42px; margin-top: 8px; padding: 0; border: 0; background: transparent; color: #eff6ff; font-size: 16px !important; font-weight: 500 !important; text-align: left; line-height: 1.2; letter-spacing: -.3px; overflow-wrap: anywhere; }
+body[data-page="rosters"] .ss-player-name {display: flex;align-items: flex-start;justify-content: space-between;gap: 4px;width: 100%;min-height: 24px;margin-top: 5px;padding: 0;border: 0;background: transparent;color: #eff6ff;font-size: 15px !important;font-weight: 500 !important;text-align: left;line-height: 1.2;letter-spacing: -.3px;text-wrap-mode: nowrap;}
 body[data-page="rosters"] .ss-player-name svg { width: 12px; height: 12px; margin-top: 4px; color: rgba(var(--ss-player-rgb), .6); }
-body[data-page="rosters"] .ss-player-info { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; margin: 5px 0 11px; color: var(--ss-dim); font-size: 7px; }
-body[data-page="rosters"] .ss-player-info b { color: #a8bdd8; margin-left: 2px; font-weight: 500; font-size: 8px; }
-body[data-page="rosters"] .ss-identity-numbers { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding-block: 10px 5px; border-top: 1px solid rgba(var(--ss-player-rgb), .13); }
-body[data-page="rosters"] .ss-identity-numbers > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-body[data-page="rosters"] .ss-identity-numbers small { color: #8ba2c0; font-size: 6.5px; letter-spacing: .7px; white-space: nowrap; }
+body[data-page="rosters"] .ss-player-info {display: flex;flex-wrap: wrap;align-items: center;gap: 5px 8px;margin: 1px 0 6px;color: var(--ss-dim);font-size: 9px;}
+body[data-page="rosters"] .ss-player-info b {color: #a8bdd8;margin-left: 2px;font-weight: 500;font-size: 12px;}
+body[data-page="rosters"] .ss-identity-numbers {display: grid;grid-template-columns: 1fr 1fr;gap: 10px;padding-block: 6px 4px;border-top: 1px solid rgba(var(--ss-player-rgb), .13);text-align: center;}
+body[data-page="rosters"] .ss-identity-numbers > div {display: flex;flex-direction: column;gap: 0px;min-width: 0;border: 1px solid transparent;color: transparent;background: linear-gradient(90deg, #74b3ff20 0%, #7297ff20 52%, #a17dff20 100%), linear-gradient(90deg, #74efff7b 0%, #7297ff7b 52%, #d97dff7b 100%) border-area;border-radius: 8px;}
+body[data-page="rosters"] .ss-identity-numbers small {color: #8ba2c0;font-size: 8px;letter-spacing: 0px;white-space: nowrap;}
 body[data-page="rosters"] .ss-identity-numbers strong { color: var(--ss-player); font-weight: 500; font-size: 24px; line-height: 1.2; letter-spacing: -.75px; text-shadow: 0 0 18px rgba(var(--ss-player-rgb), .12); }
-body[data-page="rosters"] .ss-identity-numbers > div:nth-child(2) strong { font-size: 21px; color: #d2deef; padding-top: 2px; letter-spacing: -.5px; }
-body[data-page="rosters"] .ss-identity-numbers > div > span { color: #96abc6; font-size: 8px; }
-body[data-page="rosters"] .ss-identity-projection { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; margin-top: 7px; padding-top: 8px; border-top: 1px solid rgba(var(--ss-player-rgb), .12); }
-body[data-page="rosters"] .ss-identity-projection > span { color: #8ba2c0; font-size: 7px; letter-spacing: .45px; }
-body[data-page="rosters"] .ss-identity-projection strong { color: var(--ss-player); font-size: 12px; font-weight: 500; }
-body[data-page="rosters"] .ss-identity-projection small { color: #a5bad3; font-size: 8px; margin-left: auto; }
-body[data-page="rosters"] .ss-versus { position: absolute; left: 50%; top: 53%; transform: translate(-50%, -50%); display: grid; place-items: center; width: 23px; height: 23px; color: #aabbd3; font-size: 7px; font-weight: 600; letter-spacing: 1px; border: 1px solid #9ab4db3d; border-radius: 50%; background: linear-gradient(140deg, #1c3440, #283044 50%, #332b49); box-shadow: 0 0 0 3px #0d1726; }
+body[data-page="rosters"] .ss-identity-numbers > div:nth-child(2) strong {font-size: 21px;color: #d2deef;padding-top: 2px;letter-spacing: -.5px;}
+body[data-page="rosters"] .ss-identity-numbers > div > span {color: #96abc6;font-size: 11px;}
+body[data-page="rosters"] .ss-identity-projection {display: flex;align-items: center;flex-wrap: wrap;gap: 4px 11px;margin-top: 3px;padding-top: 8px;border-top: 1px solid rgba(var(--ss-player-rgb), .12);}
+body[data-page="rosters"] .ss-identity-projection > span {color: #8ba2c0;font-size: 10px;letter-spacing: .45px;}
+body[data-page="rosters"] .ss-identity-projection strong {color: var(--ss-player);font-size: 15px;font-weight: 500;padding: 0 3px;border: 1px solid transparent;color: transparent;background: 
+linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), 
+linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, 
+linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;border-radius: 7px;}
+body[data-page="rosters"] .ss-identity-projection small {color: #a5bad3;font-size: 13px;margin-left: auto;}
+body[data-page="rosters"] .ss-versus {position: absolute;left: 50%;top: 53%;transform: translate(-50%, -50%);display: grid;place-items: center;width: 27px;height: 27px;color: #aabbd3;font-size: 10px;font-weight: 600;letter-spacing: 1px;border: 1px solid #9ab4db3d;border-radius: 50%;background: linear-gradient(140deg, #1c3440, #283044 50%, #332b49);box-shadow: 0 0 0 3px #0d1726;}
 
 /* Charts have their own dimensional glass panels and fine grid lighting.
    ECharts draws custom multi-stop gradients; library defaults are not visible. */
-body[data-page="rosters"] .ss-panel { min-width: 0; border: 1px solid transparent; border-radius: 13px; background: linear-gradient(125deg, #111c2ff5, #0e1728f5 48%, #141b30f5) padding-box, linear-gradient(125deg, #90c8e82c, #8da9c715 42%, #b69ded29) border-box; box-shadow: inset 0 1px 0 #b7dcff06; }
+body[data-page="rosters"] .ss-panel {min-width: 0;border: 1px solid transparent;border-radius: 13px;background: linear-gradient(125deg, #313946f5, #1c2637f5 48%, #141b30f5) padding-box, linear-gradient(125deg, #90c8e82c, #8da9c715 42%, #b69ded29) border-box;box-shadow: inset 0 1px 0 #b7dcff06;border: 1px solid transparent;color: transparent;}
 body[data-page="rosters"] .ss-chart-grid { display: grid; gap: 9px; margin-top: 10px; }
-body[data-page="rosters"] :is(.ss-trajectory, .ss-signature) { padding: 12px 10px 10px; overflow: hidden; }
+body[data-page="rosters"] :is(.ss-trajectory, .ss-signature) {padding: 9px 10px 4px;overflow: hidden;}
 body[data-page="rosters"] .ss-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 body[data-page="rosters"] .ss-eyebrow { display: block; color: #7f99b9; font-size: 7px; font-weight: 500; letter-spacing: 1.3px; margin-bottom: 5px; }
 body[data-page="rosters"] .ss-section-heading h4,
@@ -309,16 +315,19 @@ body[data-page="rosters"] .ss-breakdown-heading h4 { display: flex; align-items:
 body[data-page="rosters"] .ss-section-heading h4 svg { width: 16px; height: 16px; color: #92bbd8; }
 body[data-page="rosters"] .ss-chart-switch { display: flex; align-items: center; gap: 2px; background: #07101d66; border: 1px solid #90addc1a; border-radius: 7px; padding: 2px; }
 body[data-page="rosters"] .ss-chart-switch button { min-height: 28px; padding: 5px 7px; border: 1px solid transparent; background: transparent; color: #8ba2c0; border-radius: 5px; font-size: 8px; }
-body[data-page="rosters"] .ss-chart-switch button[aria-pressed="true"] { background: linear-gradient(120deg, #24526639, #45587632); color: #d9f5ff; border-color: #98ccf126; box-shadow: inset 0 1px 0 #d6eeff09; }
+body[data-page="rosters"] .ss-chart-switch button[aria-pressed="true"] {background: linear-gradient(120deg, #24526639, #45587632);color: #d9f5ff;border-color: #98ccf126;box-shadow: inset 0 1px 0 #d6eeff09;border: 1px solid transparent;color: transparent;background: 
+linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), 
+linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, 
+linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;}
 body[data-page="rosters"] .ss-chart-legend { display: flex; gap: 15px; margin: 11px 0 0 2px; }
 body[data-page="rosters"] .ss-chart-legend span { display: flex; align-items: center; gap: 5px; color: #b0c2db; font-size: 9px; }
 body[data-page="rosters"] :is(.ss-chart-legend, .ss-stat-guide) i { display: block; width: 6px; height: 6px; border: 1px solid var(--ss-player); border-radius: 50%; background: var(--ss-player); box-shadow: 0 0 5px rgba(var(--ss-player-rgb), .22); }
 body[data-page="rosters"] .ss-chart-legend .ss-side-1 i { border-radius: 1px; transform: rotate(45deg); }
 body[data-page="rosters"] .ss-chart { width: 100%; }
-body[data-page="rosters"] .ss-weekly-chart { height: 180px; margin-top: 4px; }
+body[data-page="rosters"] .ss-weekly-chart {height: 159px;margin-top: -7px;margin-bottom: -5px;}
 body[data-page="rosters"] .ss-chart-caption { display: flex; justify-content: space-between; gap: 5px; color: #8299b5; font-size: 8px; padding-inline: 3px; }
-body[data-page="rosters"] .ss-weekly-values { margin-top: 10px; border-top: 1px solid var(--ss-line); }
-body[data-page="rosters"] .ss-weekly-values > summary { display: flex; justify-content: space-between; align-items: center; min-height: 30px; color: #9cb5ce; font-size: 9px; cursor: pointer; list-style: none; }
+body[data-page="rosters"] .ss-weekly-values {margin-top: 5px;border-top: 1px solid var(--ss-line);}
+body[data-page="rosters"] .ss-weekly-values > summary {display: flex;justify-content: space-between;align-items: center;min-height: 25px;color: #9cb5ce;font-size: 9px;cursor: pointer;list-style: none;}
 body[data-page="rosters"] .ss-weekly-values > summary svg { width: 12px; height: 12px; }
 body[data-page="rosters"] .ss-weekly-values table { width: 100%; color: #c7d7eb; font-size: 10px; border-collapse: collapse; }
 body[data-page="rosters"] .ss-weekly-values caption { color: var(--ss-dim); font-size: 8px; text-align: left; padding: 5px 0; }
@@ -329,12 +338,15 @@ body[data-page="rosters"] .ss-weekly-values td:nth-child(2) { color: var(--ss-a)
 body[data-page="rosters"] .ss-weekly-values td:nth-child(3) { color: var(--ss-b); }
 body[data-page="rosters"] .ss-signature { display: grid; grid-template-columns: minmax(0, 1fr) minmax(100px, .78fr); align-items: center; }
 body[data-page="rosters"] .ss-signature .ss-section-heading { grid-column: 1 / -1; }
-body[data-page="rosters"] .ss-chart-label { color: #8b9fbe; font-size: 7px; letter-spacing: 1.1px; padding: 4px 5px; border: 1px solid #a6bfec1d; border-radius: 4px; background: #a6bfec05; }
+body[data-page="rosters"] .ss-chart-label {color: #8b9fbe;font-size: 7px;letter-spacing: 1.1px;padding: 4px 5px;border: 1px solid #a6bfec1d;border-radius: 4px;background: #a6bfec05;border: 1px solid transparent;color: transparent;background: 
+linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), 
+linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, 
+linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;}
 body[data-page="rosters"] .ss-profile-chart { height: 175px; }
 body[data-page="rosters"] .ss-profile-readouts { display: flex; flex-direction: column; gap: 0; min-width: 0; padding-left: 5px; }
-body[data-page="rosters"] .ss-profile-readouts > div { display: grid; grid-template-columns: 1fr .7fr .7fr; gap: 3px; padding: 6px 0; border-bottom: 1px solid #9ab9e511; font-size: 8px; }
+body[data-page="rosters"] .ss-profile-readouts > div {display: grid;grid-template-columns: 1fr .7fr .7fr;gap: 3px;padding: 5px 0;border-bottom: 1px solid #9ab9e511;font-size: 10px;}
 body[data-page="rosters"] .ss-profile-readouts span { color: #9bb0cd; }
-body[data-page="rosters"] .ss-profile-readouts strong { color: var(--ss-player); font-size: 8px; font-weight: 500; text-align: right; }
+body[data-page="rosters"] .ss-profile-readouts strong {color: var(--ss-player);font-size: 10px;font-weight: 500;text-align: right;}
 body[data-page="rosters"] .ss-profile-caption { grid-column: 1 / -1; color: #869cba; font-size: 8px; line-height: 1.5; text-align: center; margin: 0; padding-top: 2px; }
 body[data-page="rosters"] .ss-chart-empty { display: flex; height: 100%; align-items: center; justify-content: center; text-align: center; color: #92a7c2; font-size: 11px; padding: 15px; line-height: 1.6; background: radial-gradient(ellipse, #9ab3e506, transparent); }
 
@@ -355,7 +367,7 @@ body[data-page="rosters"] .ss-stat-guide > span:last-child { color: var(--ss-pla
 body[data-page="rosters"] .ss-stat-guide b { font-weight: 400; }
 body[data-page="rosters"] .ss-stat-sections { columns: 1; }
 body[data-page="rosters"] .ss-stat-section { break-inside: avoid; margin-bottom: 9px; overflow: hidden; scroll-margin-top: 12px; }
-body[data-page="rosters"] .ss-stat-section > summary { display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 10px 11px; color: #bfd2ec; background: linear-gradient(95deg, #91d4ed0b, #8d9cd704 55%, #bf9eeb06); border-bottom: 1px solid #a2c8e216; list-style: none; cursor: pointer; text-transform: capitalize; font-size: 11px; font-weight: 500; }
+body[data-page="rosters"] .ss-stat-section > summary {display: flex;align-items: center;gap: 8px;min-height: 18px;padding: 4px 9px;color: #bfd2ec;background: linear-gradient(95deg, #91d4ed0b, #8d9cd704 55%, #bf9eeb06);border-bottom: 1px solid #a2c8e216;list-style: none;cursor: pointer;text-transform: capitalize;font-size: 11px;font-weight: 500;}
 body[data-page="rosters"] .ss-stat-section > summary::-webkit-details-marker,
 body[data-page="rosters"] .ss-weekly-values > summary::-webkit-details-marker { display: none; }
 body[data-page="rosters"] .ss-stat-section > summary > small { margin-left: auto; color: #899eb9; font-size: 8px; font-weight: 400; white-space: nowrap; }
@@ -366,21 +378,21 @@ body[data-page="rosters"] .ss-tone-passing .ss-section-index { color: #e29caf; }
 body[data-page="rosters"] .ss-tone-rushing .ss-section-index { color: #83d9c5; }
 body[data-page="rosters"] .ss-tone-receiving .ss-section-index { color: #8cbefa; }
 body[data-page="rosters"] .ss-tone-efficiency .ss-section-index { color: #b9a8ed; }
-body[data-page="rosters"] .ss-stat-row { padding: 10px 12px 9px; position: relative; }
+body[data-page="rosters"] .ss-stat-row {padding: 3px 12px 4px;position: relative;}
 body[data-page="rosters"] .ss-stat-row + .ss-stat-row { border-top: 1px solid #acc5e710; }
 body[data-page="rosters"] .ss-stat-row:nth-child(even) { background: linear-gradient(90deg, #7dcaca02, #bad3f203 48%, #a795e403); }
 body[data-page="rosters"] .ss-stat-values { display: grid; grid-template-columns: minmax(0, 1fr) minmax(75px, 1.15fr) minmax(0, 1fr); gap: 5px; align-items: center; }
 body[data-page="rosters"] .ss-stat-value { display: flex; align-items: baseline; flex-wrap: wrap; gap: 3px 5px; color: #b8c9e0; min-width: 0; }
 body[data-page="rosters"] .ss-stat-value:last-child { justify-content: flex-end; text-align: right; }
-body[data-page="rosters"] .ss-stat-value strong { font-size: 14px; font-weight: 500; letter-spacing: -.15px; line-height: 1.3; }
+body[data-page="rosters"] .ss-stat-value strong {font-size: 14px;font-weight: 500;letter-spacing: -.15px;line-height: 1;color: #aab8;}
 body[data-page="rosters"] .ss-stat-value small { font-size: 7px; color: #8198b6; white-space: nowrap; }
 body[data-page="rosters"] .ss-stat-value.ss-leading strong { color: var(--ss-player); text-shadow: 0 0 9px rgba(var(--ss-player-rgb), .12); }
 body[data-page="rosters"] .ss-stat-value.ss-missing strong { color: #7187a4; }
-body[data-page="rosters"] .ss-stat-label { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
+body[data-page="rosters"] .ss-stat-label {display: flex;flex-direction: column;align-items: center;gap: 0px;text-align: center;}
 body[data-page="rosters"] .ss-stat-label > span { font-size: 10px; font-weight: 500; letter-spacing: .3px; color: #b7cae5; line-height: 1.25; }
 body[data-page="rosters"] .ss-stat-label i { font-size: 10px; font-style: normal; margin-left: 3px; color: #83a0be; }
 body[data-page="rosters"] .ss-stat-label > small { font-size: 7px; color: #7893b0; }
-body[data-page="rosters"] .ss-stat-plots { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; margin-top: 7px; }
+body[data-page="rosters"] .ss-stat-plots {display: grid;grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);gap: 8px;margin-top: 0px;}
 /* Signed metrics stack on the same horizontal domain, aligning their zero
    markers. Unsigned bars meet in the center for the side-by-side composition. */
 body[data-page="rosters"] .ss-stat-plots.ss-signed-plots { grid-template-columns: minmax(0, 1fr); gap: 4px; }
