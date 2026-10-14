@@ -324,10 +324,27 @@ body:where([data-page="matchups"]) { background:#050b13; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamLogoStack__glow { grid-area:1 / 1; z-index:0; filter:drop-shadow(0 0 3px var(--team-glow)); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamLogoStack__img { grid-area:1 / 1; z-index:1; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__btn .teamLogo { width:22px; height:22px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__panel { position:fixed; inset:auto; margin:0; z-index:120; width:min(280px,calc(100vw - 28px)); max-height:calc(100dvh - 16px); overflow:auto;
-    padding:10px; border-radius:18px; border:1px solid rgba(255,255,255,.14); color:rgba(255,255,255,.92);
-    background:rgba(8,8,18,.92); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 16px 48px rgba(0,0,0,.5);
-    display:none; grid-template-columns:1fr; gap:6px; align-items:start; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__panel {
+    position:fixed;
+    inset:auto;
+    margin:0;
+    z-index:120;
+    width: min(160px,calc(100vw - 28px));
+    max-height:calc(100dvh - 16px);
+    overflow:auto;
+    padding: 7px 7px;
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,.14);
+    color:rgba(255,255,255,.92);
+    background:rgba(8,8,18,.92);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    box-shadow:0 16px 48px rgba(0,0,0,.5);
+    display:none;
+    grid-template-columns:1fr;
+    gap:6px;
+    align-items:start;
+    }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__panel:popover-open { display:grid; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamOption { width:100%; display:flex; align-items:center; justify-content:center; gap:4px; padding:7px 3px; border-radius:14px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05); color:rgba(255,255,255,.9); font-weight:950; letter-spacing:.06em; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamOption:hover { border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.07); }
@@ -342,10 +359,10 @@ body:where([data-page="matchups"]) { background:#050b13; }
   /* This mobile defense menu owns two abbreviated conference columns;
      its scrollable panel stays within the viewport without sharing panel styles. */
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConferences { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConference { display:flex; flex-direction:column; gap:4px; min-width:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConference {display:flex;flex-direction:column;gap: 2px;min-width:0;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConference__title { display:flex; align-items:center; justify-content:center; gap:7px; font-size:11px; font-weight:600; margin:2px 0 5px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConference__title img { width:18px; height:18px; object-fit:contain; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConference .teamOption { justify-content:flex-start; padding:7px 8px; gap:8px; border-radius:8px; letter-spacing:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConference .teamOption {justify-content:flex-start;padding: 2px 6px;gap:8px;border-radius:8px;letter-spacing:0;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConference .teamOption__code { font-weight:650; text-align:left; }
 }
 
