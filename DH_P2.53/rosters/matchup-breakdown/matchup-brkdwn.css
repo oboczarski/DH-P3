@@ -201,7 +201,7 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .metricStrip {grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;margin-bottom: 4px;}
   .metricStrip > .metric,
   .metricStrip > .metric:nth-child(n+4) { grid-column:auto; }
-  .metric { padding:6px 3px; border-radius:7px; }
+  .metric {padding: 3px 3px;border-radius:7px;}
   .metricLabel { font-size:7px; }
   .metricValue {font-size:18px;white-space:nowrap;margin: 2px 0 0px;}
   .metricValue small {font-size: 10px;margin-left:1px;}
@@ -212,12 +212,12 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .sectionHeading h3 { font-size:11px; }
   .weeklyMatchups {margin-bottom: 5px;gap:4px;margin: 0px 0 4px;}
   .weekMatchup {font-size:8px;padding: 3px 3px 1px;gap: 5px;}
-  .playerTable th, .playerTable td { padding:5px; }
-  .playerTable th { font-size:8px; }
-  .playerTable td { font-size:10px; }
+  .playerTable th, .playerTable td {padding: 3px 5px;}
+  .playerTable th {font-size: 9px;}
+  .playerTable td {font-size:10px;}
   .playerTable th:first-child, .playerTable td:first-child { width:28px; }
   .playerTable th:last-child, .playerTable td:last-child { width:46px; }
-  .playerFilters { gap:7px; }
+  .playerFilters {gap:7px;margin: 0 0 4px;}
   .playerFooter { font-size:8px; }
   .expandedControls { flex-wrap:wrap; gap:7px; }
   .expandedControls > .teamPicker { min-width:120px; flex:1 1 45%; }
@@ -245,7 +245,7 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
 /* Modal chrome and inherited panel typography are local to this shadow root. */
 :host { display:contents; font:12px/1.4 var(--font); color:var(--text); -webkit-font-smoothing:antialiased; }
 dialog { font:inherit; }
-.matchupDialog {position:fixed;inset:0;margin:auto;padding:0;width:min(676px,calc(100% - 24px));max-height: 97dvh;color:var(--text);overflow:auto;border:1px solid var(--border);border-radius:14px;background:linear-gradient(155deg,#252a416e,#080e1aed),#0b1123;box-shadow:0 16px 48px #0008;}
+.matchupDialog {position:fixed;inset:0;margin:auto;padding:0;width:min(676px,calc(100% - 24px));max-height: 98dvh;color:var(--text);overflow:auto;border:1px solid var(--border);border-radius:14px;background:linear-gradient(155deg,#252a416e,#080e1aed),#0b1123;box-shadow:0 16px 48px #0008;}
 .matchupDialog .expandedControls { flex-wrap:wrap; }
 .matchupDialog .expandedControls > .teamPicker { flex:1; }
 .matchupDialog #scopeNote { flex-basis:100%; }
