@@ -129,7 +129,7 @@ svg { display:block; }
 .playerFilters { display:flex; gap:10px; align-items:center; margin:0 0 7px; }
 .searchField { flex:1; display:flex; min-width:0; gap:6px; align-items:center; padding:0 8px; border:1px solid #aabbff1c; border-radius:7px; background:#03091635; }
 .searchField .icon { width:13px; height:13px; color:var(--dim); }
-.searchField input { border:0; outline-offset:0; background:transparent; width:100%; padding:6px 0; font-size:10px; }
+.searchField input {border:0;outline-offset:0;background:transparent;width:100%;padding:6px 0;font-size:10px;}
 .searchField input::placeholder { color:var(--dim); }
 .checkboxField { display:flex; align-items:center; gap:5px; font-size:9px; color:var(--muted); white-space:nowrap; cursor:pointer; }
 .tableScroll { min-width:0; overflow:auto; border:1px solid var(--border); border-radius:9px; scrollbar-width:thin; scrollbar-color:#aabbff26 transparent; }
@@ -203,15 +203,15 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .metricStrip > .metric:nth-child(n+4) { grid-column:auto; }
   .metric {padding: 3px 3px;border-radius:7px;}
   .metricLabel { font-size:7px; }
-  .metricValue {font-size:18px;white-space:nowrap;margin: 2px 0 0px;}
-  .metricValue small {font-size: 10px;margin-left:1px;}
-  .metricSub { font-size:7px; white-space:nowrap; }
+  .metricValue {font-size: 16px;white-space:nowrap;margin: 2px 0 0px;}
+  .metricValue small {font-size: 12px;margin-left:1px;}
+  .metricSub {font-size:7px;white-space:nowrap;font-size: 8px;text-align: center;letter-spacing: -0.02em;}
   .metricDesktop { display:none; }
   .metricMobile { display:inline; }
   .chartLegend { font-size:7px; gap:8px; }
   .sectionHeading h3 { font-size:11px; }
   .weeklyMatchups {margin-bottom: 5px;gap:4px;margin: 0px 0 4px;}
-  .weekMatchup {font-size:8px;padding: 3px 3px 1px;gap: 5px;}
+  .weekMatchup {font-size:8px;padding: 2px 2px 1px;gap: 5px;}
   .playerTable th, .playerTable td {padding: 3px 5px;}
   .playerTable th {font-size: 9px;}
   .playerTable td {font-size:10px;}
@@ -230,7 +230,7 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .metricValue {font-size:14px;text-align: center;}
   .metricLabel {font-size: 7px;font-weight: 800;text-align: center;letter-spacing: -0.05em;}
   .metricSub {font-size: 8px;text-align: center;letter-spacing: -0.02em;}
-  .metric {padding: 4px 1px;}
+  .metric {padding: 3px 1px;}
   .defenseHeader h2 { font-size:15px; }
   .playerTable .offenseColumn { display:none; }
   .expandedTableScroll .playerTable .offenseColumn { display:table-cell; }
