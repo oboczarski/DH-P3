@@ -83,12 +83,12 @@ svg { display:block; }
 .defenseHeader > .positionBadge { margin-left:auto; }
 .panelSubtitle { font-size:10px; color:var(--muted); }
 /* The defense summary includes the positional SOS card without shrinking its typography. */
-.metricStrip {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom: 6px;}
+.metricStrip {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap: 10px;margin-bottom: 6px;}
 .metric {padding: 5px 14px;min-width:0;border:1px solid #ffffff10;border-radius:9px;background:linear-gradient(180deg,#8f94a616,#8f94a609);box-shadow:inset 4px 5px 12px #ffffff04;}
-.metricLabel { font-size:8px; color:var(--muted); white-space:nowrap; }
-.metricValue { margin:2px 0 1px; font-size:23px; line-height:1.1; letter-spacing:-.5px; font-weight:550; font-variant-numeric:tabular-nums; }
-.metricValue small { font-size:10px; color:var(--dim); margin-left:3px; font-weight:400; }
-.metricSub { font-size:8px; color:var(--dim); }
+.metricLabel {font-size: 9px;color:var(--muted);white-space:nowrap;text-transform: uppercase;text-align: center;}
+.metricValue {margin:2px 0 1px;font-size:23px;line-height:1.1;letter-spacing:-.5px;font-weight:550;font-variant-numeric:tabular-nums;text-align: center;}
+.metricValue small {font-size: 15px;color:var(--dim);margin-left:3px;font-weight:400;}
+.metricSub {font-size: 10px;color:var(--dim);text-wrap-mode: nowrap;text-align: center;}
 /* Compact mobile text changes display precision/labels only, never source calculations. */
 .metricMobile { display:none; }
 .is-easy { color:var(--mint); }
@@ -116,15 +116,15 @@ svg { display:block; }
 .zeroLine { stroke:#aabbff; stroke-opacity:.3; }
 .chartPoint {cursor:pointer;outline:none;r: 5.5;fill: #e3b3ffa8;stroke: #f0f8ff9e;filter: drop-shadow(0px 3px 3px #0004);}
 .chartPoint:focus-visible circle, .chartPoint:focus-visible rect { stroke:#fff; stroke-width:2; }
-.weeklyMatchups {display:grid;grid-template-columns: repeat(auto-fit,minmax(70px,1fr));gap:5px;margin:4px 0 10px;}
+.weeklyMatchups {display:grid;grid-template-columns: repeat(auto-fit,minmax(40px,1fr));gap:5px;margin:4px 0 10px;}
 .expectedLine {fill:none;stroke:url(#weekly-expected-line);stroke-width: 6px;stroke-dasharray: 1;filter: drop-shadow(0px 2px 4px #0008);}
 /* Weekly chips keep the week to the left of the opponent label/logo stack.
    Retain the responsive grid and logo dimensions as additional weeks arrive. */
 .weekMatchup {display:flex;justify-content:center;align-items:center;gap: 9px;padding:4px 5px;color:var(--muted);background:#8f94a608;border:1px solid #aabbff10;border-radius:7px;font-size:9px;}
 .weekOpponentStack {display:flex;flex-direction:column;align-items:center;gap: 0px;min-width:0;}
-.weekMatchup .weekOpponent {max-width:100%;text-align:center;line-height: 1;}
+.weekMatchup .weekOpponent {max-width:100%;text-align:center;line-height: 1;text-wrap-mode: nowrap;}
 .weekMatchup img { width:19px; height:18px; object-fit:contain; }
-.weekMatchup .weekNumber {flex:none;color:var(--dim);font-size: 11px;font-weight:600;}
+.weekMatchup .weekNumber {flex:none;color:var(--dim);font-size: 10px;font-weight: 800;}
 .playersSection {padding-top: 3px;border-top:1px solid var(--border);}
 .playerFilters { display:flex; gap:10px; align-items:center; margin:0 0 7px; }
 .searchField { flex:1; display:flex; min-width:0; gap:6px; align-items:center; padding:0 8px; border:1px solid #aabbff1c; border-radius:7px; background:#03091635; }
@@ -204,14 +204,14 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .metric { padding:6px 3px; border-radius:7px; }
   .metricLabel { font-size:7px; }
   .metricValue { font-size:18px; white-space:nowrap; }
-  .metricValue small { font-size:8px; margin-left:1px; }
+  .metricValue small {font-size: 10px;margin-left:1px;}
   .metricSub { font-size:7px; white-space:nowrap; }
   .metricDesktop { display:none; }
   .metricMobile { display:inline; }
   .chartLegend { font-size:7px; gap:8px; }
   .sectionHeading h3 { font-size:11px; }
   .weeklyMatchups { margin-bottom:8px; gap:4px; }
-  .weekMatchup {font-size:8px;padding: 3px 3px 1px;}
+  .weekMatchup {font-size:8px;padding: 3px 3px 1px;gap: 5px;}
   .playerTable th, .playerTable td { padding:5px; }
   .playerTable th { font-size:8px; }
   .playerTable td { font-size:10px; }
@@ -222,14 +222,14 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .expandedControls { flex-wrap:wrap; gap:7px; }
   .expandedControls > .teamPicker { min-width:120px; flex:1 1 45%; }
   .expandedControls .positionToggle { order:3; width:100%; }
-  .dialogHeader, .dialogBody { padding:10px; }
+  .dialogHeader, .dialogBody {padding: 5px 10px 4px;}
 }
 @media (max-width:400px) {
   /* At 320px the five-card row needs its width for labels, not side padding. */
   .metricStrip { gap:2px; }
   .metricValue {font-size:14px;text-align: center;}
-  .metricLabel {font-size: 7px;font-weight: 800;text-align: center;}
-  .metricSub {font-size: 7px;text-align: center;}
+  .metricLabel {font-size: 7px;font-weight: 800;text-align: center;letter-spacing: -0.05em;}
+  .metricSub {font-size: 8px;text-align: center;letter-spacing: -0.02em;}
   .metric { padding:5px 1px; }
   .defenseHeader h2 { font-size:15px; }
   .playerTable .offenseColumn { display:none; }
