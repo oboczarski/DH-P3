@@ -87,10 +87,14 @@ panel for each breakpoint in `chart-lab.css`. Adjusting composition labels no
 longer changes dumbbell or polar labels. Keep selection IDs/data attributes
 intact: they are behavior hooks, separate from these presentation owners.
 
-Desktop defense menus use full team names, alphabetized independently in AFC
-and NFC columns. The mobile division picker in the expanded player dialog
-retains its existing layout. Player sorting cycles through the column's first
-direction, its opposite, and the default (latest week, highest exact PPR score,
+Matchups defense menus use team abbreviations, alphabetized independently in
+AFC and NFC columns on mobile and desktop, including the expanded player dialog.
+Each menu has separate area-specific mobile and desktop styles. The independently
+owned Rosters matchup modal uses the abbreviated conference columns on desktop;
+its expanded mobile player picker retains the division layout.
+
+Player sorting cycles through the column's first direction, its opposite, and
+the default (latest week, highest exact PPR score,
 then player name). Displayed PPR values use one decimal; sorting and totals
 retain full source precision.
 

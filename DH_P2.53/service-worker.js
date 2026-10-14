@@ -58,8 +58,8 @@
 // Refresh Matchups' live FPA parser so unused VS_TM formula rows do not block weekly updates.
 // Refresh Matchups' FPFA parser to accept BYE markers without counting them as games.
 // Refresh Rosters' spaced DRK rank headers and its own BYE/unused-formula-row parser.
-// Refresh panel-specific responsive Matchups styles and both owned defense controls.
-const CACHE_NAME = 'DH3.51-matchups-panel-controls';
+// Refresh abbreviated conference menus on Matchups at every width and Rosters desktop.
+const CACHE_NAME = 'DH3.51a-matchups-abbreviated-conferences';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

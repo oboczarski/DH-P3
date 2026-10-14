@@ -261,19 +261,19 @@ dialog { font:inherit; }
 
 /* Summary percent units remain slightly smaller at every modal breakpoint. */
 .metricValue .metricPercent { font-size:.8em; margin-left:1px; }
-/* Desktop defense selection: one alphabetized list per conference. Mobile
-   retains the original division layout in the expanded player picker. */
+/* Desktop defense selection: compact AFC/NFC columns of alphabetized team
+   abbreviations. Mobile retains its expanded player's division picker. */
 .teamPickerDesktop { display:none; }
 .teamPickerMobile { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; grid-column:1 / -1; }
 @media (width > 620px) {
-  [data-picker-kind="team"] .teamPicker__panel { width:min(530px,calc(100vw - 28px)); grid-template-columns:1fr; }
+  [data-picker-kind="team"] .teamPicker__panel { width:min(280px,calc(100vw - 28px)); grid-template-columns:1fr; }
   .teamPickerMobile { display:none; }
   .teamPickerDesktop { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
   .teamPickerConference { display:flex; flex-direction:column; gap:4px; min-width:0; }
   .teamPickerConference__title { display:flex; align-items:center; justify-content:center; gap:7px; font-size:11px; font-weight:600; margin:2px 0 5px; }
   .teamPickerConference__title img { width:18px; height:18px; object-fit:contain; }
   .teamPickerConference .teamOption { justify-content:flex-start; padding:5px 8px; gap:8px; border-radius:8px; letter-spacing:0; }
-  .teamOption__name { font-size:11px; font-weight:550; text-align:left; }
+  .teamPickerConference .teamOption__code { font-size:12px; font-weight:650; text-align:left; }
 }
 /* This foreground layer has no inherited point stroke/filter to soften text. */
 .weeklySection .weeklyDataLabels .chartValue { stroke:none; paint-order:stroke fill; }

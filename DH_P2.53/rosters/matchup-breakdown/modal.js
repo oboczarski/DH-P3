@@ -15,8 +15,8 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
   const POSITIONS = ["QB", "RB", "WR", "TE", "ALL"];
   const COLORS = { QB: "#ffb2d8", RB: "#75e0b7", WR: "#63b0de", TE: "#ab9bff", ALL: "#aabaff" };
   const LABELS = { QB: "quarterbacks", RB: "running backs", WR: "wide receivers", TE: "tight ends", ALL: "all positions" };
-  // Division order remains the mobile picker and polar-chart order. Desktop
-  // defense menus group teams by conference and alphabetize their full names.
+  // Preserve the expanded mobile picker's division order. Desktop defense
+  // menus independently alphabetize displayed abbreviations in AFC/NFC columns.
   const DIVISIONS = [
     { conf: "AFC", name: "East", teams: ["BUF", "MIA", "NE", "NYJ"] },
     { conf: "AFC", name: "North", teams: ["BAL", "CIN", "CLE", "PIT"] },
@@ -68,10 +68,10 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
         ${division.teams.filter(team => model.defenses.includes(team)).map(team => `<button type="button" class="teamOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${team}" aria-label="${esc(Data.TEAM_NAMES[team])}" title="${esc(Data.TEAM_NAMES[team])}">${pickerLogo(team)}<span class="teamOption__code">${team}</span></button>`).join("")}</div>`).join("");
       const desktopTeams = ["AFC", "NFC"].map(conference => {
         const teams = DIVISIONS.filter(division => division.conf === conference).flatMap(division => division.teams)
-          .filter(team => model.defenses.includes(team)).sort((a, b) => Data.TEAM_NAMES[a].localeCompare(Data.TEAM_NAMES[b]));
+          .filter(team => model.defenses.includes(team)).sort();
         return `<div class="teamPickerConference" role="group" aria-label="${conference}">
           <div class="teamPickerConference__title"><img src="${assetUrl(conference)}" alt="">${conference}</div>
-          ${teams.map(team => `<button type="button" class="teamOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${team}" aria-label="${esc(Data.TEAM_NAMES[team])}">${pickerLogo(team)}<span class="teamOption__name">${esc(Data.TEAM_NAMES[team])}</span></button>`).join("")}</div>`;
+          ${teams.map(team => `<button type="button" class="teamOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${team}" aria-label="${esc(Data.TEAM_NAMES[team])}" title="${esc(Data.TEAM_NAMES[team])}">${pickerLogo(team)}<span class="teamOption__code">${team}</span></button>`).join("")}</div>`;
       }).join("");
       const options = isTeam ? `<div class="teamPickerDesktop">${desktopTeams}</div><div class="teamPickerMobile">${mobileTeams}</div>` :
         Object.entries(VENUES).map(([value, text]) => `<button type="button" class="teamOption venueOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${value}">${text}</button>`).join("");
@@ -389,7 +389,7 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
       root.innerHTML = await response.text();
       const stylesheet = document.createElement('link');
       stylesheet.rel = 'stylesheet';
-      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.51-matchups-panel-controls', import.meta.url).href;
+      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.51a-matchups-abbreviated-conferences', import.meta.url).href;
       const styled = new Promise((resolve, reject) => {
         stylesheet.onload = resolve;
         stylesheet.onerror = () => reject(new Error('Matchup panel styling could not load.'));

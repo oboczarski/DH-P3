@@ -2649,7 +2649,7 @@ function handleCompareClick() {
 function getRostersMatchupController() {
     if (pageType !== 'rosters') return Promise.reject(new Error('Matchup Breakdown belongs to Rosters.'));
     if (!rostersMatchupsModulePromise) {
-        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.51-matchups-panel-controls')
+        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.51a-matchups-abbreviated-conferences')
             .then(({ createMatchupBreakdown }) => {
                 rostersMatchups = createMatchupBreakdown({ onDataChange: () => {
                     // Late matchup readiness updates selected previews without

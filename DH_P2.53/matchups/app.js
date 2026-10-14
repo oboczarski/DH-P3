@@ -7,8 +7,8 @@
   const POSITIONS = ["QB", "RB", "WR", "TE", "ALL"];
   const COLORS = { QB: "#ffb2d8", RB: "#75e0b7", WR: "#63b0de", TE: "#ab9bff", ALL: "#aabaff" };
   const LABELS = { QB: "quarterbacks", RB: "running backs", WR: "wide receivers", TE: "tight ends", ALL: "all positions" };
-  // Division order remains the mobile picker and polar-chart order. Desktop
-  // defense menus group teams by conference and alphabetize their full names.
+  // Preserve the polar chart's division order. Defense pickers independently
+  // alphabetize displayed team abbreviations within AFC and NFC at every width.
   const DIVISIONS = [
     { conf: "AFC", name: "East", teams: ["BUF", "MIA", "NE", "NYJ"] },
     { conf: "AFC", name: "North", teams: ["BAL", "CIN", "CLE", "PIT"] },
@@ -53,17 +53,16 @@
   function buildPickers() {
     for (const root of pickerRoots) {
       const isTeam = root.dataset.pickerKind === "team", label = isTeam ? "Opponent defense" : "Defense venue";
-      const mobileTeams = DIVISIONS.map(division => `<div class="teamPickerDiv" role="group" aria-label="${division.conf} ${division.name}">
-        <div class="teamPickerDiv__title" aria-hidden="true"><img class="teamPickerDiv__confLogo" src="assets/NFL-Tags_webp/${division.conf.toLowerCase()}.webp" alt=""><span>${division.name}</span></div>
-        ${division.teams.filter(team => model.defenses.includes(team)).map(team => `<button type="button" class="teamOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${team}" aria-label="${esc(Data.TEAM_NAMES[team])}" title="${esc(Data.TEAM_NAMES[team])}">${pickerLogo(team)}<span class="teamOption__code">${team}</span></button>`).join("")}</div>`).join("");
-      const desktopTeams = ["AFC", "NFC"].map(conference => {
+      // Both Matchups defense controls use one conference menu on mobile and
+      // desktop; full team names remain available in accessible labels/tooltips.
+      const conferenceTeams = ["AFC", "NFC"].map(conference => {
         const teams = DIVISIONS.filter(division => division.conf === conference).flatMap(division => division.teams)
-          .filter(team => model.defenses.includes(team)).sort((a, b) => Data.TEAM_NAMES[a].localeCompare(Data.TEAM_NAMES[b]));
+          .filter(team => model.defenses.includes(team)).sort();
         return `<div class="teamPickerConference" role="group" aria-label="${conference}">
           <div class="teamPickerConference__title"><img src="assets/NFL-Tags_webp/${conference.toLowerCase()}.webp" alt="">${conference}</div>
-          ${teams.map(team => `<button type="button" class="teamOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${team}" aria-label="${esc(Data.TEAM_NAMES[team])}">${pickerLogo(team)}<span class="teamOption__name">${esc(Data.TEAM_NAMES[team])}</span></button>`).join("")}</div>`;
+          ${teams.map(team => `<button type="button" class="teamOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${team}" aria-label="${esc(Data.TEAM_NAMES[team])}" title="${esc(Data.TEAM_NAMES[team])}">${pickerLogo(team)}<span class="teamOption__code">${team}</span></button>`).join("")}</div>`;
       }).join("");
-      const options = isTeam ? `<div class="teamPickerDesktop">${desktopTeams}</div><div class="teamPickerMobile">${mobileTeams}</div>` :
+      const options = isTeam ? `<div class="teamPickerConferences">${conferenceTeams}</div>` :
         Object.entries(VENUES).map(([value, text]) => `<button type="button" class="teamOption venueOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${value}">${text}</button>`).join("");
       root.innerHTML = `<button type="button" class="teamPicker__btn" id="${root.id}Btn" data-picker-toggle="${root.id}" aria-haspopup="listbox" aria-expanded="false" aria-controls="${root.id}Panel" aria-label="${label}"><span class="teamPicker__left"></span><span class="teamPicker__chev" aria-hidden="true">▾</span></button><div class="teamPicker__panel" id="${root.id}Panel" popover="manual" role="listbox" aria-label="${label} options">${options}</div>`;
     }

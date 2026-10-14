@@ -324,14 +324,11 @@ body:where([data-page="matchups"]) { background:#050b13; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamLogoStack__glow { grid-area:1 / 1; z-index:0; filter:drop-shadow(0 0 3px var(--team-glow)); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamLogoStack__img { grid-area:1 / 1; z-index:1; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__btn .teamLogo { width:22px; height:22px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__panel { position:fixed; inset:auto; margin:0; z-index:120; width:min(560px,calc(100vw - 28px)); max-height:calc(100dvh - 16px); overflow:auto;
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__panel { position:fixed; inset:auto; margin:0; z-index:120; width:min(280px,calc(100vw - 28px)); max-height:calc(100dvh - 16px); overflow:auto;
     padding:10px; border-radius:18px; border:1px solid rgba(255,255,255,.14); color:rgba(255,255,255,.92);
     background:rgba(8,8,18,.92); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 16px 48px rgba(0,0,0,.5);
-    display:none; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; align-items:start; }
+    display:none; grid-template-columns:1fr; gap:6px; align-items:start; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__panel:popover-open { display:grid; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerDiv { display:flex; flex-direction:column; gap:6px; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerDiv__title { display:flex; align-items:center; justify-content:center; gap:6px; font-size:10px; font-weight:500; letter-spacing:.06em; color:rgb(209,204,228); line-height:1.1; user-select:none; margin-bottom:1px; text-transform:uppercase; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerDiv__confLogo { width:14px; height:14px; object-fit:contain; opacity:.9; filter:drop-shadow(0 0 6px rgba(0,0,0,.35)); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamOption { width:100%; display:flex; align-items:center; justify-content:center; gap:4px; padding:7px 3px; border-radius:14px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05); color:rgba(255,255,255,.9); font-weight:950; letter-spacing:.06em; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamOption:hover { border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.07); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamOption.is-selected { border-color:rgba(0,191,255,.55); background:linear-gradient(135deg,rgba(0,191,255,.14),rgba(207,120,255,.12)); }
@@ -341,10 +338,15 @@ body:where([data-page="matchups"]) { background:#050b13; }
   :where(body[data-page="matchups"]) .defensePicker:where([data-matchups-area="toolbar-defense"]) { flex:1 1 100%; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__btn { height:34px; padding-inline:10px; border-radius:13px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__code { font-size:13px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__panel { grid-template-columns:repeat(4,minmax(0,1fr)); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .fieldLabel { font-size: 9px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerDesktop { display:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerMobile { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; grid-column:1 / -1; }
+  /* This mobile defense menu owns two abbreviated conference columns;
+     its scrollable panel stays within the viewport without sharing panel styles. */
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConferences { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; min-width:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConference { display:flex; flex-direction:column; gap:4px; min-width:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConference__title { display:flex; align-items:center; justify-content:center; gap:7px; font-size:11px; font-weight:600; margin:2px 0 5px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConference__title img { width:18px; height:18px; object-fit:contain; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConference .teamOption { justify-content:flex-start; padding:7px 8px; gap:8px; border-radius:8px; letter-spacing:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConference .teamOption__code { font-weight:650; text-align:left; }
 }
 
 /* TOOLBAR-DEFENSE — DESKTOP only. */
@@ -373,14 +375,11 @@ body:where([data-page="matchups"]) { background:#050b13; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamLogoStack__glow { grid-area:1 / 1; z-index:0; filter:drop-shadow(0 0 3px var(--team-glow)); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamLogoStack__img { grid-area:1 / 1; z-index:1; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__btn .teamLogo { width:22px; height:22px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__panel { position:fixed; inset:auto; margin:0; z-index:120; width:min(560px,calc(100vw - 28px)); max-height:calc(100dvh - 16px); overflow:auto;
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__panel { position:fixed; inset:auto; margin:0; z-index:120; width:min(280px,calc(100vw - 28px)); max-height:calc(100dvh - 16px); overflow:auto;
     padding:10px; border-radius:18px; border:1px solid rgba(255,255,255,.14); color:rgba(255,255,255,.92);
     background:rgba(8,8,18,.92); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 16px 48px rgba(0,0,0,.5);
-    display:none; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; align-items:start; }
+    display:none; grid-template-columns:1fr; gap:6px; align-items:start; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__panel:popover-open { display:grid; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerDiv { display:flex; flex-direction:column; gap:6px; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerDiv__title { display:flex; align-items:center; justify-content:center; gap:6px; font-size:10px; font-weight:500; letter-spacing:.06em; color:rgb(209,204,228); line-height:1.1; user-select:none; margin-bottom:1px; text-transform:uppercase; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerDiv__confLogo { width:14px; height:14px; object-fit:contain; opacity:.9; filter:drop-shadow(0 0 6px rgba(0,0,0,.35)); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamOption { width:100%; display:flex; align-items:center; justify-content:center; gap:4px; padding:7px 3px; border-radius:14px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05); color:rgba(255,255,255,.9); font-weight:950; letter-spacing:.06em; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamOption:hover { border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.07); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamOption.is-selected { border-color:rgba(0,191,255,.55); background:linear-gradient(135deg,rgba(0,191,255,.14),rgba(207,120,255,.12)); }
@@ -388,16 +387,14 @@ body:where([data-page="matchups"]) { background:#050b13; }
   @media (max-width: 1100px) {
   :where(body[data-page="matchups"]) .defensePicker:where([data-matchups-area="toolbar-defense"]) { flex:1; }
   }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerDesktop { display:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerMobile { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; grid-column:1 / -1; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) [data-picker-kind="team"] .teamPicker__panel { width:min(530px,calc(100vw - 28px)); grid-template-columns:1fr; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerMobile { display:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerDesktop { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  /* This desktop defense menu owns two abbreviated conference columns;
+     its scrollable panel stays within the viewport without sharing panel styles. */
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConferences { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; min-width:0; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConference { display:flex; flex-direction:column; gap:4px; min-width:0; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConference__title { display:flex; align-items:center; justify-content:center; gap:7px; font-size:11px; font-weight:600; margin:2px 0 5px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConference__title img { width:18px; height:18px; object-fit:contain; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConference .teamOption { justify-content:flex-start; padding:5px 8px; gap:8px; border-radius:8px; letter-spacing:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamOption__name { font-size:11px; font-weight:550; text-align:left; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConference .teamOption__code { font-weight:650; text-align:left; }
 }
 
 /* TOOLBAR-POSITION — MOBILE only. */
@@ -1695,14 +1692,11 @@ body:where([data-page="matchups"]) { background:#050b13; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamLogoStack__glow { grid-area:1 / 1; z-index:0; filter:drop-shadow(0 0 3px var(--team-glow)); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamLogoStack__img { grid-area:1 / 1; z-index:1; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPicker__btn .teamLogo { width:22px; height:22px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPicker__panel { position:fixed; inset:auto; margin:0; z-index:120; width:min(560px,calc(100vw - 28px)); max-height:calc(100dvh - 16px); overflow:auto;
+  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPicker__panel { position:fixed; inset:auto; margin:0; z-index:120; width:min(280px,calc(100vw - 28px)); max-height:calc(100dvh - 16px); overflow:auto;
     padding:10px; border-radius:18px; border:1px solid rgba(255,255,255,.14); color:rgba(255,255,255,.92);
     background:rgba(8,8,18,.92); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 16px 48px rgba(0,0,0,.5);
-    display:none; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; align-items:start; }
+    display:none; grid-template-columns:1fr; gap:6px; align-items:start; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPicker__panel:popover-open { display:grid; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerDiv { display:flex; flex-direction:column; gap:6px; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerDiv__title { display:flex; align-items:center; justify-content:center; gap:6px; font-size:10px; font-weight:500; letter-spacing:.06em; color:rgb(209,204,228); line-height:1.1; user-select:none; margin-bottom:1px; text-transform:uppercase; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerDiv__confLogo { width:14px; height:14px; object-fit:contain; opacity:.9; filter:drop-shadow(0 0 6px rgba(0,0,0,.35)); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamOption { width:100%; display:flex; align-items:center; justify-content:center; gap:4px; padding:7px 3px; border-radius:14px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05); color:rgba(255,255,255,.9); font-weight:950; letter-spacing:.06em; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamOption:hover { border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.07); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamOption.is-selected { border-color:rgba(0,191,255,.55); background:linear-gradient(135deg,rgba(0,191,255,.14),rgba(207,120,255,.12)); }
@@ -1710,10 +1704,15 @@ body:where([data-page="matchups"]) { background:#050b13; }
   :where(body[data-page="matchups"]) .expandedControls > .teamPicker:where([data-matchups-area="expanded-defense"]) { flex:1; min-width:120px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPicker__btn { height:34px; padding-inline:10px; border-radius:13px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPicker__code { font-size:13px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPicker__panel { grid-template-columns:repeat(4,minmax(0,1fr)); }
   :where(body[data-page="matchups"]) .expandedControls > .teamPicker:where([data-matchups-area="expanded-defense"]) { min-width:120px; flex:1 1 45%; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerDesktop { display:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerMobile { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; grid-column:1 / -1; }
+  /* This mobile defense menu owns two abbreviated conference columns;
+     its scrollable panel stays within the viewport without sharing panel styles. */
+  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerConferences { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; min-width:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerConference { display:flex; flex-direction:column; gap:4px; min-width:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerConference__title { display:flex; align-items:center; justify-content:center; gap:7px; font-size:11px; font-weight:600; margin:2px 0 5px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerConference__title img { width:18px; height:18px; object-fit:contain; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerConference .teamOption { justify-content:flex-start; padding:7px 8px; gap:8px; border-radius:8px; letter-spacing:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerConference .teamOption__code { font-weight:650; text-align:left; }
 }
 
 /* EXPANDED-DEFENSE — DESKTOP only. */
@@ -1738,29 +1737,24 @@ body:where([data-page="matchups"]) { background:#050b13; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamLogoStack__glow { grid-area:1 / 1; z-index:0; filter:drop-shadow(0 0 3px var(--team-glow)); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamLogoStack__img { grid-area:1 / 1; z-index:1; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPicker__btn .teamLogo { width:22px; height:22px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPicker__panel { position:fixed; inset:auto; margin:0; z-index:120; width:min(560px,calc(100vw - 28px)); max-height:calc(100dvh - 16px); overflow:auto;
+  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPicker__panel { position:fixed; inset:auto; margin:0; z-index:120; width:min(280px,calc(100vw - 28px)); max-height:calc(100dvh - 16px); overflow:auto;
     padding:10px; border-radius:18px; border:1px solid rgba(255,255,255,.14); color:rgba(255,255,255,.92);
     background:rgba(8,8,18,.92); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 16px 48px rgba(0,0,0,.5);
-    display:none; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; align-items:start; }
+    display:none; grid-template-columns:1fr; gap:6px; align-items:start; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPicker__panel:popover-open { display:grid; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerDiv { display:flex; flex-direction:column; gap:6px; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerDiv__title { display:flex; align-items:center; justify-content:center; gap:6px; font-size:10px; font-weight:500; letter-spacing:.06em; color:rgb(209,204,228); line-height:1.1; user-select:none; margin-bottom:1px; text-transform:uppercase; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerDiv__confLogo { width:14px; height:14px; object-fit:contain; opacity:.9; filter:drop-shadow(0 0 6px rgba(0,0,0,.35)); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamOption { width:100%; display:flex; align-items:center; justify-content:center; gap:4px; padding:7px 3px; border-radius:14px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05); color:rgba(255,255,255,.9); font-weight:950; letter-spacing:.06em; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamOption:hover { border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.07); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamOption.is-selected { border-color:rgba(0,191,255,.55); background:linear-gradient(135deg,rgba(0,191,255,.14),rgba(207,120,255,.12)); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamOption__code { font-size:12px; }
   :where(body[data-page="matchups"]) .expandedControls > .teamPicker:where([data-matchups-area="expanded-defense"]) { flex:1; min-width:120px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerDesktop { display:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerMobile { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; grid-column:1 / -1; }
-  :where(body[data-page="matchups"]) [data-picker-kind="team"]:where([data-matchups-area="expanded-defense"]) .teamPicker__panel { width:min(530px,calc(100vw - 28px)); grid-template-columns:1fr; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerMobile { display:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerDesktop { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  /* This desktop defense menu owns two abbreviated conference columns;
+     its scrollable panel stays within the viewport without sharing panel styles. */
+  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerConferences { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; min-width:0; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerConference { display:flex; flex-direction:column; gap:4px; min-width:0; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerConference__title { display:flex; align-items:center; justify-content:center; gap:7px; font-size:11px; font-weight:600; margin:2px 0 5px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerConference__title img { width:18px; height:18px; object-fit:contain; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerConference .teamOption { justify-content:flex-start; padding:5px 8px; gap:8px; border-radius:8px; letter-spacing:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamOption__name { font-size:11px; font-weight:550; text-align:left; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-defense"]) .teamPickerConference .teamOption__code { font-weight:650; text-align:left; }
 }
 
 /* EXPANDED-POSITION — MOBILE only. */
