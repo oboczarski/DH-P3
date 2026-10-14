@@ -167,7 +167,7 @@ th button { color:inherit; font:inherit; border:0; padding:1px 0; width:100%; te
 dialog.glass-panel { position:fixed; inset:0; margin:auto; padding:0; width:min(900px,calc(100% - 24px)); max-height:90dvh; color:var(--text); overflow:auto; background:linear-gradient(155deg,#252a416e,#080e1aed),#0b1123; }
 dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
 .dialogHeader { display:flex; justify-content:space-between; gap:10px; align-items:center; padding:12px; border-bottom:1px solid var(--border); }
-.dialogHeader h2 { margin:3px 0; }
+.dialogHeader h2 {margin: 3px 0 -2px;}
 .dialogBody { padding:10px 12px 12px; }
 .expandedControls { display:flex; align-items:center; gap:9px; margin-bottom:8px; }
 .expandedControls > .teamPicker { flex:1; min-width:120px; }
@@ -190,7 +190,7 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .positionToggle button { flex:1; min-width:0; font-size:10px; padding:5px 7px; }
   .venueMenuLabel { font-size:10px; }
   .glass-panel { border-radius:12px; }
-  .defensePanel {padding: 6px 10px 9px;}
+  .defensePanel {padding: 2px 10px 9px;}
   .defenseHeader {gap:7px;margin-bottom: 4px;}
   .defenseLogo { width:42px; height:37px; border-radius:10px; }
   .defenseLogo img { width:36px; height:30px; }
@@ -203,7 +203,7 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .metricStrip > .metric:nth-child(n+4) { grid-column:auto; }
   .metric { padding:6px 3px; border-radius:7px; }
   .metricLabel { font-size:7px; }
-  .metricValue { font-size:18px; white-space:nowrap; }
+  .metricValue {font-size:18px;white-space:nowrap;margin: 2px 0 0px;}
   .metricValue small {font-size: 10px;margin-left:1px;}
   .metricSub { font-size:7px; white-space:nowrap; }
   .metricDesktop { display:none; }
@@ -222,7 +222,7 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .expandedControls { flex-wrap:wrap; gap:7px; }
   .expandedControls > .teamPicker { min-width:120px; flex:1 1 45%; }
   .expandedControls .positionToggle { order:3; width:100%; }
-  .dialogHeader, .dialogBody {padding: 5px 10px 4px;}
+  .dialogHeader, .dialogBody {padding: 2px 10px 3px;}
 }
 @media (max-width:400px) {
   /* At 320px the five-card row needs its width for labels, not side padding. */
@@ -230,7 +230,7 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .metricValue {font-size:14px;text-align: center;}
   .metricLabel {font-size: 7px;font-weight: 800;text-align: center;letter-spacing: -0.05em;}
   .metricSub {font-size: 8px;text-align: center;letter-spacing: -0.02em;}
-  .metric { padding:5px 1px; }
+  .metric {padding: 4px 1px;}
   .defenseHeader h2 { font-size:15px; }
   .playerTable .offenseColumn { display:none; }
   .expandedTableScroll .playerTable .offenseColumn { display:table-cell; }
@@ -245,16 +245,16 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
 /* Modal chrome and inherited panel typography are local to this shadow root. */
 :host { display:contents; font:12px/1.4 var(--font); color:var(--text); -webkit-font-smoothing:antialiased; }
 dialog { font:inherit; }
-.matchupDialog { position:fixed; inset:0; margin:auto; padding:0; width:min(676px,calc(100% - 24px)); max-height:90dvh; color:var(--text); overflow:auto; border:1px solid var(--border); border-radius:14px; background:linear-gradient(155deg,#252a416e,#080e1aed),#0b1123; box-shadow:0 16px 48px #0008; }
+.matchupDialog {position:fixed;inset:0;margin:auto;padding:0;width:min(676px,calc(100% - 24px));max-height: 97dvh;color:var(--text);overflow:auto;border:1px solid var(--border);border-radius:14px;background:linear-gradient(155deg,#252a416e,#080e1aed),#0b1123;box-shadow:0 16px 48px #0008;}
 .matchupDialog .expandedControls { flex-wrap:wrap; }
 .matchupDialog .expandedControls > .teamPicker { flex:1; }
 .matchupDialog #scopeNote { flex-basis:100%; }
 #loadStatus { padding:8px 0; }
 .retryButton { padding:6px 9px; border:1px solid var(--border); border-radius:7px; background:#aabbff10; font-size:11px; }
 @media (max-width:620px) {
-  .matchupDialog { border-radius:12px; }
+  .matchupDialog {border-radius:12px;}
   /* Mobile Breakdown opens the selected player's opponent directly. Hide only
      its top team/venue controls and reclaim their space; expanded-table controls remain available. */
   .matchupDialog #analysis > .expandedControls { display:none; }
-  .matchupDialog > .dialogBody { padding-top:6px; }
+  .matchupDialog > .dialogBody {padding-top: 4px;}
 }
