@@ -49,6 +49,10 @@ let rostersMatchups = null;
 let rostersMatchupsModulePromise = null;
 let rostersMatchupsPreparationPromise = null;
 let rostersMatchupsLoadFailed = false;
+// Rosters comparison guards late async results and restores the caller's scroll.
+let rostersDecisionRequest = 0;
+let rostersDecisionSavedOverflow = null;
+let rostersDecisionOpener = null;
 const gameLogsModal = document.getElementById('game-logs-modal');
 const gameLogsSeasonDropdown = document.querySelector('[data-gamelogs-season-dropdown]');
 const gameLogsSeasonToggle = document.getElementById('gamelogsSeasonToggle');
@@ -2752,6 +2756,9 @@ function enterStartSitMode() {
     }
     startSitButton?.classList.add('active');
     state.isStartSitMode = true;
+    // Start/Sit's atmospheric backdrop is scoped to this workspace; selectable
+    // roster cards retain their existing markup, dimensions and style rules.
+    document.body.classList.add('ss-workspace');
     state.startSitTeamName = userTeam.teamName;
     state.startSitSelections = [];
     state.startSitNextSide = 'left';
@@ -2772,6 +2779,7 @@ function enterStartSitMode() {
 function exitStartSitMode() {
     if (!state.isStartSitMode) return;
     state.isStartSitMode = false;
+    document.body.classList.remove('ss-workspace');
     rostersMatchups?.close();
     state.startSitSelections = [];
     state.startSitNextSide = 'left';
@@ -8317,7 +8325,9 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
 async function handlePlayerCompare(e) {
     let selectedPlayersWithTeams = [];
     if (state.isStartSitMode) {
-        const startSitCompareSelections = (state.startSitSelections || []).slice(0, 2);
+        // Keep every selected option available to the new dashboard's pair
+        // selectors, while initially comparing the first two roster choices.
+        const startSitCompareSelections = (state.startSitSelections || []);
         selectedPlayersWithTeams = startSitCompareSelections.map(selection => {
             const fullPlayer = state.players[selection.id];
             const firstName = (fullPlayer?.first_name || '').trim();
@@ -8368,6 +8378,10 @@ async function handlePlayerCompare(e) {
             if (b.teamName === state.userTeamName) return 1;
             return 0;
         });
+    }
+    if (pageType === 'rosters' && window.RostersStartSit) {
+        await openRostersDecisionComparison(selectedPlayersWithTeams);
+        return;
     }
     const comparisonModalBody = document.getElementById('comparison-modal-body');
     comparisonModalBody.innerHTML = '<p class="text-center p-4">Loading player comparison...</p>';
@@ -9556,304 +9570,188 @@ function createPickRow(pick, teamName) {
     if (pick.ktc) row.querySelector('.pick-ktc .value').style.color = getKtcColor(pick.ktc);
     return row;
 }
+// Start/Sit and player comparison share snapshots of the current Rosters source.
+// Only completed CSV rows supply chart results; future Sheets PROJ and live
+// stat overlays never become a played game or advance the chart cutoff.
+function buildRostersDecisionPlayer(input) {
+    const id = String(input.id);
+    const fullPlayer = state.players[id] || {};
+    const pos = String(input.basePos || input.pos || fullPlayer.position || '').toUpperCase();
+    const seasonTotals = state.playerSeasonStats?.[id] || null;
+    const player = { ...input, id, pos };
+    const ranks = getRostersGameLogsPlayerRanks(id);
+    const league = state.leagues.find(entry => entry.league_id === state.currentLeagueId);
+    const scoringSettings = league?.scoring_settings || {};
+    const numeric = value => value == null || String(value).trim() === '' ? null
+        : Number.isFinite(Number(value)) ? Number(value) : null;
+    const weeklySource = state.playerWeeklyStats || {};
+    const snapshot = state.currentGameLogsSeason === '2026' ? state.rosters2026GameLogs : state.rosters2025GameLogs;
+    const latestWeek = snapshot?.latestRecordedWeek ?? Math.max(0, ...Object.keys(weeklySource).map(Number)
+        .filter(week => !state.playerProjectionWeeks?.[week] && Object.values(weeklySource[week] || {}).some(line =>
+            line.__hasRecordedStats === true || (line.__hasRecordedStats !== false && Number(line.snp) > 0))));
+    const weekly = [];
+    const gameLogsWithData = [];
+    for (let week = 1; week <= Math.min(18, latestWeek); week += 1) {
+        const line = weeklySource[week]?.[id];
+        const bye = /^(?:BYE)$/i.test(String(line?.opponent || '').trim());
+        const dnp = line?.snp === 0;
+        const recorded = line && line.__hasRecordedStats !== false && !state.playerProjectionWeeks?.[week]
+            && (line.__hasRecordedStats === true || Number(line.snp) > 0
+                || numeric(line.fpt_ppr) !== null || numeric(line.fpts) !== null);
+        let points = null;
+        if (recorded && !bye && !dnp) {
+            const matchupPoints = state.leagueMatchupStats?.[week]?.[id];
+            // Matchup points keep custom league scoring. Outside league coverage,
+            // score the authoritative recorded CSV line with those same weights.
+            points = numeric(matchupPoints) ?? (Object.keys(scoringSettings).length ? calculateFantasyPoints(line, scoringSettings) : null);
+            gameLogsWithData.push({ week, stats: { ...line } });
+        }
+        weekly.push({ week, points, status: bye ? 'BYE' : dnp ? String(line.proj || 'DNP') : '—', opponent: line?.opponent || '' });
+    }
+    const aggregatedTotals = {}, statValueCounts = {}, snapPctValues = [];
+    gameLogsWithData.forEach(({ stats }) => Object.entries(stats).forEach(([key, value]) => {
+        if (typeof value !== 'number' || !Number.isFinite(value)) return;
+        aggregatedTotals[key] = (aggregatedTotals[key] || 0) + value;
+        statValueCounts[key] = (statValueCounts[key] || 0) + 1;
+        if (key === 'snp_pct') snapPctValues.push(value);
+    }));
+    const labels = buildStatLabels();
+    const sections = getSznSectionsForPosition(pos).map(section => ({ ...section,
+        stats: section.stats.filter(key => key !== 'proj' && Boolean(labels[key])) }));
+    const metrics = {};
+    const overviewKeys = ['overall_rank', 'player_name', 'position', 'team', 'age', 'games_played', 'snp_pct', 'yds_total', 'ypg', 'td_total', 'opp', 'imp', 'imp_per_opp', 'tds_pct', 'csty_pct', 'ceiling'];
+    const keys = new Set([...sections.flatMap(section => section.stats), ...overviewKeys,
+        'fpts', 'ppg', 'pass_yd', 'rush_yd', 'rec_yd']);
+    const derivedInputs = { ypc: ['rush_yd', 'rush_att'], yco_per_att: ['rush_yac', 'rush_att'],
+        mtf_per_att: ['mtf', 'rush_att'], pa_ypg: ['pass_yd', 'games_played'], ru_ypg: ['rush_yd', 'games_played'] };
+    const overviewOnly = new Set(overviewKeys);
+    keys.forEach(key => {
+        let display = '—', value = null;
+        const raw = numeric(seasonTotals?.[key]);
+        if (key === 'player_name') display = input.name || input.label || [fullPlayer.first_name, fullPlayer.last_name].filter(Boolean).join(' ');
+        else if (key === 'position') display = pos;
+        else if (key === 'team') display = seasonTotals?.team || input.team || fullPlayer.team || 'FA';
+        else if (key === 'overall_rank') { value = numeric(ranks?.overallRank); display = value === null ? '—' : String(value); }
+        else if (key === 'fpts' || key === 'ppg') {
+            value = seasonTotals || gameLogsWithData.length ? numeric(key === 'fpts' ? ranks?.total_pts : ranks?.ppg) : null;
+            display = value === null ? '—' : value.toFixed(1);
+        } else if (overviewOnly.has(key)) {
+            // Mixed-position Overview uses literal supplied values, including
+            // TD(t), OPP and IMP/OPP. Missing source fields remain unavailable.
+            value = raw;
+            if (value !== null) display = ['snp_pct', 'tds_pct', 'csty_pct', 'imp_per_opp'].includes(key)
+                ? `${value.toFixed(1)}%` : ['age', 'ypg', 'ceiling'].includes(key) ? value.toFixed(1) : String(value);
+        } else {
+            const hasValue = raw !== null || (!NO_FALLBACK_KEYS.has(key) && (key in aggregatedTotals
+                || derivedInputs[key]?.every(inputKey => numeric(seasonTotals?.[inputKey]) !== null || inputKey in aggregatedTotals)));
+            if (hasValue) {
+                display = getGameLogsSeasonDisplayValue({ key, seasonTotals, aggregatedTotals, snapPctValues,
+                    statValueCounts, gameLogsWithData, player, scoringSettings });
+                // Match the RB Season view's /G and YPG precision exactly.
+                if (state.currentGameLogsSeason === '2026' && pos === 'RB' && key !== 'imp_per_g'
+                    && /(?:\/G|YPG)$/.test(labels[key]) && Number.isFinite(Number(display))) {
+                    display = (raw ?? Number(display)).toFixed(1);
+                }
+                value = raw ?? numeric(String(display).replace('%', '').replace(/^\+/, ''));
+                // These two Game Logs percentages accept either fractions or
+                // percentage points. Compare bars must use their displayed unit.
+                if (['expl_ru_pct', 'dp_pct'].includes(key)) value = numeric(String(display).replace('%', ''));
+                if (/^(?:N\/?A|undefined|null|nan)$/i.test(String(display))) { display = '—'; value = null; }
+            }
+        }
+        metrics[key] = { display, value, rank: getSeasonRankValue(id, key) };
+    });
+    const currentWeek = getCurrentNflWeekNumber();
+    const projection = getPlayerProjectionForWeek(id, currentWeek);
+    const matchup = getPlayerMatchupForWeek(id, currentWeek);
+    const context = { ...input, id, pos, basePos: pos, matchup };
+    const matchupMetric = rostersMatchups?.preview(context) || null;
+    return { ...player, name: input.name || input.label || [fullPlayer.first_name, fullPlayer.last_name].filter(Boolean).join(' '),
+        team: String(input.team || fullPlayer.team || seasonTotals?.team || 'FA').toUpperCase(),
+        metrics, labels, sections, weekly, projection: projection.value,
+        projectionDisplay: projection.display === 'NA' ? '—' : projection.display,
+        matchup, matchupMetric, canBreakdown: Boolean(rostersMatchups?.canOpen(context)),
+        matchupLoading: !rostersMatchupsLoadFailed && !matchupMetric && rostersMatchups?.status !== 'ready',
+        matchupColor: matchupMetric?.actualRank ? getOpponentRankColor(matchupMetric.actualRank) : null,
+        actualColor: matchupMetric?.actualRank ? getOpponentRankColor(matchupMetric.actualRank) : null,
+        sosColor: matchupMetric?.sosRank ? getOpponentRankColor(matchupMetric.sosRank) : null };
+}
+
+async function openRostersDecisionComparison(players) {
+    if (players.length < 2) return;
+    const request = ++rostersDecisionRequest;
+    const body = document.getElementById('comparison-modal-body');
+    rostersDecisionOpener = document.activeElement;
+    if (rostersDecisionSavedOverflow === null) rostersDecisionSavedOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('ss-comparing');
+    playerComparisonModal.classList.add('ss-comparison-modal');
+    playerComparisonModal.setAttribute('role', 'dialog');
+    playerComparisonModal.setAttribute('aria-modal', 'true');
+    playerComparisonModal.setAttribute('aria-label', 'Player comparison');
+    playerComparisonModal.classList.remove('hidden');
+    comparisonBackgroundOverlay?.classList.remove('hidden');
+    rosterGrid?.classList.add('hidden');
+    body.innerHTML = '<div class="ss-loading"><p role="status">Preparing your player comparison…</p><button type="button" class="ss-primary" data-ss-loading-close>Back to players</button></div>';
+    body.querySelector('[data-ss-loading-close]').addEventListener('click', closeComparisonModal);
+    body.querySelector('[data-ss-loading-close]').focus({ preventScroll: true });
+    try {
+        // Reuse Game Logs readiness without touching its renderer or loading
+        // DataHub. Force the league season so historical drill-down state cannot
+        // send Start/Sit to a different year's player sources.
+        const league = state.leagues.find(entry => entry.league_id === state.currentLeagueId);
+        const season = String(league?.season || state.currentGameLogsSeason || '2026');
+        state.currentGameLogsSeason = season;
+        if (season === '2026') {
+            await window.ensureRosters2026ProjectionsLoaded();
+            await window.activateRosters2026GameLogs();
+        } else if (season === '2025') await activateRosters2025GameLogs();
+        await ensureSleeperLiveStats();
+        if (state.currentLeagueId) await fetchLeagueMatchupData(state.currentLeagueId, state.currentNflWeek || 18);
+        if (state.isStartSitMode && rostersMatchupsPreparationPromise) await rostersMatchupsPreparationPromise;
+        if (request !== rostersDecisionRequest || playerComparisonModal.classList.contains('hidden')) return;
+        window.RostersStartSit.renderComparison({ mount: body,
+            players: players.map(buildRostersDecisionPlayer), season,
+            week: getCurrentNflWeekNumber(), onClose: closeComparisonModal });
+        const close = body.querySelector('[data-ss-close]');
+        close?.focus({ preventScroll: true });
+    } catch (error) {
+        if (request !== rostersDecisionRequest) return;
+        console.warn('Unable to prepare Rosters comparison.', error);
+        body.innerHTML = '<div class="ss-loading"><p>Player comparison could not load. Please try again.</p><button type="button" class="ss-primary" data-ss-error-close>Back to players</button></div>';
+        body.querySelector('[data-ss-error-close]').addEventListener('click', closeComparisonModal);
+    }
+}
+
 function renderStartSitPreview() {
     const selections = state.startSitSelections || [];
-    const currentWeekNumber = getCurrentNflWeekNumber();
-    // weekLabel now holds just the WK number (e.g. WK5). Bracketing and styling are applied in the template.
-    const weekLabel = Number.isFinite(currentWeekNumber) ? `WK${currentWeekNumber}` : '';
-    const weekLabelDisplay = weekLabel ? `[${weekLabel}]` : '';
-    const isCompactPreview = Boolean(state.startSitCompactPreview);
-    const escapeHtml = (value) => {
-        if (value === null || value === undefined) return '';
-        return String(value)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    };
-    // Start/Sit's opponent/base-position heading and four compact chips use the
-    // already-prepared defense comparison. Keep published SOS and per-game FPA
-    // averages; vs Expected divides the panel's unrounded total difference by
-    // recorded games, rather than subtracting rounded averages. This only changes
-    // preview presentation; missing/loading data never becomes a zero value.
-    const buildMatchupInfo = (selection, metric) => {
-        const fmt = (value, digits = 1) => Number.isFinite(value) ? value.toFixed(digits) : '—';
-        const signed = (value, digits = 1) => {
-            if (!Number.isFinite(value)) return '—';
-            const normalized = Math.abs(value) < 1e-9 ? 0 : value;
-            return `${normalized > 0 ? '+' : ''}${normalized.toFixed(digits)}`;
-        };
-        const noDefense = selection.matchup?.isBye || !selection.matchup?.opponent ||
-            (rostersMatchups && !rostersMatchups.canOpen(selection));
-        const failed = rostersMatchupsLoadFailed || rostersMatchups?.status === 'error';
-        const loading = !metric && !noDefense && !failed && rostersMatchups?.status !== 'ready';
-        const unavailable = noDefense ? 'No opponent defense available.' :
-            loading ? 'Loading matchup data…' : 'Matchup data unavailable.';
-        const pos = metric?.pos || String(selection.basePos || selection.pos || '—').toUpperCase();
-        // Show the opponent while loading too; prepared data supplies its canonical
-        // abbreviation. BYE/unknown matchups retain their unavailable values.
-        const team = metric?.team || String(selection.matchup?.opponent || (selection.matchup?.isBye ? 'BYE' : '—'))
-            .trim().replace(/^(?:vs\.?|@)\s*/i, '').toUpperCase();
-        const heading = `${team} vs. ${pos}:`;
-        // Rosters Start/Sit headings put the opponent logo directly before its
-        // label on both breakpoints. Validate aliases against the NFL team map so
-        // every team has its local SVG while BYE/unknown labels have no logo.
-        const logoTeam = ({ WSH: 'WAS', JAC: 'JAX', LA: 'LAR' })[team] || team;
-        const logoKey = logoTeam !== 'FA' && Object.hasOwn(TEAM_COLORS, logoTeam) ? logoTeam.toLowerCase() : '';
-        const teamLogo = logoKey ? `<img class="start-sit-matchup-info-logo" src="../assets/NFL_logos_svg/${logoKey}.svg" alt="" aria-hidden="true" width="16" height="16" decoding="async">` : '';
-        const headingMarkup = `${teamLogo}<span>${escapeHtml(team)}</span><span>vs. ${escapeHtml(pos)}:</span>`;
-        const sosColor = metric?.sosRank != null ? getOpponentRankColor(metric.sosRank) : '';
-        // Start/Sit's per-game values share the existing matchup rank palette:
-        // actual uses the published positional matchup rank, expected uses the
-        // published positional SOS rank. Keep missing values/ranks neutral and
-        // valid zero averages colored; never invert or recompute supplied ranks.
-        const averageColor = (value, rank) => Number.isFinite(value) && Number.isInteger(rank) && rank >= 1 && rank <= 32
-            ? getOpponentRankColor(rank) : '';
-        const deltaValue = signed(metric?.deltaPerGame, 2);
-        const deltaClass = metric?.deltaPerGame > 0 ? 'is-easy' : metric?.deltaPerGame < 0 ? 'is-tough' : '';
-        const chips = [
-            {
-                label: 'SOS Rk.',
-                value: metric?.sosRank != null ? `${metric.sosRank}<small>/ 32</small>` : '—',
-                color: sosColor,
-                title: metric ? `Schedule already faced vs. ${pos}: ${metric.sosRank ?? 'unavailable'} of 32. 1 = easiest, 32 = toughest.` : unavailable,
-            },
-            {
-                label: 'FPA/G', value: fmt(metric?.actual.avg),
-                color: averageColor(metric?.actual.avg, metric?.actualRank),
-                title: metric ? `Actual FPA vs. ${pos}: ${fmt(metric.actual.avg)} points per game · matchup rank ${metric.actualRank ?? 'unavailable'} of 32.` : unavailable,
-            },
-            {
-                label: 'Expected/G', value: fmt(metric?.expectedAvg),
-                color: averageColor(metric?.expectedAvg, metric?.sosRank),
-                title: metric ? `Expected FPA vs. ${pos}: ${fmt(metric.expectedAvg)} points per game · SOS rank ${metric.sosRank ?? 'unavailable'} of 32.` : unavailable,
-            },
-            {
-                label: 'vs Expected', value: deltaValue, className: deltaClass,
-                title: metric ? `Actual vs. expected: ${deltaValue} points per game across ${metric.games} ${metric.games === 1 ? 'game' : 'games'}.` : unavailable,
-            },
-        ];
-        return `<section class="start-sit-matchup-info" aria-label="${escapeHtml(heading)} matchup info for ${escapeHtml(selection.label)}" aria-busy="${loading}"><span class="start-sit-matchup-info-heading">${headingMarkup}</span><div class="start-sit-matchup-info-grid">${chips.map(chip => `<div class="start-sit-matchup-info-chip" title="${escapeHtml(chip.title)}"><span class="start-sit-matchup-info-label">${chip.label}</span><span class="start-sit-matchup-info-value ${chip.className || ''}"${chip.color ? ` style="color: ${chip.color};"` : ''}>${chip.value}</span></div>`).join('')}</div></section>`;
-    };
-    tradeSimulator.innerHTML = `
-                            <div class="trade-container glass-panel start-sit-container">
-                    <div class="trade-header">
-                            <div class="trade-header-left">
-                            <h3><i class="fa-solid fa-elevator analyzer-icon"></i> Start/Sit<span class="start-sit-week">${weekLabelDisplay}</span></h3>
-                        </div>
-            <div class="trade-header-center">
-              <button id="collapseTradeButton"><i class="fa-solid fa-caret-down"></i></button>
-            </div>
-            <div class="trade-header-right">
-              <button id="comparePlayersButton" class="control-button-subtle">
-                <i class="fa-solid fa-chart-simple"></i>
-                <span class="label">Compare</span>
-              </button>
-              <button id="clearTradeButton" type="button">
-                <i class="fa-solid fa-eraser"></i>
-                <span class="label">Clear</span>
-              </button>
-              <button id="closeTradeButton" type="button">
-                <i class="fa-solid fa-circle-xmark"></i>
-                <span class="label">Close</span>
-              </button>
-            </div>
-          </div>
-          <div class="trade-body"></div>
-          <!-- Start/Sit's footer explains the FPA shorthand in its per-game chips. -->
-          <div class="trade-footnote">FPA • Fantasy Points Allowed</div>
-        </div>
-    <button id="showTradeButton"><i class="fa-solid fa-circle-chevron-up"></i> <span class="show-button-label">Start/Sit <i class="fa-solid fa-elevator analyzer-icon"></i></span><span class="start-sit-week">${weekLabelDisplay}</span> <i class="fa-solid fa-circle-chevron-up"></i></button>
-  `;
-    const tradeBody = tradeSimulator.querySelector('.trade-body');
-
-    const MAX_START_SIT_SELECTIONS = 6;
-    const slotSelections = Array.from({ length: MAX_START_SIT_SELECTIONS }, (_, idx) => selections[idx] || null);
-    const buildStartSitSlotColumn = (selection, slotNumber) => {
-        let assetsHTML = '';
-        let totalDisplay = '—';
-        let projectionColor = 'var(--color-text-tertiary)';
-        let matchupSectionHtml = '';
-        let matchupInfoHtml = '';
-        let breakdownHtml = '';
-        if (selection) {
-            const matchupMetric = rostersMatchups?.preview(selection);
-            const tagColor = TAG_COLORS[selection.pos] || 'var(--pos-bn)';
-            const posForColor = selection.basePos || selection.pos;
-            const rankColor = Number.isFinite(selection.ppgPosRank)
-                ? getConditionalColorByRank(selection.ppgPosRank, posForColor)
-                : 'var(--color-text-tertiary)';
-            const baseLabel = posForColor || '';
-            const rankText = (selection.ppgPosRankDisplay && selection.ppgPosRankDisplay !== 'NA')
-                ? selection.ppgPosRankDisplay
-                : (baseLabel ? `${baseLabel}·NA` : 'NA');
-            const posColor = getPosRankColor(rankText);
-            const ppgText = selection.ppgDisplay || 'NA';
-            const hasPositivePpg = typeof selection.ppg === 'number' && selection.ppg > 0;
-            const hasPpgRankNumber = Number.isFinite(selection.ppgPosRank) && selection.ppgPosRank > 0;
-            const projectionValue = typeof selection.projection === 'number'
-                ? selection.projection
-                : Number.parseFloat(selection.projection);
-            const ppgColor = hasPositivePpg && hasPpgRankNumber
-                ? getConditionalColorByRank(selection.ppgPosRank, posForColor)
-                : (hasPositivePpg ? 'var(--color-text-mid-test1)' : 'var(--color-text-tertiary)');
-            const projectionDisplay = selection.projection !== null
-                ? selection.projection.toFixed(1)
-                : ((selection.projectionDisplay && selection.projectionDisplay.toUpperCase() !== 'NA') ? selection.projectionDisplay : '—');
-            if (Number.isFinite(projectionValue)) {
-                const derivedColor = getProjectionColorForValue(posForColor, projectionValue);
-                if (derivedColor) {
-                    projectionColor = derivedColor;
-                } else if (hasPpgRankNumber) {
-                    projectionColor = getConditionalColorByRank(selection.ppgPosRank, posForColor);
-                } else if (hasPositivePpg) {
-                    projectionColor = 'var(--color-text-mid-test1)';
-                } else {
-                    projectionColor = 'var(--color-text-secondary)';
-                }
-            }
-            if (selection.matchup) {
-                const { opponent, isBye } = selection.matchup;
-                const opponentText = opponent || (isBye ? 'BYE' : '');
-                if (opponentText) {
-                    // The second row keeps only the opponent and positional
-                    // matchup rank. SOS moves into the separate info strip below.
-                    const metric = matchupMetric;
-                    const matchupColor = metric?.actualRank ? getOpponentRankColor(metric.actualRank) : null;
-                    const opponentStyle = matchupColor && !isBye ? ` style="color: ${matchupColor};"` : '';
-                    const rankRawText = !isBye && metric?.actualRank ? ordinalSuffix(metric.actualRank) : '';
-                    const hasRankText = Boolean(rankRawText);
-                    const rankStyle = matchupColor && !isBye ? ` style="color: ${matchupColor};"` : '';
-                    const safeOpponent = escapeHtml(opponentText);
-                    const rankHtml = hasRankText
-                        ? `<span class="start-sit-matchup-sep">•</span><span class="start-sit-matchup-rank"${rankStyle}>${escapeHtml(rankRawText)}</span>`
-                        : '';
-                    matchupSectionHtml = `<span class="start-sit-matchup-inline"><span class="start-sit-matchup-opponent"${opponentStyle}>${safeOpponent}${rankHtml}</span></span>`;
-                }
-            }
-            // A text-styled button supplies keyboard/touch access at the bottom
-            // of each selected preview. BYE/unknown matchups have no defense to open.
-            const canBreakdown = Boolean(rostersMatchups?.canOpen(selection));
-            breakdownHtml = `<button type="button" class="start-sit-matchup-breakdown" data-start-sit-matchup-id="${escapeHtml(selection.id)}" aria-haspopup="dialog" aria-label="Matchup Breakdown for ${escapeHtml(selection.label)}"${canBreakdown ? '' : ' disabled title="No opponent defense available"'}>Matchup Breakdown</button>`;
-            const rankParts = rankText.split('·');
-            const rankNumberDisplay = rankParts.length > 1 ? rankParts.slice(1).join('·') : 'NA';
-            // Each Rosters Start/Sit player name ends with the player's own NFL
-            // team logo from the saved selection, independently of the opponent.
-            // Validate aliases and omit logos for free agents or unknown teams.
-            const playerTeam = String(selection.team || '').trim().toUpperCase();
-            const playerLogoTeam = ({ WSH: 'WAS', JAC: 'JAX', LA: 'LAR' })[playerTeam] || playerTeam;
-            const playerLogoKey = playerLogoTeam !== 'FA' && Object.hasOwn(TEAM_COLORS, playerLogoTeam) ? playerLogoTeam.toLowerCase() : '';
-            const playerTeamLogo = playerLogoKey ? `<img class="start-sit-player-team-logo" src="../assets/NFL_logos_svg/${playerLogoKey}.svg" alt="${escapeHtml(playerTeam)} team" width="16" height="16" decoding="async">` : '';
-            assetsHTML = `
-                        <div class="trade-asset-chip start-sit-chip">
-                            <div class="start-sit-chip-body">
-                                <span class="start-sit-name">
-                                    <span class="start-sit-inline-tag player-tag" data-pos="${selection.pos}">${selection.pos}</span>
-                                    <span class="start-sit-name-text">${escapeHtml(selection.label)}</span>
-                                    ${playerTeamLogo}
-                                </span>
-                                <span class="start-sit-metric"><span class="start-sit-metric-value" style="color: ${ppgColor};">${ppgText}</span><span class="start-sit-metric-unit">PPG</span><span class="start-sit-metric-sep">•</span><span class="start-sit-rank"><span class="start-sit-rank-pos" style="color: ${posColor};">${posForColor}</span><span class="start-sit-rank-dot">·</span><span class="start-sit-rank-number" style="color: ${rankColor};">${rankNumberDisplay}</span></span></span>
-                            </div>
-                        </div>`;
-            totalDisplay = projectionDisplay;
-            matchupInfoHtml = buildMatchupInfo(selection, matchupMetric);
-        } else {
-            assetsHTML = `<span class="text-xs text-slate-500 p-2">Select a player...</span>`;
-        }
-
-        const safeTotal = escapeHtml(totalDisplay);
-        return `
-                    <div class="trade-team-column start-sit-preview-column">
-                        <h4>Player ${slotNumber}</h4>
-                        <div class="trade-assets">${assetsHTML}</div>
-                        <div class="trade-total even start-sit-total">
-                            <span class="start-sit-total-label">Projected Points:</span>
-                        </div>
-                        <!-- Projection value sits inline to the left of the opponent/rank. -->
-                        <div class="start-sit-matchup-meta"><span class="start-sit-total-value" style="color: ${projectionColor};">${safeTotal}</span>${matchupSectionHtml}</div>
-                        ${matchupInfoHtml}
-                        ${breakdownHtml}
-                    </div>
-                `;
-    };
-
-    const renderedRows = [];
-    for (let rowIndex = 0; rowIndex < 3; rowIndex++) {
-        if (isCompactPreview && rowIndex > 0) {
-            continue;
-        }
-        const leftSlotIndex = rowIndex * 2;
-        const rightSlotIndex = leftSlotIndex + 1;
-        const leftSelection = slotSelections[leftSlotIndex];
-        const rightSelection = slotSelections[rightSlotIndex];
-
-        // Always render the first row; render additional rows only when needed.
-        if (rowIndex > 0 && !leftSelection && !rightSelection) {
-            continue;
-        }
-
-        renderedRows.push(`
-                    <div class="start-sit-preview-row">
-                        ${buildStartSitSlotColumn(leftSelection, leftSlotIndex + 1)}
-                        <div class="trade-divider start-sit-divider"></div>
-                        ${buildStartSitSlotColumn(rightSelection, rightSlotIndex + 1)}
-                    </div>
-                `);
-    }
-
-    let bodyHtml = '<div class="start-sit-preview-stack">';
-    renderedRows.forEach((rowHtml, idx) => {
-        bodyHtml += rowHtml;
-        if (idx < renderedRows.length - 1) {
-            bodyHtml += '<div class="start-sit-row-separator" role="separator" aria-hidden="true"></div>';
+    window.RostersStartSit.renderPreview({ mount: tradeSimulator,
+        players: selections.map(buildRostersDecisionPlayer), week: getCurrentNflWeekNumber(),
+        collapsed: state.isTradeCollapsed, onClear: clearStartSitSelections, onClose: exitStartSitMode,
+        onResize: height => { mainContent.style.paddingBottom = `${height + 20}px`; },
+        onCollapse: collapsed => {
+            state.isTradeCollapsed = collapsed;
+            tradeSimulator.classList.toggle('collapsed', collapsed);
+            mainContent.style.paddingBottom = `${tradeSimulator.offsetHeight + 20}px`;
+        },
+        onRemove: id => {
+            state.startSitSelections = state.startSitSelections.filter(selection => selection.id !== id);
+            const row = rosterGrid.querySelector(`.player-row[data-asset-id="${id}"]`);
+            row?.classList.remove('player-selected');
+            if (row) delete row.dataset.startSitSide;
+            recalcStartSitNextSide();
+            renderTradeBlock();
         }
     });
-    bodyHtml += '</div>';
-    tradeBody.innerHTML = bodyHtml;
-
-    const comparePlayersButton = document.getElementById('comparePlayersButton');
-    if (comparePlayersButton) {
-        if (selections.length >= 2) {
-            comparePlayersButton.classList.add('enabled');
-        } else {
-            comparePlayersButton.classList.remove('enabled');
-        }
-    }
-    tradeSimulator.classList.toggle('collapsed', state.isTradeCollapsed);
-    const clearBtn = document.getElementById('clearTradeButton');
-    if (clearBtn) {
-        clearBtn.disabled = selections.length === 0;
-        clearBtn.addEventListener('click', clearStartSitSelections);
-    }
-    const closeBtn = document.getElementById('closeTradeButton');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => exitStartSitMode());
-    }
-    const collapseBtn = document.getElementById('collapseTradeButton');
-    if (collapseBtn) {
-        collapseBtn.addEventListener('click', () => {
-            tradeSimulator.classList.add('collapsed');
-            state.isTradeCollapsed = true;
-            mainContent.style.paddingBottom = `${tradeSimulator.offsetHeight + 20}px`;
-            closeComparisonModal();
-        });
-    }
-    const showBtn = document.getElementById('showTradeButton');
-    if (showBtn) {
-        showBtn.addEventListener('click', () => {
-            tradeSimulator.classList.remove('collapsed');
-            state.isTradeCollapsed = false;
-            mainContent.style.paddingBottom = `${tradeSimulator.offsetHeight + 20}px`;
-        });
-    }
     mainContent.style.paddingBottom = `${tradeSimulator.offsetHeight + 20}px`;
 }
 function renderTradeBlock() {
     const tradeEligible = state.isCompareMode && state.teamsToCompare.size >= 2;
     const startSitActive = state.isStartSitMode;
     if (!tradeEligible && !startSitActive) {
+        window.RostersStartSit?.disposePreview();
         tradeSimulator.style.display = 'none';
+        tradeSimulator.classList.remove('ss-preview-mount');
         tradeSimulator.innerHTML = '';
         mainContent.style.paddingBottom = '1rem';
         return;
@@ -9863,6 +9761,8 @@ function renderTradeBlock() {
         renderStartSitPreview();
         return;
     }
+    window.RostersStartSit?.disposePreview();
+    tradeSimulator.classList.remove('ss-preview-mount');
     tradeSimulator.innerHTML = `
               <div class="trade-container glass-panel">
           <div class="trade-header">
@@ -13008,6 +12908,14 @@ function openComparisonModal() {
     }
 }
 function closeComparisonModal() {
+    // Invalidate delayed data/chart work before removing the comparison DOM.
+    rostersDecisionRequest += 1;
+    window.RostersStartSit?.disposeComparison();
+    document.body.classList.remove('ss-comparing');
+    if (rostersDecisionSavedOverflow !== null) {
+        document.body.style.overflow = rostersDecisionSavedOverflow;
+        rostersDecisionSavedOverflow = null;
+    }
     if (playerComparisonModal) {
         const modalContent = playerComparisonModal.querySelector('.modal-content');
         if (modalContent) {
@@ -13017,6 +12925,10 @@ function closeComparisonModal() {
         }
         playerComparisonModal.classList.add('hidden');
         playerComparisonModal.classList.remove('start-sit-compare');
+        playerComparisonModal.classList.remove('ss-comparison-modal');
+        playerComparisonModal.removeAttribute('aria-modal');
+        if (rostersDecisionOpener?.isConnected) rostersDecisionOpener.focus({ preventScroll: true });
+        rostersDecisionOpener = null;
         if (comparisonBackgroundOverlay) {
             comparisonBackgroundOverlay.classList.add('hidden');
         }

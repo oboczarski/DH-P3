@@ -59,7 +59,9 @@
 // Refresh Matchups' FPFA parser to accept BYE markers without counting them as games.
 // Refresh Rosters' spaced DRK rank headers and its own BYE/unused-formula-row parser.
 // Refresh abbreviated conference menus on Matchups at every width and Rosters desktop.
-const CACHE_NAME = 'DH3.51a-matchups-abbreviated-conferences';
+// Refresh Rosters' new Start/Sit workspace, comparison dashboard and exact
+// mixed-position Overview fields together with their page-local assets.
+const CACHE_NAME = 'DH3.51b-lineup-workspace';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -86,12 +88,14 @@ const CORE_ASSET_PATHS = [
   '/styles/rosters.css',
   // Rosters Game Logs owns its modal styling without loading DataHub.css.
   '/styles/rosters-gamelogs.css',
+  '/styles/rosters-start-sit.css',
   '/styles/leaguehub.css',
   '/styles/research.css',
   '/styles/ownership.css',
   '/styles/contact.css',
   '/scripts/app.js',
   '/scripts/rosters-gamelogs.js',
+  '/scripts/rosters-start-sit.js',
   '/scripts/stats.js',
   '/scripts/DataHub.js',
   '/scripts/datahub-stats-positional-ranks.js',

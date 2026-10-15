@@ -40,6 +40,22 @@ function createLoader(tables, failures = {}, boot = false) {
 const season = 'SZN,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,GM_P,paATT\n2026,4984,Josh Allen,QB,BUF,35.66,1,30';
 const defense = 'TM,QBRK,RBRK,WRRK,TERK\nHOU,2,11,8,19\nDET,6,12,9,20';
 
+test('Rosters Overview comparison retains literal DH totals, rates and age without deriving missing fields', async () => {
+  const window = createLoader({
+    DH: season.replace('\n', ',TD(t),OPP,IMP/OPP,AGE\n') + ',0,31,0%,30.3',
+    DRK: defense,
+    '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP\n1,4984,QB,BUF,35.66,1,58',
+  });
+  const snapshot = await window.activateRosters2026GameLogs();
+  const stats = snapshot.seasonStats['4984'];
+  assert.equal(stats.td_total, 0);
+  assert.equal(stats.opp, 31);
+  assert.equal(stats.imp_per_opp, 0);
+  assert.equal(stats.age, 30.3);
+  assert.equal(stats.yds_total, undefined);
+  assert.equal(snapshot.seasonRanks['4984'].age, undefined, 'identity metadata is not performance-ranked');
+});
+
 test('Rosters accepts spaced DRK rank headers before activating the league card snapshot', async () => {
   for (const headers of ['QB RK,RB RK,WR RK,TE RK', 'qb rk,rb rk,wr rk,te rk', 'QB\u00a0RK,RB\u202fRK,WR RK,TE RK']) {
     const window = createLoader({
