@@ -93,6 +93,11 @@ states have individual `button[data-pos="QB"][aria-pressed="true"]` rules (and
 equivalents for RB/WR/TE/ALL) in each `TOOLBAR-POSITION` breakpoint block of
 `matchups.css`. Edit their literal `color`, `background`, `border`, and
 `box-shadow` values independently; the chart position filters have their own rules.
+The user's mobile main-filter gradients are also copied to desktop main filters,
+all five defense-heading position badges, and the weekly/scatter position buttons
+at both breakpoints. Each area keeps separate literal per-position declarations;
+editing one area or breakpoint does not restyle another. Badge/chart geometry
+remains local, and the scatter's Points/Ranks controls retain their own styling.
 
 Dumbbells compare and sort by actual FPA per game against expected FPA per game.
 Their markers, labels, bounds, differences, tooltips and selected-defense readout

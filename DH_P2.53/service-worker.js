@@ -63,7 +63,9 @@
 // mixed-position Overview fields together with their page-local assets.
 // Refresh Matchups' mobile controls, editable active states, per-game dumbbells,
 // desktop gridline controls and desktop-only Game Spokes chart lifecycle.
-const CACHE_NAME = 'DH3.51c-matchups-per-game-controls';
+// Refresh Matchups' main filters, defense badges and weekly/scatter position
+// gradients together; their mobile/desktop styles remain independently owned.
+const CACHE_NAME = 'DH3.51d-matchups-position-gradients';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
