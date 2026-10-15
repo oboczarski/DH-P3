@@ -118,7 +118,7 @@ body:where([data-page="matchups"]) { background:#050b13; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="header"]) .coverage { grid-column:2; grid-row:1; }
   :where(body[data-page="matchups"]) .pageHeader:where([data-matchups-area="header"]) { gap:18px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="header"]) .coverage { font-size:9px; }
-  :where(body[data-page="matchups"]) .pageHeader:where([data-matchups-area="header"]) { grid-template-columns:minmax(0,1fr); gap:6px; min-height:0; padding:1px 4px 7px; }
+  :where(body[data-page="matchups"]) .pageHeader:where([data-matchups-area="header"]) {grid-template-columns:minmax(0,1fr);gap:6px;min-height:0;padding: 5px 10px 4px;border: 1px solid #aab4;border-radius: 9px;margin: 0 0 8px;border: 1px solid var(--border);border-radius: 14px;background: linear-gradient(155deg, rgba(255, 255, 255, .055), rgba(255, 255, 255, .009)), linear-gradient(180deg, rgba(15, 21, 39, .76), rgba(8, 13, 26, .7));box-shadow: 0 8px 28px rgba(2, 5, 17, .22), inset 0 4px 18px rgba(255, 255, 255, .035);backdrop-filter: blur(7px) saturate(140%);-webkit-backdrop-filter: blur(7px) saturate(140%);}
   :where(body[data-page="matchups"]) :where([data-matchups-area="header"]) .pageHeaderBrand { grid-column:1; grid-row:1; flex-wrap:nowrap; justify-content:space-between; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="header"]) .brand { gap:3px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="header"]) .brand img { width:29px; height:29px; }
@@ -284,9 +284,17 @@ body:where([data-page="matchups"]) { background:#050b13; }
   :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="toolbar"]) { border-radius:12px; }
   /* Mobile puts compact defense/venue controls on the first row and gives
      the main position bar its own full-width row. Desktop owns a separate layout. */
-  :where(body[data-page="matchups"]) .toolbar:where([data-matchups-area="toolbar"]) { display:grid; grid-template-columns:minmax(0,150px) minmax(0,1fr);
-    grid-template-areas:"defense venue" "position position"; align-items:center;
-    padding:7px 9px; gap:7px; margin-bottom:8px; }
+  :where(body[data-page="matchups"]) .toolbar:where([data-matchups-area="toolbar"]) {
+    display:grid;
+    grid-template-columns: minmax(0,1.85fr) minmax(0,1fr);
+    grid-template-areas:
+    "defense venue"
+    "position position";
+    align-items:center;
+    padding:7px 9px;
+    gap: 7px 11px;
+    margin-bottom:8px;
+    }
 }
 
 /* TOOLBAR — DESKTOP only. */
@@ -314,19 +322,31 @@ body:where([data-page="matchups"]) { background:#050b13; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .fieldLabel { color:var(--dim);font-size: 9px;font-weight:600;letter-spacing: 0;white-space:nowrap; }
   :where(body[data-page="matchups"]) .defensePicker:where([data-matchups-area="toolbar-defense"]) > .teamPicker { flex:1; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker { position:relative; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__btn { width:100%; height:36px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 12px;
-    border-radius:14px; border:1px solid rgba(255,255,255,.14); color:rgba(255,255,255,.92); font-weight:900; letter-spacing:.04em;
-    background:radial-gradient(180px 70px at 20% 20%,rgba(0,191,255,.14),transparent 60%),linear-gradient(135deg,rgba(255,255,255,.06),rgba(0,0,0,.16)); }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__btn {
+    width:100%;
+    height:36px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:0 12px;
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,.14);
+    color:rgba(255,255,255,.92);
+    font-weight:900;
+    letter-spacing:.04em;
+    background:radial-gradient(180px 70px at 20% 20%,rgba(0,191,255,.14),transparent 60%),linear-gradient(135deg,rgba(255,255,255,.06),rgba(0,0,0,.16));
+    }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__btn:hover { border-color:rgba(255,255,255,.2); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker.is-open .teamPicker__btn { border-color:rgba(0,191,255,.55); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__left { display:flex; align-items:center; gap:9px; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__code { font-size:15px; font-weight:950; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__left {display:flex;align-items:center;gap: 10px;min-width:0;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__code {font-size:15px;font-weight: 700;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__chev { opacity:.75; font-size:12px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamLogoStack { display:inline-grid; place-items:center; vertical-align:middle; line-height:0; flex:none; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamLogo { width:19px; height:19px; object-fit:contain; border-radius:4px; display:block; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamLogoStack__glow { grid-area:1 / 1; z-index:0; filter:drop-shadow(0 0 3px var(--team-glow)); }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamLogoStack__glow {grid-area:1 / 1;z-index:0;filter: none;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamLogoStack__img { grid-area:1 / 1; z-index:1; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__btn .teamLogo { width:22px; height:22px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__btn .teamLogo {width: 27px;height: 27px;filter: brightness(1);}
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__panel {
     position:fixed;
     inset:auto;
@@ -353,10 +373,10 @@ body:where([data-page="matchups"]) { background:#050b13; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamOption:hover { border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.07); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamOption.is-selected { border-color:rgba(0,191,255,.55); background:linear-gradient(135deg,rgba(0,191,255,.14),rgba(207,120,255,.12)); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamOption__code { font-size:12px; }
-  :where(body[data-page="matchups"]) .defensePicker:where([data-matchups-area="toolbar-defense"]) { gap:5px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__btn { height:34px; padding-inline:10px; border-radius:13px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__code { font-size:13px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .fieldLabel { font-size: 9px; }
+  :where(body[data-page="matchups"]) .defensePicker:where([data-matchups-area="toolbar-defense"]) {gap: 10px;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__btn {height: 36px;padding-inline: 14px 20px;border-radius:13px;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__code {font-size: 17px;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .fieldLabel {font-size: 14px;}
   /* This mobile defense menu owns two abbreviated conference columns;
      its scrollable panel stays within the viewport without sharing panel styles. */
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPickerConferences { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; min-width:0; }
@@ -537,9 +557,21 @@ body:where([data-page="matchups"]) { background:#050b13; }
   :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) { grid-area:venue; width:117px; max-width:100%; justify-self:start; }
   :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) > .teamPicker { flex:1; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker { position:relative; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__btn { width:100%; height:36px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 12px;
-    border-radius:14px; border:1px solid rgba(255,255,255,.14); color:rgba(255,255,255,.92); font-weight:900; letter-spacing:.04em;
-    background:radial-gradient(180px 70px at 20% 20%,rgba(0,191,255,.14),transparent 60%),linear-gradient(135deg,rgba(255,255,255,.06),rgba(0,0,0,.16)); }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__btn {
+    width: 115%;
+    height:36px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:0 12px;
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,.14);
+    color:rgba(255,255,255,.92);
+    font-weight:900;
+    letter-spacing:.04em;
+    background:radial-gradient(180px 70px at 20% 20%,rgba(0,191,255,.14),transparent 60%),linear-gradient(135deg,rgba(255,255,255,.06),rgba(0,0,0,.16));
+    }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__btn:hover { border-color:rgba(255,255,255,.2); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker.is-open .teamPicker__btn { border-color:rgba(0,191,255,.55); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__left { display:flex; align-items:center; gap:9px; min-width:0; }
@@ -556,10 +588,10 @@ body:where([data-page="matchups"]) { background:#050b13; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .venueMenu .teamPicker__panel { width:164px; grid-template-columns:1fr; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .venueOption { justify-content:flex-start; padding:8px 10px; font-size:11px; font-weight:600; letter-spacing:0; }
   :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) { gap:5px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__btn { height:34px; padding-inline:10px; border-radius:13px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__btn {height: 36px;padding-inline: 17px;border-radius:13px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__panel { grid-template-columns:repeat(4,minmax(0,1fr)); }
   :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) .fieldLabel { display:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .venueMenuLabel { font-size:10px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .venueMenuLabel {font-size: 12px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .fieldLabel { font-size: 9px; }
   @media (max-width: 400px) {
   :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) { width:106px; }
@@ -720,7 +752,7 @@ body:where([data-page="matchups"]) { background:#050b13; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="summary-chips"]) .metric { padding:6px 3px; border-radius:7px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="summary-chips"]) .metricLabel { font-size:7px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="summary-chips"]) .metricValue { font-size:18px; white-space:nowrap; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="summary-chips"]) .metricValue small { font-size:8px; margin-left:1px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="summary-chips"]) .metricValue small {font-size: 10px;margin-left:1px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="summary-chips"]) .metricSub { font-size:7px; white-space:nowrap; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="summary-chips"]) .metricDesktop { display:none; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="summary-chips"]) .metricMobile { display:inline; }
