@@ -12,8 +12,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,slnt,wdth,wght,GRAD,ROND@6..144,-10..0,25..151,1..1000,0..100,0..100&amp;family=MuseoModerno:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
   <!-- Matchups owns its styles, assets, models and chart library; shared DH app/CSS are not loaded. -->
-  <link rel="stylesheet" href="matchups.css?v=DH3.51a-matchups-abbreviated-conferences">
-  <link rel="stylesheet" href="chart-lab.css?v=DH3.51-matchups-panel-controls">
+  <link rel="stylesheet" href="matchups.css?v=DH3.51c-matchups-per-game-controls">
+  <link rel="stylesheet" href="chart-lab.css?v=DH3.51c-matchups-per-game-controls">
   <script defer src="data-model.js?v=DH3.50-byes-rosters-data"></script>
   <script defer src="chart-utils.js?v=2026.3"></script>
   <script defer src="app.js?v=DH3.51a-matchups-abbreviated-conferences"></script>
@@ -22,8 +22,8 @@
   <script defer src="vendor/amcharts5/radar.js?v=5.20.8"></script>
   <script defer src="vendor/amcharts5/themes/Animated.js?v=5.20.8"></script>
   <script defer src="vendor/amcharts5/themes/Dark.js?v=5.20.8"></script>
-  <script defer src="chart-lab-model.js?v=2026.9-fpf"></script>
-  <script defer src="chart-lab.js?v=DH3.51-matchups-panel-controls"></script>
+  <script defer src="chart-lab-model.js?v=DH3.51c-matchups-per-game-controls"></script>
+  <script defer src="chart-lab.js?v=DH3.51c-matchups-per-game-controls"></script>
 </head>
 <body data-page="matchups">
   <div data-matchups-area="background" class="background-orb background-orb--one" aria-hidden="true"></div>
@@ -118,7 +118,7 @@
           <div class="tableScroll heatTableScroll" tabindex="0" aria-label="Scrollable matchup heatmap"><table class="heatTable" id="heatTable"></table></div>
           <p class="panelFootnote">FPA per game <span class="footnoteDivider">/</span> <span id="heatRankNote">Rank 1 = most points allowed (FPFA)</span> <span class="footnoteDivider">/</span> Select a matchup</p>
         </section>
-        <article data-matchups-area="dumbbell" id="labDumbbellPanel" data-amchart-panel aria-labelledby="labDumbbellTitle" class="glass-panel labCard labCard--dumbbell" aria-label="Dumbbell comparison of actual and expected FPA for every defense">
+        <article data-matchups-area="dumbbell" id="labDumbbellPanel" data-amchart-panel aria-labelledby="labDumbbellTitle" class="glass-panel labCard labCard--dumbbell" aria-label="Dumbbell comparison of actual and expected FPA per game for every defense">
           <div class="labCaption"><span class="labNumber">02</span><span>ACTUAL VS. EXPECTED / DUMBBELLS</span></div>
           <div class="labBody labBody--dumbbell">
           <div class="labHeading"><div class="labTitleRow"><h2 class="labTitle" id="labDumbbellTitle">Actual vs. Expected</h2><div class="positionToggle chartPositionToggle" role="group" aria-label="Actual vs expected dumbbell position"><button type="button" data-position="QB" data-pos="QB" aria-pressed="true">QB</button><button type="button" data-position="RB" data-pos="RB" aria-pressed="false">RB</button><button type="button" data-position="WR" data-pos="WR" aria-pressed="false">WR</button><button type="button" data-position="TE" data-pos="TE" aria-pressed="false">TE</button><button type="button" data-position="ALL" data-pos="ALL" aria-pressed="false">ALL</button></div></div><p class="labSubtitle" id="labDumbbellSubtitle"></p></div>
@@ -126,7 +126,7 @@
           <div class="labScroll" tabindex="0" aria-label="Scroll for all 32 actual and expected comparisons"><div class="labCanvas labCanvas--dumbbell" id="labDumbbell"><p class="labLoading">Preparing the actual and expected dumbbells…</p></div></div>
           </div>
           <div class="labReadout" id="dumbbellReadout" aria-live="polite"></div>
-          <p class="labFootnote">Hollow Ring → Expected FPA  |  Filled Dot → Actual FPA  |  Δ →  (actual - expected).</p>
+          <p class="labFootnote">Hollow Ring → Expected FPA/game  |  Filled Dot → Actual FPA/game  |  Δ → (actual - expected)/game.</p>
         </article>
         <article data-matchups-area="polar" id="labPolarPanel" data-amchart-panel aria-labelledby="labPolarTitle" class="glass-panel labCard labCard--polar" aria-label="Polar scatter with opposing offense logos aligned to each defense">
           <div class="labCaption"><span class="labNumber">03</span><span>INDIVIDUAL MATCHUPS / POLAR SCATTER</span></div>
@@ -141,7 +141,7 @@
     </div>
     <details data-matchups-area="methodology" class="methodology"><summary><svg class="icon"><use href="#icon-info"/></svg>How expected FPA works</summary><div class="methodologyContent">
       <p><strong>Season summaries:</strong> FPFA supplies actual FPA totals (QB/RB/WR/TE/ALL), averages (x), and matchup ranks (rk), plus expected totals (vs), averages (vX), and strength-of-schedule ranks (vRK). All six fields are used directly. Matchup rank 1 means the most points allowed and the easiest matchup. SOS Ranking describes the quality of opponents already faced at the selected position: 1 is the easiest schedule, 32 the toughest. The SOS card retains this season-to-date rank when venue filters change.</p>
-      <p><strong>Weekly games and players:</strong> FPAv2 supplies individual game totals and player scores, including zero and negative results. FPF supplies each offense’s positional scoring average and rank for the weekly expected line, Offenses faced table, and Game Spokes tooltips. The scatter and dumbbells use FPFA’s published season totals; the scatter’s full-season rank view retains FPFA’s supplied ranks.</p>
+      <p><strong>Weekly games and players:</strong> FPAv2 supplies individual game totals and player scores, including zero and negative results. FPF supplies each offense’s positional scoring average and rank for the weekly expected line, Offenses faced table, and Game Spokes tooltips. The scatter uses FPFA’s published season totals; dumbbells use its published actual and expected per-game averages. The scatter’s full-season rank view retains FPFA’s supplied ranks.</p>
       <p>Venue describes the defense: a player’s <code>vs TB</code> puts TB away; <code>@ NYG</code> puts NYG at home. Home/away actual views use FPAv2. Their expected points sum the FPF season averages of the offenses faced in the selected games; this is an opponent-quality baseline, not an offense home/away scoring split. Rank 1 in these comparisons means the highest total; venue heatmap ranks retain 1 = fewest allowed points. Player search and hiding scores below one point affect the player list only.</p>
       <p id="sourceNotes"></p>
     </div></details>

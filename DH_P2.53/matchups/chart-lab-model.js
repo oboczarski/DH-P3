@@ -1,4 +1,4 @@
-/* Read-only views of FPF season summaries and FPAv2 individual games. */
+/* Read-only chart views of FPFA averages, FPF baselines and FPA individual games. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === "object" && module.exports) module.exports = api;
@@ -23,15 +23,16 @@
     }));
     const dumbbell = teams.flatMap(team => {
       const c = analysis.byTeam.get(team).metrics[pos];
-      if (!Number.isFinite(c.actual.total) || !Number.isFinite(c.expectedTotal)) return [];
-      const deltaTotal = c.actual.total - c.expectedTotal;
-      return [{ team, pos, expectedOnLeft: c.expectedTotal <= c.actual.total,
-        actualTotal: c.actual.total, expectedTotal: c.expectedTotal,
+      // Dumbbells compare the existing per-game averages directly. FPFA owns
+      // all-games averages; venue averages already come from the scoped analysis.
+      if (!Number.isFinite(c.actual.avg) || !Number.isFinite(c.expectedAvg)) return [];
+      const deltaAvg = c.actual.avg - c.expectedAvg;
+      return [{ team, pos, expectedOnLeft: c.expectedAvg <= c.actual.avg,
         actualAvg: c.actual.avg, expectedAvg: c.expectedAvg, games: c.games,
-        deltaTotal,
-        lowTotal: Math.min(c.actual.total, c.expectedTotal), highTotal: Math.max(c.actual.total, c.expectedTotal) }];
+        deltaAvg,
+        lowAvg: Math.min(c.actual.avg, c.expectedAvg), highAvg: Math.max(c.actual.avg, c.expectedAvg) }];
     });
-    dumbbell.sort((a, b) => b.actualTotal - a.actualTotal || a.team.localeCompare(b.team));
+    dumbbell.sort((a, b) => b.actualAvg - a.actualAvg || a.team.localeCompare(b.team));
     const bands = ["highest", "upper", "lower", "lowest"];
     dumbbell.forEach((row, index) => { row.gradientKey = bands[Math.min(3, Math.floor(index * 4 / dumbbell.length))]; });
     const weeks = [...new Set(teams.flatMap(team => analysis.byTeam.get(team).metrics[pos].entries.map(entry => entry.week)))].sort((a, b) => a - b);
@@ -41,8 +42,12 @@
     return { teams, positions: [...POSITIONS], cells, breakdown, dumbbell, polar, weeks, pos };
   }
   function dumbbellBounds(rows) {
-    const values = rows.flatMap(row => [row.actualTotal, row.expectedTotal]).filter(Number.isFinite);
-    return values.length ? { min: Math.min(...values) - 15, max: Math.max(...values) + 20 } : { min: 0, max: 35 };
+    const values = rows.flatMap(row => [row.actualAvg, row.expectedAvg]).filter(Number.isFinite);
+    if (!values.length) return { min: 0, max: 7 };
+    // Per-game padding keeps endpoint labels clear without the old total-scale
+    // margins overwhelming the smaller range, including zero/equal averages.
+    const min = Math.min(...values), max = Math.max(...values), span = max - min;
+    return { min: min - Math.max(3, span * .12), max: max + Math.max(4, span * .15) };
   }
   function extent(values, unit = 5, includeZero = false) {
     const finite = values.filter(Number.isFinite);

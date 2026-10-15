@@ -61,7 +61,9 @@
 // Refresh abbreviated conference menus on Matchups at every width and Rosters desktop.
 // Refresh Rosters' new Start/Sit workspace, comparison dashboard and exact
 // mixed-position Overview fields together with their page-local assets.
-const CACHE_NAME = 'DH3.51b-lineup-workspace';
+// Refresh Matchups' mobile controls, editable active states, per-game dumbbells,
+// desktop gridline controls and desktop-only Game Spokes chart lifecycle.
+const CACHE_NAME = 'DH3.51c-matchups-per-game-controls';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

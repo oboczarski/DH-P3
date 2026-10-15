@@ -229,6 +229,10 @@
 /* DUMBBELL — DESKTOP only. */
 @media (width > 620px) {
   :where(body[data-page="matchups"]) [data-matchups-area="dumbbell"] {
+    /* Vertical gridlines only: change the color here and opacity from 0 to 1.
+       These desktop values never change mobile or another chart's gridlines. */
+    --am-x-grid-color:#9ab6e0;
+    --am-x-grid-opacity:.025;
     --lab-ink:#dce5ff;
     --lab-muted:#a1abc9;
     --lab-heading-inset:32px;
@@ -295,6 +299,9 @@
 
 /* POLAR — MOBILE only. */
 @media (max-width:620px) {
+  /* Remove the complete Game Spokes panel from the mobile layout/accessibility
+     tree; chart-lab.js also skips/disposes its canvas at this breakpoint. */
+  :where(body[data-page="matchups"]) .chartLab .labCard:where([data-matchups-area="polar"]) { display:none; }
   :where(body[data-page="matchups"]) [data-matchups-area="polar"] { --lab-ink:#dce5ff; --lab-muted:#a1abc9; --lab-heading-inset:32px;
     --am-font-family:var(--font);
     --am-axis-font-size:10px; --am-axis-color:#97afd1; --am-axis-font-weight:400;

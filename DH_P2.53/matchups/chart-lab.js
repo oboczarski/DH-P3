@@ -5,10 +5,11 @@
   if (document.body?.dataset.page !== "matchups") return;
   const $ = id => document.getElementById(id), Model = window.FPAChartLabData;
   const scenes = new Map(), observed = new Set();
+  const mobileViewport = matchMedia("(max-width:620px)");
   const definitions = [
     { id: "labBreakdown", title: "Scoring allowed, position by position", kind: "all", nativeResolution: true, create: scoringBreakdown },
     { id: "labDumbbell", title: "Actual vs. Expected", kind: "position", nativeResolution: true, create: actualExpectedDumbbells },
-    { id: "labPolar", title: "Game Spokes", kind: "position", create: polarScatter },
+    { id: "labPolar", title: "Game Spokes", kind: "position", desktopOnly: true, create: polarScatter },
   ];
   let current = null, snapshot = null, observer = null, styleObserver = null, styleTimer = null;
   let stackSort = "ALL";
@@ -23,8 +24,10 @@
     const css = getComputedStyle(host);
     const value = (name, fallback) => css.getPropertyValue(`--am-${name}`).trim() || fallback;
     const size = (name, fallback) => { const n = parseFloat(value(name, "")); return n > 0 ? n : fallback; };
+    const opacity = (name, fallback) => { const n = parseFloat(value(name, "")); return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : fallback; };
     return { fontFamily: css.fontFamily, chartPaddingRight: size("chart-padding-right", 20),
       axisSize: size("axis-font-size", 10), axisColor: value("axis-color", "#97afd1"), axisWeight: value("axis-font-weight", "400"),
+      xGridColor: value("x-grid-color", "#9ab6e0"), xGridOpacity: opacity("x-grid-opacity", .09),
       teamSize: size("team-font-size", 11), teamColor: value("team-color", "#b6c9e9"), teamWeight: value("team-font-weight", "500"),
       labelSize: size("label-font-size", 10), labelColor: value("label-color", "#bacdeb"), labelWeight: value("label-font-weight", "400"),
       selectedColor: value("selected-text-color", "#f1f6ff"), selectedWeight: value("selected-font-weight", "600"),
@@ -178,21 +181,24 @@
       return [key, {
         forward: am5.LinearGradient.new(root, { rotation: 0, stops }),
         reverse: am5.LinearGradient.new(root, { rotation: 0, stops: [...stops].reverse().map((stop, index) => ({ ...stop, offset: index / 2 })) }),
-        tint: colors[2], css: `linear-gradient(90deg,${colors.map(tint => tint.toCSSHex()).join(",")})` }];
+        tint: colors[2] }];
     }));
-    legend(scene, [{ text: "EXPECTED", symbol: "○", fill: color(0xd4e4ff) }, { text: "ACTUAL", symbol: "●", fill: color(0xd4e4ff) },
-      { text: "HIGHEST FPA", gradient: treatments.highest.css }, { text: "UPPER FPA", gradient: treatments.upper.css },
-      { text: "LOWER FPA", gradient: treatments.lower.css }, { text: "LOWEST FPA", gradient: treatments.lowest.css }]);
+    // The endpoint legend retains Expected/Actual; row gradients still show
+    // relative FPA without adding four redundant ranking-band legend entries.
+    legend(scene, [{ text: "EXPECTED", symbol: "○", fill: color(0xd4e4ff) }, { text: "ACTUAL", symbol: "●", fill: color(0xd4e4ff) }]);
     const chart = xy(scene, { paddingLeft: 9, paddingRight: scene.text.chartPaddingRight, paddingTop: 4 });
     const xr = am5xy.AxisRendererX.new(root, { minGridDistance: 65 }), yr = am5xy.AxisRendererY.new(root, { minGridDistance: 1, inversed: true });
     axisStyle(scene, xr); axisStyle(scene, yr, true); yr.labels.template.setAll({ paddingTop: 0, paddingBottom: 0, paddingRight: 28 });
+    // Only dumbbell vertical gridlines read these panel-owned CSS variables.
+    // Desktop supplies faint styling; mobile retains the previous defaults.
+    xr.grid.template.setAll({ stroke: color(scene.text.xGridColor), strokeOpacity: scene.text.xGridOpacity });
     yr.grid.template.setAll({ strokeOpacity: .04, location: .5 });
     const xAxis = chart.xAxes.push(am5xy.ValueAxis.new(root, { strictMinMax: true, renderer: xr }));
     const yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root, { categoryField: "team", renderer: yr }));
     yr.labels.template.adapters.add("fill", (fill, target) => target.dataItem?.dataContext?.team === current.team ? color(scene.text.selectedColor) : fill);
     scene.labelRenderers.push(yr);
     const connector = chart.series.push(am5xy.ColumnSeries.new(root, { xAxis, yAxis, baseAxis: yAxis,
-      categoryYField: "team", openValueXField: "lowTotal", valueXField: "highTotal", clustered: false }));
+      categoryYField: "team", openValueXField: "lowAvg", valueXField: "highAvg", clustered: false }));
     connector.columns.template.setAll({ height: 4, strokeOpacity: 0, cornerRadiusTL: 3, cornerRadiusTR: 3,
       cornerRadiusBL: 3, cornerRadiusBR: 3 });
     connector.columns.template.adapters.add("fillGradient", (fill, target) => {
@@ -211,7 +217,7 @@
     const endpoints = [];
     for (const expected of [true, false]) {
       const series = chart.series.push(am5xy.LineSeries.new(root, { xAxis, yAxis, categoryYField: "team",
-        valueXField: expected ? "expectedTotal" : "actualTotal", minBulletDistance: 0, maskBullets: false }));
+        valueXField: expected ? "expectedAvg" : "actualAvg", minBulletDistance: 0, maskBullets: false }));
       series.strokes.template.set("forceHidden", true);
       series.bullets.push((root, series, item) => {
         const row = item.dataContext, tint = treatments[row.gradientKey].tint;
@@ -219,7 +225,7 @@
         const sprite = am5.Container.new(root, { width: 12, height: 12, centerX: am5.percent(50), centerY: am5.percent(50),
           tooltipText: `${expected ? "EXPECTED" : "ACTUAL"}\n${dumbbellTooltip(row)}` });
         const dot = sprite.children.push(am5.Circle.new(root, { x: am5.percent(50), y: am5.percent(50) }));
-        const label = sprite.children.push(am5.Label.new(root, { text: fmt(expected ? row.expectedTotal : row.actualTotal, 1),
+        const label = sprite.children.push(am5.Label.new(root, { text: fmt(expected ? row.expectedAvg : row.actualAvg, 1),
           x: am5.percent(50), y: am5.percent(50), centerX: onLeft ? am5.percent(100) : 0, centerY: am5.percent(50),
           dx: onLeft ? -10 : 10, fontSize: scene.text.labelSize,
           paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }));
@@ -241,7 +247,7 @@
     deltas.strokes.template.set("forceHidden", true);
     deltas.bullets.push((root, series, item) => {
       const row = item.dataContext;
-      const label = am5.Label.new(root, { text: `Δ ${signedPoints(row.deltaTotal)}`, centerY: am5.percent(50), dx: 13,
+      const label = am5.Label.new(root, { text: `Δ ${signedPoints(row.deltaAvg)}`, centerY: am5.percent(50), dx: 13,
         fontSize: scene.text.labelSize, paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0,
         tooltipText: `ACTUAL − EXPECTED\n${dumbbellTooltip(row)}` });
       register(scene, row, label, selected => label.setAll({ fill: color(selected ? scene.text.selectedColor : scene.text.labelColor),
@@ -250,7 +256,7 @@
     });
     scene.setData = view => {
       scene.markers.clear();
-      scene.subtitle.textContent = `${view.pos} · TOTAL PPR POINTS · ACTUAL FPA: HIGHEST FIRST · ${venueText().toUpperCase()}`;
+      scene.subtitle.textContent = `${view.pos} · PPR POINTS PER GAME · ACTUAL FPA: HIGHEST FIRST · ${venueText().toUpperCase()}`;
       const { min, max } = Model.dumbbellBounds(view.dumbbell);
       const rows = view.dumbbell.map(row => ({ ...row, labelX: max }));
       xAxis.setAll({ min, max }); yAxis.data.setAll(rows);
@@ -260,7 +266,7 @@
   }
 
   function dumbbellTooltip(row) {
-    return `[bold]${row.team} · ${row.pos}[/]\nActual FPA: ${fmt(row.actualTotal, 2)} points\nExpected FPA: ${fmt(row.expectedTotal, 2)} points\nActual − expected: ${signedPoints(row.deltaTotal)} points\n${row.games} recorded games · select to explore`;
+    return `[bold]${row.team} · ${row.pos}[/]\nActual FPA: ${fmt(row.actualAvg, 2)} points/game\nExpected FPA: ${fmt(row.expectedAvg, 2)} points/game\nActual − expected: ${signedPoints(row.deltaAvg)} points/game\n${row.games} recorded games · select to explore`;
   }
 
   function gameMarker(scene, row, stroke, text) {
@@ -343,16 +349,22 @@
     const selectedCells = snapshot.cells.filter(row => row.team === current.team);
     $("compositionReadout").innerHTML = teamMarkup(current.team) + selectedCells.map(row => `<span class="labValue">${row.pos} <strong>${fmt(row.avg, 2)}</strong><span>/game · #${row.rank ?? "—"}</span></span>`).join("");
     const pair = snapshot.dumbbell.find(row => row.team === current.team);
-    $("dumbbellReadout").innerHTML = teamMarkup(current.team) + (pair ? `<span>Actual <strong>${fmt(pair.actualTotal, 2)}</strong></span><span>Expected <strong>${fmt(pair.expectedTotal, 2)}</strong></span><span>Difference <strong>${signedPoints(pair.deltaTotal)}</strong> points</span><span>${pair.games} games · ${current.pos}</span>` : '<span class="labUnavailable">Expected FPA is unavailable for this scope.</span>');
+    $("dumbbellReadout").innerHTML = teamMarkup(current.team) + (pair ? `<span>Actual <strong>${fmt(pair.actualAvg, 2)}</strong>/game</span><span>Expected <strong>${fmt(pair.expectedAvg, 2)}</strong>/game</span><span>Difference <strong>${signedPoints(pair.deltaAvg)}</strong> points/game</span><span>${pair.games} games · ${current.pos}</span>` : '<span class="labUnavailable">Expected FPA is unavailable for this scope.</span>');
     const games = snapshot.polar.filter(row => row.team === current.team);
     $("polarReadout").innerHTML = teamMarkup(current.team) + games.map(row => `<span>W${row.week} <strong>${fmt(row.actual, 2)}</strong> <span>${row.venue === "home" ? "vs" : "@"} ${row.offense || "—"}</span></span>`).join("") + `<span>${snapshot.polar.length} total game dots</span>`;
   }
   function refresh(definition) {
+    // Game Spokes has no mobile panel or canvas. Dispose an existing desktop
+    // scene on resize; the observed host can mount again when desktop returns.
+    if (definition.desktopOnly && mobileViewport.matches) {
+      scenes.get(definition.id)?.root.dispose(); scenes.delete(definition.id);
+      return;
+    }
     if (!snapshot || !observed.has(definition.id)) return;
     if (definition.id === "labDumbbell" && !snapshot.dumbbell.length) {
       scenes.get(definition.id)?.root.dispose(); scenes.delete(definition.id);
       const message = document.createElement("p"); message.className = "labLoading";
-      message.textContent = current.analysis.unavailableReason;
+      message.textContent = current.analysis.unavailableReason || "Actual and expected FPA per game are unavailable for this selection.";
       $(definition.id).replaceChildren(message);
       $(`${definition.id}Subtitle`).textContent = `${current.pos} · EXPECTED COMPARISON UNAVAILABLE · ${venueText().toUpperCase()}`;
       return;

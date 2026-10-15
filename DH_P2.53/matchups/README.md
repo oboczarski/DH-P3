@@ -87,6 +87,23 @@ panel for each breakpoint in `chart-lab.css`. Adjusting composition labels no
 longer changes dumbbell or polar labels. Keep selection IDs/data attributes
 intact: they are behavior hooks, separate from these presentation owners.
 
+The mobile toolbar places the compact Defense picker beside the Venue picker,
+with the main position filter bar spanning the next row. Main position active
+states have individual `button[data-pos="QB"][aria-pressed="true"]` rules (and
+equivalents for RB/WR/TE/ALL) in each `TOOLBAR-POSITION` breakpoint block of
+`matchups.css`. Edit their literal `color`, `background`, `border`, and
+`box-shadow` values independently; the chart position filters have their own rules.
+
+Dumbbells compare and sort by actual FPA per game against expected FPA per game.
+Their markers, labels, bounds, differences, tooltips and selected-defense readout
+all use the existing analysis averages, preserving FPFA's supplied all-games
+averages and the existing venue-scoped averages. The legend contains Expected
+and Actual. In `chart-lab.css`, `DUMBBELL — DESKTOP` owns `--am-x-grid-color` and
+`--am-x-grid-opacity` for vertical gridlines only; opacity defaults to `0.025`.
+Mobile retains its existing gridline treatment. Game Spokes is desktop-only:
+the mobile polar panel is hidden and its amCharts scene is skipped/disposed
+until the viewport returns to desktop.
+
 Matchups defense menus use team abbreviations, alphabetized independently in
 AFC and NFC columns on mobile and desktop, including the expanded player dialog.
 Each menu has separate area-specific mobile and desktop styles. The independently
