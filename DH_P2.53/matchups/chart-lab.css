@@ -52,21 +52,21 @@
   :where(body[data-page="matchups"]) .chartLab .labCard--composition:where([data-matchups-area="composition"]) {background:radial-gradient(ellipse at 50% 47%,#6f99f510,transparent 58%),linear-gradient(160deg,#14223bee,#0a1528f2 70%,#15132aed);border: 1px solid var(--border);border-radius: 14px;background: linear-gradient(155deg, rgba(255, 255, 255, .055), rgba(255, 255, 255, .009)), linear-gradient(180deg, rgba(15, 21, 39, .76), rgba(8, 13, 26, .7));box-shadow: 0 8px 28px rgba(2, 5, 17, .22), inset 0 4px 18px rgba(255, 255, 255, .035);backdrop-filter: blur(7px) saturate(140%);-webkit-backdrop-filter: blur(7px) saturate(140%);}
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labCaption { display:flex; flex-wrap:wrap; align-items:center; gap:9px; padding:14px var(--lab-heading-inset) 0; color:#9dafcd; font-size:9px; font-weight:500; letter-spacing:1.2px; }
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labNumber { display:inline-flex; align-items:center; justify-content:center; width:24px; height:22px; border:1px solid #c1d8ff25; border-radius:7px; background:linear-gradient(145deg,#a9d7ff12,#9388ff0a); color:#c1d4f9; font-size:10px; letter-spacing:0; font-variant-numeric:tabular-nums; }
-  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labHeading { padding: 2px var(--lab-heading-inset) 5px; }
-  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labTitle { margin:0 0 7px; color:#e2ebff; font:500 19px/1.35 "MuseoModerno",var(--font); letter-spacing:-.35px; }
-  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labSubtitle { margin:0; color:#8ba2c6; font:400 9px/1.6 var(--font); letter-spacing:.35px; }
+  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labHeading {padding: 1px 18px;}
+  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labTitle {margin: 0 0 1px;color:#e2ebff;font:500 19px/1.35 "MuseoModerno",var(--font);letter-spacing:-.35px;}
+  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labSubtitle {margin:0;color:#8ba2c6;font:400 9px/1.6 var(--font);letter-spacing: -0.1px;text-wrap-mode: nowrap;}
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labLegend { display:flex; flex-wrap:wrap; align-items:center; gap:6px 16px; padding:5px var(--lab-heading-inset) 10px; font:500 10px/1.5 var(--font); color:#bacdeb; }
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labLegend span { display:inline-flex; align-items:center; gap:5px; }
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labLegend i { width:14px; height:6px; border-radius:4px; background:var(--legend-gradient,var(--legend-color)); }
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labLegendRow { display:flex; align-items:center; justify-content:space-between; gap:9px; padding-right:var(--lab-heading-inset); }
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labLegendRow .labLegend { flex:1; }
-  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labLegendSortRow { flex:none; height:30px; gap:10px; padding:0 var(--lab-heading-inset); overflow-x:auto; scrollbar-width:none; }
+  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labLegendSortRow {flex:none;height:30px;gap:10px;padding: 0 12px;overflow-x:auto;scrollbar-width:none;}
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labLegendSortRow::-webkit-scrollbar { display:none; }
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labLegendSortRow .labLegend { min-width:max-content; padding:0; flex-wrap:nowrap; gap:10px; white-space:nowrap; }
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labBody { display:flex; flex-direction:column; }
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labBody--breakdown { height: 610px; }
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labBody > .labScroll { flex:1; min-height:0; }
-  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labCanvas { position:relative;width: 100%;height:100%;font-family:var(--am-font-family); }
+  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labCanvas {position:relative;width: 100%;height:100%;font-family:var(--am-font-family);}
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labCanvas--breakdown { min-width: AUTO; }
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labScroll { overflow-x:auto; overflow-y:hidden; scrollbar-width:thin; scrollbar-color:#4e5d8080 transparent; }
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labScroll::-webkit-scrollbar { height:6px; }
@@ -81,12 +81,12 @@
   :where(body[data-page="matchups"]) .chartLab .labLoading:where([data-matchups-area="composition"], [data-matchups-area="composition"] *) { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#95abd0; background:radial-gradient(ellipse at center,#7896ff09,transparent 65%); }
   :where(body[data-page="matchups"]) [data-matchups-area="composition"] { --lab-heading-inset:20px; --am-team-font-size:10px; }
   :where(body[data-page="matchups"]) .chartLab .labCard:where([data-matchups-area="composition"]) { border-radius:13px; }
-  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labCaption { padding-top:11px; gap:6px; font-size:7px; letter-spacing:.6px; }
-  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labTitle { font-size:17px; }
-  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labSubtitle { font-size:8px; }
+  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labCaption {padding-top:11px;gap:6px;font-size: 9px;letter-spacing:.6px;}
+  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labTitle {font-size:17px;}
+  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labSubtitle {font-size: 9px;}
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labLegend { gap:5px 11px; font-size:9px; }
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labLegendSortRow { height:28.5px; gap:6px; }
-  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labLegendSortRow .labLegend { gap:6px;font-size: 10px; }
+  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labLegendSortRow .labLegend {gap:6px;font-size: 11px;}
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labLegendSortRow .labLegend span { gap:3px; }
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labLegendSortRow .labLegend i { width: 8px;height: 7px; }
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="composition"]) .labReadout { gap:6px 12px; font-size:10px; }
@@ -212,7 +212,7 @@
   :where(body[data-page="matchups"]) .chartLab .labLoading:where([data-matchups-area="dumbbell"], [data-matchups-area="dumbbell"] *) { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#95abd0; background:radial-gradient(ellipse at center,#7896ff09,transparent 65%); }
   :where(body[data-page="matchups"]) [data-matchups-area="dumbbell"] {--lab-heading-inset: 15px;--am-team-font-size: 10px;}
   :where(body[data-page="matchups"]) .chartLab .labCard:where([data-matchups-area="dumbbell"]) { border-radius:13px; }
-  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="dumbbell"]) .labCaption { padding-top:11px; gap:6px; font-size:7px; letter-spacing:.6px; }
+  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="dumbbell"]) .labCaption {padding-top:11px;gap:6px;font-size: 9px;letter-spacing:.6px;}
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="dumbbell"]) .labTitle { font-size:17px; }
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="dumbbell"]) .labTitleRow { gap:6px; }
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="dumbbell"]) .labTitleRow .chartPositionToggle {gap:1px;margin-right: -6px;}
