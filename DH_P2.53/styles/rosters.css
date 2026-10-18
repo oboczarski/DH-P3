@@ -103,7 +103,7 @@ body[data-page="rosters"] #starfield::after {
 }
 
 #rosterGrid.start-sit-mode {
-  gap: 0.04rem;
+  gap: 0rem;
   justify-content: center;
 }
 
@@ -174,8 +174,8 @@ body[data-page="rosters"] #starfield::after {
 }
 
 .start-sit-card {
-  padding: 0.16rem 0.08rem 0.12rem;
-  gap: 0.12rem;
+  padding: 0.16rem 0.00rem 0.12rem;
+  gap: 0.1rem !important;
   border-radius: 8px;
 }
 
