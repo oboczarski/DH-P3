@@ -119,6 +119,14 @@ body[data-page="rosters"] .ss-remove .ss-icon {width: 13px;height: 13px;transfor
 body[data-page="rosters"] .ss-preview-identity {display: flex;align-items: center;justify-content: space-between;gap: 4px;min-height: 16px;margin: -3px 0 1px;}
 body[data-page="rosters"] .ss-preview-identity h4 {font-size: 14px;letter-spacing: -.2px;font-weight: 500;line-height: 1;overflow-wrap: anywhere;color: #e5edf9;text-decoration: underline;text-decoration-color: #4a5560;}
 body[data-page="rosters"] .ss-preview-identity .ss-logo {width: 24px;height: 24px;}
+/* Both player-name headings open Game Logs through native buttons. Inherit
+   the heading's current typography, with a visible keyboard focus treatment. */
+body[data-page="rosters"] :is(.ss-preview-identity h4, .ss-hero h2) .ss-player-name-button {
+  appearance: none; display: inline; border: 0; padding: 0; margin: 0; background: transparent;
+  font: inherit !important; letter-spacing: inherit; color: inherit; text-align: inherit;
+  text-decoration: inherit; text-wrap: wrap; overflow-wrap: anywhere; cursor: pointer; max-width: 100%;
+}
+body[data-page="rosters"] .ss-player-name-button:focus-visible {outline: 1px solid #a9ddeb;outline-offset: 3px;border-radius: 2px;}
 body[data-page="rosters"] .ss-preview-numbers { display: flex; justify-content: space-between; gap: 6px; }
 body[data-page="rosters"] .ss-preview-numbers > div {display: flex;flex-direction: column;gap: 0px;min-width: 0;}
 body[data-page="rosters"] .ss-preview-numbers > div + div { text-align: right; }
@@ -170,6 +178,9 @@ body[data-page="rosters"] #tradeSimulator.ss-preview-mount.collapsed .ss-reopen 
 body[data-page="rosters"].ss-comparing #tradeSimulator { visibility: hidden; pointer-events: none; }
 body[data-page="rosters"].ss-comparing #comparison-modal-background-overlay { z-index: 4990; background: #070b14c9; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 body[data-page="rosters"] #player-comparison-modal.ss-comparison-modal { position: fixed; inset: 0; width: 100%; height: 100dvh; padding: 0; z-index: 5000; pointer-events: auto; }
+/* A Game Logs drill-down must sit above the 5000-level comparison, including
+   its older inline z-index; the original modal styling remains independently owned. */
+body[data-page="rosters"] #game-logs-modal.ss-decision-gamelogs {z-index: 5100 !important;}
 body[data-page="rosters"] #player-comparison-modal.ss-comparison-modal > .modal-overlay { position: absolute; inset: 0; display: block; background: transparent; }
 body[data-page="rosters"] #player-comparison-modal.ss-comparison-modal .modal-content {
   position: absolute; inset: max(6px, env(safe-area-inset-top)) 6px max(6px, env(safe-area-inset-bottom));
@@ -336,6 +347,31 @@ body[data-page="rosters"] .ss-data-note > .ss-icon { width: 14px; height: 14px; 
 body[data-page="rosters"] .ss-data-note p > span { display: block; color: #829ab7; margin-top: 6px; }
 body[data-page="rosters"] .ss-loading { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 25px; text-align: center; font-family: 'Google Sans',Arial,sans-serif; color: #bfd0e7; font-size: 14px; }
 
+/* The comparison's waiting surface uses the finished dashboard shell, real
+   names and static glass placeholders instead of an empty text-only screen. */
+body[data-page="rosters"] .ss-loading-stage {display: flex;flex-direction: column;align-items: center;gap: 20px;padding: 30px 16px;text-align: center;}
+body[data-page="rosters"] .ss-loading-orbit {display: grid;place-items: center;flex: 0 0 68px;width: 68px;border: 1px solid #a5cce847;border-radius: 23px;background: radial-gradient(ellipse at 10% 10%,#74e7ec32,transparent 65%),linear-gradient(145deg,#35495b,#30243f);box-shadow: 0 0 0 7px #a8b4de05,0 0 0 15px #a8b4de03,inset 0 1px 0 #e9faff23;}
+body[data-page="rosters"] .ss-loading-orbit .ss-icon {width: 30px;height: 30px;color: #aed4ed;}
+body[data-page="rosters"] .ss-loading-copy {max-width: 480px;}
+body[data-page="rosters"] .ss-loading-copy .ss-eyebrow {font-size: 7px;letter-spacing: 1.3px;color: #91aec9;}
+body[data-page="rosters"] .ss-loading-copy h2 {font-size: 24px;font-weight: 400;line-height: 1.15;letter-spacing: -.6px;color: #e2effc;margin: 8px 0;}
+body[data-page="rosters"] .ss-loading-copy p {font-size: 11px;line-height: 1.6;color: #98abc4;}
+body[data-page="rosters"] .ss-loading-pair {position: relative;display: grid;grid-template-columns: repeat(2,minmax(0,1fr));gap: 12px;width: 100%;max-width: 520px;}
+body[data-page="rosters"] .ss-loading-player {display: flex;flex-direction: column;align-items: center;gap: 5px;min-width: 0;padding: 15px 10px;border: 1px solid rgba(var(--ss-player-rgb),.22);border-radius: 15px;background: radial-gradient(ellipse at 50% 0%,rgba(var(--ss-player-rgb),.12),transparent 80%),linear-gradient(150deg,#2d3b4b70,#1b22358a);box-shadow: inset 0 1px 0 #dbf4ff0b;}
+body[data-page="rosters"] .ss-loading-player .ss-logo {width: 28px;height: 28px;}
+body[data-page="rosters"] .ss-loading-player > span {font-size: 9px;color: var(--ss-player);}
+body[data-page="rosters"] .ss-loading-player strong {font-size: 14px;font-weight: 500;line-height: 1.25;color: #dbe7f5;overflow-wrap: anywhere;}
+body[data-page="rosters"] .ss-loading-lines {display: flex;flex-direction: column;align-items: center;gap: 6px;width: 100%;padding-top: 7px;}
+body[data-page="rosters"] .ss-loading-lines i {height: 5px;width: 65%;border-radius: 5px;background: linear-gradient(90deg,rgba(var(--ss-player-rgb),.06),rgba(var(--ss-player-rgb),.2),rgba(var(--ss-player-rgb),.06));}
+body[data-page="rosters"] .ss-loading-lines i + i {width: 40%;opacity: .6;}
+body[data-page="rosters"] .ss-loading-versus {position: absolute;left: 50%;top: 50%;transform: translate(-50%,-50%);display: grid;place-items: center;width: 25px;height: 25px;border: 1px solid #91a4cc40;border-radius: 50%;background: #242c40;box-shadow: 0 0 0 4px #1b2334a8;color: #abc1dc;font-size: 7px;}
+body[data-page="rosters"] .ss-loading-sections {display: grid;grid-template-columns: repeat(3,minmax(0,1fr));gap: 8px;width: 100%;max-width: 520px;}
+body[data-page="rosters"] .ss-loading-sections > div {display: flex;flex-direction: column;align-items: center;gap: 8px;border: 1px solid #abc5e218;border-radius: 10px;background: #9fb7f005;padding: 12px 4px;color: #9bafc9;}
+body[data-page="rosters"] .ss-loading-sections .ss-icon {width: 17px;height: 17px;color: #8eacc8;}
+body[data-page="rosters"] .ss-loading-sections span {font-size: 8px;}
+body[data-page="rosters"] .ss-loading-sections i {width: 55%;height: 3px;border-radius: 4px;background: #9bbad61a;}
+body[data-page="rosters"] .ss-loading-footnote {font-size: 9px;color: #8096b2;letter-spacing: .4px;}
+
 /* Small phones are composed separately so long player names and literal
    projection status text fit without widening the sheet. */
 @media (max-width: 359px) {
@@ -358,6 +394,10 @@ body[data-page="rosters"] .ss-loading { display: flex; flex: 1; flex-direction: 
 
 /* Tablet and desktop are deliberately independent compositions. */
 @media (min-width: 820px) {
+  body[data-page="rosters"] .ss-loading-stage {justify-content: center;gap: 25px;padding: 35px;}
+  body[data-page="rosters"] .ss-loading-copy h2 {font-size: 30px;}
+  body[data-page="rosters"] .ss-loading-player {padding: 20px;}
+  body[data-page="rosters"] .ss-loading-player strong {font-size: 18px;}
   body[data-page="rosters"] #tradeSimulator.ss-preview-mount { max-width: 760px; bottom: 16px; }
   body[data-page="rosters"] .ss-preview { max-height: 50dvh; border-radius: 24px; }
   body[data-page="rosters"] .ss-preview-header { padding: 14px 18px 12px; }

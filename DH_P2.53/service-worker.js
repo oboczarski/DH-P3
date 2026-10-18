@@ -68,7 +68,9 @@
 // Refresh the Matchups defense heading's ordinal rank and positional scoring title.
 // Refresh roster BYE/injury badges, labeled five-game previews and comparison
 // value/bar signals together with the schedule exposed by the roster loader.
-const CACHE_NAME = 'DH3.51f-rosters-availability';
+// Refresh Start/Sit's Game Logs navigation, matching published matchup ranks,
+// trajectory point labels and dashboard-shaped comparison loading surface.
+const CACHE_NAME = 'DH3.51g-start-sit-drilldowns';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

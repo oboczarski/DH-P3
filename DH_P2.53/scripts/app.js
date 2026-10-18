@@ -53,6 +53,7 @@ let rostersMatchupsLoadFailed = false;
 let rostersDecisionRequest = 0;
 let rostersDecisionSavedOverflow = null;
 let rostersDecisionOpener = null;
+let rostersDecisionGameLogsContext = null;
 const gameLogsModal = document.getElementById('game-logs-modal');
 const gameLogsSeasonDropdown = document.querySelector('[data-gamelogs-season-dropdown]');
 const gameLogsSeasonToggle = document.getElementById('gamelogsSeasonToggle');
@@ -1909,6 +1910,9 @@ if (pageType === 'rosters') {
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !gameLogsModal.classList.contains('hidden')) {
+                // A nested Game Logs dialog consumes Escape so the comparison
+                // beneath it remains open when the document listener runs next.
+                e.preventDefault();
                 closeGameLogsSeasonMenu();
                 closeModal();
             }
@@ -1920,7 +1924,7 @@ if (pageType === 'rosters') {
         if (closeBtn) closeBtn.addEventListener('click', () => closeComparisonModal());
         if (overlay) overlay.addEventListener('click', () => closeComparisonModal());
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !playerComparisonModal.classList.contains('hidden')) {
+            if (e.key === 'Escape' && !e.defaultPrevented && !playerComparisonModal.classList.contains('hidden')) {
                 closeComparisonModal();
             }
         });
@@ -5632,6 +5636,7 @@ function getPickData(pick, leagueInfo) {
 // --- UI Rendering ---
 async function handlePlayerNameClick(player) {
     const requestSeq = ++gameLogsModalRequestSeq;
+    const decisionContext = rostersDecisionGameLogsContext;
     state.currentGameLogsPlayer = null;
     state.currentGameLogsPlayerRanks = null;
     state.currentGameLogsSummary = null;
@@ -5701,7 +5706,14 @@ async function handlePlayerNameClick(player) {
         gameLogsModal.style.zIndex = '1050';
     }
     openModal();
-    const gameLogs = await fetchGameLogs(player.id);
+    let gameLogs;
+    try {
+        gameLogs = await fetchGameLogs(player.id);
+    } finally {
+        // Source reads can finish after a nested dialog is closed. Restore the
+        // workspace snapshot again so a late historical load cannot replace it.
+        if (isStaleRequest() && decisionContext?.closed) restoreRostersDecisionGameLogsSources(decisionContext);
+    }
     if (isStaleRequest()) return;
 
     // Remove loading classes and panel before rendering content
@@ -9595,6 +9607,82 @@ function createPickRow(pick, teamName) {
     if (pick.ktc) row.querySelector('.pick-ktc .value').style.color = getKtcColor(pick.ktc);
     return row;
 }
+// Names in the preview/comparison open the existing Rosters Game Logs. Capture
+// source references before that modal can switch seasons; preserve the mounted
+// comparison, chart mode, selected pair and scroll by leaving their DOM intact.
+const ROSTERS_DECISION_SOURCE_KEYS = ['currentGameLogsSeason', 'activeRostersGameLogsSeason',
+    'playerSeasonStats', 'playerSeasonRanks', 'playerWeeklyStats', 'weeklyStats', 'playerProjectionWeeks',
+    'seasonRankCache', 'calculatedRankCache', 'leagueMatchupStats', 'matchupDataLoaded',
+    'liveWeeklyStats', 'liveStatsLoaded', 'lastLiveStatsWeek', 'currentNflWeek', 'currentNflSeason', 'isGameLogFromStatsPage'];
+function restoreRostersDecisionGameLogsSources(context) {
+    if (!context?.closed || state.currentLeagueId !== context.leagueId || rostersDecisionGameLogsContext) return;
+    Object.assign(state, context.sources);
+}
+function restoreRostersDecisionGameLogs() {
+    const context = rostersDecisionGameLogsContext;
+    if (!context) return;
+    context.closed = true;
+    rostersDecisionGameLogsContext = null;
+    restoreRostersDecisionGameLogsSources(context);
+    gameLogsModal.removeEventListener('keydown', context.keyHandler);
+    gameLogsModal.classList.remove('ss-decision-gamelogs');
+    gameLogsModal.style.zIndex = '';
+    for (const [attribute, value] of Object.entries(context.modalAttributes)) {
+        if (value === null) gameLogsModal.removeAttribute(attribute);
+        else gameLogsModal.setAttribute(attribute, value);
+    }
+    context.sourceRoot.inert = context.wasInert;
+    if (context.sourceAriaModal !== null) context.sourceRoot.setAttribute('aria-modal', context.sourceAriaModal);
+    document.body.style.overflow = context.overflow;
+    setGameLogsSelectedSeason(state.currentGameLogsSeason, { resetCareer: false });
+    if (state.currentLeagueId === context.leagueId && context.opener?.isConnected) context.opener.focus({ preventScroll: true });
+}
+async function openRostersDecisionGameLogs(player, opener = document.activeElement) {
+    if (rostersDecisionGameLogsContext) return;
+    const fromComparison = !playerComparisonModal.classList.contains('hidden');
+    const sourceRoot = fromComparison ? playerComparisonModal : tradeSimulator;
+    const context = { leagueId: state.currentLeagueId, opener, sourceRoot, wasInert: sourceRoot.inert,
+        sourceAriaModal: sourceRoot.getAttribute('aria-modal'), overflow: document.body.style.overflow,
+        modalAttributes: { role: gameLogsModal.getAttribute('role'), 'aria-modal': gameLogsModal.getAttribute('aria-modal') },
+        sources: Object.fromEntries(ROSTERS_DECISION_SOURCE_KEYS.map(key => [key, state[key]])), closed: false };
+    rostersDecisionGameLogsContext = context;
+    sourceRoot.inert = true;
+    sourceRoot.removeAttribute('aria-modal');
+    gameLogsModal.classList.add('ss-decision-gamelogs');
+    gameLogsModal.setAttribute('role', 'dialog');
+    gameLogsModal.setAttribute('aria-modal', 'true');
+    document.body.style.overflow = 'hidden';
+    state.isGameLogModalOpenFromComparison = fromComparison;
+    state.isGameLogFromStatsPage = false;
+    const league = state.leagues.find(entry => entry.league_id === state.currentLeagueId);
+    state.currentGameLogsSeason = String(league?.season || state.currentGameLogsSeason || '2026');
+    context.keyHandler = event => {
+        if (event.key !== 'Tab') return;
+        const controls = [...gameLogsModal.querySelectorAll('button:not(:disabled),select,summary,[tabindex="0"]')].filter(node => node.offsetParent !== null);
+        const first = controls[0], last = controls.at(-1);
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    gameLogsModal.addEventListener('keydown', context.keyHandler);
+    const metadata = getPlayerData(player.id, player.pos || player.basePos || '');
+    try {
+        const pending = handlePlayerNameClick({ ...metadata, id: player.id, name: player.name || player.label,
+            pos: player.basePos || player.pos || metadata.pos, team: player.team || metadata.team });
+        gameLogsModal.querySelector('.modal-close-btn')?.focus({ preventScroll: true });
+        await pending;
+    } catch (error) {
+        if (!context.closed) {
+            console.warn('Unable to open Game Logs from the Rosters workspace.', error);
+            gameLogsModal.classList.remove('loading');
+            modalBody.classList.remove('loading');
+            gameLogsModal.querySelector('.game-logs-loading-container')?.remove();
+            modalBody.innerHTML = '<p role="status" class="no-logs">Game Logs could not load. Close this dialog and try again.</p>';
+        }
+    } finally {
+        if (context.closed) restoreRostersDecisionGameLogsSources(context);
+    }
+}
+
 // Start/Sit and player comparison share snapshots of the current Rosters source.
 // Only completed CSV rows supply chart results; future Sheets PROJ and live
 // stat overlays never become a played game or advance the chart cutoff.
@@ -9706,6 +9794,8 @@ async function openRostersDecisionComparison(players) {
     if (players.length < 2) return;
     const request = ++rostersDecisionRequest;
     const body = document.getElementById('comparison-modal-body');
+    const league = state.leagues.find(entry => entry.league_id === state.currentLeagueId);
+    const season = String(league?.season || state.currentGameLogsSeason || '2026');
     rostersDecisionOpener = document.activeElement;
     if (rostersDecisionSavedOverflow === null) rostersDecisionSavedOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -9717,15 +9807,12 @@ async function openRostersDecisionComparison(players) {
     playerComparisonModal.classList.remove('hidden');
     comparisonBackgroundOverlay?.classList.remove('hidden');
     rosterGrid?.classList.add('hidden');
-    body.innerHTML = '<div class="ss-loading"><p role="status">Preparing your player comparison…</p><button type="button" class="ss-primary" data-ss-loading-close>Back to players</button></div>';
-    body.querySelector('[data-ss-loading-close]').addEventListener('click', closeComparisonModal);
+    window.RostersStartSit.renderLoading({ mount: body, players, season, onClose: closeComparisonModal });
     body.querySelector('[data-ss-loading-close]').focus({ preventScroll: true });
     try {
         // Reuse Game Logs readiness without touching its renderer or loading
         // DataHub. Force the league season so historical drill-down state cannot
         // send Start/Sit to a different year's player sources.
-        const league = state.leagues.find(entry => entry.league_id === state.currentLeagueId);
-        const season = String(league?.season || state.currentGameLogsSeason || '2026');
         state.currentGameLogsSeason = season;
         if (season === '2026') {
             await window.ensureRosters2026ProjectionsLoaded();
@@ -9737,12 +9824,13 @@ async function openRostersDecisionComparison(players) {
         if (request !== rostersDecisionRequest || playerComparisonModal.classList.contains('hidden')) return;
         window.RostersStartSit.renderComparison({ mount: body,
             players: players.map(buildRostersDecisionPlayer), season,
-            week: getCurrentNflWeekNumber(), onClose: closeComparisonModal });
+            week: getCurrentNflWeekNumber(), onClose: closeComparisonModal, onGameLogs: openRostersDecisionGameLogs });
         const close = body.querySelector('[data-ss-close]');
         close?.focus({ preventScroll: true });
     } catch (error) {
         if (request !== rostersDecisionRequest) return;
         console.warn('Unable to prepare Rosters comparison.', error);
+        window.RostersStartSit.disposeComparison();
         body.innerHTML = '<div class="ss-loading"><p>Player comparison could not load. Please try again.</p><button type="button" class="ss-primary" data-ss-error-close>Back to players</button></div>';
         body.querySelector('[data-ss-error-close]').addEventListener('click', closeComparisonModal);
     }
@@ -9753,6 +9841,7 @@ function renderStartSitPreview() {
     window.RostersStartSit.renderPreview({ mount: tradeSimulator,
         players: selections.map(buildRostersDecisionPlayer), week: getCurrentNflWeekNumber(),
         collapsed: state.isTradeCollapsed, onClear: clearStartSitSelections, onClose: exitStartSitMode,
+        onGameLogs: openRostersDecisionGameLogs,
         onResize: height => { mainContent.style.paddingBottom = `${height + 20}px`; },
         onCollapse: collapsed => {
             state.isTradeCollapsed = collapsed;
@@ -12542,7 +12631,9 @@ function closeModal() {
     state.currentGameLogsPlayerRanks = null;
     state.currentGameLogsSummary = null;
 
-    if (!state.isGameLogModalOpenFromComparison) {
+    if (rostersDecisionGameLogsContext) {
+        restoreRostersDecisionGameLogs();
+    } else if (!state.isGameLogModalOpenFromComparison) {
         closeComparisonModal();
     } else {
         gameLogsModal.style.zIndex = ''; // Reset z-index

@@ -94,15 +94,15 @@
     return `<svg class="ss-spark" viewBox="0 0 180 66" preserveAspectRatio="none" role="img" aria-label="Last ${data.length} games this season: ${escape(description)}"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0.15" y2="1"><stop stop-color="${palette.main}" stop-opacity=".32"/><stop offset=".5" stop-color="${palette.mid}" stop-opacity=".16"/><stop offset="1" stop-color="${palette.deep}" stop-opacity="0"/></linearGradient></defs><path d="M0 ${baseline}H180" stroke="#ffffff14" stroke-dasharray="2 4"/>${areas}${dots}</svg>`;
   }
 
-  // The schedule owns venue text; defense summaries supply only a fallback
-  // opponent/rank. A bare team code never implies a home game.
+  // The schedule owns venue text. Both preview rank locations use the same
+  // published FPFA positional rank/color; DRK belongs to Game Logs only.
   function projectionMatchup(player) {
     const opponent = String(player.matchup?.opponent || player.matchupMetric?.team || '').trim();
     if (player.matchup?.isBye || opponent.toUpperCase() === 'BYE') return '<small class="ss-projection-matchup">BYE</small>';
     const team = opponent.replace(/^(?:vs\.?|@)\s*/i, '').toUpperCase();
     const venue = /^@/.test(opponent) ? '@ ' : /^vs\.?/i.test(opponent) ? 'vs. ' : '';
-    const rank = number(player.matchup?.opponentRank) ?? number(player.matchupMetric?.actualRank);
-    return `<small class="ss-projection-matchup"${rank !== null ? ` style="color:${escape(player.matchup?.color || player.matchupColor || '#91a2bc')}"` : ''}>${escape(team ? `${venue}${team}` : '—')}${rank !== null ? ` (${rank})` : ''}</small>`;
+    const rank = number(player.matchupMetric?.actualRank);
+    return `<small class="ss-projection-matchup"${rank !== null ? ` style="color:${escape(player.matchupColor || '#91a2bc')}"` : ''}>${escape(team ? `${venue}${team}` : '—')}${rank !== null ? ` (${rank})` : ''}</small>`;
   }
 
   // Compare available numeric projections only. Ties, status text and missing
@@ -112,6 +112,18 @@
     const values = players.map(entry => number(entry.projection)).filter(entry => entry !== null);
     if (value === null || values.length < 2 || Math.max(...values) === Math.min(...values)) return '';
     return value === Math.max(...values) ? ' ss-leading' : value === Math.min(...values) ? ' ss-trailing' : '';
+  }
+
+  // Native buttons keep both heading/name areas keyboard-accessible while the
+  // app integration owns Game Logs data, modal stacking and source restoration.
+  function playerNameButton(player) {
+    return `<button type="button" class="ss-player-name-button" data-ss-gamelogs="${escape(player.id)}" aria-label="Open Game Logs for ${escape(player.name)}">${escape(player.name)}</button>`;
+  }
+  function bindPlayerNames(mount, players, onGameLogs) {
+    mount.querySelectorAll('[data-ss-gamelogs]').forEach(button => button.addEventListener('click', () => {
+      const player = players.find(entry => String(entry.id) === button.dataset.ssGamelogs);
+      if (player) onGameLogs?.(player, button);
+    }));
   }
 
   function previewMatchup(player, compact = false) {
@@ -138,7 +150,7 @@
       const seasonPosition = `${player.pos}·${seasonRank ?? '—'}`;
       return `<article class="ss-preview-player ss-side-${index % 2}" aria-label="${escape(player.name)} preview">
         <div class="ss-preview-player-top"><span class="ss-player-index">0${index + 1} <i></i><b title="Season fantasy points rank and total · league scoring">${escape(seasonPosition)} <span>(${escape(player.metrics.fpts?.display || '—')})</span></b></span><button class="ss-remove" type="button" data-ss-remove="${escape(player.id)}" aria-label="Remove ${escape(player.name)}">${icon('close')}</button></div>
-        <div class="ss-preview-identity"><h4>${escape(player.name)}</h4>${logo(player.team)}</div>
+        <div class="ss-preview-identity"><h4>${playerNameButton(player)}</h4>${logo(player.team)}</div>
         <div class="ss-preview-numbers"><div class="ss-preview-projection${projectionState(player, players)}"><span>WEEK ${week || '—'} PROJ</span><strong>${escape(player.projectionDisplay || '—')}</strong>${projectionMatchup(player)}</div><div><span>SEASON PPG</span><b>${escape(player.metrics.ppg?.display || '—')}</b><small>${escape(player.pos)} · ${player.metrics.ppg?.rank ?? '—'}</small></div></div>
         <div class="ss-mini-timeline"><span>Last 5 Games</span>${sparkline(player.weekly, `preview-${player.id}`, index)}</div>
         ${previewMatchup(player)}
@@ -153,6 +165,7 @@
     mount.querySelector('[data-ss-collapse]')?.addEventListener('click', () => onCollapse(true));
     mount.querySelector('[data-ss-reopen]')?.addEventListener('click', () => onCollapse(false));
     mount.querySelectorAll('[data-ss-remove]').forEach(button => button.addEventListener('click', () => onRemove(button.dataset.ssRemove)));
+    bindPlayerNames(mount, players, model.onGameLogs);
     // Responsive tray height can change after font loading, rotation or a new
     // selection. Reserve its measured height so the last roster remains tappable.
     previewObserver?.disconnect();
@@ -160,6 +173,25 @@
     previewObserver.observe(mount);
   }
   function disposePreview() { previewObserver?.disconnect(); previewObserver = null; }
+
+  // Comparison loading retains the dashboard's frame, real player identities
+  // and an immediate exit. Skeleton bars are decorative, never invented stats
+  // or a fabricated completion percentage; the surface stays motionless.
+  function renderLoading(model) {
+    disposeComparison();
+    const { mount, players, season, onClose } = model;
+    const pair = players.slice(0, 2);
+    mount.setAttribute('aria-busy', 'true');
+    mount.innerHTML = `<div class="ss-dashboard ss-loading-dashboard"><header class="ss-dashboard-header"><div class="ss-title-lockup"><span class="ss-app-mark">${icon('layers')}</span><div><span class="ss-eyebrow">START / SIT · PLAYER INTELLIGENCE</span><h1>Head to head<span class="ss-season-pill">${escape(season)}</span></h1></div></div><button class="ss-dashboard-close ss-icon-button" type="button" data-ss-loading-close aria-label="Back to players" title="Back to players">${icon('close')}</button></header>
+      <div class="ss-dashboard-scroll ss-loading-stage"><div class="ss-loading-orbit" aria-hidden="true">${icon('layers')}</div><div class="ss-loading-copy" role="status" aria-live="polite"><span class="ss-eyebrow">YOUR COMPARISON IS TAKING SHAPE</span><h2>Bringing both players into focus.</h2><p>Preparing season stats, scoring history and matchup context.</p></div>
+      <div class="ss-loading-pair">${pair.map((player, side) => `<article class="ss-loading-player ss-side-${side}">${logo(player.team)}<span>${escape(player.pos || player.basePos)}</span><strong>${escape(player.name || player.label)}</strong><div class="ss-loading-lines" aria-hidden="true"><i></i><i></i></div></article>`).join('')}<span class="ss-loading-versus" aria-hidden="true">VS</span></div>
+      <div class="ss-loading-sections" aria-hidden="true">${[['chart', 'Scoring history'], ['layers', 'Season production'], ['shield', 'Matchup context']].map(([symbol, label]) => `<div>${icon(symbol)}<span>${label}</span><i></i></div>`).join('')}</div><span class="ss-loading-footnote">League scoring · ${escape(season)} season</span></div></div>`;
+    const close = mount.querySelector('[data-ss-loading-close]');
+    close.addEventListener('click', onClose);
+    const keyHandler = event => { if (event.key === 'Tab') { event.preventDefault(); close.focus(); } };
+    mount.addEventListener('keydown', keyHandler);
+    mounted = { mount, keyHandler };
+  }
 
   // ECharts is an existing, pinned, locally bundled dependency. It is requested
   // only for a comparison, and a load failure preserves the accessible table.
@@ -215,7 +247,7 @@
     const ppg = number(player.metrics.ppg?.value);
     const difference = proj !== null && ppg !== null ? proj - ppg : null;
     const noProjection = player.matchup?.isBye ? 'Bye week · no game' : proj === null && player.projectionDisplay !== '—' ? 'Weekly status' : 'Projection unavailable';
-    return `<article class="ss-hero-player ss-side-${side}">${logo(player.team, 'ss-hero-watermark')}<div class="ss-hero-player-id"><span class="ss-side-marker">${side === 0 ? 'A' : 'B'}</span><span class="ss-pos-pill">${escape(player.pos)}</span><span>${escape(player.team)}</span>${logo(player.team)}</div><h2>${escape(player.name)}</h2><div class="ss-hero-score"><span class="ss-eyebrow">WEEK ${week || '—'} PROJECTION</span><div><strong>${escape(player.projectionDisplay || '—')}</strong>${proj === null ? '' : '<small>PTS</small>'}</div><span class="ss-vs-average">${difference === null ? noProjection : `${sign(difference)} vs season PPG`}</span></div><div class="ss-hero-baseline"><div><span>SEASON PPG</span><b>${escape(player.metrics.ppg?.display || '—')}</b></div><div><span>FPTS</span><b>${escape(player.metrics.fpts?.display || '—')}</b></div><div><span>GAMES</span><b>${escape(player.metrics.games_played?.display || '—')}</b></div></div>${previewMatchup(player, true)}</article>`;
+    return `<article class="ss-hero-player ss-side-${side}">${logo(player.team, 'ss-hero-watermark')}<div class="ss-hero-player-id"><span class="ss-side-marker">${side === 0 ? 'A' : 'B'}</span><span class="ss-pos-pill">${escape(player.pos)}</span><span>${escape(player.team)}</span>${logo(player.team)}</div><h2>${playerNameButton(player)}</h2><div class="ss-hero-score"><span class="ss-eyebrow">WEEK ${week || '—'} PROJECTION</span><div><strong>${escape(player.projectionDisplay || '—')}</strong>${proj === null ? '' : '<small>PTS</small>'}</div><span class="ss-vs-average">${difference === null ? noProjection : `${sign(difference)} vs season PPG`}</span></div><div class="ss-hero-baseline"><div><span>SEASON PPG</span><b>${escape(player.metrics.ppg?.display || '—')}</b></div><div><span>FPTS</span><b>${escape(player.metrics.fpts?.display || '—')}</b></div><div><span>GAMES</span><b>${escape(player.metrics.games_played?.display || '—')}</b></div></div>${previewMatchup(player, true)}</article>`;
   }
   function weeklyTable(players) {
     const weeks = [...new Set(players.flatMap(player => player.weekly.map(item => item.week)))].sort((a, b) => a - b);
@@ -253,7 +285,7 @@
     const data = seriesFor(players, mode);
     return {
       animation: false, backgroundColor: 'transparent', textStyle: { fontFamily: 'Google Sans, Arial, sans-serif' },
-      grid: { top: 14, left: 39, right: 15, bottom: 30 },
+      grid: { top: 26, left: 39, right: 22, bottom: 34 },
       tooltip: { trigger: 'axis', confine: true, transitionDuration: 0, backgroundColor: '#171f32f5', borderColor: '#8db9df55', padding: [10, 12], textStyle: { color: '#ebf4ff', fontSize: 11 }, axisPointer: { type: 'line', lineStyle: { color: '#d2e5ff66', type: 'dashed' } },
         formatter: items => {
           const index = items[0]?.dataIndex;
@@ -271,6 +303,12 @@
         return { name: player.name, type: 'line', data: data.series[side], connectNulls: false, smooth: false, showSymbol: true, symbol: side === 0 ? 'circle' : 'diamond', symbolSize: 6, clip: true,
           lineStyle: { width: 2.5, color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: p.mid }, { offset: .4, color: p.main }, { offset: .72, color: p.light }, { offset: 1, color: p.main }]), shadowColor: `rgba(${p.rgb},0.3)`, shadowBlur: 7 },
           itemStyle: { color: '#151d2c', borderColor: p.light, borderWidth: 1.6 },
+          // Small labels follow the active weekly/cumulative values. Separate
+          // sides and overlap hiding keep dense seasons readable on phones.
+          label: { show: true, position: side === 0 ? 'top' : 'bottom', distance: 7,
+            color: p.light, fontSize: narrow ? 8 : 9, textBorderColor: '#192334', textBorderWidth: 3,
+            formatter: item => number(item.value) === null ? '' : fmt(item.value) },
+          labelLayout: { hideOverlap: true },
           areaStyle: { origin: 'auto', opacity: 1, color: new echarts.graphic.LinearGradient(0, 0, .2, 1, [{ offset: 0, color: `rgba(${p.rgb},.26)` }, { offset: .28, color: `rgba(${p.rgb},.15)` }, { offset: .63, color: `rgba(${p.rgb},.055)` }, { offset: 1, color: `rgba(${p.rgb},0)` }]) },
           emphasis: { disabled: true }, animation: false, z: 3 - side };
       }),
@@ -283,6 +321,7 @@
     sequence += 1;
     if (mounted) {
       mounted.observer?.disconnect(); mounted.chart?.dispose();
+      mounted.mount.removeAttribute('aria-busy');
       if (mounted.keyHandler) mounted.mount.removeEventListener('keydown', mounted.keyHandler);
       mounted = null;
     }
@@ -297,6 +336,7 @@
       const pair = ids.map(id => model.players.find(player => player.id === id));
       if (pair.some(player => !player)) return;
       model.mount.innerHTML = comparisonMarkup(model, pair, chartMode);
+      bindPlayerNames(model.mount, pair, model.onGameLogs);
       model.mount.querySelector('[data-ss-close]').addEventListener('click', model.onClose);
       model.mount.querySelector('[data-ss-swap]').addEventListener('click', () => { ids.reverse(); paint('[data-ss-swap]'); });
       model.mount.querySelectorAll('[data-ss-pick]').forEach(select => select.addEventListener('change', () => {
@@ -308,7 +348,7 @@
       model.mount.querySelectorAll('[data-ss-chart]').forEach(button => button.addEventListener('click', () => {
         chartMode = button.dataset.ssChart;
         model.mount.querySelectorAll('[data-ss-chart]').forEach(other => other.setAttribute('aria-pressed', String(other === button)));
-        if (mounted?.chart) mounted.chart.setOption(timelineOption(pair, chartMode, window.echarts, model.mount.clientWidth < 500), true);
+        if (mounted?.chart) mounted.chart.setOption(timelineOption(pair, chartMode, window.echarts, model.mount.querySelector('.ss-timeline-chart').clientWidth < 500), true);
         model.mount.querySelector('.ss-timeline-chart').setAttribute('aria-label', `${chartMode} fantasy points for ${pair.map(player => player.name).join(' and ')}`);
       }));
       model.mount.querySelectorAll('[data-ss-section]').forEach(button => button.addEventListener('click', () => {
@@ -354,5 +394,5 @@
     };
     paint();
   }
-  window.RostersStartSit = Object.freeze({ renderPreview, renderComparison, disposeComparison, disposePreview, seriesFor, overviewSections: OVERVIEW });
+  window.RostersStartSit = Object.freeze({ renderPreview, renderLoading, renderComparison, disposeComparison, disposePreview, seriesFor, overviewSections: OVERVIEW });
 })();

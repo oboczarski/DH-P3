@@ -29,7 +29,7 @@ function harness(season = '2026') {
     + slice('function getGameLogsSeasonDisplayValue({', '// Rosters Game Logs Season headers own')
     + slice('function buildRostersDecisionPlayer(input) {', 'async function openRostersDecisionComparison(')
     // Test the actual private renderers without expanding the production API.
-    + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, metricRow, sparkline, projectionMatchup, projectionState'), context);
+    + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, metricRow, sparkline, projectionMatchup, projectionState, timelineOption, playerHero'), context);
   return context;
 }
 
@@ -159,12 +159,14 @@ function previewPlayer(id, projection = 18.5) {
   return { id, name: `Player ${id}`, pos: 'RB', team: 'BUF', projection,
     projectionDisplay: projection === null ? 'OUT' : projection.toFixed(1),
     metrics: { fpts: { value: 110.2, display: '110.2', rank: 24 }, ppg: { display: '18.4', rank: 12 } },
-    weekly: [], matchup: { opponent: '@ HOU', opponentRank: 7 } };
+    weekly: [], matchup: { opponent: '@ HOU', opponentRank: 30 },
+    matchupMetric: { team: 'HOU', actualRank: 7 }, matchupColor: '#82d8bee0' };
 }
 
 test('preview shows season positional FPTS rank/total and schedule matchup directly below projection', () => {
   const first = previewPlayer('one');
-  const second = { ...previewPlayer('two', 12.5), matchup: { opponent: 'vs. NYJ', opponentRank: 21 } };
+  const second = { ...previewPlayer('two', 12.5), matchup: { opponent: 'vs. NYJ', opponentRank: 3 },
+    matchupMetric: { team: 'NYJ', actualRank: 21 } };
   const markup = renderPreview([first, second]);
   assert.match(markup, /RB·24 <span>\(110\.2\)<\/span>/);
   assert.match(markup, /<strong>18\.5<\/strong><small class="ss-projection-matchup"[^>]*>@ HOU \(7\)<\/small>/);
@@ -220,4 +222,94 @@ test('comparison values and bars agree on better/worse for higher/lower stats an
   for (const markup of [row('fpts', 10, 10), row('fpts', 10, null), row('ttt', 2, 3)]) {
     assert.doesNotMatch(markup, /ss-leading|ss-trailing/);
   }
+});
+
+test('both preview matchup ranks use FPFA, including matching missing/loading states', () => {
+  const player = previewPlayer('rank-parity');
+  const markup = renderPreview([player]);
+  assert.match(markup, /ss-projection-matchup[^>]*>@ HOU \(7\)<\/small>/);
+  assert.match(markup, /ss-rank-pill[^>]*>#7<small>/);
+  assert.doesNotMatch(markup, /HOU \(30\)/);
+  assert.match(markup, /ss-projection-matchup" style="color:#82d8bee0"/);
+  player.matchupMetric = null;
+  const unavailable = renderPreview([player]);
+  assert.match(unavailable, /ss-projection-matchup">@ HOU<\/small>/);
+  assert.match(unavailable, /ss-rank-pill[^>]*>—<\/span>/);
+  assert.doesNotMatch(unavailable, /\(30\)/, 'Game Logs DRK is never substituted during matchup loading/failure');
+});
+
+test('preview and comparison names are native Game Logs buttons and preview activation forwards the player', () => {
+  const context = harness();
+  context.ResizeObserver = class { observe() {} disconnect() {} };
+  const player = previewPlayer('one');
+  let clicked, handler;
+  const button = { dataset: { ssGamelogs: 'one' }, addEventListener: (event, callback) => { handler = callback; } };
+  const mount = { classList: { add() {}, toggle() {} }, querySelector: () => null,
+    querySelectorAll: selector => selector === '[data-ss-gamelogs]' ? [button] : [] };
+  context.window.RostersStartSit.renderPreview({ mount, players: [player], week: 7, onGameLogs: (...args) => { clicked = args; } });
+  assert.match(mount.innerHTML, /<h4><button type="button" class="ss-player-name-button" data-ss-gamelogs="one"/);
+  assert.match(mount.innerHTML, /aria-label="Open Game Logs for Player one"/);
+  handler();
+  assert.equal(clicked[0], player);
+  assert.equal(clicked[1], button);
+  assert.match(context.window.RostersStartSit.playerHero(player, 0, 7), /<h2><button type="button" class="ss-player-name-button" data-ss-gamelogs="one"/);
+});
+
+test('trajectory labels track weekly/cumulative values without labeling unavailable games', () => {
+  const { timelineOption } = harness().window.RostersStartSit;
+  const echarts = { graphic: { LinearGradient: class {} } };
+  const players = [{ name: 'First', weekly: [{ week: 1, points: 0 }, { week: 2, points: -2 }, { week: 3, points: null }, { week: 4, points: 8 }] },
+    { name: 'Second', weekly: [{ week: 1, points: 2 }, { week: 2, points: 4 }] }];
+  for (const mode of ['weekly', 'cumulative']) {
+    const option = timelineOption(players, mode, echarts, true);
+    assert.ok(option.series.every(series => series.label.show && series.label.fontSize === 8 && series.labelLayout.hideOverlap));
+    assert.equal(option.series[0].label.position, 'top');
+    assert.equal(option.series[1].label.position, 'bottom');
+    assert.equal(option.series[0].label.formatter({ value: 0 }), '0.0');
+    assert.equal(option.series[0].label.formatter({ value: -2 }), '-2.0');
+    assert.equal(option.series[0].label.formatter({ value: null }), '');
+    assert.equal(option.series[0].data[3], mode === 'weekly' ? 8 : 6);
+    assert.equal(option.series[0].label.formatter({ value: option.series[0].data[3] }), mode === 'weekly' ? '8.0' : '6.0');
+  }
+});
+
+test('comparison loading shows real player identities, announces its state, and disposes its keyboard trap', () => {
+  const { renderLoading, disposeComparison } = harness().window.RostersStartSit;
+  const attributes = {}, listeners = {};
+  let closed = false, focused = false;
+  const button = { addEventListener: (event, handler) => { listeners[event] = handler; }, focus: () => { focused = true; } };
+  const mount = { setAttribute: (key, value) => { attributes[key] = value; }, removeAttribute: key => { delete attributes[key]; },
+    querySelector: () => button, addEventListener: (event, handler) => { listeners[event] = handler; },
+    removeEventListener: event => { delete listeners[event]; } };
+  renderLoading({ mount, players: [previewPlayer('one'), previewPlayer('two')], season: '2026', onClose: () => { closed = true; } });
+  assert.equal(attributes['aria-busy'], 'true');
+  assert.match(mount.innerHTML, /ss-loading-dashboard/);
+  assert.match(mount.innerHTML, /role="status" aria-live="polite"/);
+  assert.match(mount.innerHTML, />Player one<\/strong>/);
+  assert.match(mount.innerHTML, />Player two<\/strong>/);
+  listeners.keydown({ key: 'Tab', preventDefault() {} });
+  assert.ok(focused);
+  listeners.click();
+  assert.ok(closed);
+  disposeComparison();
+  assert.equal(attributes['aria-busy'], undefined);
+  assert.equal(listeners.keydown, undefined);
+});
+
+test('closing nested Game Logs restores source references only for its original league and closed context', () => {
+  const state = { currentLeagueId: 'fixture', currentGameLogsSeason: '2025', playerWeeklyStats: { historical: true } };
+  const context = vm.createContext({ state, rostersDecisionGameLogsContext: null });
+  vm.runInContext(slice('function restoreRostersDecisionGameLogsSources(', 'function restoreRostersDecisionGameLogs()'), context);
+  const original = { currentGameLogsSeason: '2026', playerWeeklyStats: { original: true }, currentNflWeek: 7 };
+  const navigation = { leagueId: 'fixture', sources: original, closed: false };
+  context.restoreRostersDecisionGameLogsSources(navigation);
+  assert.equal(state.currentGameLogsSeason, '2025');
+  navigation.closed = true;
+  context.restoreRostersDecisionGameLogsSources(navigation);
+  assert.equal(state.currentGameLogsSeason, '2026');
+  assert.equal(state.playerWeeklyStats, original.playerWeeklyStats);
+  assert.equal(state.currentNflWeek, 7);
+  state.currentLeagueId = 'new-league'; state.currentGameLogsSeason = '2025';
+  context.restoreRostersDecisionGameLogsSources(navigation);
+  assert.equal(state.currentGameLogsSeason, '2025', 'late loads cannot reset a different league');
 });
