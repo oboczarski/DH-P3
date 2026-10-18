@@ -327,6 +327,9 @@
             const projectionWeeks = Object.fromEntries(Array.from({ length: 18 - latestRecordedWeek }, (_, index) => [latestRecordedWeek + index + 1, true]));
             const snapshot = { seasonStats, seasonRanks: buildRanks(players, weeksOfData, latestRecordedWeek),
                 cardSeasonRanks: buildRanks(players, weeksOfData, latestRecordedWeek, false), weeklyStats,
+                // Regular roster badges need the team's bye even for IR/rookie
+                // players who have no DH season row or recorded weekly result.
+                scheduleByTeam: Object.fromEntries(schedule),
                 latestRecordedWeek, rankQualifierWeeks: Math.max(1, weeksOfData), weekErrors, projectionWeeks };
             applyRosters2026Projections(snapshot);
             state.rosters2026GameLogs = snapshot;

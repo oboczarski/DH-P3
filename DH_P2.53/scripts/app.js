@@ -9320,6 +9320,33 @@ function createTaxiRow(item, teamName) {
     if (item.isPlaceholder) return createEmptyTaxiRow();
     return createPlayerRow(item, teamName);
 }
+// Regular Rosters cards combine this week's schedule status and injury in the
+// existing badge slot. Only the injury after BYE is abbreviated; its original
+// designation still selects the color and supplies the accessible full label.
+function buildRosterAvailabilityBadge(player, injuryDesignation, includeBye = false) {
+    const injuryCode = String(injuryDesignation?.designation || '').toUpperCase();
+    const hasInjury = injuryCode !== 'BYE' && Object.hasOwn(INJURY_DESIGNATION_COLORS, injuryCode);
+    const week = getCurrentNflWeekNumber();
+    const league = state.leagues.find(entry => entry.league_id === state.currentLeagueId);
+    const season = String(league?.season || state.currentGameLogsSeason);
+    const rawTeam = String(player.team || state.players[player.id]?.team || '').toUpperCase();
+    const team = ({ WSH: 'WAS', JAC: 'JAX', LA: 'LAR' })[rawTeam] || rawTeam;
+    const scheduleOpponent = season === '2026' ? state.rosters2026GameLogs?.scheduleByTeam?.[team]?.[week] : null;
+    const matchup = scheduleOpponent == null ? getPlayerMatchupForWeek(player.id, week) : null;
+    const isBye = includeBye && (scheduleOpponent != null
+        ? String(scheduleOpponent).trim().toUpperCase() === 'BYE'
+        : matchup?.isBye === true || injuryCode === 'BYE');
+    if (!isBye && !hasInjury) return '';
+    const designation = hasInjury ? (isBye && injuryCode !== 'IR' ? injuryCode[0] : injuryCode) : '';
+    const injuryHtml = hasInjury
+        ? `<span style="color:${INJURY_DESIGNATION_COLORS[injuryCode]};">${escapeHtml(designation)}</span>` : '';
+    const content = isBye
+        ? `<span class="roster-bye-label">BYE</span>${hasInjury ? `<span class="roster-availability-separator"> | </span>${injuryHtml}` : ''}`
+        : injuryHtml;
+    const label = [isBye ? 'Bye week' : '', hasInjury ? `Injury designation: ${injuryCode}` : ''].filter(Boolean).join('; ');
+    return `<span class="roster-injury-indicator" role="img" aria-label="${escapeHtml(label)}">${content}</span>`;
+}
+
 function createPlayerRow(player, teamName) {
     const row = document.createElement('div');
     row.className = 'player-row';
@@ -9395,15 +9422,13 @@ function createPlayerRow(player, teamName) {
     const ktcPosRankMatch = typeof player.posRank === 'string' ? player.posRank.match(/(\d+)/) : null;
     const rawKtcPosRankNumber = ktcPosRankMatch ? Number.parseInt(ktcPosRankMatch[1], 10) : null;
     const ktcPosRankNumber = Number.isFinite(rawKtcPosRankNumber) && rawKtcPosRankNumber > 0 ? rawKtcPosRankNumber : null;
-    // Rosters player cards show the existing Sleeper/upcoming injury designation
-    // beside the age in Trade Preview, or in the corner in other roster views.
-    // BYE/numeric/unknown projection values are not injuries.
+    // Default roster cards add BYE in the injury slot. Trade Preview and the
+    // selectable Start/Sit cards retain their existing injury-only badges.
     const injuryDesignation = pageType === 'rosters'
         ? player.injuryDesignation || getSleeperInjuryDesignation(player.id) || getUpcomingProjectionDesignation(player.id)
         : null;
-    const injuryCode = String(injuryDesignation?.designation || '').toUpperCase();
-    const injuryBadgeHtml = pageType === 'rosters' && injuryCode !== 'BYE' && Object.hasOwn(INJURY_DESIGNATION_COLORS, injuryCode)
-        ? `<span class="roster-injury-indicator" role="img" aria-label="Injury designation: ${escapeHtml(injuryCode)}" style="color:${INJURY_DESIGNATION_COLORS[injuryCode]};">${escapeHtml(injuryCode)}</span>`
+    const injuryBadgeHtml = pageType === 'rosters'
+        ? buildRosterAvailabilityBadge(player, injuryDesignation, !state.isCompareMode && !state.isStartSitMode)
         : '';
     const condensedPosRankHtml = isCondensedView
         ? `<span class="player-pos-rank condensed-pos-rank" style="color: ${effectivePosRankColor}; font-weight: 400;">${fptsPosRankDisplay}</span>`

@@ -54,6 +54,7 @@ test('Rosters Overview comparison retains literal DH totals, rates and age witho
   assert.equal(stats.age, 30.3);
   assert.equal(stats.yds_total, undefined);
   assert.equal(snapshot.seasonRanks['4984'].age, undefined, 'identity metadata is not performance-ranked');
+  assert.equal(snapshot.scheduleByTeam.BUF[7], 'BYE', 'team schedule also covers roster players absent from the season totals');
 });
 
 test('Rosters accepts spaced DRK rank headers before activating the league card snapshot', async () => {

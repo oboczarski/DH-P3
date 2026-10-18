@@ -28,7 +28,8 @@ function harness(season = '2026') {
     + slice('const SZN_STAT_SECTIONS_BY_POS = {', 'function computeSznProgressPercent(')
     + slice('function getGameLogsSeasonDisplayValue({', '// Rosters Game Logs Season headers own')
     + slice('function buildRostersDecisionPlayer(input) {', 'async function openRostersDecisionComparison(')
-    + presentation, context);
+    // Test the actual private renderers without expanding the production API.
+    + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, metricRow, sparkline, projectionMatchup, projectionState'), context);
   return context;
 }
 
@@ -109,4 +110,114 @@ test('comparison bars retain the same percentage units as the Game Logs display'
   const qb = context.buildRostersDecisionPlayer({ id: 'one', pos: 'QB' });
   assert.equal(qb.metrics.dp_pct.display, '25.0%');
   assert.equal(qb.metrics.dp_pct.value, 25);
+});
+
+// Availability belongs to regular roster cards, including players with no
+// season row. Full injury names still select the original badge colors.
+function availabilityHarness() {
+  const state = { currentNflWeek: 7, currentLeagueId: 'fixture', currentGameLogsSeason: '2026',
+    leagues: [{ league_id: 'fixture', season: '2026' }], players: {},
+    rosters2026GameLogs: { scheduleByTeam: { BUF: { 7: 'BYE', 8: 'vs BAL' }, JAX: { 7: 'BYE' } } } };
+  const context = vm.createContext({ state, getCurrentNflWeekNumber: () => state.currentNflWeek,
+    getPlayerMatchupForWeek: () => null, escapeHtml: value => String(value) });
+  vm.runInContext(slice('const INJURY_DESIGNATION_COLORS = {', 'function parseInjuryDesignation(')
+    + slice('function buildRosterAvailabilityBadge(', 'function createPlayerRow('), context);
+  return context;
+}
+
+test('default roster badges show BYE plus an abbreviated injury in its original color', () => {
+  const context = availabilityHarness();
+  const player = { id: 'no-season-row', team: 'BUF' };
+  for (const [designation, shortened, color] of [['IR', 'IR', '#d93d76'], ['OUT', 'O', '#D47DC6'],
+    ['PUP', 'P', '#D47DC6'], ['Q', 'Q', '#fd9a3dff'], ['D', 'D', '#e780c3ff'],
+    ['SUS', 'S', '#d93d76'], ['DNP', 'D', 'rgba(255, 174, 227, 0.47)']]) {
+    const markup = context.buildRosterAvailabilityBadge(player, { designation }, true);
+    assert.ok(markup.includes('>BYE</span><span class="roster-availability-separator"> | </span>'));
+    assert.ok(markup.includes(`style="color:${color};">${shortened}</span>`));
+    assert.ok(markup.includes(`Injury designation: ${designation}`), 'accessible injury name stays complete');
+  }
+  assert.match(context.buildRosterAvailabilityBadge(player, null, true), />BYE<\/span>/);
+  assert.doesNotMatch(context.buildRosterAvailabilityBadge(player, null, true), / \| /);
+  assert.match(context.buildRosterAvailabilityBadge({ ...player, team: 'JAC' }, null, true), />BYE<\/span>/);
+  assert.equal(context.buildRosterAvailabilityBadge(player, { designation: 'NA' }, false), '');
+  assert.equal(context.buildRosterAvailabilityBadge(player, null, false), '', 'other card modes do not add BYE');
+  assert.match(context.buildRosterAvailabilityBadge(player, { designation: 'OUT' }, false), />OUT<\/span>/);
+  context.state.currentNflWeek = 8;
+  assert.doesNotMatch(context.buildRosterAvailabilityBadge(player, { designation: 'OUT' }, true), />BYE<\/span>/);
+  assert.match(context.buildRosterAvailabilityBadge(player, { designation: 'OUT' }, true), />OUT<\/span>/);
+});
+
+function renderPreview(players) {
+  const context = harness();
+  context.ResizeObserver = class { observe() {} disconnect() {} };
+  const mount = { classList: { add() {}, toggle() {} }, querySelector: () => null, querySelectorAll: () => [] };
+  context.window.RostersStartSit.renderPreview({ mount, players, week: 7 });
+  return mount.innerHTML;
+}
+
+function previewPlayer(id, projection = 18.5) {
+  return { id, name: `Player ${id}`, pos: 'RB', team: 'BUF', projection,
+    projectionDisplay: projection === null ? 'OUT' : projection.toFixed(1),
+    metrics: { fpts: { value: 110.2, display: '110.2', rank: 24 }, ppg: { display: '18.4', rank: 12 } },
+    weekly: [], matchup: { opponent: '@ HOU', opponentRank: 7 } };
+}
+
+test('preview shows season positional FPTS rank/total and schedule matchup directly below projection', () => {
+  const first = previewPlayer('one');
+  const second = { ...previewPlayer('two', 12.5), matchup: { opponent: 'vs. NYJ', opponentRank: 21 } };
+  const markup = renderPreview([first, second]);
+  assert.match(markup, /RB·24 <span>\(110\.2\)<\/span>/);
+  assert.match(markup, /<strong>18\.5<\/strong><small class="ss-projection-matchup"[^>]*>@ HOU \(7\)<\/small>/);
+  assert.match(markup, />vs\. NYJ \(21\)<\/small>/);
+  assert.match(markup, /ss-preview-projection ss-leading/);
+  assert.match(markup, /ss-preview-projection ss-trailing/);
+  assert.equal((markup.match(/>Last 5 Games<\/span>/g) || []).length, 2);
+  assert.match(markup, />Matchup Breakdown /);
+});
+
+test('projection comparison preserves numeric zero and leaves ties/status/missing data neutral', () => {
+  const { projectionState, projectionMatchup } = harness().window.RostersStartSit;
+  const zero = previewPlayer('zero', 0), high = previewPlayer('high', 8), missing = previewPlayer('missing', null);
+  assert.equal(projectionState(zero, [zero, high]), ' ss-trailing');
+  assert.equal(projectionState(high, [zero, high]), ' ss-leading');
+  assert.equal(projectionState(zero, [zero, zero]), '');
+  assert.equal(projectionState(missing, [high, missing]), '');
+  assert.equal(projectionState(high, [high, missing]), '');
+  assert.equal(projectionMatchup({ matchup: { opponent: 'BYE', isBye: true } }), '<small class="ss-projection-matchup">BYE</small>');
+  assert.match(projectionMatchup({ matchup: { opponent: 'HOU' } }), />HOU<\/small>/, 'unknown venue is not invented');
+});
+
+test('preview sparkline labels the last five games, skipping gaps while keeping zero and negative scores', () => {
+  const { sparkline } = harness().window.RostersStartSit;
+  const weekly = [12, 11, null, 0, null, -2, 18, null, 9, 6].map((points, index) => ({ week: index + 1, points }));
+  const markup = sparkline(weekly, 'fixture');
+  assert.equal((markup.match(/class="ss-spark-value"/g) || []).length, 5);
+  assert.match(markup, /Week 4: 0\.0 points; Week 6: -2\.0 points; Week 7: 18\.0 points; Week 9: 9\.0 points; Week 10: 6\.0 points/);
+  assert.doesNotMatch(markup, /Week 1:/);
+  assert.equal((sparkline(weekly.slice(0, 3), 'short').match(/class="ss-spark-value"/g) || []).length, 2);
+  assert.match(sparkline([{ week: 1, points: 0 }], 'zero'), />0\.0<\/text>/);
+  assert.match(sparkline([{ week: 1, points: null }], 'empty'), /No recorded games/);
+});
+
+test('comparison values and bars agree on better/worse for higher/lower stats and stay neutral for ties/gaps/context', () => {
+  const { metricRow } = harness().window.RostersStartSit;
+  const players = [{ pos: 'QB', labels: {}, metrics: {} }, { pos: 'QB', labels: {}, metrics: {} }];
+  const row = (key, a, b) => {
+    players[0].metrics[key] = { value: a, display: a === null ? '—' : String(a), rank: 5 };
+    players[1].metrics[key] = { value: b, display: b === null ? '—' : String(b), rank: 21 };
+    return metricRow(key, players);
+  };
+  for (const [key, a, b, winner] of [['fpts', 110, 90, 0], ['fpts', -2, 0, 1], ['pass_int', 1, 4, 0],
+    ['pass_sack', 4, 1, 1], ['fum', 0, 1, 0], ['overall_rank', 21, 5, 1]]) {
+    const markup = row(key, a, b);
+    assert.match(markup, new RegExp(`ss-metric-value ss-side-${winner} ss-leading`));
+    assert.match(markup, new RegExp(`ss-track ss-side-${1 - winner} ss-trailing`));
+    assert.match(markup, new RegExp(`ss-metric-value ss-side-${1 - winner} ss-trailing`));
+    assert.match(markup, /QB·5<\/small>/);
+    assert.match(markup, /QB·21<\/small>/);
+    assert.doesNotMatch(markup, /QB #/);
+  }
+  for (const markup of [row('fpts', 10, 10), row('fpts', 10, null), row('ttt', 2, 3)]) {
+    assert.doesNotMatch(markup, /ss-leading|ss-trailing/);
+  }
 });

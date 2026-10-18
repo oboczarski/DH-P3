@@ -66,7 +66,9 @@
 // Refresh Matchups' main filters, defense badges and weekly/scatter position
 // gradients together; their mobile/desktop styles remain independently owned.
 // Refresh the Matchups defense heading's ordinal rank and positional scoring title.
-const CACHE_NAME = 'DH3.51e-matchups-header-rank';
+// Refresh roster BYE/injury badges, labeled five-game previews and comparison
+// value/bar signals together with the schedule exposed by the roster loader.
+const CACHE_NAME = 'DH3.51f-rosters-availability';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

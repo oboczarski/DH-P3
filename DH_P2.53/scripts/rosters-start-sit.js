@@ -74,28 +74,44 @@
     return `<img class="ss-logo ${className}" src="../assets/NFL_logos_svg/${normalized.toLowerCase()}.svg" width="32" height="32" alt="${className === 'ss-hero-watermark' ? '' : escape(normalized)}"${className === 'ss-hero-watermark' ? ' aria-hidden="true"' : ''} decoding="async">`;
   }
 
-  // Sparkline gaps use separate paths, so BYEs/DNP/missing weeks never connect
-  // through a fabricated result. The zero baseline also retains negative games.
+  // Preview history is the last five played games this season, rather than
+  // calendar weeks. BYE/DNP/missing results are skipped; zero/negative games
+  // remain real appearances, with point labels and their original week numbers.
   function sparkline(weekly, uid, side = 0) {
-    const data = weekly.slice(-8);
-    const values = data.map(item => number(item.points)).filter(item => item !== null);
+    const data = weekly.filter(item => number(item.points) !== null).slice(-5);
+    const values = data.map(item => number(item.points));
     if (!values.length) return '<div class="ss-spark-empty">No recorded games</div>';
     const min = Math.min(0, ...values), max = Math.max(1, ...values), span = max - min || 1;
-    const x = index => 4 + index * 172 / Math.max(1, data.length - 1);
-    const y = value => 46 - (value - min) / span * 38;
+    const x = index => data.length === 1 ? 90 : 18 + index * 144 / (data.length - 1);
+    const y = value => 46 - (value - min) / span * 27;
     const baseline = y(0);
-    const segments = [];
-    let current = [];
-    data.forEach((item, index) => {
-      if (number(item.points) === null) { if (current.length) segments.push(current); current = []; }
-      else current.push([x(index), y(item.points)]);
-    });
-    if (current.length) segments.push(current);
+    const points = data.map((item, index) => [x(index), y(item.points)]);
     const id = `ss-spark-${uid}`;
     const palette = PALETTES[side % 2];
-    const areas = segments.map(segment => `<path d="M${segment[0][0]},${baseline} ${segment.map(point => `L${point}`).join(' ')} L${segment.at(-1)[0]},${baseline}Z" fill="url(#${id})"/><path d="M${segment.map(point => point.join(',')).join(' L')}" fill="none" stroke="${palette.main}" stroke-width="1.7" stroke-linejoin="round"/>`).join('');
-    const dots = segments.flat().map(point => `<circle cx="${point[0]}" cy="${point[1]}" r="2.2" fill="${palette.light}" stroke="${palette.mid}" stroke-width="1.3"/>`).join('');
-    return `<svg class="ss-spark" viewBox="0 0 180 54" preserveAspectRatio="none" role="img" aria-label="Recent recorded weekly fantasy points"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0.15" y2="1"><stop stop-color="${palette.main}" stop-opacity=".32"/><stop offset=".5" stop-color="${palette.mid}" stop-opacity=".16"/><stop offset="1" stop-color="${palette.deep}" stop-opacity="0"/></linearGradient></defs><path d="M0 ${baseline}H180" stroke="#ffffff14" stroke-dasharray="2 4"/>${areas}${dots}</svg>`;
+    const areas = `<path d="M${points[0][0]},${baseline} ${points.map(point => `L${point}`).join(' ')} L${points.at(-1)[0]},${baseline}Z" fill="url(#${id})"/><path d="M${points.map(point => point.join(',')).join(' L')}" fill="none" stroke="${palette.main}" stroke-width="1.7" stroke-linejoin="round"/>`;
+    const dots = points.map((point, index) => `<circle cx="${point[0]}" cy="${point[1]}" r="2.2" fill="${palette.light}" stroke="${palette.mid}" stroke-width="1.3"/><text class="ss-spark-value" x="${point[0]}" y="${point[1] - 6}" text-anchor="middle" fill="${palette.light}">${fmt(data[index].points)}</text><text class="ss-spark-week" x="${point[0]}" y="61" text-anchor="middle">W${data[index].week}</text>`).join('');
+    const description = data.map(item => `Week ${item.week}: ${fmt(item.points)} points`).join('; ');
+    return `<svg class="ss-spark" viewBox="0 0 180 66" preserveAspectRatio="none" role="img" aria-label="Last ${data.length} games this season: ${escape(description)}"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0.15" y2="1"><stop stop-color="${palette.main}" stop-opacity=".32"/><stop offset=".5" stop-color="${palette.mid}" stop-opacity=".16"/><stop offset="1" stop-color="${palette.deep}" stop-opacity="0"/></linearGradient></defs><path d="M0 ${baseline}H180" stroke="#ffffff14" stroke-dasharray="2 4"/>${areas}${dots}</svg>`;
+  }
+
+  // The schedule owns venue text; defense summaries supply only a fallback
+  // opponent/rank. A bare team code never implies a home game.
+  function projectionMatchup(player) {
+    const opponent = String(player.matchup?.opponent || player.matchupMetric?.team || '').trim();
+    if (player.matchup?.isBye || opponent.toUpperCase() === 'BYE') return '<small class="ss-projection-matchup">BYE</small>';
+    const team = opponent.replace(/^(?:vs\.?|@)\s*/i, '').toUpperCase();
+    const venue = /^@/.test(opponent) ? '@ ' : /^vs\.?/i.test(opponent) ? 'vs. ' : '';
+    const rank = number(player.matchup?.opponentRank) ?? number(player.matchupMetric?.actualRank);
+    return `<small class="ss-projection-matchup"${rank !== null ? ` style="color:${escape(player.matchup?.color || player.matchupColor || '#91a2bc')}"` : ''}>${escape(team ? `${venue}${team}` : '—')}${rank !== null ? ` (${rank})` : ''}</small>`;
+  }
+
+  // Compare available numeric projections only. Ties, status text and missing
+  // values stay neutral; with extra selections only the highest/lowest differ.
+  function projectionState(player, players) {
+    const value = number(player.projection);
+    const values = players.map(entry => number(entry.projection)).filter(entry => entry !== null);
+    if (value === null || values.length < 2 || Math.max(...values) === Math.min(...values)) return '';
+    return value === Math.max(...values) ? ' ss-leading' : value === Math.min(...values) ? ' ss-trailing' : '';
   }
 
   function previewMatchup(player, compact = false) {
@@ -108,7 +124,7 @@
     const color = player.matchupColor || '#aab6cb';
     return `<div class="ss-opponent"><span>${logo(team)}<b>${escape(opponent)}</b><span class="ss-opponent-pos">vs. ${escape(player.pos)}</span></span><span class="ss-rank-pill" style="--ss-rank:${color}" title="Published positional matchup rank · 1 allows the most points">${rank ? `#${rank}<small> / 32</small>` : noGame ? 'BYE' : '—'}</span></div>
       ${compact ? '' : `<div class="ss-defense-grid" aria-label="Opponent defense metrics"><div><span>FPA/G</span><b style="color:${escape(player.actualColor || '#c3cedf')}">${fmt(metric?.actual?.avg)}</b></div><div><span>Expected/G</span><b style="color:${escape(player.sosColor || '#c3cedf')}">${fmt(metric?.expectedAvg)}</b></div><div><span>SOS Rk.</span><b style="color:${escape(player.sosColor || '#c3cedf')}">${metric?.sosRank ?? '—'}<small>${metric?.sosRank ? '/32' : ''}</small></b></div></div>
-      <div class="ss-defense-footer"><span title="Actual fantasy points allowed minus expected points, per game">vs Expected <b>${number(metric?.deltaPerGame) === null ? '—' : sign(metric.deltaPerGame, 2)}</b></span><button type="button" data-start-sit-matchup-id="${escape(player.id)}" aria-label="Matchup Breakdown for ${escape(player.name)}"${player.canBreakdown ? '' : ` disabled title="${unavailable}"`}>Breakdown ${icon('arrow')}</button></div>`}`;
+      <div class="ss-defense-footer"><span title="Actual fantasy points allowed minus expected points, per game">vs Expected <b>${number(metric?.deltaPerGame) === null ? '—' : sign(metric.deltaPerGame, 2)}</b></span><button type="button" data-start-sit-matchup-id="${escape(player.id)}" aria-label="Matchup Breakdown for ${escape(player.name)}"${player.canBreakdown ? '' : ` disabled title="${unavailable}"`}>Matchup Breakdown ${icon('arrow')}</button></div>`}`;
   }
 
   function renderPreview(model) {
@@ -118,11 +134,13 @@
     const cards = Array.from({ length: Math.max(2, players.length) }, (_, index) => {
       const player = players[index];
       if (!player) return `<div class="ss-preview-empty" aria-label="Player ${index + 1} selection"><div class="ss-orbit">${icon('plus')}</div><strong>Choose player ${index + 1}</strong><span>Tap a card from your roster</span><div class="ss-empty-signal" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>`;
+      const seasonRank = number(player.metrics.fpts?.rank);
+      const seasonPosition = `${player.pos}·${seasonRank ?? '—'}`;
       return `<article class="ss-preview-player ss-side-${index % 2}" aria-label="${escape(player.name)} preview">
-        <div class="ss-preview-player-top"><span class="ss-player-index">0${index + 1} <i></i><b>${escape(player.pos)}</b></span><button class="ss-remove" type="button" data-ss-remove="${escape(player.id)}" aria-label="Remove ${escape(player.name)}">${icon('close')}</button></div>
+        <div class="ss-preview-player-top"><span class="ss-player-index">0${index + 1} <i></i><b title="Season fantasy points rank and total · league scoring">${escape(seasonPosition)} <span>(${escape(player.metrics.fpts?.display || '—')})</span></b></span><button class="ss-remove" type="button" data-ss-remove="${escape(player.id)}" aria-label="Remove ${escape(player.name)}">${icon('close')}</button></div>
         <div class="ss-preview-identity"><h4>${escape(player.name)}</h4>${logo(player.team)}</div>
-        <div class="ss-preview-numbers"><div><span>WEEK ${week || '—'} PROJ</span><strong>${escape(player.projectionDisplay || '—')}</strong></div><div><span>SEASON PPG</span><b>${escape(player.metrics.ppg?.display || '—')}</b><small>${escape(player.pos)} · ${player.metrics.ppg?.rank ?? '—'}</small></div></div>
-        <div class="ss-mini-timeline">${sparkline(player.weekly, `preview-${player.id}`, index)}<span>RECENT SCORING</span></div>
+        <div class="ss-preview-numbers"><div class="ss-preview-projection${projectionState(player, players)}"><span>WEEK ${week || '—'} PROJ</span><strong>${escape(player.projectionDisplay || '—')}</strong>${projectionMatchup(player)}</div><div><span>SEASON PPG</span><b>${escape(player.metrics.ppg?.display || '—')}</b><small>${escape(player.pos)} · ${player.metrics.ppg?.rank ?? '—'}</small></div></div>
+        <div class="ss-mini-timeline"><span>Last 5 Games</span>${sparkline(player.weekly, `preview-${player.id}`, index)}</div>
         ${previewMatchup(player)}
       </article>`;
     }).join('');
@@ -175,9 +193,13 @@
     const comparable = values.every(value => value !== null) && !CONTEXT.has(key);
     const equal = comparable && Math.abs(values[0] - values[1]) < 1e-8;
     const winner = comparable && !equal ? (LOWER.has(key) ? values[0] < values[1] : values[0] > values[1]) ? 0 : 1 : null;
+    // Values and bars share the same better/worse state, including metrics
+    // where lower wins. Equal, unavailable and contextual stats stay neutral.
+    const sideState = side => winner === null ? '' : winner === side ? ' ss-leading' : ' ss-trailing';
     const precision = Math.min(3, Math.max(...metrics.map(metric => (String(metric.display).match(/\.(\d+)/)?.[1] || '').length)));
     const diff = comparable && !equal ? `${fmt(Math.abs(values[0] - values[1]), precision)}${String(metrics[0].display).includes('%') ? ' pp' : ''}` : equal ? 'EVEN' : '';
-    return `<div class="ss-metric-row${!isNumeric ? ' ss-text-row' : ''}" data-ss-stat="${key}"><div class="ss-metric-value ss-side-0${winner === 0 ? ' ss-leading' : ''}"><b>${escape(metrics[0].display)}</b>${metrics[0].rank ? `<small title="Season positional rank">${escape(players[0].pos)} #${metrics[0].rank}</small>` : ''}</div><div class="ss-metric-label"><button class="ss-metric-help" type="button" data-ss-help="${key}" aria-expanded="false" aria-controls="ss-help-${key}" aria-label="Explain ${escape(label)}" title="${escape(description)}">${escape(label)}</button><small class="${winner === null ? '' : `ss-side-${winner}`}">${winner === null ? diff : `${winner === 0 ? '←' : '→'} ${diff}`}</small></div><div class="ss-metric-value ss-side-1${winner === 1 ? ' ss-leading' : ''}"><b>${escape(metrics[1].display)}</b>${metrics[1].rank ? `<small title="Season positional rank">${escape(players[1].pos)} #${metrics[1].rank}</small>` : ''}</div>${isNumeric ? `<div class="ss-paired-track" aria-hidden="true">${values.map((value, side) => `<div class="ss-track ss-side-${side}"><i class="${value < 0 ? 'ss-negative' : ''}" style="width:${value === null ? 0 : Math.abs(value) / max * 100}%"></i>${value === 0 ? '<em></em>' : ''}</div>`).join('')}<span></span></div>` : ''}<p class="ss-metric-explanation" id="ss-help-${key}" hidden>${escape(description)}</p></div>`;
+    const valueMarkup = side => `<div class="ss-metric-value ss-side-${side}${sideState(side)}"><b>${escape(metrics[side].display)}</b>${metrics[side].rank ? `<small title="Season positional rank">${escape(players[side].pos)}·${escape(metrics[side].rank)}</small>` : ''}</div>`;
+    return `<div class="ss-metric-row${!isNumeric ? ' ss-text-row' : ''}" data-ss-stat="${key}">${valueMarkup(0)}<div class="ss-metric-label"><button class="ss-metric-help" type="button" data-ss-help="${key}" aria-expanded="false" aria-controls="ss-help-${key}" aria-label="Explain ${escape(label)}" title="${escape(description)}">${escape(label)}</button><small class="${winner === null ? '' : `ss-side-${winner}`}">${winner === null ? diff : `${winner === 0 ? '←' : '→'} ${diff}`}</small></div>${valueMarkup(1)}${isNumeric ? `<div class="ss-paired-track" aria-hidden="true">${values.map((value, side) => `<div class="ss-track ss-side-${side}${sideState(side)}"><i class="${value < 0 ? 'ss-negative' : ''}" style="width:${value === null ? 0 : Math.abs(value) / max * 100}%"></i>${value === 0 ? '<em></em>' : ''}</div>`).join('')}<span></span></div>` : ''}<p class="ss-metric-explanation" id="ss-help-${key}" hidden>${escape(description)}</p></div>`;
   }
   function statSections(players) {
     return getSections(players).map((section, index) => `<section class="ss-stat-section ss-panel" id="ss-section-${section.id}" aria-label="${escape(section.label)}"><header class="ss-section-heading"><span class="ss-section-icon">${icon(section.id.includes('efficiency') ? 'spark' : section.id.includes('production') ? 'chart' : section.id === 'info' ? 'target' : 'layers')}</span><div><span class="ss-eyebrow">${String(index + 1).padStart(2, '0')} / SEASON DETAIL</span><h3>${escape(section.label.toLowerCase())}</h3></div><span class="ss-stat-count">${section.stats.length}<small>STATS</small></span></header><div class="ss-section-players"><span>${escape(shortName(players[0]))}</span><span>${escape(shortName(players[1]))}</span></div><div class="ss-metrics">${section.stats.map(key => metricRow(key, players)).join('')}</div></section>`).join('');

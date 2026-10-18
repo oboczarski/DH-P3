@@ -961,6 +961,12 @@ body[data-page="rosters"] .player-row > .roster-injury-indicator {
   right: 1px;
 }
 
+/* Regular roster availability: BYE and the divider stay dim gray while the
+   adjacent injury span retains its original designation-specific color. */
+body[data-page="rosters"] .roster-injury-indicator :is(.roster-bye-label, .roster-availability-separator) {
+  color: #87909d;
+}
+
 /* Condensed view: smaller watermark to match compact card size */
 .player-row.player-row-condensed .roster-card-watermark {
   width: 36px;
