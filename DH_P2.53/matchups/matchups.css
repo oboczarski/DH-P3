@@ -982,7 +982,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
     border: 1px solid transparent;
     background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #e4efff 25%, #b2c7ff 50%, #d9addf 75%) text;
   }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) .sectionHeading { display:flex;align-items:center;gap:8px;margin-bottom: 0px;min-height:19px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) .sectionHeading {display:flex;align-items:center;gap: 0px;margin-bottom: 0px;min-height:19px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) .chartLegend { display:flex; gap:10px; margin-left:auto; color:var(--muted); font-size:8px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) .chartLegend span { display:flex; align-items:center; gap:4px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) .chartHeading { flex-wrap:wrap; }
