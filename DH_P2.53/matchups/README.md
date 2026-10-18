@@ -99,6 +99,12 @@ at both breakpoints. Each area keeps separate literal per-position declarations;
 editing one area or breakpoint does not restyle another. Badge/chart geometry
 remains local, and the scatter's Points/Ranks controls retain their own styling.
 
+The defense heading groups its actual FPA ordinal immediately before the
+existing position badge (for example, `14th vs. QB`). It uses the same current
+team/position/venue rank as MATCHUP RK and displays a dash when unavailable.
+Its `.defenseMatchup`, `.defenseRank`, and `.defenseHeaderCopy` styles belong
+to the separate `DEFENSE-HEADING` mobile and desktop blocks.
+
 Dumbbells compare and sort by actual FPA per game against expected FPA per game.
 Their markers, labels, bounds, differences, tooltips and selected-defense readout
 all use the existing analysis averages, preserving FPFA's supplied all-games

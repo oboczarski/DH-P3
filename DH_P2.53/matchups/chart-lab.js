@@ -7,7 +7,7 @@
   const scenes = new Map(), observed = new Set();
   const mobileViewport = matchMedia("(max-width:620px)");
   const definitions = [
-    { id: "labBreakdown", title: "Scoring allowed, position by position", kind: "all", nativeResolution: true, create: scoringBreakdown },
+    { id: "labBreakdown", title: "Scoring Allowed, Total by Position", kind: "all", nativeResolution: true, create: scoringBreakdown },
     { id: "labDumbbell", title: "Actual vs. Expected", kind: "position", nativeResolution: true, create: actualExpectedDumbbells },
     { id: "labPolar", title: "Game Spokes", kind: "position", desktopOnly: true, create: polarScatter },
   ];

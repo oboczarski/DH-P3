@@ -65,7 +65,8 @@
 // desktop gridline controls and desktop-only Game Spokes chart lifecycle.
 // Refresh Matchups' main filters, defense badges and weekly/scatter position
 // gradients together; their mobile/desktop styles remain independently owned.
-const CACHE_NAME = 'DH3.51d-matchups-position-gradients';
+// Refresh the Matchups defense heading's ordinal rank and positional scoring title.
+const CACHE_NAME = 'DH3.51e-matchups-header-rank';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

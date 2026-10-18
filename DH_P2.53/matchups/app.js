@@ -46,6 +46,15 @@
   const direction = value => value > 0 ? "is-easy" : value < 0 ? "is-tough" : "";
   const empty = (title, detail) => `<div class="emptyState"><strong>${esc(title)}</strong>${esc(detail)}</div>`;
 
+  // The defense heading displays the supplied FPA rank as an ordinal. Missing
+  // ranks stay unavailable; 11th/12th/13th retain "th" despite their last digit.
+  function ordinalRank(rank) {
+    if (!Number.isInteger(rank) || rank < 1) return "—";
+    const lastTwo = rank % 100;
+    const suffix = lastTwo >= 11 && lastTwo <= 13 ? "th" : ({ 1: "st", 2: "nd", 3: "rd" }[rank % 10] || "th");
+    return `${rank}${suffix}`;
+  }
+
   function pickerLogo(team) {
     const image = `assets/NFL-Tags_webp/${team.toLowerCase()}.webp`;
     return `<span class="teamLogoStack" aria-hidden="true" style="--team-glow:${TEAM_GLOWS[team] || "transparent"}"><img class="teamLogo teamLogoStack__glow" src="${image}" alt=""><img class="teamLogo teamLogoStack__img" src="${image}" alt=""></span>`;
@@ -176,6 +185,10 @@
     $("defenseTitle").textContent = Data.TEAM_NAMES[state.team];
     $("defenseSubtitle").textContent = `vs. ${LABELS[state.pos]} · ${venueLabel()}`;
     $("selectedPosition").textContent = state.pos; $("selectedPosition").dataset.pos = state.pos;
+    // Mirror MATCHUP RK's actual FPA rank for this team/position/venue. Keep
+    // the existing styled position badge as the final part of "14th vs. QB".
+    $("defenseRank").textContent = `${ordinalRank(stat.rank)} vs.`;
+    $("defenseRank").title = `FPA rank vs. ${LABELS[state.pos]} · ${venueLabel()} · Rank 1 = ${stat.rankOrder === "descending" ? "most" : "fewest"} points allowed`;
     // Summary copy controls its own case; the percent unit is sized separately.
     const deltaValue = c.deltaPct !== null ? `${signed(c.deltaPct)}<span class="metricPercent">%</span>` : signed(c.delta, 2);
     const baselineNote = c.expectedTotal !== null ? `${fmt(c.expectedAvg, 1)} per game` : analysis.summaryAvailable ? "Not supplied in FPFA" : "Opponent average unavailable";
