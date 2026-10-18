@@ -7072,7 +7072,7 @@ body::before {
   justify-content: center;
   gap: 6px;
   /* no gap between icon & label */
-  color: transparent;
+  color: #bec7ff99;
   font-size: 1rem;
   /* icon size */
   line-height: 1;

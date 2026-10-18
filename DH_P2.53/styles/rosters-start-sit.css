@@ -67,7 +67,7 @@ body[data-page="rosters"] .ss-primary {
   border-radius: 10px;
   font-size: 12px !important;
   font-weight: 600 !important;
-  color: #ecf8ff;
+  color: transparent !important;
   background: linear-gradient(110deg, #246f8d, #5553aa 60%, #8151b7) padding-box,    linear-gradient(110deg, #91f2ee, #95bfeb 40%, #d6adff) border-box, linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   box-shadow: inset 0 1px 5px #e5fcff2a, inset 0 -4px 9px #24215e55, 0 0 16px #627dec25;
   border: 1px solid transparent;
