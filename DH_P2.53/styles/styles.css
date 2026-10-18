@@ -7068,17 +7068,16 @@ body::before {
 
 #comparePlayersButton {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.125rem;
+  gap: 6px;
   /* no gap between icon & label */
-  color: #8787AF;
+  color: transparent;
   font-size: 1rem;
   /* icon size */
   line-height: 1;
   /* kill extra inline spacing */
-  padding: 1px 8px;
+  padding: 4px 0px 4px 12px;
   min-height: 0;
   opacity: 0.4;
   transition: opacity 0.1s ease-in-out;
