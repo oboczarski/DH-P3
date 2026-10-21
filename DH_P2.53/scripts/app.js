@@ -9332,9 +9332,9 @@ function createTaxiRow(item, teamName) {
     if (item.isPlaceholder) return createEmptyTaxiRow();
     return createPlayerRow(item, teamName);
 }
-// Regular Rosters cards combine this week's schedule status and injury in the
-// existing badge slot. Only the injury after BYE is abbreviated; its original
-// designation still selects the color and supplies the accessible full label.
+// Regular and selectable Start/Sit roster cards combine this week's schedule
+// status and injury in the existing badge slot. Only the injury after BYE is
+// abbreviated; its original designation selects the color and accessible label.
 function buildRosterAvailabilityBadge(player, injuryDesignation, includeBye = false) {
     const injuryCode = String(injuryDesignation?.designation || '').toUpperCase();
     const hasInjury = injuryCode !== 'BYE' && Object.hasOwn(INJURY_DESIGNATION_COLORS, injuryCode);
@@ -9434,13 +9434,13 @@ function createPlayerRow(player, teamName) {
     const ktcPosRankMatch = typeof player.posRank === 'string' ? player.posRank.match(/(\d+)/) : null;
     const rawKtcPosRankNumber = ktcPosRankMatch ? Number.parseInt(ktcPosRankMatch[1], 10) : null;
     const ktcPosRankNumber = Number.isFinite(rawKtcPosRankNumber) && rawKtcPosRankNumber > 0 ? rawKtcPosRankNumber : null;
-    // Default roster cards add BYE in the injury slot. Trade Preview and the
-    // selectable Start/Sit cards retain their existing injury-only badges.
+    // Regular and selectable Start/Sit cards share the same BYE/injury badge.
+    // Trade Preview retains its injury-only badge beside the player's age.
     const injuryDesignation = pageType === 'rosters'
         ? player.injuryDesignation || getSleeperInjuryDesignation(player.id) || getUpcomingProjectionDesignation(player.id)
         : null;
     const injuryBadgeHtml = pageType === 'rosters'
-        ? buildRosterAvailabilityBadge(player, injuryDesignation, !state.isCompareMode && !state.isStartSitMode)
+        ? buildRosterAvailabilityBadge(player, injuryDesignation, !isTradePreviewCard)
         : '';
     const condensedPosRankHtml = isCondensedView
         ? `<span class="player-pos-rank condensed-pos-rank" style="color: ${effectivePosRankColor}; font-weight: 400;">${fptsPosRankDisplay}</span>`

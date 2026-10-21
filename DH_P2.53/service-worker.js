@@ -70,7 +70,8 @@
 // value/bar signals together with the schedule exposed by the roster loader.
 // Refresh Start/Sit's Game Logs navigation, matching published matchup ranks,
 // trajectory point labels and dashboard-shaped comparison loading surface.
-const CACHE_NAME = 'DH3.51g-start-sit-drilldowns2';
+// Refresh selectable Start/Sit cards so their BYE/injury badges match regular rosters.
+const CACHE_NAME = 'DH3.51h-start-sit-bye-badges';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
