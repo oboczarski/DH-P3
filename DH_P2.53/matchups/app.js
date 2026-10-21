@@ -225,11 +225,22 @@
   // Each opponent's positional scoring average supplies its weekly expected line.
   function renderWeekly() {
     const entries = comparison().entries;
-    // Matchups chips keep the week inline to the left of the opponent's label
-    // and logo stack. Weekly data and home/away labels retain their source values.
-    $("weeklyMatchups").innerHTML = entries.map(entry => `<div class="weekMatchup"><span class="weekNumber">W${entry.week}</span><span class="weekOpponentStack"><span class="weekOpponent">${entry.offense ? `${entry.venue === "home" ? "vs" : "@"} ${entry.offense}` : "Offense unknown"}</span>${logo(entry.offense)}</span></div>`).join("");
-    if (!entries.some(entry => entry.actual !== null)) { $("weeklyChart").innerHTML = empty("No recorded games", "Choose another defense venue or position."); return; }
+    // Matchups owns a single week track for its plot and opponent chips. The
+    // same filtered entry order drives both; weeks remain in accessible chip
+    // labels/tooltips while the visible W# is shown only on the chart axis.
+    const timeline = $("weeklyTimelineContent");
+    timeline.style.setProperty("--weekly-week-count", Math.max(1, entries.length));
     const W = width("weeklyChart"), H = 196, left = 31, right = W - 9, top = 22, bottom = H - 19;
+    // Percentage insets mirror the SVG viewBox even at fractional CSS widths.
+    // Zero grid gap keeps each chip center at the bar/week slot's exact center.
+    timeline.style.setProperty("--weekly-plot-left", `${left / W * 100}%`);
+    timeline.style.setProperty("--weekly-plot-right", `${(W - right) / W * 100}%`);
+    $("weeklyMatchups").innerHTML = entries.map(entry => {
+      const opponent = entry.offense ? `${entry.venue === "home" ? "vs" : "@"} ${entry.offense}` : "Offense unknown";
+      const label = esc(`Week ${entry.week}: ${opponent}`);
+      return `<div class="weekMatchup" role="group" aria-label="${label}" title="${label}"><span class="weekOpponentStack"><span class="weekOpponent">${esc(opponent)}</span>${logo(entry.offense)}</span></div>`;
+    }).join("");
+    if (!entries.some(entry => entry.actual !== null)) { $("weeklyChart").innerHTML = empty("No recorded games", "Choose another defense venue or position."); return; }
     const bounds = scale(entries.flatMap(entry => [entry.actual, entry.expected]));
     const y = value => bottom - (value - bounds.low) / (bounds.high - bounds.low) * (bottom - top);
     const slot = (right - left) / entries.length, x = index => left + slot * (index + .5), barWidth = Math.min(49, slot * .4);
@@ -255,7 +266,9 @@
       const delta = entry.actual !== null && entry.expected !== null ? entry.actual - entry.expected : 0;
       const expectedFill = delta > 1e-9 ? "#8af7ffb5" : delta < -1e-9 ? "#e3b3ffa8" : "#aabaff";
       if (entry.expected !== null) content += `<circle class="chartPoint" cx="${x(i)}" cy="${y(entry.expected)}" r="3" style="fill:${expectedFill}" tabindex="0" role="img" data-tooltip="${key}" aria-label="${entry.offense || "Opponent"} expected Week ${entry.week} ${state.pos}: ${fmt(entry.expected, 1)} points"/>`;
-      if (entries.length <= 10 || i % 2 === 0) content += `<text x="${x(i)}" y="${bottom + 14}" text-anchor="middle">W${entry.week}</text>`;
+      // The shared track provides room for every week label, including long
+      // seasons; skipping alternate ticks would leave chips without a label.
+      content += `<text x="${x(i)}" y="${bottom + 14}" text-anchor="middle">W${entry.week}</text>`;
     });
     // SVG paint order puts this unfiltered label layer above bars, lines and dots.
     content += `<g class="weeklyDataLabels" aria-hidden="true" pointer-events="none">${labels}</g>`;

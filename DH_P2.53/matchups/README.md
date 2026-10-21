@@ -105,6 +105,14 @@ team/position/venue rank as MATCHUP RK and displays a dash when unavailable.
 Its `.defenseMatchup`, `.defenseRank`, and `.defenseHeaderCopy` styles belong
 to the separate `DEFENSE-HEADING` mobile and desktop blocks.
 
+The weekly opponent chips omit visible W# labels and sit directly beneath the
+corresponding chart week ticks. `renderWeekly()` gives their grid the SVG's
+plot insets and entry count, so venue filters, sparse weeks, and resizes retain
+the same chip/bar/tick centers. The plot and chips share one horizontal scroll
+track when the week count needs more room. Each chip retains its week in its
+accessible label and native tooltip. Timeline and chip styles remain separate
+in the mobile and desktop `WEEKLY` blocks.
+
 Dumbbells compare and sort by actual FPA per game against expected FPA per game.
 Their markers, labels, bounds, differences, tooltips and selected-defense readout
 all use the existing analysis averages, preserving FPFA's supplied all-games

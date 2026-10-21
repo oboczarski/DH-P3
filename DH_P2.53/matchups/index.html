@@ -12,11 +12,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,slnt,wdth,wght,GRAD,ROND@6..144,-10..0,25..151,1..1000,0..100,0..100&amp;family=MuseoModerno:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
   <!-- Matchups owns its styles, assets, models and chart library; shared DH app/CSS are not loaded. -->
-  <link rel="stylesheet" href="matchups.css?v=DH3.51e-matchups-header-rank">
+  <link rel="stylesheet" href="matchups.css?v=DH3.51i-matchups-week-chip-alignment">
   <link rel="stylesheet" href="chart-lab.css?v=DH3.51c-matchups-per-game-controls">
   <script defer src="data-model.js?v=DH3.50-byes-rosters-data"></script>
   <script defer src="chart-utils.js?v=2026.3"></script>
-  <script defer src="app.js?v=DH3.51e-matchups-header-rank"></script>
+  <script defer src="app.js?v=DH3.51i-matchups-week-chip-alignment"></script>
   <script defer src="vendor/amcharts5/index.js?v=5.20.8"></script>
   <script defer src="vendor/amcharts5/xy.js?v=5.20.8"></script>
   <script defer src="vendor/amcharts5/radar.js?v=5.20.8"></script>
@@ -92,8 +92,14 @@
         <div data-matchups-area="summary-chips" class="metricStrip" id="metrics"></div>
         <section data-matchups-area="weekly" class="weeklySection" aria-labelledby="weeklyTitle">
           <div class="sectionHeading chartHeading"><h3 id="weeklyTitle">Week by week</h3><div class="chartHeaderControls"><div class="chartLegend"><span><i class="legendActual"></i>Actual FPA</span><span><i class="legendExpected"></i>Expected</span></div><div class="positionToggle chartPositionToggle" role="group" aria-label="Weekly chart position"><button type="button" data-position="QB" data-pos="QB" aria-pressed="true">QB</button><button type="button" data-position="RB" data-pos="RB" aria-pressed="false">RB</button><button type="button" data-position="WR" data-pos="WR" aria-pressed="false">WR</button><button type="button" data-position="TE" data-pos="TE" aria-pressed="false">TE</button><button type="button" data-position="ALL" data-pos="ALL" aria-pressed="false">ALL</button></div></div></div>
-          <div class="chart weeklyChart" id="weeklyChart"></div>
-          <div class="weeklyMatchups" id="weeklyMatchups"></div>
+          <!-- The plot and opponent chips share one scrollable week track so
+               every chip remains centered beneath its chart week label. -->
+          <div class="weeklyTimeline" tabindex="0" role="group" aria-label="Weekly chart and matchups; scroll horizontally for more weeks">
+            <div class="weeklyTimelineContent" id="weeklyTimelineContent">
+              <div class="chart weeklyChart" id="weeklyChart"></div>
+              <div class="weeklyMatchups" id="weeklyMatchups"></div>
+            </div>
+          </div>
         </section>
         <section data-matchups-area="players" class="playersSection" id="players" aria-labelledby="playersTitle">
           <div class="sectionHeading"><h3 id="playersTitle">Players faced</h3><span class="smallMuted" id="playerScope"></span><button type="button" class="iconButton" id="expandPlayers" aria-label="Expand player results" title="Expand player results"><svg class="icon"><use href="#icon-expand"/></svg></button></div>

@@ -71,7 +71,8 @@
 // Refresh Start/Sit's Game Logs navigation, matching published matchup ranks,
 // trajectory point labels and dashboard-shaped comparison loading surface.
 // Refresh selectable Start/Sit cards so their BYE/injury badges match regular rosters.
-const CACHE_NAME = 'DH3.51h-start-sit-bye-badges';
+// Refresh the Matchups week axis and its aligned, number-free opponent chips.
+const CACHE_NAME = 'DH3.51i-matchups-week-chip-alignment';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
