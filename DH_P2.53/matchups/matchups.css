@@ -1016,7 +1016,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) .weeklyTimeline { width:100%; min-width:0; overflow-x:auto; scrollbar-width:thin; scrollbar-color:#4e5d8080 transparent; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) .weeklyTimelineContent { width:100%; min-width:max(260px,calc(40px + var(--weekly-week-count,1) * 38px)); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) .weeklyMatchups { display:grid; grid-template-columns:repeat(var(--weekly-week-count,1),minmax(0,1fr)); gap:0; padding-left:var(--weekly-plot-left,0%); padding-right:var(--weekly-plot-right,0%); margin:4px 0 10px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) .weekMatchup { min-width:0; width:calc(100% - 4px); justify-self:center; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) .weekMatchup {min-width:0;width: calc(90%);justify-self:center;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) .weekOpponentStack { max-width:100%; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) .weekMatchup .weekOpponent { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) .expectedLine { fill:none;stroke:url(#weekly-expected-line);stroke-width: 6px;stroke-dasharray: 1;filter: drop-shadow(0px 2px 4px #0008); }
