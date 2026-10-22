@@ -74,7 +74,7 @@
 // Refresh the Matchups week axis and its aligned, number-free opponent chips.
 // Refresh the side-by-side Trade Preview's combined BYE/injury badges beside age.
 // Refresh Trade Preview's shared inline name, age and BYE/injury badge layout.
-const CACHE_NAME = 'DH3.51k-trade-preview-inline-badges';
+const CACHE_NAME = 'DH3.51k-trade-preview-inline-badges_v1.2';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

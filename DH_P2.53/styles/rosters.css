@@ -3542,7 +3542,7 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) > .ro
   flex: 1 1 0;
   width: auto;
   min-width: 0;
-  max-width: 220px;
+  max-width: 250px;
 }
 
 /* Trade Preview player card: first row = current identity + age + far-right
@@ -3661,8 +3661,8 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-
   /* Small phones still keep the two comparison columns in one row; compact
      spacing protects the identity, ADP, and logo sequence from wrapping. */
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) {
-    width: min(100%, 365px);
-    max-width: 365px;
+    width: min(100%, 385px);
+    max-width: 385px;
     gap: 0.3rem;
     padding-right: 0;
     padding-left: 0;
