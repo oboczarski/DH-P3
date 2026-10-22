@@ -965,7 +965,6 @@ body[data-page="rosters"] .player-row > .roster-injury-indicator {
    adjacent injury span retains its original designation-specific color. */
 body[data-page="rosters"] .roster-injury-indicator :is(.roster-bye-label, .roster-availability-separator) {
   color: #87909d;
-  letter-spacing: -0.04em;
 }
 
 /* Condensed view: smaller watermark to match compact card size */
@@ -3591,7 +3590,7 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trad
    age, including condensed cards, so it cannot overlap the far-right logo. */
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-age > .roster-injury-indicator {
   flex: 0 0 auto;
-  margin-left: 0.08rem;
+  margin-left: 0.18rem;
 }
 
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-team-slot {
@@ -3685,7 +3684,7 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-
     body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-age {
       font-size: 0.6rem;
       /* Keep BYE and injury badges inline after age without entering the logo. */
-      margin-right: -10px;
+      margin-right: 0;
     }
   
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-age-unit {
