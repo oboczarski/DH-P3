@@ -41,9 +41,55 @@ for (const position of ['QB', 'RB', 'WR', 'TE']) {
   });
 }
 
+test('zero or negative production stays at the purple baseline even when sparse weekly ranks are top 12', () => {
+  const production = ['pass_yd', 'pass_td', 'pass_att', 'pass_cmp', 'pass_fd', 'pass_imp', 'dropbacks',
+    'rush_att', 'rush_yd', 'rush_td', 'rush_fd', 'rush_yac', 'rush_ybc', 'mtf', 'rz_att', 'gl_att',
+    'rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'rr', 'rz_tgt', 'tgt_10_plus',
+    'yds_total', 'imp', 'imp_per_g'];
+  for (const position of ['QB', 'RB', 'WR', 'TE']) {
+    for (const statKey of production) {
+      const chart = buildConsistencyRankChart([{ value: 0, rank: 4 }, { value: -2, rank: 12 }, { value: 1, rank: 1 }], position, statKey);
+      const [zero, negative, positive] = chart.chartSeries;
+      assert.equal(zero.pts, 0, `${position} ${statKey} zero`);
+      assert.equal(negative.pts, 0, `${position} ${statKey} negative`);
+      assert.ok(zero.pts < chart.thresholds.solid);
+      assert.ok(positive.pts >= chart.thresholds.high);
+      assert.equal(zero.rank, 4);
+      assert.equal(zero.originalPts, 0);
+      assert.equal(negative.originalPts, -2);
+    }
+  }
+});
+
+test('zero turnovers, efficiency, signed metrics and FPTS retain their ranking semantics', () => {
+  for (const statKey of ['pass_int', 'pass_sack', 'fum', 'ttt', 'prs_pct', 'cpoe', 'ryoe', 'fpoe', 'epa', 'epa_per_db', 'ypc', 'pass_rtg', 'cmp_pct', 'tprr', 'fpts']) {
+    const chart = buildConsistencyRankChart([{ value: 0, rank: 1 }], 'QB', statKey);
+    assert.equal(chart.chartSeries[0].pts, 40, statKey);
+    assert.equal(chart.chartSeries[0].baselineProduction, false, statKey);
+  }
+});
+
 // Exercise the actual page's metric accessor and chart assembly against source
 // shaped fixtures; no browser/bootstrap or live Sheets connection is required.
 const source = fs.readFileSync(new URL('../DH_P2.53/scripts/DataHub.js', import.meta.url), 'utf8');
+
+test('flat Consistency segments retain their path and use a non-collapsing SVG filter region', () => {
+  const functions = ['createDataHubCubicSegment', 'splitDataHubSegmentByThresholds', 'dataHubCubicSegmentToPath', 'ensureDataHubConsistencyLineFilter']
+    .map(name => source.match(new RegExp(`function ${name}\\([^]*?\\n}`))?.[0]).join('\n');
+  const element = () => ({ attributes: {}, children: [], setAttribute(key, value) { this.attributes[key] = value; }, appendChild(child) { this.children.push(child); } });
+  const defs = { ...element(), querySelector() { return null; } };
+  const context = vm.createContext({ document: { createElementNS: element }, DATAHUB_SVG_NS: 'http://www.w3.org/2000/svg', DATAHUB_CONSISTENCY_LINE_FILTER_ID: 'test-line-glow' });
+  vm.runInContext(functions, context);
+  const flat = context.createDataHubCubicSegment({x: 100, y: 150}, {x: 200, y: 150}, 22, 22);
+  const segments = context.splitDataHubSegmentByThresholds(flat, [10, 30]);
+  assert.equal(segments.length, 1);
+  assert.equal(context.dataHubCubicSegmentToPath(segments[0]), 'M 100 150 C 135 150, 165 150, 200 150');
+  context.ensureDataHubConsistencyLineFilter(defs);
+  assert.equal(defs.children[0].attributes.filterUnits, 'userSpaceOnUse');
+  assert.equal(defs.children[0].attributes.width, '120%');
+  assert.equal(defs.children[0].attributes.height, '120%');
+});
+
 function harness(state) {
   const names = ['getDataHubConsistencyStatValue', 'buildDataHubConsistencyMetricData', 'getDataHubGameLogStatValue', 'shouldSkipDataHubConsistencyWeek'];
   const functions = names.map(name => source.match(new RegExp(`function ${name}\\([^]*?\\n}`))?.[0]).join('\n');

@@ -4,7 +4,7 @@ import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSe
 import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js";
 import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js";
-import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart } from "./datahub-gamelogs-controls.js?v=DH3.52-datahub-gamelogs";
+import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart } from "./datahub-gamelogs-controls.js?v=DH3.52a-datahub-gamelogs-fixes";
 
 // ---------------------------------------------------------------------------
 // Hero copy and filter labels that drive the surrounding page shell.
@@ -15352,6 +15352,10 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
   hScroll.className = "game-logs-hscroll";
   const hContent = document.createElement("div");
   hContent.className = "game-logs-hscroll-content";
+  // DataHub Weekly: the flex column must span the same full width as all
+  // three tables. Otherwise its vertically scrolling body clips later stats
+  // while the overflow-visible header/footer continue scrolling into view.
+  hContent.style.width = `${totalTableWidth}px`;
   hContent.appendChild(headerWrap);
   hContent.appendChild(bodyWrap);
   hContent.appendChild(footerWrap);
@@ -16743,7 +16747,7 @@ function buildDataHubConsistencyMetricData(base, key) {
       skippedLabels[week] = "—";
     }
   });
-  return { ...base, ...buildConsistencyRankChart(series, position), statKey: key, skippedLabels };
+  return { ...base, ...buildConsistencyRankChart(series, position, key), statKey: key, skippedLabels };
 }
 
 function getDataHubConsistencyAxisWeeks() {
@@ -17277,6 +17281,10 @@ function ensureDataHubConsistencyLineFilter(defs) {
   }
   filter = document.createElementNS(DATAHUB_SVG_NS, "filter");
   filter.id = DATAHUB_CONSISTENCY_LINE_FILTER_ID;
+  // DataHub Consistency: equal adjacent ranks produce a horizontal path with
+  // a zero-height bounding box. Use the SVG viewport for the glow region so
+  // those valid flat connections remain visible instead of being filtered out.
+  filter.setAttribute("filterUnits", "userSpaceOnUse");
   filter.setAttribute("x", "-10%");
   filter.setAttribute("y", "-10%");
   filter.setAttribute("width", "120%");
@@ -17561,6 +17569,7 @@ function renderDataHubConsistencyPoints(data) {
       ? formatDataHubGameLogCellValue(data.statKey, rawValue, state.currentModalSeason === "2026" && position === "QB", state.currentModalSeason === "2026" && position === "RB", state.currentModalSeason === "2026" && ["WR", "TE"].includes(position))
       : rawValue.toFixed(1);
     pointEl.title = `WK${entry.week}: ${formattedValue}${data.rankMode ? ` ${DATAHUB_STAT_LABELS[data.statKey]} · ${position}${entry.rank}` : " PPR FPTS"}${entry.opponent ? ` vs ${entry.opponent}` : ""}`;
+    if (entry.baselineProduction) pointEl.title += " · No positive production; plotted at the baseline";
     const label = document.createElement("div");
     label.className = `weekly-point-label weekly-point-label--${bucket.name}`;
     // Non-default metric chips show only the value and positional rank; their

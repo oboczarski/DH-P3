@@ -16408,7 +16408,8 @@ body[data-page="datahub"] #game-logs-modal:not(.hidden) #gamelogs-tab-pane {
   max-height: calc(100dvh - 11rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   flex: 0 1 auto;
   min-height: 0;
-  padding-bottom: 0.55rem;
+  /* Match the existing desktop side inset without restoring a footer gap. */
+  padding-bottom: 0.85rem;
 }
 
 body[data-page="datahub"] #game-logs-modal #modal-header {
@@ -16713,6 +16714,12 @@ body[data-page="datahub"] #game-logs-modal.is-team-view .team-modal-pane {
 
 @media (max-width: 868px) {
   body[data-page="datahub"] #game-logs-modal #gamelogs-tab-pane { --gamelogs-body-height: 355px; }
+}
+
+@media (max-width: 680px) {
+  /* The legacy phone padding shorthand is important; match its side inset
+     here while preserving the mobile card's content-based height. */
+  body[data-page="datahub"] #game-logs-modal #gamelogs-tab-pane { padding-bottom: 0.65rem !important; }
 }
 
 @media (max-height: 540px) {
