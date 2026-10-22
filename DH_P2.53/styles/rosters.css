@@ -3721,6 +3721,36 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-
     font-weight: 400;
     filter: saturate(1) brightness(1.7);
   }
+
+  /* Mobile Trade Preview only: a combined BYE badge needs more room than an
+     injury alone. Keep age and badge together below the name, with the logo
+     on the identity row; cancel the old negative age margin for these cards. */
+  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview:has(.roster-bye-label) .player-main-line {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) 22px;
+    row-gap: 2px;
+  }
+
+  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview:has(.roster-bye-label) .player-name {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview:has(.roster-bye-label) .trade-preview-age {
+    grid-column: 2 / -1;
+    grid-row: 2;
+    justify-self: start;
+    margin-right: 0;
+  }
+
+  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview:has(.roster-bye-label) .trade-preview-team-slot {
+    grid-column: 3;
+    grid-row: 1;
+    margin-left: 0;
+  }
 }
 
 /* Roster player-card watermarks: keep the extracted page-local defaults above and

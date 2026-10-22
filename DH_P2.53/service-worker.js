@@ -72,7 +72,8 @@
 // trajectory point labels and dashboard-shaped comparison loading surface.
 // Refresh selectable Start/Sit cards so their BYE/injury badges match regular rosters.
 // Refresh the Matchups week axis and its aligned, number-free opponent chips.
-const CACHE_NAME = 'DH3.51i-matchups-week-chip-alignment';
+// Refresh the side-by-side Trade Preview's combined BYE/injury badges beside age.
+const CACHE_NAME = 'DH3.51j-trade-preview-bye-badges';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

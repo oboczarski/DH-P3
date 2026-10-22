@@ -9332,8 +9332,8 @@ function createTaxiRow(item, teamName) {
     if (item.isPlaceholder) return createEmptyTaxiRow();
     return createPlayerRow(item, teamName);
 }
-// Regular and selectable Start/Sit roster cards combine this week's schedule
-// status and injury in the existing badge slot. Only the injury after BYE is
+// All roster card modes combine this week's schedule status and injury in
+// their existing badge slot. Only the injury after BYE is
 // abbreviated; its original designation selects the color and accessible label.
 function buildRosterAvailabilityBadge(player, injuryDesignation, includeBye = false) {
     const injuryCode = String(injuryDesignation?.designation || '').toUpperCase();
@@ -9434,13 +9434,13 @@ function createPlayerRow(player, teamName) {
     const ktcPosRankMatch = typeof player.posRank === 'string' ? player.posRank.match(/(\d+)/) : null;
     const rawKtcPosRankNumber = ktcPosRankMatch ? Number.parseInt(ktcPosRankMatch[1], 10) : null;
     const ktcPosRankNumber = Number.isFinite(rawKtcPosRankNumber) && rawKtcPosRankNumber > 0 ? rawKtcPosRankNumber : null;
-    // Regular and selectable Start/Sit cards share the same BYE/injury badge.
-    // Trade Preview retains its injury-only badge beside the player's age.
+    // Every roster mode shares the same BYE/injury text and colors. Trade
+    // Preview keeps the combined badge beside age; other cards keep the corner.
     const injuryDesignation = pageType === 'rosters'
         ? player.injuryDesignation || getSleeperInjuryDesignation(player.id) || getUpcomingProjectionDesignation(player.id)
         : null;
     const injuryBadgeHtml = pageType === 'rosters'
-        ? buildRosterAvailabilityBadge(player, injuryDesignation, !isTradePreviewCard)
+        ? buildRosterAvailabilityBadge(player, injuryDesignation, true)
         : '';
     const condensedPosRankHtml = isCondensedView
         ? `<span class="player-pos-rank condensed-pos-rank" style="color: ${effectivePosRankColor}; font-weight: 400;">${fptsPosRankDisplay}</span>`

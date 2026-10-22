@@ -140,7 +140,7 @@ test('default roster badges show BYE plus an abbreviated injury in its original 
   assert.doesNotMatch(context.buildRosterAvailabilityBadge(player, null, true), / \| /);
   assert.match(context.buildRosterAvailabilityBadge({ ...player, team: 'JAC' }, null, true), />BYE<\/span>/);
   assert.equal(context.buildRosterAvailabilityBadge(player, { designation: 'NA' }, false), '');
-  assert.equal(context.buildRosterAvailabilityBadge(player, null, false), '', 'other card modes do not add BYE');
+  assert.equal(context.buildRosterAvailabilityBadge(player, null, false), '', 'explicit opt-out omits BYE');
   assert.match(context.buildRosterAvailabilityBadge(player, { designation: 'OUT' }, false), />OUT<\/span>/);
   context.state.currentNflWeek = 8;
   assert.doesNotMatch(context.buildRosterAvailabilityBadge(player, { designation: 'OUT' }, true), />BYE<\/span>/);
