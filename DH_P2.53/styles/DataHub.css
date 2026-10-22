@@ -12911,7 +12911,7 @@ body[data-page="datahub"] .weekly-chart-x-axis > span.axis-week-missed {
   }
 
   body[data-page="datahub"] #game-logs-modal .player-vitals--modal {
-    margin: 0.2rem 0 0.58rem !important;
+    margin: 0.1rem 0 0.58rem !important;
     padding: 5px 7px !important;
     border-radius: 8px !important;
     min-width: 305px;
@@ -16606,8 +16606,8 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-bottom-nav {
   isolation: isolate;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 3px;
-  padding: 5px;
+  gap: 0px;
+  padding: 2px;
   border: 1px solid rgba(188, 208, 255, 0.22);
   border-radius: 25px;
   background:
@@ -16625,18 +16625,18 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-nav-button {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 0px;
   min-width: 0;
-  min-height: 56px;
-  padding: 7px 2px 6px;
+  min-height: 44px;
+  padding: 5px 2px 4px;
   border: 1px solid transparent;
   border-radius: 20px;
   color: #a3b0cb;
   background: transparent;
   font: inherit;
-  font-size: clamp(0.57rem, 2.45vw, 0.65rem);
+  font-size: clamp(0.57rem, 2.35vw, 0.65rem);
   font-weight: 450;
-  line-height: 1.15;
+  line-height: 1;
   letter-spacing: -0.015em;
   cursor: pointer;
   touch-action: manipulation;
@@ -16644,8 +16644,8 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-nav-button {
 }
 
 body[data-page="datahub"] #game-logs-modal .gamelogs-nav-button .datahub-modal-icon {
-  width: 23px;
-  height: 23px;
+  width: 26px;
+  height: 26px;
   stroke-width: 1.65;
 }
 
