@@ -212,8 +212,8 @@ body:where([data-page="matchups"]) { background:#050b13; }
   :where(body[data-page="matchups"]) .matchupsNav:where([data-matchups-area="navigation"]) { grid-column:1/-1;grid-row: 2;max-width: 70%; }
   :where(body[data-page="matchups"]) .matchupsNav:where([data-matchups-area="navigation"]) { grid-column:1;grid-row:2;gap:3px;min-width: 101%; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="navigation"]) .matchupsNavButton { min-height:42px; border-radius:9px; padding:5px 1px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="navigation"]) .matchupsNavButton > span { font-size:7.5px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="navigation"]) .matchupsNavButton .navIcon { width:14px; height:14px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="navigation"]) .matchupsNavButton > span {font-size: 9px;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="navigation"]) .matchupsNavButton .navIcon {width: 17px;height: 17px;}
 }
 
 /* NAVIGATION — DESKTOP only. */
