@@ -16513,12 +16513,12 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-context-action {
   min-height: 36px;
   padding: 7px 12px;
   border: 1px solid rgba(174, 192, 242, 0.22);
-  border-radius: 13px;
+  border-radius: 23px;
   color: #e0e9ff;
-  background: linear-gradient(155deg, rgba(120, 146, 209, 0.22), rgba(30, 41, 69, 0.67));
+  background: radial-gradient(ellipse at 17% 0%, rgba(183, 227, 255, 0.13), transparent 55%),    linear-gradient(145deg, rgba(68, 81, 114, 0.54), rgba(21, 29, 49, 0.66) 60%, rgba(65, 52, 96, 0.4));
   box-shadow: inset 0 1px 0 rgba(239, 246, 255, 0.13), 0 4px 12px rgba(0, 0, 0, 0.22);
-  backdrop-filter: blur(20px) saturate(170%);
-  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
   font: inherit;
   font-size: 0.72rem;
   font-weight: 500;
@@ -16609,7 +16609,7 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-bottom-nav {
   gap: 0px;
   padding: 2px;
   border: 1px solid rgba(188, 208, 255, 0.22);
-  border-radius: 25px;
+  border-radius: 35px;
   background:
     radial-gradient(ellipse at 17% 0%, rgba(183, 227, 255, 0.13), transparent 55%),
     linear-gradient(145deg, rgba(68, 81, 114, 0.54), rgba(21, 29, 49, 0.66) 60%, rgba(65, 52, 96, 0.4));
@@ -16630,14 +16630,14 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-nav-button {
   min-height: 44px;
   padding: 5px 2px 4px;
   border: 1px solid transparent;
-  border-radius: 20px;
+  border-radius: 30px;
   color: #a3b0cb;
   background: transparent;
   font: inherit;
   font-size: clamp(0.57rem, 2.35vw, 0.65rem);
-  font-weight: 450;
+  font-weight: 400;
   line-height: 1;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
