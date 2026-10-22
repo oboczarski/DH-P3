@@ -3406,7 +3406,7 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
   margin-top: 1px;
 }
 
-.meta-pill--button:hover,
+
 .meta-pill--button[aria-expanded="true"] {
   color: rgb(42 48 61);
   background: linear-gradient(176deg, rgb(152 171 218 / 67%), rgb(61 77 99));
