@@ -4,6 +4,7 @@ import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSe
 import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js";
 import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js";
+import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart } from "./datahub-gamelogs-controls.js?v=DH3.52-datahub-gamelogs";
 
 // ---------------------------------------------------------------------------
 // Hero copy and filter labels that drive the surrounding page shell.
@@ -2919,7 +2920,9 @@ const state = {
   currentGameLogsSummary: null,
   currentGameLogsFooterStats: null,
   currentGameLogsView: "gl",
+  currentGameLogsKeyPeriod: "gl",
   currentConsistencyData: null,
+  currentConsistencyStat: "fpts",
   currentModalSeason: "2026",
   currentGameLogsTriggerButton: null,
 };
@@ -2977,9 +2980,15 @@ const gameLogsSeasonMenu = document.querySelector("#game-logs-modal [data-gamelo
 const gameLogsSeasonOptions = Array.from(
   document.querySelectorAll("#game-logs-modal [data-gamelogs-season-value]"),
 );
-const modalInfoButtons = Array.from(
-  document.querySelectorAll("#game-logs-modal .modal-info-btn"),
+const gameLogsNavButtons = Array.from(
+  document.querySelectorAll("#game-logs-modal [data-gamelogs-panel]"),
 );
+const gameLogsDock = gameLogsModal?.querySelector("[data-gamelogs-dock]");
+const gameLogsPerformanceControl = gameLogsModal?.querySelector("[data-gamelogs-performance-control]");
+const gameLogsPerformanceToggle = gameLogsModal?.querySelector("[data-gamelogs-performance-toggle]");
+const gameLogsStatDropdown = gameLogsModal?.querySelector("[data-gamelogs-stat-dropdown]");
+const gameLogsStatToggle = gameLogsModal?.querySelector("[data-gamelogs-stat-toggle]");
+const gameLogsStatMenu = gameLogsModal?.querySelector("[data-gamelogs-stat-menu]");
 const pageTabs = document.querySelector(".page-tabs");
 const pageTabButtons = Array.from(document.querySelectorAll(".page-tabs .page-tab"));
 const primaryTabButtons = Array.from(
@@ -12985,6 +12994,9 @@ function dataHubResetTeamView({ restoreFocus = false } = {}) {
   const pane = gameLogsModal?.querySelector('#gamelogs-team-pane');
   gameLogsModal?.classList.remove('is-team-view');
   pane?.classList.add('hidden');
+  syncDataHubGameLogsNavigation();
+  if (restoreFocus && state.currentGameLogsView === "consistency") renderDataHubConsistencyChart();
+  if (restoreFocus && state.currentGameLogsView === "career") syncDataHubCareerRowHeights();
   if (restoreFocus && dataHubTeamTrigger?.isConnected) dataHubTeamTrigger.focus({ preventScroll: true });
   dataHubTeamTrigger = null;
 }
@@ -13075,7 +13087,7 @@ function dataHubFitTeamText() {
 }
 function dataHubOpenTeamView(trigger) {
   const pane = gameLogsModal?.querySelector('#gamelogs-team-pane');
-  const team = dataHubTeamKey(trigger.dataset.teamModalOpen);
+  const team = dataHubTeamKey(trigger.dataset.teamModalOpen || state.currentGameLogsPlayer?.team);
   if (!pane || !dataHubTeamNames[team] || gameLogsModal.classList.contains('loading')) return;
   const players = dataHubTeamPlayers(team);
   const revision = ++dataHubTeamViewRevision;
@@ -13096,6 +13108,8 @@ function dataHubOpenTeamView(trigger) {
   body.scrollTop = 0;
   gameLogsModal.classList.add('is-team-view');
   pane.classList.remove('hidden');
+  closeDataHubConsistencyStatMenu();
+  syncDataHubGameLogsNavigation();
   void dataHubUpdateTeamSummary(team, state.currentModalSeason, revision);
   requestAnimationFrame(dataHubFitTeamText);
   document.fonts?.ready.then(dataHubFitTeamText);
@@ -13103,7 +13117,7 @@ function dataHubOpenTeamView(trigger) {
 }
 function dataHubTeamKeydown(event) {
   if (!gameLogsModal?.classList.contains('is-team-view') || event.key !== 'Tab') return;
-  const controls = [...gameLogsModal.querySelectorAll('#gamelogs-team-pane button, #gamelogs-team-pane [tabindex="0"]')];
+  const controls = [...gameLogsModal.querySelectorAll('#gamelogs-team-pane button, #gamelogs-team-pane [tabindex="0"], .gamelogs-bottom-nav button:enabled')];
   const first = controls[0], last = controls[controls.length - 1];
   if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
   else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
@@ -13276,7 +13290,7 @@ function attachGameLogsModalListeners() {
       if (player && season !== state.currentModalSeason) {
         const row = getDataHubStatsRowsForSeason(season).find((entry) => entry.__meta.playerId === player.id)
           || { __meta: { playerId: player.id, name: player.name, fullName: player.fullName, pos: player.pos, team: player.team, hasGameLogsSupport: true } };
-        openDataHubGameLogs(row, null, { season, view: state.currentGameLogsView === "career" ? "gl" : state.currentGameLogsView });
+        openDataHubGameLogs(row, null, { season, view: state.currentGameLogsView === "career" ? "gl" : state.currentGameLogsView, consistencyStat: state.currentConsistencyStat });
       }
       return;
     }
@@ -13321,9 +13335,16 @@ function attachGameLogsModalListeners() {
     if (!gameLogsSeasonDropdown?.contains(event.target)) {
       closeDataHubGameLogsSeasonMenu();
     }
+    if (!gameLogsStatDropdown?.contains(event.target)) {
+      closeDataHubConsistencyStatMenu();
+    }
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && gameLogsModal && !gameLogsModal.classList.contains("hidden")) {
+      if (gameLogsStatMenu && !gameLogsStatMenu.classList.contains("hidden")) {
+        closeDataHubConsistencyStatMenu({ restoreFocus: true });
+        return;
+      }
       if (gameLogsSeasonMenu && !gameLogsSeasonMenu.classList.contains("hidden")) {
         closeDataHubGameLogsSeasonMenu();
         return;
@@ -13334,6 +13355,9 @@ function attachGameLogsModalListeners() {
   window.addEventListener("resize", () => {
     if (state.currentGameLogsView === "career") {
       syncDataHubCareerRowHeights();
+    }
+    if (state.currentGameLogsView === "consistency" && !gameLogsModal?.classList.contains("hidden")) {
+      renderDataHubConsistencyChart();
     }
   });
   gameLogsModalTabs.forEach((tab) => {
@@ -13349,42 +13373,23 @@ function attachGameLogsModalListeners() {
       setDataHubGameLogsView(button.dataset.gamelogsView);
     });
   });
-  modalInfoButtons.forEach((button) => {
+  gameLogsNavButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      const panel = button.dataset.panel;
-      const overlays = {
-        "stats-key": statsKeyContainer,
-        "radar-chart": radarChartContainer,
-        consistency: consistencyContainer,
-      };
-      if (panel === "game-logs") {
-        setDataHubGameLogsView("gl");
+      // DataHub dock: every press selects its destination, even if its top
+      // Weekly/Season segment is already visually active in a related panel.
+      const view = button.dataset.gamelogsPanel;
+      if (view === "team") {
+        dataHubOpenTeamView(button);
         return;
       }
-      const target = overlays[panel];
-      if (!target) {
-        return;
-      }
-      const isOpen = !target.classList.contains("hidden");
-      if (state.currentGameLogsView === "career") {
-        setDataHubGameLogsView("gl");
-      }
-      Object.values(overlays).forEach((node) => node?.classList.add("hidden"));
-      modalInfoButtons.forEach((entry) => entry.classList.remove("active"));
-      if (isOpen) {
-        modalInfoButtons.find((entry) => entry.dataset.panel === "game-logs")?.classList.add("active");
-        return;
-      }
-      target.classList.remove("hidden");
-      button.classList.add("active");
-      if (panel === "radar-chart" && state.currentGameLogsPlayer) {
-        renderDataHubRadarChart(state.currentGameLogsPlayer.id, state.currentGameLogsPlayer.pos);
-      }
-      if (panel === "consistency" && state.currentGameLogsPlayer) {
-        renderDataHubConsistencyChart();
-      }
+      dataHubResetTeamView();
+      setDataHubGameLogsView(view);
     });
   });
+  gameLogsPerformanceToggle?.addEventListener("click", () => {
+    setDataHubGameLogsView(resolveGameLogsNavigation(state.currentGameLogsView).performanceAction);
+  });
+  attachDataHubConsistencyStatListeners();
 }
 
 function openDataHubModal(season = state.statsSeason) {
@@ -13404,9 +13409,6 @@ function openDataHubModal(season = state.statsSeason) {
   closeDataHubGameLogsSeasonMenu();
   setDataHubGameLogsView("gl");
   switchDataHubModalTab("gamelogs");
-  modalInfoButtons.forEach((button) => {
-    button.classList.toggle("active", button.dataset.panel === "game-logs");
-  });
 }
 
 function closeDataHubModal() {
@@ -13419,12 +13421,12 @@ function closeDataHubModal() {
   gameLogsModal.classList.remove("loading");
   gameLogsModal.querySelector(".game-logs-loading-container")?.remove();
   closeDataHubGameLogsSeasonMenu();
+  closeDataHubConsistencyStatMenu();
   modalBody?.classList.remove("loading");
   modalBody?.replaceChildren();
   statsKeyContainer?.classList.add("hidden");
   radarChartContainer?.classList.add("hidden");
   consistencyContainer?.classList.add("hidden");
-  modalInfoButtons.forEach((button) => button.classList.remove("active"));
   if (dataHubRadarChartInstance) {
     dataHubRadarChartInstance.destroy();
     dataHubRadarChartInstance = null;
@@ -13451,6 +13453,7 @@ function closeDataHubModal() {
   state.currentGameLogsSummary = null;
   state.currentGameLogsFooterStats = null;
   state.currentConsistencyData = null;
+  state.currentConsistencyStat = "fpts";
   setDataHubModalOwnershipOnly(false);
 }
 
@@ -13493,17 +13496,18 @@ function openDataHubOwnershipOnlyModal() {
 }
 
 function setDataHubGameLogsView(view) {
-  // DataHub game logs modal view switcher:
-  // treats Career as a third swappable table mode while keeping the page-local
-  // footer overlays and ownership tab independent from app.js behavior.
-  const normalizedView = view === "career" ? "career" : (view === "szn" ? "szn" : "gl");
+  // DataHub only: content and navigation share one state. The top switcher's
+  // visual selection describes the data period; pressing it still opens the
+  // full Weekly, Season or Career table, including an already-selected period.
+  const normalizedView = resolveGameLogsNavigation(view).content;
+  // The existing Key overlay keeps the period it was opened from. Career's
+  // reference view continues to use Weekly, as in the previous modal.
+  if (normalizedView === "key" && state.currentGameLogsView !== "key") {
+    state.currentGameLogsKeyPeriod = resolveGameLogsNavigation(state.currentGameLogsView).topView === "szn" ? "szn" : "gl";
+  }
   state.currentGameLogsView = normalizedView;
-  syncDataHubGameLogsSeasonToggleState(normalizedView);
-  gameLogsViewButtons.forEach((button) => {
-    const isActive = button.dataset.gamelogsView === normalizedView;
-    button.classList.toggle("is-active", isActive);
-    button.setAttribute("aria-pressed", isActive ? "true" : "false");
-  });
+  closeDataHubGameLogsSeasonMenu();
+  closeDataHubConsistencyStatMenu();
   modalBody?.querySelectorAll(".game-logs-table-container, .no-logs[data-gamelogs-view='gl']").forEach((node) => {
     node.classList.toggle("hidden", normalizedView !== "gl");
   });
@@ -13513,15 +13517,50 @@ function setDataHubGameLogsView(view) {
   modalBody?.querySelectorAll(".game-logs-career-view").forEach((node) => {
     node.classList.toggle("hidden", normalizedView !== "career");
   });
-  statsKeyContainer?.classList.add("hidden");
-  radarChartContainer?.classList.add("hidden");
-  consistencyContainer?.classList.add("hidden");
-  modalInfoButtons.forEach((button) => {
-    button.classList.toggle("active", button.dataset.panel === "game-logs");
-  });
+  statsKeyContainer?.classList.toggle("hidden", normalizedView !== "key");
+  radarChartContainer?.classList.toggle("hidden", normalizedView !== "performance");
+  consistencyContainer?.classList.toggle("hidden", normalizedView !== "consistency");
+  syncDataHubGameLogsNavigation();
+  if (normalizedView === "performance" && state.currentGameLogsPlayer && !gameLogsModal?.classList.contains("loading")) {
+    renderDataHubRadarChart(state.currentGameLogsPlayer.id, state.currentGameLogsPlayer.pos);
+  }
+  if (normalizedView === "consistency") renderDataHubConsistencyChart();
   if (normalizedView === "career") {
     syncDataHubCareerRowHeights();
   }
+}
+
+function syncDataHubGameLogsNavigation() {
+  const navigation = resolveGameLogsNavigation(state.currentGameLogsView);
+  const topView = navigation.content === "key" ? state.currentGameLogsKeyPeriod : navigation.topView;
+  const isTeamView = gameLogsModal?.classList.contains("is-team-view");
+  const isOwnershipView = document.querySelector("#gamelogs-tab-pane")?.classList.contains("hidden");
+  gameLogsDock?.classList.toggle("hidden", Boolean(isOwnershipView));
+  syncDataHubGameLogsSeasonToggleState(topView);
+  gameLogsViewButtons.forEach((button) => {
+    const active = button.dataset.gamelogsView === topView;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  gameLogsNavButtons.forEach((button) => {
+    const active = button.dataset.gamelogsPanel === (isTeamView ? "team" : navigation.navView);
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+    if (button.dataset.gamelogsPanel === "team") {
+      button.disabled = !dataHubTeamNames[dataHubTeamKey(state.currentGameLogsPlayer?.team)];
+    }
+    if (button.dataset.gamelogsPanel === "performance") {
+      button.setAttribute("aria-controls", navigation.content === "szn" ? "modal-body" : "radar-chart-container");
+    }
+  });
+  gameLogsPerformanceControl?.classList.toggle("hidden", isTeamView || !navigation.performanceAction);
+  gameLogsStatDropdown?.classList.toggle("hidden", isTeamView || navigation.content !== "consistency");
+  const isSeasonStats = navigation.content === "szn";
+  const currentLabel = gameLogsPerformanceControl?.querySelector("[data-gamelogs-performance-current]");
+  const actionLabel = gameLogsPerformanceControl?.querySelector("[data-gamelogs-performance-action]");
+  if (currentLabel) currentLabel.textContent = isSeasonStats ? "Season Stats" : "Performance Overview";
+  if (actionLabel) actionLabel.textContent = isSeasonStats ? "Performance Overview" : "Season Stats";
+  gameLogsPerformanceToggle?.setAttribute("aria-controls", isSeasonStats ? "radar-chart-container" : "modal-body");
 }
 
 function switchDataHubModalTab(tabKey) {
@@ -13563,6 +13602,12 @@ function switchDataHubModalTab(tabKey) {
     gameLogsPane.classList.remove("hidden");
     ownershipPane.classList.add("hidden");
   }
+  closeDataHubConsistencyStatMenu();
+  syncDataHubGameLogsNavigation();
+  // Returning from Ownership after a resize needs the visible chart's actual
+  // dimensions; its SVG cannot be measured while the player pane is hidden.
+  if (resolvedTabKey === "gamelogs" && state.currentGameLogsView === "consistency") renderDataHubConsistencyChart();
+  if (resolvedTabKey === "gamelogs" && state.currentGameLogsView === "career") syncDataHubCareerRowHeights();
 }
 
 async function openDataHubRookieOwnership(row, triggerButton = null) {
@@ -13623,7 +13668,7 @@ async function openDataHubRookieOwnership(row, triggerButton = null) {
   }
 }
 
-async function openDataHubGameLogs(row, triggerButton = null, { season = state.statsSeason, view = "gl" } = {}) {
+async function openDataHubGameLogs(row, triggerButton = null, { season = state.statsSeason, view = "gl", consistencyStat = "fpts" } = {}) {
   const meta = row?.__meta;
   if (!canOpenDataHubGameLogs(meta)) {
     return;
@@ -13632,6 +13677,8 @@ async function openDataHubGameLogs(row, triggerButton = null, { season = state.s
   state.currentGameLogsPlayer = null;
   state.currentGameLogsPlayerRanks = null;
   state.currentGameLogsSummary = null;
+  state.currentConsistencyData = null;
+  state.currentConsistencyStat = consistencyStat;
   const isStaleRequest = () => requestSeq !== dataHubGameLogsRequestSeq;
 
   // DataHub player-tap feedback:
@@ -16550,7 +16597,153 @@ function getDataHubOpponentRankColor(rank) {
 
 function prepareDataHubConsistencyPanel(player) {
   state.currentConsistencyData = buildDataHubConsistencyPanelData(player);
+  renderDataHubConsistencyStatOptions(player);
   updateDataHubConsistencyHud(state.currentConsistencyData);
+}
+
+function getDataHubConsistencyStatOptions(player = state.currentGameLogsPlayer) {
+  return getDataHubLogOrderForPosition(player?.pos, state.currentModalSeason)
+    .filter((key) => key !== "proj" && DATAHUB_STAT_LABELS[key]);
+}
+
+function renderDataHubConsistencyStatOptions(player) {
+  if (!gameLogsStatMenu) return;
+  const options = getDataHubConsistencyStatOptions(player);
+  if (!options.includes(state.currentConsistencyStat)) state.currentConsistencyStat = "fpts";
+  gameLogsStatMenu.replaceChildren(...options.map((key) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "gamelogs-stat-option";
+    button.dataset.consistencyStat = key;
+    button.setAttribute("role", "option");
+    button.textContent = key === "fpts" ? "PPR FPTS" : DATAHUB_STAT_LABELS[key];
+    return button;
+  }));
+  syncDataHubConsistencyStatControl();
+}
+
+function syncDataHubConsistencyStatControl() {
+  const key = state.currentConsistencyStat;
+  const label = gameLogsStatDropdown?.querySelector("[data-gamelogs-stat-value]");
+  const mode = gameLogsStatDropdown?.querySelector("[data-gamelogs-stat-mode]");
+  if (label) label.textContent = key === "fpts" ? "PPR FPTS" : DATAHUB_STAT_LABELS[key];
+  if (mode) mode.textContent = key === "fpts" ? "Weekly scoring" : `${state.currentGameLogsPlayer?.pos || "Position"} weekly ranks`;
+  gameLogsStatMenu?.querySelectorAll("[data-consistency-stat]").forEach((option) => {
+    const selected = option.dataset.consistencyStat === key;
+    option.classList.toggle("is-selected", selected);
+    option.setAttribute("aria-selected", String(selected));
+    option.tabIndex = selected ? 0 : -1;
+  });
+}
+
+function closeDataHubConsistencyStatMenu({ restoreFocus = false } = {}) {
+  gameLogsStatMenu?.classList.add("hidden");
+  gameLogsStatToggle?.setAttribute("aria-expanded", "false");
+  if (restoreFocus) gameLogsStatToggle?.focus({ preventScroll: true });
+}
+
+function openDataHubConsistencyStatMenu(edge) {
+  if (!gameLogsStatMenu || state.currentGameLogsView !== "consistency") return;
+  closeDataHubGameLogsSeasonMenu();
+  gameLogsStatMenu.classList.remove("hidden");
+  gameLogsStatToggle?.setAttribute("aria-expanded", "true");
+  const options = [...gameLogsStatMenu.querySelectorAll("[data-consistency-stat]")];
+  const option = edge === "first" ? options[0] : edge === "last" ? options.at(-1)
+    : options.find((entry) => entry.getAttribute("aria-selected") === "true");
+  option?.focus({ preventScroll: true });
+  option?.scrollIntoView({ block: "nearest" });
+}
+
+function attachDataHubConsistencyStatListeners() {
+  // The DataHub stat picker is a keyboard-operable listbox anchored above its
+  // trigger. Escape restores focus; Tab and outside clicks dismiss it without
+  // changing the selected statistic or closing the Player Game Log dialog.
+  gameLogsStatToggle?.addEventListener("click", () => {
+    if (gameLogsStatToggle.getAttribute("aria-expanded") === "true") closeDataHubConsistencyStatMenu();
+    else openDataHubConsistencyStatMenu();
+  });
+  gameLogsStatToggle?.addEventListener("keydown", (event) => {
+    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    openDataHubConsistencyStatMenu(event.key === "End" || event.key === "ArrowUp" ? "last" : "first");
+  });
+  gameLogsStatMenu?.addEventListener("click", (event) => {
+    const key = event.target.closest("[data-consistency-stat]")?.dataset.consistencyStat;
+    if (!getDataHubConsistencyStatOptions().includes(key)) return;
+    state.currentConsistencyStat = key;
+    syncDataHubConsistencyStatControl();
+    closeDataHubConsistencyStatMenu({ restoreFocus: true });
+    renderDataHubConsistencyChart();
+  });
+  gameLogsStatMenu?.addEventListener("keydown", (event) => {
+    if (event.key === "Tab") {
+      closeDataHubConsistencyStatMenu({ restoreFocus: true });
+      return;
+    }
+    const options = [...gameLogsStatMenu.querySelectorAll("[data-consistency-stat]")];
+    const index = options.indexOf(document.activeElement);
+    let next = index;
+    if (event.key === "ArrowDown") next = (index + 1) % options.length;
+    else if (event.key === "ArrowUp") next = (index - 1 + options.length) % options.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = options.length - 1;
+    else return;
+    event.preventDefault();
+    options[next]?.focus();
+  });
+}
+
+function getDataHubConsistencyStatValue(key, stats, position) {
+  // Reuse Weekly's accessors/precision, but never let their display fallbacks
+  // manufacture a zero for an unavailable metric in a new ranked chart.
+  if (!stats || stats.__hasRecordedStats === false) return null;
+  const is2026 = state.currentModalSeason === "2026";
+  const read = () => getDataHubGameLogStatValue(key, stats, is2026 && position === "RB", is2026 && ["WR", "TE"].includes(position));
+  if (key === "fpts") return read();
+  if (key === "yds_total") {
+    const parts = [stats.pass_yd, stats.rush_yd, stats.rec_yd].filter(Number.isFinite);
+    return parts.length ? parts.reduce((sum, value) => sum + value, 0) : Number.isFinite(stats.yds_total) ? stats.yds_total : null;
+  }
+  if (Number.isFinite(stats[key])) return read();
+  if (DATAHUB_NO_FALLBACK_KEYS.has(key) || (is2026 && position === "RB" && ["ryoe", "rr", "ypr"].includes(key))
+    || (is2026 && ["WR", "TE"].includes(position) && ["rr", "rz_tgt", "ay_pct"].includes(key))) return null;
+  const dependencies = {
+    ypc: ["rush_att", "rush_yd"], yco_per_att: ["rush_att", "rush_yac"], mtf_per_att: ["rush_att", "mtf"],
+    pass_imp_per_att: ["pass_att", "pass_imp"], ts_per_rr: ["rr", "rec_tgt"], yprr: ["rr", "rec_yd"],
+    ypr: ["rec", "rec_yd"], first_down_rec_rate: ["rec", "rec_fd"], cmp_pct: ["pass_att", "pass_cmp"], imp_per_g: ["imp"],
+  }[key];
+  return dependencies?.every((dependency) => Number.isFinite(stats[dependency])) ? read() : null;
+}
+
+function buildDataHubConsistencyMetricData(base, key) {
+  // Rank only recorded games in the displayed week and the player's position,
+  // independent of table filters, season ranks and future projection rows.
+  // Use the Weekly accessor so each label retains its existing units/precision.
+  if (!base || key === "fpts") return base;
+  const weeklyStats = getDataHubCombinedWeeklyStats();
+  const position = base.position;
+  const series = [];
+  const skippedLabels = { ...base.skippedLabels };
+  const lowerBetter = ["ttt", "prs_pct", "pass_sack", "pass_int", "fum", "dp_pct"].includes(key);
+  base.axisWeeks.forEach((week) => {
+    const rows = weeklyStats?.[week] || {};
+    const eligible = (stats) => stats && stats.__hasRecordedStats !== false
+      && String(stats.opponent || "").toUpperCase() !== "BYE"
+      && !shouldSkipDataHubConsistencyWeek(stats, state.currentModalSeason === "2026" ? getDataHubGameLogProjectionDisplay(stats) : stats.proj);
+    const entries = Object.entries(rows).filter(([id, stats]) => {
+      const pos = stats.pos || state.playerSeasonStats?.[id]?.pos || state.sleeperPlayers?.[id]?.position;
+      return pos === position && eligible(stats);
+    }).map(([playerId, stats]) => ({ playerId, value: getDataHubConsistencyStatValue(key, stats, position) }));
+    const stats = rows[base.playerId];
+    const value = eligible(stats) ? getDataHubConsistencyStatValue(key, stats, position) : null;
+    const rank = rankWeeklyMetricValues(entries, lowerBetter).get(base.playerId);
+    if (Number.isFinite(value) && Number.isFinite(rank)) {
+      series.push({ week, value, rank, opponent: stats.opponent || "" });
+    } else if (eligible(stats)) {
+      skippedLabels[week] = "—";
+    }
+  });
+  return { ...base, ...buildConsistencyRankChart(series, position), statKey: key, skippedLabels };
 }
 
 function getDataHubConsistencyAxisWeeks() {
@@ -16857,15 +17050,29 @@ function hideDataHubConsistencyEmptyState(chartBox) {
 }
 
 function renderDataHubConsistencyChart() {
-  const data = state.currentConsistencyData;
+  // HUD stays bound to the original season FPTS snapshot. Only the plot and
+  // its ranking-zone legend follow the selected weekly metric.
+  const hudData = state.currentConsistencyData;
+  const data = buildDataHubConsistencyMetricData(hudData, state.currentConsistencyStat);
   const chartBox = document.querySelector("#weekly-chart-box");
   const pointsLayer = document.querySelector("#weekly-chart-points");
   const xAxisEl = document.querySelector("#weekly-chart-x-axis");
   if (!chartBox || !pointsLayer || !xAxisEl) {
     return;
   }
-  updateDataHubConsistencyHud(data);
+  updateDataHubConsistencyHud(hudData);
+  pointsLayer.dataset.rankMode = String(Boolean(data?.rankMode));
+  if (data?.rankMode) {
+    pointsLayer.style.setProperty("--rank-high-edge", `${yFromDataHubConsistencyPoints(data.thresholds.high)}%`);
+    pointsLayer.style.setProperty("--rank-solid-edge", `${yFromDataHubConsistencyPoints(data.thresholds.solid)}%`);
+  }
+  chartBox.setAttribute("role", "img");
+  chartBox.setAttribute("aria-label", data?.rankMode
+    ? `${DATAHUB_STAT_LABELS[data.statKey]} weekly ${data.position} positional ranks. Green 1–12; blue 13–${data.rankZones.blueEnd}; purple ${data.rankZones.purpleStart}+. Point labels show statistic values.`
+    : "Weekly PPR fantasy points with position-specific scoring zones.");
   requestAnimationFrame(() => {
+    if (state.currentGameLogsView !== "consistency" || gameLogsModal?.classList.contains("hidden")
+      || gameLogsModal?.classList.contains("is-team-view") || document.querySelector("#gamelogs-tab-pane")?.classList.contains("hidden")) return;
     if (!data) {
       renderDataHubConsistencyXAxis({ axisWeeks: getDataHubConsistencyAxisWeeks() });
       renderDataHubConsistencyZoneSummary(null);
@@ -16875,16 +17082,16 @@ function renderDataHubConsistencyChart() {
         dataHubCurveSvg = null;
       }
       showDataHubConsistencyEmptyState(chartBox, "Consistency data unavailable.");
-      hydrateDataHubConsistencyProgressCircles(null);
+      hydrateDataHubConsistencyProgressCircles(hudData);
       return;
     }
     renderDataHubConsistencyXAxis(data);
     renderDataHubConsistencyZoneSummary(data);
     renderDataHubConsistencyPoints(data);
-    hydrateDataHubConsistencyProgressCircles(data);
+    hydrateDataHubConsistencyProgressCircles(hudData);
     const hasVisibleStatus = data.axisWeeks.some((week) => data.skippedLabels?.[week]);
     if (!data.chartSeries.length && !hasVisibleStatus) {
-      showDataHubConsistencyEmptyState(chartBox, "No fantasy points recorded yet.");
+      showDataHubConsistencyEmptyState(chartBox, data.rankMode ? `No ${DATAHUB_STAT_LABELS[data.statKey]} recorded for these weeks.` : "No fantasy points recorded yet.");
     } else {
       hideDataHubConsistencyEmptyState(chartBox);
     }
@@ -16917,7 +17124,7 @@ function renderDataHubConsistencyZoneSummary(data) {
     if (solidThresholdEl) solidThresholdEl.textContent = "";
     if (highThresholdEl) highThresholdEl.textContent = "";
   };
-  if (!data || !data.series?.length) {
+  if (!data || (!data.series?.length && !data.rankMode)) {
     resetCounts();
     resetThresholds();
     return;
@@ -16925,9 +17132,9 @@ function renderDataHubConsistencyZoneSummary(data) {
   const thresholds = data.thresholds || getDataHubConsistencyThresholds(data.position);
   const solidRounded = Math.round(thresholds.solid);
   const highRounded = Math.round(thresholds.high);
-  if (lowThresholdEl) lowThresholdEl.textContent = `(<${solidRounded}):`;
-  if (solidThresholdEl) solidThresholdEl.textContent = `(${solidRounded}-${highRounded}):`;
-  if (highThresholdEl) highThresholdEl.textContent = `(≥${highRounded}):`;
+  if (lowThresholdEl) lowThresholdEl.textContent = data.rankMode ? `(${data.rankZones.purpleStart}+):` : `(<${solidRounded}):`;
+  if (solidThresholdEl) solidThresholdEl.textContent = data.rankMode ? `(13–${data.rankZones.blueEnd}):` : `(${solidRounded}-${highRounded}):`;
+  if (highThresholdEl) highThresholdEl.textContent = data.rankMode ? "(1–12):" : `(≥${highRounded}):`;
   let low = 0;
   let solid = 0;
   let high = 0;
@@ -17348,23 +17555,38 @@ function renderDataHubConsistencyPoints(data) {
     pointEl.style.setProperty("--point-color", bucket.color);
     pointEl.style.left = `${pctX}%`;
     pointEl.style.top = `${pctY}%`;
-    pointEl.title = `WK${entry.week}: ${(Number.isFinite(entry.originalPts) ? entry.originalPts : entry.pts).toFixed(1)}${entry.opponent ? ` vs ${entry.opponent}` : ""}`;
+    const rawValue = Number.isFinite(entry.originalPts) ? entry.originalPts : entry.pts;
+    const position = data.position;
+    const formattedValue = data.rankMode
+      ? formatDataHubGameLogCellValue(data.statKey, rawValue, state.currentModalSeason === "2026" && position === "QB", state.currentModalSeason === "2026" && position === "RB", state.currentModalSeason === "2026" && ["WR", "TE"].includes(position))
+      : rawValue.toFixed(1);
+    pointEl.title = `WK${entry.week}: ${formattedValue}${data.rankMode ? ` ${DATAHUB_STAT_LABELS[data.statKey]} · ${position}${entry.rank}` : " PPR FPTS"}${entry.opponent ? ` vs ${entry.opponent}` : ""}`;
     const label = document.createElement("div");
     label.className = `weekly-point-label weekly-point-label--${bucket.name}`;
-    const suffix = document.createElement("span");
-    suffix.className = "weekly-point-label__suffix";
-    suffix.textContent = `wk${entry.week}`;
+    // Non-default metric chips show only the value and positional rank; their
+    // week is already identified on the x axis. Preserve the default FPTS chip.
+    if (!data.rankMode) {
+      const suffix = document.createElement("span");
+      suffix.className = "weekly-point-label__suffix";
+      suffix.textContent = `wk${entry.week}`;
+      label.appendChild(suffix);
+    }
     const valueSpan = document.createElement("span");
     valueSpan.className = "weekly-point-label__value";
     const valueNumber = document.createElement("span");
     valueNumber.style.color = bucket.color;
-    const rawValue = Number.isFinite(entry.originalPts) ? entry.originalPts : entry.pts;
-    valueNumber.textContent = Number.isFinite(rawValue) ? rawValue.toFixed(1) : "—";
+    valueNumber.textContent = formattedValue;
     valueSpan.appendChild(valueNumber);
-    if (Number.isFinite(rawValue) && rawValue > DATAHUB_MAX_CONSISTENCY_POINTS) {
+    if (!data.rankMode && Number.isFinite(rawValue) && rawValue > DATAHUB_MAX_CONSISTENCY_POINTS) {
       label.classList.add("weekly-point-label--capped");
     }
-    label.append(suffix, valueSpan);
+    label.appendChild(valueSpan);
+    if (data.rankMode) {
+      const rankLabel = document.createElement("span");
+      rankLabel.className = "weekly-point-label__rank";
+      rankLabel.textContent = `${position}${entry.rank}`;
+      label.appendChild(rankLabel);
+    }
     pointEl.appendChild(label);
     pointsLayer.appendChild(pointEl);
   });

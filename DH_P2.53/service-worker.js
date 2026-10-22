@@ -74,7 +74,8 @@
 // Refresh the Matchups week axis and its aligned, number-free opponent chips.
 // Refresh the side-by-side Trade Preview's combined BYE/injury badges beside age.
 // Refresh Trade Preview's shared inline name, age and BYE/injury badge layout.
-const CACHE_NAME = 'DH3.51k-trade-preview-inline-badges_v1.2';
+// Refresh DataHub's connected Game Log views, Liquid Glass dock and stat picker.
+const CACHE_NAME = 'DH3.52-datahub-gamelogs_v1.2';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -111,6 +112,8 @@ const CORE_ASSET_PATHS = [
   '/scripts/rosters-start-sit.js',
   '/scripts/stats.js',
   '/scripts/DataHub.js',
+  // DataHub's modal navigation/rank helpers ship with its standalone shell.
+  '/scripts/datahub-gamelogs-controls.js',
   '/scripts/datahub-stats-positional-ranks.js',
   // DataHub imports its page key and table header glossary during startup.
   '/scripts/datahub-stats-help.js',

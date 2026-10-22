@@ -24,7 +24,7 @@
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23060d16'/%3E%3Cpath d='M19 20.5h17.5c5.8 0 9.5 3.2 9.5 8.4 0 3.7-1.9 6.3-5.2 7.3 4.1.8 6.7 4 6.7 8.4 0 5.8-4 9.4-10.6 9.4H19V20.5Zm8.2 13.2h7c2.5 0 3.9-1.2 3.9-3.3 0-2.2-1.5-3.3-4.3-3.3h-6.7v6.6Zm0 13.9h7.8c2.9 0 4.5-1.3 4.5-3.7 0-2.4-1.7-3.7-4.8-3.7h-7.5v7.4Z' fill='%23dff5ff'/%3E%3C/svg%3E"
     />
     <!-- DataHub shell assets: keep the reference bundle intact and only repoint files for the DH-P3 page/script/style layout. -->
-    <link rel="stylesheet" href="../styles/DataHub.css?v=DH3.49v-team-injuries-start-sit-layout" />
+    <link rel="stylesheet" href="../styles/DataHub.css?v=DH3.52-datahub-gamelogs" />
   </head>
   <body data-page="datahub">
     <!-- Decorative background layers for the standalone reference shell. -->
@@ -1319,7 +1319,7 @@
                   <path d="M8 11h.01"></path>
                   <path d="M8 16h.01"></path>
                 </svg>
-                GameLog
+                Weekly
               </button>
               <button
                 type="button"
@@ -1498,48 +1498,6 @@
           </div>
         </div>
 
-        <!-- Game Logs modal footer actions:
-             keep these inline SVG icons inside the modal DOM so the redesign
-             stays self-contained and shares the same Lucide-style contract. -->
-        <div class="modal-footer">
-          <div class="key-chip modal-info-btn active" data-panel="game-logs">
-            <svg class="datahub-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="8" y="2" width="8" height="4" rx="1"></rect>
-              <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"></path>
-              <path d="M12 11h4"></path>
-              <path d="M12 16h4"></path>
-              <path d="M8 11h.01"></path>
-              <path d="M8 16h.01"></path>
-            </svg>
-            <span>GM-Logs</span>
-          </div>
-          <div class="key-chip modal-info-btn" data-panel="radar-chart">
-            <svg class="datahub-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M3 3v18h18"></path>
-              <path d="m7 14 3-4 3 2 4-6 3 3"></path>
-              <path d="M7 21v-7"></path>
-              <path d="M20 21v-9"></path>
-            </svg>
-            <span>Performance</span>
-          </div>
-          <div class="key-chip modal-info-btn" data-panel="consistency">
-            <svg class="datahub-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M3 3v18h18"></path>
-              <path d="m6 15 4-5 4 3 4-6"></path>
-              <path d="m18 7 1.5 1.5L21 7"></path>
-            </svg>
-            <span>Consistency</span>
-          </div>
-          <div class="key-chip modal-info-btn" data-panel="stats-key">
-            <svg class="datahub-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="7.5" cy="15.5" r="5.5"></circle>
-              <path d="m21 2-9.6 9.6"></path>
-              <path d="m15.5 7.5 3 3"></path>
-              <path d="m18.5 4.5 3 3"></path>
-            </svg>
-            <span>Key</span>
-          </div>
-        </div>
       </div>
 
       <div
@@ -1578,6 +1536,80 @@
         <div class="team-modal-body" tabindex="0" aria-label="Team players by position"></div>
       </section>
 
+      <!-- DataHub-only Liquid Glass dock: separate from the content card so
+           contextual actions sit above the five icon-first navigation buttons.
+           DataHub.js preserves this dock's state across the Team/Ownership panes. -->
+      <div class="gamelogs-dock" data-gamelogs-dock>
+        <div class="gamelogs-context-row">
+          <div class="gamelogs-performance-control hidden" data-gamelogs-performance-control>
+            <span class="gamelogs-context-caption" data-gamelogs-performance-current>Performance Overview</span>
+            <button type="button" class="gamelogs-context-action" data-gamelogs-performance-toggle>
+              <svg class="datahub-modal-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M7 16v-4m5 4V8m5 8v-7"></path></svg>
+              <span data-gamelogs-performance-action>Season Stats</span>
+              <svg class="datahub-modal-icon gamelogs-context-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"></path></svg>
+            </button>
+          </div>
+          <div class="gamelogs-stat-control hidden" data-gamelogs-stat-dropdown>
+            <div class="gamelogs-stat-caption">
+              <span id="gamelogs-stat-label" class="gamelogs-context-caption">Chart statistic</span>
+              <span class="gamelogs-stat-mode" data-gamelogs-stat-mode>Weekly scoring</span>
+            </div>
+            <button type="button" id="gamelogs-stat-toggle" class="gamelogs-context-action" data-gamelogs-stat-toggle aria-haspopup="listbox" aria-expanded="false" aria-controls="gamelogs-stat-menu" aria-labelledby="gamelogs-stat-label gamelogs-stat-value">
+              <svg class="datahub-modal-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18m-15-6 4-5 4 3 4-6"></path></svg>
+              <span id="gamelogs-stat-value" data-gamelogs-stat-value>PPR FPTS</span>
+              <svg class="datahub-modal-icon gamelogs-stat-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 14 6-6 6 6"></path></svg>
+            </button>
+            <div id="gamelogs-stat-menu" class="gamelogs-stat-menu hidden" data-gamelogs-stat-menu role="listbox" aria-label="Weekly chart statistic"></div>
+          </div>
+        </div>
+        <nav class="gamelogs-bottom-nav" aria-label="Player Game Log navigation">
+          <button type="button" class="gamelogs-nav-button active" data-gamelogs-panel="gl" aria-pressed="true" aria-controls="modal-body">
+            <svg class="datahub-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="8" y="2" width="8" height="4" rx="1"></rect>
+              <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"></path>
+              <path d="M12 11h4"></path>
+              <path d="M12 16h4"></path>
+              <path d="M8 11h.01"></path>
+              <path d="M8 16h.01"></path>
+            </svg>
+            <span>Game Log</span>
+          </button>
+          <button type="button" class="gamelogs-nav-button" data-gamelogs-panel="performance" aria-pressed="false" aria-controls="radar-chart-container">
+            <svg class="datahub-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 3v18h18"></path>
+              <path d="m7 14 3-4 3 2 4-6 3 3"></path>
+              <path d="M7 21v-7"></path>
+              <path d="M20 21v-9"></path>
+            </svg>
+            <span>Performance</span>
+          </button>
+          <button type="button" class="gamelogs-nav-button" data-gamelogs-panel="consistency" aria-pressed="false" aria-controls="consistency-container">
+            <svg class="datahub-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 3v18h18"></path>
+              <path d="m6 15 4-5 4 3 4-6"></path>
+              <path d="m18 7 1.5 1.5L21 7"></path>
+            </svg>
+            <span>Consistency</span>
+          </button>
+          <button type="button" class="gamelogs-nav-button" data-gamelogs-panel="team" aria-pressed="false" aria-controls="gamelogs-team-pane">
+            <svg class="datahub-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+            </svg>
+            <span>Team</span>
+          </button>
+          <button type="button" class="gamelogs-nav-button" data-gamelogs-panel="key" aria-pressed="false" aria-controls="stats-key-container">
+            <svg class="datahub-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="7.5" cy="15.5" r="5.5"></circle>
+              <path d="m21 2-9.6 9.6"></path>
+              <path d="m15.5 7.5 3 3"></path>
+              <path d="m18.5 4.5 3 3"></path>
+            </svg>
+            <span>Key</span>
+          </button>
+        </nav>
+      </div>
+
     </div>
 
     <!-- DataHub game logs charts stay page-local:
@@ -1586,6 +1618,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
     <!-- Refresh DataHub Compare's weekly charts and lazy gradient renderer. -->
-    <script type="module" src="../scripts/DataHub.js?v=DH3.49y-compare-area-gradients"></script>
+    <script type="module" src="../scripts/DataHub.js?v=DH3.52-datahub-gamelogs"></script>
   </body>
 </html>

@@ -8940,8 +8940,7 @@ body[data-page="datahub"] .modal-pos-tag {
 body[data-page="datahub"] .modal-team-logo-chip::after,
 body[data-page="datahub"] .modal-pos-tag::after,
 body[data-page="datahub"] .gamelogs-summary-chip::after,
-body[data-page="datahub"] .summary-chip::after,
-body[data-page="datahub"] .key-chip::after {
+body[data-page="datahub"] .summary-chip::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -9604,49 +9603,6 @@ body[data-page="datahub"] .gamelogs-szn-value-main {
   justify-content: flex-end;
 }
 
-body[data-page="datahub"] .modal-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.24rem;
-  margin-top: 0.42rem;
-  margin-bottom: 0.15rem;
-  font-size: 0.75rem;
-  line-height: 0.8rem;
-  color: var(--datahub-modal-text-tertiary);
-}
-
-body[data-page="datahub"] .modal-info-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.36rem;
-  cursor: pointer;
-  transition: color 180ms ease, filter 180ms ease;
-}
-
-body[data-page="datahub"] .key-chip {
-  position: relative;
-  padding: 0.34rem 0.46rem;
-  border-radius: 6px;
-  border: 1px solid rgba(250, 250, 250, 0.06);
-  background: rgba(255, 255, 255, 0.01);
-  box-shadow: 0 8px 24px rgba(31, 38, 135, 0.18), inset 0 4px 20px rgba(255, 255, 255, 0.04);
-}
-
-body[data-page="datahub"] .modal-info-btn.active {
-  color: var(--datahub-modal-text-primary);
-  filter: drop-shadow(0 0 8px rgba(154, 153, 242, 0.5));
-}
-
-body[data-page="datahub"] .modal-info-btn.active .key-chip {
-  border-color: rgba(154, 153, 242, 0.28);
-  background: rgba(154, 153, 242, 0.08);
-  box-shadow:
-    0 0 16px rgba(154, 153, 242, 0.24),
-    0 8px 24px rgba(31, 38, 105, 0.16),
-    inset 0 4px 20px rgba(255, 255, 255, 0.06);
-}
-
 body[data-page="datahub"] .stats-key-panel {
   position: absolute;
   inset: 0;
@@ -9673,15 +9629,6 @@ body[data-page="datahub"] #consistency-container {
   overflow: hidden;
 }
 
-body[data-page="datahub"] #game-logs-modal #consistency-container:not(.hidden) ~ .game-logs-table-container,
-body[data-page="datahub"] #game-logs-modal #modal-body:has(#consistency-container:not(.hidden)) .game-logs-table-container,
-body[data-page="datahub"] #game-logs-modal #radar-chart-container:not(.hidden) ~ .game-logs-table-container,
-body[data-page="datahub"] #game-logs-modal #modal-body:has(#radar-chart-container:not(.hidden)) .game-logs-table-container,
-body[data-page="datahub"] #game-logs-modal #modal-body:has(#consistency-container:not(.hidden)) .game-logs-szn-view,
-body[data-page="datahub"] #game-logs-modal #modal-body:has(#radar-chart-container:not(.hidden)) .game-logs-szn-view {
-  opacity: 0;
-  pointer-events: none;
-}
 
 body[data-page="datahub"] .stats-key-panel h4 {
   margin: 0 0 0.4rem;
@@ -12003,71 +11950,6 @@ body[data-page="datahub"] #game-logs-modal tbody tr.week-divider-row td::before 
   background: linear-gradient(90deg, rgba(160, 170, 210, 0.04), rgba(160, 170, 210, 0.1), rgba(160, 170, 210, 0.05), rgba(160, 170, 210, 0.1), rgba(160, 170, 210, 0.07));
 }
 
-body[data-page="datahub"] .modal-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.2rem;
-  margin-top: 0.4rem;
-  margin-bottom: 0.15rem;
-  font-size: 0.75rem;
-  border: 0px solid #aaf2;
-  line-height: 0.75rem;
-  color: var(--color-text-tertiary);
-  border-radius: 10px;
-}
-
-body[data-page="datahub"] .modal-info-btn {
-  font-size: 0.75rem;
-  line-height: 0.8rem;
-  cursor: pointer;
-  transition: color 0.2s ease, filter 0.2s ease, transform 0.1s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  text-wrap-mode: nowrap;
-  letter-spacing: -0.03em;
-  min-width: 55px;
-}
-
-body[data-page="datahub"] .modal-info-btn.active {
-  color: var(--color-text-primary);
-  filter: drop-shadow(0 0 4px rgba(154, 153, 242, 0.56)) drop-shadow(0 0 6px rgba(154, 153, 242, 0.63)) brightness(1.15);
-}
-
-body[data-page="datahub"] .modal-info-btn.active.key-chip {
-  border-color: rgba(154, 153, 242, 0.3);
-  background: rgba(154, 153, 242, 0.08);
-  box-shadow: 0 0 8px rgba(154, 153, 242, 0.14), inset 0 1px 5px rgba(255, 255, 255, 0.13);
-}
-
-body[data-page="datahub"] .key-chip {
-  position: relative;
-  background: rgba(255, 255, 255, 0.005);
-  backdrop-filter: blur(3px) saturate(170%);
-  border: 1px solid rgba(250, 250, 250, 0.06);
-  border-radius: 7px;
-  padding: 5px 5px;
-  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05);
-}
-
-body[data-page="datahub"] .key-chip::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.01);
-  border-radius: 7px;
-  backdrop-filter: blur(3px);
-  box-shadow: inset 7.5px 10px 0px -11px rgba(255, 255, 255, 0.25), inset 0px 10px 0px -8px rgba(255, 255, 255, 0.01);
-  opacity: 0.4;
-  z-index: -1;
-  filter: blur(2px) drop-shadow(10px 4px 6px black) brightness(115%);
-  pointer-events: none;
-}
-
 body[data-page="datahub"] .stats-key-panel {
   background: var(--color-panel-bg);
   border: 1px solid var(--color-panel-border);
@@ -12122,15 +12004,6 @@ body[data-page="datahub"] #game-logs-modal #consistency-container {
   overflow: hidden;
 }
 
-body[data-page="datahub"] #game-logs-modal #consistency-container:not(.hidden) ~ .game-logs-table-container,
-body[data-page="datahub"] #game-logs-modal #modal-body:has(#consistency-container:not(.hidden)) .game-logs-table-container,
-body[data-page="datahub"] #game-logs-modal #radar-chart-container:not(.hidden) ~ .game-logs-table-container,
-body[data-page="datahub"] #game-logs-modal #modal-body:has(#radar-chart-container:not(.hidden)) .game-logs-table-container,
-body[data-page="datahub"] #game-logs-modal #modal-body:has(#consistency-container:not(.hidden)) .game-logs-szn-view,
-body[data-page="datahub"] #game-logs-modal #modal-body:has(#radar-chart-container:not(.hidden)) .game-logs-szn-view {
-  opacity: 0;
-  pointer-events: none;
-}
 
 body[data-page="datahub"] #game-logs-modal .stats-key-panel h4 {
   font-size: 0.95rem;
@@ -12463,9 +12336,6 @@ body[data-page="datahub"] #game-logs-modal .modal-body.loading::after {
   display: none;
 }
 
-body[data-page="datahub"] #game-logs-modal.loading .modal-footer {
-  display: none;
-}
 
 body[data-page="datahub"] #game-logs-modal .ownership-modal-content {
   position: relative;
@@ -12939,7 +12809,9 @@ body[data-page="datahub"] .weekly-chart-x-axis > span.axis-week-missed {
      header structure and `!important` only where older DataHub rules were
      still affecting the rendered header contract. */
   body[data-page="datahub"] #game-logs-modal #gamelogs-tab-pane:not(.hidden) {
-    display: block !important;
+    /* The DataHub dock swaps absolute panels into the same body. Keep this
+       card flexible so Performance/Consistency/Key retain a measured height. */
+    display: flex !important;
   }
 
   body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane:not(.hidden) {
@@ -13652,8 +13524,7 @@ body[data-page="datahub"] #game-logs-modal .datahub-modal-icon * {
 
 body[data-page="datahub"] #game-logs-modal .gamelogs-modal-tab,
 body[data-page="datahub"] #game-logs-modal .gamelogs-season-tab,
-body[data-page="datahub"] #game-logs-modal .gamelogs-view-option,
-body[data-page="datahub"] #game-logs-modal .modal-info-btn {
+body[data-page="datahub"] #game-logs-modal .gamelogs-view-option {
   border: 1px solid transparent;
   background: linear-gradient(180deg, rgba(17, 24, 40, 0.92), rgba(8, 13, 24, 0.98)) padding-box, linear-gradient(135deg, rgba(115, 244, 255, 0.12), rgba(91, 127, 255, 0.12), rgba(219, 109, 255, 0.15)) border-box;
   box-shadow: var(--datahub-gamelogs-control-shadow);
@@ -13662,8 +13533,7 @@ body[data-page="datahub"] #game-logs-modal .modal-info-btn {
 
 body[data-page="datahub"] #game-logs-modal .gamelogs-modal-tab.is-active,
 body[data-page="datahub"] #game-logs-modal .gamelogs-season-tab.is-active,
-body[data-page="datahub"] #game-logs-modal .gamelogs-view-option.is-active,
-body[data-page="datahub"] #game-logs-modal .modal-info-btn.active {
+body[data-page="datahub"] #game-logs-modal .gamelogs-view-option.is-active {
   color: var(--datahub-gamelogs-text);
   background:
     linear-gradient(180deg, rgba(19, 30, 50, 0.98), rgba(8, 14, 29, 0.985)) padding-box,
@@ -13678,8 +13548,7 @@ body[data-page="datahub"] #game-logs-modal .modal-info-btn.active {
 @media (hover: hover) and (pointer: fine) {
   body[data-page="datahub"] #game-logs-modal .gamelogs-modal-tab:hover,
   body[data-page="datahub"] #game-logs-modal .gamelogs-season-tab:hover,
-  body[data-page="datahub"] #game-logs-modal .gamelogs-view-option:hover,
-  body[data-page="datahub"] #game-logs-modal .modal-info-btn:hover {
+  body[data-page="datahub"] #game-logs-modal .gamelogs-view-option:hover {
     color: var(--datahub-gamelogs-text);
     border-color: rgba(169, 191, 248, 0.28);
     box-shadow:
@@ -13742,8 +13611,7 @@ body[data-page="datahub"] #game-logs-modal .modal-pos-tag {
 body[data-page="datahub"] #game-logs-modal .modal-team-logo-chip::after,
 body[data-page="datahub"] #game-logs-modal .modal-pos-tag::after,
 body[data-page="datahub"] #game-logs-modal .gamelogs-summary-chip::after,
-body[data-page="datahub"] #game-logs-modal .summary-chip::after,
-body[data-page="datahub"] #game-logs-modal .key-chip::after {
+body[data-page="datahub"] #game-logs-modal .summary-chip::after {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
   box-shadow:
@@ -14006,9 +13874,6 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-szn-bar-rank {
     text-shadow: 1px 1px 0px #000;
 }
 
-body[data-page="datahub"] #game-logs-modal .modal-footer {
-  color: var(--datahub-gamelogs-text-muted);
-}
 
 body[data-page="datahub"] #game-logs-modal .stats-key-panel,
 body[data-page="datahub"] #game-logs-modal #radar-chart-container,
@@ -14121,8 +13986,7 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-view-option.is-active {
 }
 
 /* DataHub desktop-only modal spacing pass:
-   Targets: the Game Logs modal footer controls, modal body shell, and footer
-   rank annotations on desktop widths only.
+   Targets: the Game Logs modal body shell and footer rank annotations on desktop widths only.
    What it does: applies the requested desktop sizing/alignment adjustments
    without changing the mobile modal treatment or the year button row. */
 @media (min-width: 869px) {
@@ -14144,26 +14008,7 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-view-option.is-active {
     flex: none;
   }
 
-  body[data-page="datahub"] #game-logs-modal .modal-info-btn {
-    font-size: 0.95rem;
-    line-height: 0.8rem;
-    cursor: pointer;
-    transition: color 0.2s ease, filter 0.2s ease, transform 0.1s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    letter-spacing: -0.03em;
-    min-width: 53px;
-  }
 
-  body[data-page="datahub"] #game-logs-modal .modal-footer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-    margin-bottom: 0rem;
-  }
 }
 
 /* DataHub Game Logs Ownership exposure summary:
@@ -16541,4 +16386,366 @@ body[data-page="datahub"] #game-logs-modal .team-position-empty { margin: 0; pad
 }
 @media (prefers-reduced-motion: reduce) {
   body[data-page="datahub"] #game-logs-modal :is([data-team-modal-open], .team-player-card) { transition: none; }
+}
+
+/* DataHub Player Game Log navigation only. The detached dock sits below every
+   player/team pane. Cards fit the header and content rather than reserving the
+   removed footer's space; contextual controls appear only in their own views.
+   Short screens scroll content while controls remain within the viewport. */
+body[data-page="datahub"] #game-logs-modal {
+  padding: max(8px, env(safe-area-inset-top)) 0 max(8px, env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+body[data-page="datahub"] #game-logs-modal:not(.hidden) #gamelogs-tab-pane {
+  display: flex;
+  flex-direction: column;
+  width: min(94vw, 686px);
+  max-width: none;
+  /* Size from the header plus the established content height. The removed
+     internal footer no longer leaves its old reserved space inside the card. */
+  height: auto !important;
+  max-height: calc(100dvh - 11rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  flex: 0 1 auto;
+  min-height: 0;
+  padding-bottom: 0.55rem;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-header {
+  flex: 0 0 auto;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body {
+  flex: 0 1 var(--gamelogs-body-height, 415px);
+  height: var(--gamelogs-body-height, 415px);
+  max-height: var(--gamelogs-body-height, 415px);
+  min-height: 0;
+}
+
+/* Weekly's horizontal wrapper and inner body share the available height, so
+   the Season totals footer meets the card edge instead of leaving a void. */
+body[data-page="datahub"] #game-logs-modal .game-logs-hscroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+body[data-page="datahub"] #game-logs-modal .game-logs-hscroll-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+body[data-page="datahub"] #game-logs-modal :is(.game-logs-table-header, .game-logs-table-footer) { flex: 0 0 auto; }
+body[data-page="datahub"] #game-logs-modal .game-logs-table-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+}
+
+/* Career keeps its natural row heights and lets short histories shrink the
+   dialog. Longer histories retain their existing vertical/horizontal scroll. */
+body[data-page="datahub"] #game-logs-modal #modal-body:has(.game-logs-career-view:not(.hidden)) { flex-basis: auto; height: auto; }
+body[data-page="datahub"] #game-logs-modal .game-logs-career-view { height: auto; max-height: 100%; }
+
+body[data-page="datahub"] #game-logs-modal #consistency-container {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+body[data-page="datahub"] #game-logs-modal #consistency-container:not(.hidden) { display: flex; flex-direction: column; }
+body[data-page="datahub"] #game-logs-modal .consistency-shell { height: 100%; min-height: 330px; flex: 1 0 auto; }
+body[data-page="datahub"] #game-logs-modal .consistency-chart-shell { display: flex; flex-direction: column; flex: 1 0 200px; }
+body[data-page="datahub"] #game-logs-modal .weekly-chart-box { height: auto; min-height: 200px; flex: 1 1 auto; }
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-dock {
+  position: relative;
+  z-index: 1302;
+  width: min(94vw, 520px);
+  flex: 0 0 auto;
+  margin-top: 8px;
+  font-family: var(--font-sans);
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-dock.hidden,
+body[data-page="datahub"] #game-logs-modal .gamelogs-dock .hidden {
+  display: none;
+}
+
+body[data-page="datahub"] #game-logs-modal.loading .gamelogs-dock {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-context-row {
+  position: relative;
+  min-height: 38px;
+  margin-bottom: 7px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-context-row:not(:has(> :not(.hidden))) {
+  display: none;
+}
+
+body[data-page="datahub"] #game-logs-modal :is(.gamelogs-performance-control, .gamelogs-stat-control) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: min(100%, 390px);
+  padding: 0 7px;
+  box-sizing: border-box;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-context-caption {
+  font-size: 0.68rem;
+  line-height: 1.2;
+  color: #a6b3cf;
+  letter-spacing: 0.01em;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-context-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid rgba(174, 192, 242, 0.22);
+  border-radius: 13px;
+  color: #e0e9ff;
+  background: linear-gradient(155deg, rgba(120, 146, 209, 0.22), rgba(30, 41, 69, 0.67));
+  box-shadow: inset 0 1px 0 rgba(239, 246, 255, 0.13), 0 4px 12px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-context-action .datahub-modal-icon {
+  width: 15px;
+  height: 15px;
+  color: #b6c8f5;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-stat-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-stat-mode {
+  color: #8395b6;
+  font-size: 0.56rem;
+  letter-spacing: 0.02em;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-stat-control .gamelogs-context-action {
+  min-width: 155px;
+  justify-content: space-between;
+}
+
+/* The menu opens into the content area instead of below the viewport. Opaque
+   backing remains readable when backdrop-filter is unavailable. */
+body[data-page="datahub"] #game-logs-modal .gamelogs-stat-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100%, 376px);
+  max-height: min(290px, 42dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
+  box-sizing: border-box;
+  border: 1px solid rgba(163, 188, 239, 0.3);
+  border-radius: 18px;
+  background: linear-gradient(150deg, rgba(36, 49, 77, 0.97), rgba(12, 20, 37, 0.98));
+  box-shadow: 0 14px 45px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(231, 241, 255, 0.16);
+  scrollbar-width: thin;
+  scrollbar-color: #4e6089 transparent;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-stat-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: #b9c8e3;
+  font: inherit;
+  font-size: 0.76rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-stat-option.is-selected {
+  color: #e3f4ff;
+  border-color: rgba(142, 194, 255, 0.2);
+  background: linear-gradient(100deg, rgba(98, 166, 239, 0.2), rgba(143, 122, 231, 0.12));
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-stat-option.is-selected::after {
+  content: "✓";
+  color: #98deff;
+}
+
+/* Liquid Glass: translucent tint, a curved highlight and a dark contact
+   shadow frame the existing cyan/blue/purple active-button treatment. */
+body[data-page="datahub"] #game-logs-modal .gamelogs-bottom-nav {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 3px;
+  padding: 5px;
+  border: 1px solid rgba(188, 208, 255, 0.22);
+  border-radius: 25px;
+  background:
+    radial-gradient(ellipse at 17% 0%, rgba(183, 227, 255, 0.13), transparent 55%),
+    linear-gradient(145deg, rgba(68, 81, 114, 0.54), rgba(21, 29, 49, 0.66) 60%, rgba(65, 52, 96, 0.4));
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35), 0 3px 7px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(244, 249, 255, 0.2), inset 0 -1px 0 rgba(215, 227, 255, 0.05);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-nav-button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  min-height: 56px;
+  padding: 7px 2px 6px;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  color: #a3b0cb;
+  background: transparent;
+  font: inherit;
+  font-size: clamp(0.57rem, 2.45vw, 0.65rem);
+  font-weight: 450;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-nav-button .datahub-modal-icon {
+  width: 23px;
+  height: 23px;
+  stroke-width: 1.65;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-nav-button.active {
+  color: #e0efff;
+  background: linear-gradient(165deg, rgba(126, 171, 225, 0.23), rgba(78, 103, 176, 0.2) 55%, rgba(141, 105, 203, 0.19)) padding-box,
+    linear-gradient(140deg, rgba(164, 236, 255, 0.48), rgba(135, 157, 255, 0.25) 55%, rgba(207, 157, 255, 0.38)) border-box;
+  box-shadow: inset 0 1px 0 rgba(242, 249, 255, 0.22), inset 0 -6px 18px rgba(101, 128, 219, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.15), 0 0 15px rgba(116, 160, 244, 0.1);
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-nav-button.active .datahub-modal-icon {
+  color: #c7e7ff;
+  filter: drop-shadow(0 0 5px rgba(143, 198, 255, 0.3));
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-nav-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+body[data-page="datahub"] #game-logs-modal :is(.gamelogs-nav-button, .gamelogs-context-action, .gamelogs-stat-option):focus-visible {
+  outline: 2px solid #a8d5ff;
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  body[data-page="datahub"] #game-logs-modal .gamelogs-nav-button:not(.active):enabled:hover,
+  body[data-page="datahub"] #game-logs-modal .gamelogs-stat-option:hover {
+    background-color: rgba(175, 199, 255, 0.08);
+    color: #e0efff;
+  }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-context-action:hover {
+    border-color: rgba(186, 215, 255, 0.4);
+    color: #fff;
+  }
+}
+
+/* Non-FPTS chart zones use rank-space geometry. Keep the existing PPR chart
+   untouched; its scoring thresholds and season HUD remain authoritative. */
+body[data-page="datahub"] #game-logs-modal .weekly-chart-line-layer[data-rank-mode="true"] {
+  background: linear-gradient(to bottom, rgba(0, 255, 193, 0.045) 0 var(--rank-high-edge),
+    rgba(0, 197, 255, 0.04) var(--rank-high-edge) var(--rank-solid-edge),
+    rgba(194, 108, 252, 0.04) var(--rank-solid-edge) 100%);
+}
+
+body[data-page="datahub"] #game-logs-modal .weekly-point-label__rank {
+  font-size: 0.51rem;
+  line-height: 1.15;
+  color: #9aabc9;
+  font-weight: 450;
+}
+
+/* The existing Team dialog keeps its own content and return behavior, while
+   the detached dock offers the same navigation and a selected Team button. */
+body[data-page="datahub"] #game-logs-modal.is-team-view .team-modal-pane {
+  max-height: calc(100dvh - 10rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+}
+
+@media (max-width: 380px) {
+  body[data-page="datahub"] #game-logs-modal :is(.gamelogs-performance-control, .gamelogs-stat-control) { gap: 6px; padding-inline: 3px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-context-caption { font-size: 0.62rem; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-context-action { gap: 5px; padding-inline: 8px; font-size: 0.68rem; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-bottom-nav { gap: 1px; padding: 4px; }
+}
+
+@media (max-width: 868px) {
+  body[data-page="datahub"] #game-logs-modal #gamelogs-tab-pane { --gamelogs-body-height: 355px; }
+}
+
+@media (max-height: 540px) {
+  body[data-page="datahub"] #game-logs-modal:not(.hidden) #gamelogs-tab-pane { max-height: calc(100dvh - 9.5rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-context-row { min-height: 34px; margin-bottom: 4px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-nav-button { min-height: 48px; gap: 3px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-nav-button .datahub-modal-icon { width: 20px; height: 20px; }
+  body[data-page="datahub"] #game-logs-modal #radar-chart-container .radar-chart-content { min-height: 250px; }
+}
+
+/* Short landscape windows retain every header metric in two columns, leaving
+   a usable, scrollable body above the dock instead of collapsing the chart. */
+@media (min-width: 681px) and (max-height: 540px) {
+  body[data-page="datahub"] #game-logs-modal #modal-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: 28px auto 30px;
+    gap: 4px 12px;
+    padding-bottom: 4px;
+  }
+  body[data-page="datahub"] #game-logs-modal #modal-player-name {
+    grid-area: 1 / 1;
+    justify-self: start;
+    max-width: 100%;
+    margin: 0;
+    padding-left: 80px;
+    font-size: 1rem;
+    box-sizing: border-box;
+  }
+  body[data-page="datahub"] #game-logs-modal .modal-header-left-container { top: 0; left: 0; gap: 6px; }
+  body[data-page="datahub"] #game-logs-modal #modal-player-vitals { grid-area: 2 / 1; min-width: 0; }
+  body[data-page="datahub"] #game-logs-modal .player-vitals--modal { margin: 0; padding: 3px 6px; gap: 1rem; max-width: 100%; }
+  body[data-page="datahub"] #game-logs-modal #modal-summary-row { grid-area: 1 / 2 / 3 / 3; margin: 0; }
+  body[data-page="datahub"] #game-logs-modal #modal-summary-chips { width: 100%; gap: 8px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-nav-row { grid-area: 3 / 1 / 4 / 3; margin: 0; }
 }
