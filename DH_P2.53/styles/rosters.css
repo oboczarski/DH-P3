@@ -3562,6 +3562,10 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .play
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview .player-name {
   flex: 0 1 auto;
   min-width: 0;
+  /* Trade Preview keeps name, age, availability and logo on one line; shorten
+     the visible name only when the fixed-width details need the space. */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-age,
@@ -3679,7 +3683,8 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-
   
     body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-age {
       font-size: 0.6rem;
-      margin-right: -10px;
+      /* Keep BYE and injury badges inline after age without entering the logo. */
+      margin-right: 0;
     }
   
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-age-unit {
@@ -3720,36 +3725,6 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-
     font-size: 0.53rem;
     font-weight: 400;
     filter: saturate(1) brightness(1.7);
-  }
-
-  /* Mobile Trade Preview only: a combined BYE badge needs more room than an
-     injury alone. Keep age and badge together below the name, with the logo
-     on the identity row; cancel the old negative age margin for these cards. */
-  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview:has(.roster-bye-label) .player-main-line {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) 22px;
-    row-gap: 2px;
-  }
-
-  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview:has(.roster-bye-label) .player-name {
-    grid-column: 2;
-    grid-row: 1;
-    margin: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview:has(.roster-bye-label) .trade-preview-age {
-    grid-column: 2 / -1;
-    grid-row: 2;
-    justify-self: start;
-    margin-right: 0;
-  }
-
-  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview:has(.roster-bye-label) .trade-preview-team-slot {
-    grid-column: 3;
-    grid-row: 1;
-    margin-left: 0;
   }
 }
 
