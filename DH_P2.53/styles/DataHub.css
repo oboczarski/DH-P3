@@ -16684,8 +16684,8 @@ body[data-page="datahub"] #game-logs-modal :is(.gamelogs-nav-button, .gamelogs-c
   }
 }
 
-/* Non-FPTS chart zones use rank-space geometry. Keep the existing PPR chart
-   untouched; its scoring thresholds and season HUD remain authoritative. */
+/* Non-FPTS chart zones use rank-space geometry. Both modes share their selected
+   metric's HUD/reference; default PPR retains its position-specific thresholds. */
 body[data-page="datahub"] #game-logs-modal .weekly-chart-line-layer[data-rank-mode="true"] {
   background: linear-gradient(to bottom, rgba(0, 255, 193, 0.045) 0 var(--rank-high-edge),
     rgba(0, 197, 255, 0.04) var(--rank-high-edge) var(--rank-solid-edge),
@@ -16693,10 +16693,38 @@ body[data-page="datahub"] #game-logs-modal .weekly-chart-line-layer[data-rank-mo
 }
 
 body[data-page="datahub"] #game-logs-modal .weekly-point-label__rank {
-  font-size: 0.51rem;
+  line-height: inherit;
+}
+
+/* Ranked chips reuse the default week-caption typography at every breakpoint.
+   Reduce only the uppercase position prefix to balance it with lowercase wk. */
+body[data-page="datahub"] #game-logs-modal .weekly-point-label__position {
+  font-size: 0.85em;
+}
+
+/* A quiet dotted reference spans the plot, with its value just above the line.
+   Keep it below point chips and non-interactive so existing tooltips still work. */
+body[data-page="datahub"] #game-logs-modal .weekly-average {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  border-top: 1px dotted rgba(220, 234, 255, 0.66);
+  pointer-events: none;
+}
+
+body[data-page="datahub"] #game-logs-modal .weekly-average__label {
+  position: absolute;
+  right: 0.3rem;
+  bottom: 0.18rem;
+  padding: 0.08rem 0.25rem;
+  border-radius: 4px;
+  background: rgba(9, 16, 30, 0.86);
+  color: rgba(235, 244, 255, 0.9);
+  font-size: 0.55rem;
+  font-weight: 600;
   line-height: 1.15;
-  color: #9aabc9;
-  font-weight: 450;
+  white-space: nowrap;
 }
 
 /* The existing Team dialog keeps its own content and return behavior, while

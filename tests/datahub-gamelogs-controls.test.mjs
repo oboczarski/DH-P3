@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import { resolveGameLogsNavigation, rankWeeklyMetricValues, getConsistencyRankZones, buildConsistencyRankChart } from '../DH_P2.53/scripts/datahub-gamelogs-controls.js';
+import { resolveGameLogsNavigation, rankWeeklyMetricValues, getConsistencyRankZones, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames } from '../DH_P2.53/scripts/datahub-gamelogs-controls.js';
 
 test('Performance and Season Stats share their navigation context while Weekly, Consistency and Career remain actionable', () => {
   for (const [content, topView, navView, performanceAction] of [
@@ -91,20 +91,23 @@ test('flat Consistency segments retain their path and use a non-collapsing SVG f
 });
 
 function harness(state) {
-  const names = ['getDataHubConsistencyStatValue', 'buildDataHubConsistencyMetricData', 'getDataHubGameLogStatValue', 'shouldSkipDataHubConsistencyWeek'];
+  const names = ['getDataHubConsistencyStatValue', 'buildDataHubConsistencyMetricData', 'getDataHubGameLogStatValue', 'shouldSkipDataHubConsistencyWeek', 'clampDataHubConsistencyPoints', 'pluralizeDataHubWeeks', 'formatDataHubProjReason', 'getDataHubGameLogProjectionDisplay', 'parseDataHubInjuryDesignation'];
   const functions = names.map(name => source.match(new RegExp(`function ${name}\\([^]*?\\n}`))?.[0]).join('\n');
   const context = vm.createContext({
-    state, rankWeeklyMetricValues, buildConsistencyRankChart,
+    state, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames,
+    DATAHUB_MAX_CONSISTENCY_POINTS: 40,
+    getDataHubConsistencyThresholds: () => ({ solid: 12, high: 18 }),
     DATAHUB_NO_FALLBACK_KEYS: new Set(['rr', 'epa', 'cpoe']),
     DATAHUB_CONSISTENCY_PROJECTION_SKIP_CODES: new Set(['BYE', 'OUT', 'IR', 'DNP']),
     getDataHubCombinedWeeklyStats: () => state.weeklyStats,
-    getDataHubGameLogProjectionDisplay: stats => stats.proj,
+    getDataHubGameLogsQualifiedIds: () => state.qualifiedIds || new Set(Object.values(state.weeklyStats || {}).flatMap(rows => Object.keys(rows))),
+    DATAHUB_INJURY_DESIGNATION_COLORS: {},
   });
   vm.runInContext(functions, context);
   return context;
 }
 
-test('metric switching ranks only the same position and recorded axis weeks, preserving HUD data and source rows', () => {
+test('metric switching rebuilds the HUD and ranks only played games of the same position without changing source rows', () => {
   const game = (pos, rec_yd, extra = {}) => ({ pos, rec_yd, fpt_ppr: 5, rr: 25, __hasRecordedStats: true, ...extra });
   const state = { currentModalSeason: '2026', weeklyStats: {
     1: { target: game('WR', 0), peer: game('WR', 10), rb: game('RB', 999), out: game('WR', 999, { proj: 'OUT', fpt_ppr: 0 }), bye: game('WR', 999, { opponent: 'BYE' }), future: game('WR', 999, { __hasRecordedStats: false }) },
@@ -116,8 +119,15 @@ test('metric switching ranks only the same position and recorded axis weeks, pre
   const original = structuredClone(state.weeklyStats);
   const chart = api.buildDataHubConsistencyMetricData(base, 'rec_yd');
   assert.deepEqual(Array.from(chart.chartSeries, ({ week, rank, originalPts }) => [week, rank, originalPts]), [[1, 2, 0], [2, 2, -2]]);
-  for (const key of ['consistencyPct', 'ceilingValue', 'lastFiveAvg']) assert.equal(chart[key], base[key]);
-  assert.equal(api.buildDataHubConsistencyMetricData(base, 'fpts'), base);
+  assert.equal(chart.consistencyPct, 0);
+  assert.equal(chart.ceilingValue, -1);
+  assert.equal(chart.lastFiveAvg, -1);
+  assert.equal(chart.averageValue, -1);
+  assert.equal(chart.averagePlotValue, 0);
+  assert.equal(chart.consistencyRank, 2);
+  assert.equal(chart.ceilingRank, 2);
+  assert.equal(chart.gamesPlayed, 2);
+  assert.equal(api.buildDataHubConsistencyMetricData(base, 'fpts').averageValue, 5);
   assert.deepEqual(state.weeklyStats, original);
 });
 
@@ -134,4 +144,94 @@ test('new metric charts distinguish missing values from real zero and retain Wee
   assert.equal(read('ypr', { rec: 2, rec_yd: 20 }, 'RB'), null);
   assert.equal(read('ypr', { rec: 2, rec_yd: 20, ypr: 10 }, 'RB'), 10);
   assert.equal(read('yds_total', { rush_yd: -3, rec_yd: 1 }, 'RB'), -2);
+});
+
+
+test('HUD counts solid-or-better and high games using each position zone, with a top-three ceiling', () => {
+  for (const position of ['QB', 'RB', 'WR', 'TE']) {
+    const blueEnd = position === 'WR' ? 30 : 24;
+    const chart = buildConsistencyRankChart([
+      { week: 1, rank: 1, value: 90 }, { week: 2, rank: 12, value: 60 },
+      { week: 3, rank: 13, value: 30 }, { week: 4, rank: blueEnd, value: 20 },
+      { week: 5, rank: blueEnd + 1, value: 10 }, { week: 6, rank: 5, value: 0 },
+    ], position, 'rec_yd');
+    const hud = summarizeConsistencyGames(chart.chartSeries, chart.thresholds, 6);
+    assert.equal(hud.solidHighCount, 4, position);
+    assert.equal(hud.highWeekCount, 2, position);
+    assert.equal(hud.consistencyPct, 4 / 6 * 100, position);
+    assert.equal(hud.ceilingValue, 60, position);
+    assert.equal(hud.averageValue, 35, position);
+    assert.equal(hud.lastFiveAvg, 24, position);
+  }
+});
+
+test('lower-is-better ceiling uses the best available games and missing source cells do not create averages', () => {
+  const chart = buildConsistencyRankChart([3, 0, 1, 2].map((value, i) => ({ week: i + 1, value, rank: i + 1 })), 'QB', 'pass_int');
+  assert.equal(summarizeConsistencyGames(chart.chartSeries, chart.thresholds, 4, true).ceilingValue, 1);
+  assert.equal(summarizeConsistencyGames(chart.chartSeries.slice(0, 2), chart.thresholds, 2, true).ceilingValue, 1.5);
+  const incomplete = summarizeConsistencyGames(chart.chartSeries, chart.thresholds, 5, true);
+  for (const field of ['ceilingValue', 'consistencyPct', 'averageValue', 'lastFiveAvg']) assert.equal(incomplete[field], null, field);
+  assert.equal(summarizeConsistencyGames([], chart.thresholds, 0).averageValue, null);
+});
+
+test('season HUD and average include played games before the visible window and exclude BYE, OUT, DNP and future rows', () => {
+  const game = (value, extra = {}) => ({ pos: 'WR', rec_yd: value, fpt_ppr: value, __hasRecordedStats: true, ...extra });
+  const values = new Map([[1, 0], [2, 10], [4, 20], [6, 30], [10, 40], [11, 50]]);
+  const weeklyStats = Object.fromEntries([...values].map(([week, value]) => [week, { target: game(value), peer: game(60), rb: { ...game(999), pos: 'RB' } }]));
+  weeklyStats[3] = { target: game(999, { opponent: 'BYE' }) };
+  weeklyStats[5] = { target: game(999, { fpt_ppr: 0, proj: 'OUT' }) };
+  weeklyStats[7] = { target: game(999, { fpt_ppr: 0, proj: 'DNP' }) };
+  weeklyStats[12] = { target: game(999, { __hasRecordedStats: false }) };
+  const state = { currentModalSeason: '2026', weeklyStats, playerSeasonStats: { target: { ppg: 25.1 } } };
+  const api = harness(state);
+  const base = { playerId: 'target', position: 'WR', axisWeeks: [3,4,5,6,7,8,9,10,11] };
+  const snapshot = structuredClone(weeklyStats);
+  const chart = api.buildDataHubConsistencyMetricData(base, 'rec_yd');
+  assert.equal(chart.series.length, 6);
+  assert.equal(chart.chartSeries.length, 4);
+  assert.equal(chart.gamesPlayed, 6);
+  assert.equal(chart.averageValue, 25);
+  assert.equal(chart.ceilingValue, 40);
+  assert.equal(chart.lastFiveAvg, 30);
+  assert.equal(chart.solidHighCount, 5);
+  assert.equal(chart.highWeekCount, 5);
+  assert.equal(chart.consistencyPct, 5 / 6 * 100);
+  assert.equal(chart.consistencyRank, 2);
+  assert.equal(chart.ceilingRank, 2);
+  assert.equal(chart.averageRank, 2);
+  assert.equal(chart.averagePlotValue, (59 / 60) * 40);
+  assert.equal(chart.skippedLabels[3], 'BYE');
+  assert.equal(chart.skippedLabels[5], 'OUT');
+  assert.equal(chart.skippedLabels[7], 'DNP');
+  const fpts = api.buildDataHubConsistencyMetricData(base, 'fpts');
+  assert.equal(fpts.averageValue, 25.1);
+  assert.equal(fpts.averagePlotValue, 25.1);
+  assert.equal(fpts.ceilingValue, 40);
+  assert.deepEqual(weeklyStats, snapshot);
+  state.qualifiedIds = new Set(['peer']);
+  const unqualified = api.buildDataHubConsistencyMetricData(base, 'rec_yd');
+  assert.equal(unqualified.consistencyRank, undefined);
+  assert.equal(unqualified.ceilingRank, undefined);
+  assert.equal(unqualified.averageValue, 25);
+  assert.equal(unqualified.averageRank, 2);
+  assert.equal(unqualified.averagePlotValue, (59 / 60) * 40);
+});
+
+
+test('archived zero-snap DNP rows are excluded while played zero and negative games remain in per-game math', () => {
+  const game = (fpt_ppr, rec_yd, snp_pct) => ({ pos: 'WR', fpt_ppr, rec_yd, snp_pct, proj: 10 });
+  const api = harness({ currentModalSeason: '2025', weeklyStats: {
+    1: { target: game(0, 0, 50) },
+    2: { target: game(-2, -3, 50) },
+    3: { target: game(0, 0, 0) },
+  } });
+  const base = { playerId: 'target', position: 'WR', axisWeeks: [1, 2, 3] };
+  const chart = api.buildDataHubConsistencyMetricData(base, 'rec_yd');
+  assert.equal(chart.gamesPlayed, 2);
+  assert.equal(chart.averageValue, -1.5);
+  assert.equal(chart.ceilingValue, -1.5);
+  assert.equal(chart.skippedLabels[3], 'DNP');
+  const fpts = api.buildDataHubConsistencyMetricData(base, 'fpts');
+  assert.equal(fpts.gamesPlayed, 2);
+  assert.equal(fpts.averageValue, -1);
 });

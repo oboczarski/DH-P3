@@ -76,7 +76,8 @@
 // Refresh Trade Preview's shared inline name, age and BYE/injury badge layout.
 // Refresh DataHub's connected Game Log views, Liquid Glass dock and stat picker.
 // Refresh DataHub's full-width Weekly body, flat chart connections, production baseline and padding.
-const CACHE_NAME = 'DH3.52a-datahub-gamelogs-fixes_v1.3';
+// Refresh DataHub's metric-aware Consistency HUD, average reference and chip spacing.
+const CACHE_NAME = 'DH3.52b-datahub-consistency-hud_v1.3';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

@@ -4,7 +4,7 @@ import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSe
 import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js";
 import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js";
-import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart } from "./datahub-gamelogs-controls.js?v=DH3.52a-datahub-gamelogs-fixes";
+import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames } from "./datahub-gamelogs-controls.js?v=DH3.52b-datahub-consistency-hud";
 
 // ---------------------------------------------------------------------------
 // Hero copy and filter labels that drive the surrounding page shell.
@@ -12566,7 +12566,8 @@ const DATAHUB_CONSISTENCY_GRADIENT_COLORS = {
   solid: "#005cff10",
   high: "#00ffc110",
 };
-const DATAHUB_CONSISTENCY_EDGE_PADDING_PCT = 2.8;
+// Give the first/last point chips and matching axis labels a few extra pixels.
+const DATAHUB_CONSISTENCY_EDGE_PADDING_PCT = 3.8;
 const DATAHUB_CONSISTENCY_VERTICAL_PADDING_PCT = 8;
 const DATAHUB_CONSISTENCY_PROJECTION_SKIP_CODES = new Set(["IR", "OUT", "PUP", "BYE", "Q", "D"]);
 const DATAHUB_LEAGUE_COLOR_PALETTE = [
@@ -16602,7 +16603,6 @@ function getDataHubOpponentRankColor(rank) {
 function prepareDataHubConsistencyPanel(player) {
   state.currentConsistencyData = buildDataHubConsistencyPanelData(player);
   renderDataHubConsistencyStatOptions(player);
-  updateDataHubConsistencyHud(state.currentConsistencyData);
 }
 
 function getDataHubConsistencyStatOptions(player = state.currentGameLogsPlayer) {
@@ -16720,34 +16720,78 @@ function getDataHubConsistencyStatValue(key, stats, position) {
 }
 
 function buildDataHubConsistencyMetricData(base, key) {
-  // Rank only recorded games in the displayed week and the player's position,
-  // independent of table filters, season ranks and future projection rows.
-  // Use the Weekly accessor so each label retains its existing units/precision.
-  if (!base || key === "fpts") return base;
+  // DataHub Consistency: build every same-position player's season from actual
+  // played games. Weekly ranks drive the zones; season summaries drive the HUD
+  // and its positional ranks. Filters and future projection rows do not enter.
+  if (!base) return null;
   const weeklyStats = getDataHubCombinedWeeklyStats();
   const position = base.position;
-  const series = [];
-  const skippedLabels = { ...base.skippedLabels };
   const lowerBetter = ["ttt", "prs_pct", "pass_sack", "pass_int", "fum", "dp_pct"].includes(key);
-  base.axisWeeks.forEach((week) => {
-    const rows = weeklyStats?.[week] || {};
-    const eligible = (stats) => stats && stats.__hasRecordedStats !== false
-      && String(stats.opponent || "").toUpperCase() !== "BYE"
-      && !shouldSkipDataHubConsistencyWeek(stats, state.currentModalSeason === "2026" ? getDataHubGameLogProjectionDisplay(stats) : stats.proj);
-    const entries = Object.entries(rows).filter(([id, stats]) => {
-      const pos = stats.pos || state.playerSeasonStats?.[id]?.pos || state.sleeperPlayers?.[id]?.position;
-      return pos === position && eligible(stats);
-    }).map(([playerId, stats]) => ({ playerId, value: getDataHubConsistencyStatValue(key, stats, position) }));
-    const stats = rows[base.playerId];
-    const value = eligible(stats) ? getDataHubConsistencyStatValue(key, stats, position) : null;
-    const rank = rankWeeklyMetricValues(entries, lowerBetter).get(base.playerId);
-    if (Number.isFinite(value) && Number.isFinite(rank)) {
-      series.push({ week, value, rank, opponent: stats.opponent || "" });
-    } else if (eligible(stats)) {
-      skippedLabels[week] = "—";
-    }
-  });
-  return { ...base, ...buildConsistencyRankChart(series, position, key), statKey: key, skippedLabels };
+  const playerSeries = new Map();
+  const playedCounts = new Map();
+  const skippedLabels = {};
+  const visibleWeeks = new Set(base.axisWeeks);
+  const lastRecordedWeek = base.axisWeeks.at(-1);
+  Object.keys(weeklyStats || {}).map(Number).filter((week) => Number.isFinite(week) && week <= lastRecordedWeek)
+    .sort((a, b) => a - b).forEach((week) => {
+      const rows = weeklyStats[week] || {};
+      const entries = [];
+      Object.entries(rows).forEach(([playerId, stats]) => {
+        const pos = String(stats.pos || state.playerSeasonStats?.[playerId]?.pos || state.sleeperPlayers?.[playerId]?.position || "").trim().toUpperCase();
+        if (pos !== position || stats.__hasRecordedStats === false) return;
+        // Weekly's SNP-aware status also excludes archived zero-snap DNP rows
+        // from per-game denominators, while played zero/negative games remain.
+        const projection = getDataHubGameLogProjectionDisplay(stats);
+        const bye = String(stats.opponent || "").trim().toUpperCase() === "BYE";
+        if (bye || shouldSkipDataHubConsistencyWeek(stats, projection)) {
+          if (playerId === base.playerId) skippedLabels[week] = bye ? "BYE" : formatDataHubProjReason(projection);
+          return;
+        }
+        playedCounts.set(playerId, (playedCounts.get(playerId) || 0) + 1);
+        const value = getDataHubConsistencyStatValue(key, stats, position);
+        if (Number.isFinite(value)) entries.push({ playerId, value, opponent: stats.opponent || "" });
+        else if (playerId === base.playerId) skippedLabels[week] = "—";
+      });
+      const ranks = rankWeeklyMetricValues(entries, lowerBetter);
+      entries.forEach(({ playerId, value, opponent }) => {
+        if (!playerSeries.has(playerId)) playerSeries.set(playerId, []);
+        playerSeries.get(playerId).push({ week, value, rank: ranks.get(playerId), opponent });
+      });
+    });
+  const chartFor = (series) => key === "fpts"
+    ? { rankMode: false, thresholds: getDataHubConsistencyThresholds(position), chartSeries: series.map((entry) => ({ ...entry, pts: clampDataHubConsistencyPoints(entry.value), originalPts: entry.value })) }
+    : buildConsistencyRankChart(series, position, key);
+  const summaries = new Map([...playedCounts].map(([playerId, gamesPlayed]) => {
+    const chart = chartFor(playerSeries.get(playerId) || []);
+    return [playerId, summarizeConsistencyGames(chart.chartSeries, chart.thresholds, gamesPlayed, lowerBetter)];
+  }));
+  // Retain DataHub's season-volume eligibility for the HUD's season ranks.
+  // The average reference still locates every player's average on the weekly
+  // chart's complete positional scale, including unqualified players.
+  const qualifiedIds = getDataHubGameLogsQualifiedIds(state.currentModalSeason);
+  const rankSummary = (field, ascending = false, qualifiedOnly = true) => rankWeeklyMetricValues([...summaries]
+    .filter(([playerId]) => !qualifiedOnly || qualifiedIds.has(playerId))
+    .map(([playerId, summary]) => ({ playerId, value: summary[field] })), ascending).get(base.playerId);
+  const chart = chartFor(playerSeries.get(base.playerId) || []);
+  const summary = summaries.get(base.playerId) || summarizeConsistencyGames([], chart.thresholds, 0, lowerBetter);
+  // Default AVG is the player's PPG. Ranked charts locate the actual per-game
+  // average at its same-position season rank, rather than averaging rank numbers.
+  const seasonPpg = state.playerSeasonStats?.[base.playerId]?.ppg;
+  const averageValue = key === "fpts" && summary.gamesPlayed > 0 && Number.isFinite(seasonPpg) ? seasonPpg : summary.averageValue;
+  const averageRank = rankSummary("averageValue", lowerBetter, false);
+  return {
+    ...base, ...chart, ...summary,
+    statKey: key,
+    series: chart.chartSeries,
+    chartSeries: chart.chartSeries.filter(({ week }) => visibleWeeks.has(week)),
+    weeksChartedLabel: pluralizeDataHubWeeks(chart.chartSeries.filter(({ week }) => visibleWeeks.has(week)).length),
+    skippedLabels,
+    consistencyRank: rankSummary("consistencyPct"),
+    ceilingRank: rankSummary("ceilingValue", lowerBetter),
+    averageValue,
+    averageRank,
+    averagePlotValue: key === "fpts" ? clampDataHubConsistencyPoints(averageValue) : getConsistencyRankPlotValue(averageValue, averageRank, chart.rankMax, key),
+  };
 }
 
 function getDataHubConsistencyAxisWeeks() {
@@ -16777,95 +16821,18 @@ function pluralizeDataHubWeeks(count) {
 }
 
 function buildDataHubConsistencyPanelData(player) {
-  if (!player?.id) {
-    return null;
-  }
+  if (!player?.id) return null;
   const axisWeeks = getDataHubConsistencyAxisWeeks();
-  if (!axisWeeks.length) {
-    return null;
-  }
-  const combinedWeeklyStats = getDataHubCombinedWeeklyStats();
-  const fullPlayer = state.sleeperPlayers?.[player.id];
-  const resolvedPosition = String(player.pos || fullPlayer?.position || "FLEX").trim().toUpperCase() || "FLEX";
-  const thresholds = getDataHubConsistencyThresholds(resolvedPosition);
-  const series = [];
-  const skippedLabels = {};
-  // Keep season insight math on every recorded week; the graph below renders
-  // only its latest nine axis weeks.
-  Object.keys(state.playerWeeklyStats || {}).map(Number).filter(Number.isFinite).sort((left, right) => left - right).forEach((week) => {
-    // Future 2026 schedule/projection rows are not missed games or HUD scores.
-    if (state.currentModalSeason === "2026" && week > axisWeeks[axisWeeks.length - 1]) return;
-    const stats = combinedWeeklyStats?.[week]?.[player.id];
-    if (!stats) {
-      return;
-    }
-    const opponent = String(stats.opponent || "").trim().toUpperCase();
-    if (opponent === "BYE") {
-      skippedLabels[week] = "BYE";
-      return;
-    }
-    const projectionDisplay = state.currentModalSeason === "2026" ? getDataHubGameLogProjectionDisplay(stats) : stats.proj;
-    const projReason = formatDataHubProjReason(projectionDisplay);
-    if (shouldSkipDataHubConsistencyWeek(stats, projectionDisplay)) {
-      if (projReason) {
-        skippedLabels[week] = projReason;
-      }
-      return;
-    }
-    if (stats.__hasRecordedStats === false) return;
-    const originalPoints = Number(stats.fpts_override ?? stats.fpt_ppr ?? stats.fpts);
-    const clampedPoints = clampDataHubConsistencyPoints(originalPoints);
-    if (clampedPoints === null) {
-      return;
-    }
-    series.push({
-      week,
-      pts: clampedPoints,
-      originalPts: originalPoints,
-      opponent: stats.opponent || "",
-    });
-  });
-  series.sort((left, right) => left.week - right.week);
-  const visibleWeeks = new Set(axisWeeks);
-  const chartSeries = series.filter((entry) => visibleWeeks.has(entry.week));
-  const seasonTotals = state.playerSeasonStats?.[player.id] || {};
-  const gamesPlayed = Number.isFinite(seasonTotals.games_played) ? seasonTotals.games_played : series.length;
-  const highWeekCount = series.filter((entry) => entry.pts >= thresholds.high).length;
-  const solidHighCount = series.filter((entry) => entry.pts >= thresholds.solid).length;
-  const lastFive = series.slice(-5);
-  const lastFiveAvg = lastFive.length
-    ? lastFive.reduce((sum, entry) => sum + (Number.isFinite(entry.originalPts) ? entry.originalPts : entry.pts), 0) / lastFive.length
-    : null;
-  const consistencyPct = Number.isFinite(seasonTotals.csty_pct)
-    ? seasonTotals.csty_pct
-    : (gamesPlayed > 0 ? (solidHighCount / gamesPlayed) * 100 : null);
-  const ceilingValue = Number.isFinite(seasonTotals.ceiling)
-    ? seasonTotals.ceiling
-    : (series.length ? Math.max(...series.map((entry) => Number.isFinite(entry.originalPts) ? entry.originalPts : entry.pts)) : null);
-  const consistencyRank = getDataHubSeasonRankValue(player.id, "csty_pct");
-  const ceilingRank = getDataHubSeasonRankValue(player.id, "ceiling");
-  const axisStart = axisWeeks[0];
-  const axisEnd = axisWeeks[axisWeeks.length - 1];
+  if (!axisWeeks.length) return null;
+  const position = String(player.pos || state.sleeperPlayers?.[player.id]?.position || "FLEX").trim().toUpperCase();
+  // The base owns only player/axis context. The selected metric supplies both
+  // chart and HUD values, avoiding a stale FPTS snapshot after stat switches.
   return {
     playerId: player.id,
-    position: resolvedPosition,
+    position,
     axisWeeks,
-    series,
-    chartSeries,
-    gamesPlayed,
-    thresholds,
-    consistencyPct,
-    ceilingValue,
-    consistencyRank,
-    ceilingRank,
-    highWeekCount,
-    solidHighCount,
-    totalWeeks: series.length,
-    lastFiveAvg,
-    weekRangeLabel: axisStart === axisEnd ? `Week ${axisStart}` : `Weeks ${axisStart}–${axisEnd}`,
-    weeksChartedLabel: pluralizeDataHubWeeks(chartSeries.length),
-    ceilingRankMax: DATAHUB_RADAR_STATS_CONFIG[resolvedPosition]?.maxRank || 32,
-    skippedLabels,
+    weekRangeLabel: axisWeeks[0] === axisWeeks.at(-1) ? `Week ${axisWeeks[0]}` : `Weeks ${axisWeeks[0]}–${axisWeeks.at(-1)}`,
+    ceilingRankMax: DATAHUB_RADAR_STATS_CONFIG[position]?.maxRank || 32,
   };
 }
 
@@ -16912,11 +16879,46 @@ function formatDataHubHudPercentage(value, decimals = 1) {
   return `${Number(value).toFixed(decimals)}%`;
 }
 
-function formatDataHubCeilingValue(value) {
-  if (!Number.isFinite(value)) {
-    return "N/A";
+function formatDataHubConsistencyMetricAverage(data, value) {
+  if (!Number.isFinite(value)) return "N/A";
+  if (!data?.rankMode) return value.toFixed(1);
+  const position = data.position;
+  const is2026 = state.currentModalSeason === "2026";
+  const formatted = formatDataHubGameLogCellValue(data.statKey, value, is2026 && position === "QB", is2026 && position === "RB", is2026 && ["WR", "TE"].includes(position));
+  // Weekly count cells use whole numbers, but their averages must retain a
+  // fractional game (for example 0.5 TDs). Rate/share units keep Weekly precision.
+  return /^[+-]?\d+$/.test(formatted) ? value.toFixed(1) : formatted;
+}
+
+function renderDataHubConsistencyAverage(pointsLayer, data) {
+  if (!Number.isFinite(data.averageValue) || !Number.isFinite(data.averagePlotValue)) return;
+  // The reference lives inside the same plot layer, so resizing and the padded
+  // scoring/rank scale keep the dotted line aligned with the weekly points.
+  const average = document.createElement("div");
+  average.className = "weekly-average";
+  average.style.top = `${yFromDataHubConsistencyPoints(data.averagePlotValue)}%`;
+  const label = document.createElement("span");
+  label.className = "weekly-average__label";
+  label.textContent = `AVG: ${formatDataHubConsistencyMetricAverage(data, data.averageValue)}`;
+  average.title = data.rankMode ? `Per-game average · ${data.position}${data.averageRank} among positional averages` : "Season points per game";
+  average.appendChild(label);
+  pointsLayer.appendChild(average);
+  // Keep AVG legible when a weekly chip sits on/near the reference. Prefer a
+  // small horizontal gap; a completely flat, crowded chart uses the row above
+  // its chips. Re-evaluate on each draw so phone/desktop resizing stays aligned.
+  const plot = pointsLayer.getBoundingClientRect();
+  const bounds = label.getBoundingClientRect();
+  const chips = [...pointsLayer.querySelectorAll(".weekly-point-label")].map((chip) => chip.getBoundingClientRect());
+  const overlaps = (left) => chips.some((chip) => left < chip.right + 2 && left + bounds.width > chip.left - 2
+    && bounds.top < chip.bottom + 2 && bounds.bottom > chip.top - 2);
+  let left = plot.right - bounds.width - 4;
+  while (left > plot.left + 4 && overlaps(left)) left -= 4;
+  label.style.right = "auto";
+  label.style.left = `${Math.max(4, left - plot.left)}px`;
+  if (overlaps(left)) {
+    const nearby = chips.filter((chip) => left < chip.right + 2 && left + bounds.width > chip.left - 2);
+    label.style.bottom = `${Math.max(3, average.getBoundingClientRect().top - Math.min(...nearby.map((chip) => chip.top)) + 3)}px`;
   }
-  return Number(value).toFixed(1);
 }
 
 function getDataHubRankAccentColor(rank) {
@@ -16951,7 +16953,7 @@ function updateDataHubConsistencyHud(data) {
   }
   const ceilingValueEl = consistencyContainer.querySelector("[data-ceiling-value]");
   if (ceilingValueEl) {
-    ceilingValueEl.textContent = formatDataHubCeilingValue(data?.ceilingValue);
+    ceilingValueEl.textContent = formatDataHubConsistencyMetricAverage(data, data?.ceilingValue);
   }
   const consistencyCircleValue = consistencyContainer.querySelector("[data-consistency-circle-value]");
   if (consistencyCircleValue) {
@@ -17019,12 +17021,12 @@ function updateDataHubConsistencyHud(data) {
   const lastFiveEl = consistencyContainer.querySelector("[data-insight-last5]");
   if (lastFiveEl) {
     if (Number.isFinite(data?.lastFiveAvg)) {
-      const bucket = getDataHubConsistencyBucket(data.lastFiveAvg, data.thresholds || getDataHubConsistencyThresholds(data?.position));
+      const bucket = getDataHubConsistencyBucket(data.rankMode ? data.lastFivePlotValue : data.lastFiveAvg, data.thresholds || getDataHubConsistencyThresholds(data?.position));
       const color = bucket?.name === "high"
         ? DATAHUB_CONSISTENCY_HUD_CONDITIONAL_COLORS.high
         : (bucket?.name === "solid" ? DATAHUB_CONSISTENCY_HUD_CONDITIONAL_COLORS.solid : DATAHUB_CONSISTENCY_HUD_CONDITIONAL_COLORS.low);
       lastFiveEl.style.color = "";
-      lastFiveEl.innerHTML = `<span style="color:${color}">${data.lastFiveAvg.toFixed(1)}</span><span class="hud-insight-suffix"> fpts</span>`;
+      lastFiveEl.innerHTML = `<span style="color:${color}">${formatDataHubConsistencyMetricAverage(data, data.lastFiveAvg)}</span><span class="hud-insight-suffix"> ${data.rankMode ? DATAHUB_STAT_LABELS[data.statKey] : "fpts"}</span>`;
     } else {
       lastFiveEl.textContent = "—";
       lastFiveEl.style.color = "";
@@ -17054,45 +17056,45 @@ function hideDataHubConsistencyEmptyState(chartBox) {
 }
 
 function renderDataHubConsistencyChart() {
-  // HUD stays bound to the original season FPTS snapshot. Only the plot and
-  // its ranking-zone legend follow the selected weekly metric.
-  const hudData = state.currentConsistencyData;
-  const data = buildDataHubConsistencyMetricData(hudData, state.currentConsistencyStat);
+  // The HUD, average reference and plot now share one selected-metric snapshot.
+  const data = buildDataHubConsistencyMetricData(state.currentConsistencyData, state.currentConsistencyStat);
   const chartBox = document.querySelector("#weekly-chart-box");
   const pointsLayer = document.querySelector("#weekly-chart-points");
   const xAxisEl = document.querySelector("#weekly-chart-x-axis");
   if (!chartBox || !pointsLayer || !xAxisEl) {
     return;
   }
-  updateDataHubConsistencyHud(hudData);
+  updateDataHubConsistencyHud(data);
   pointsLayer.dataset.rankMode = String(Boolean(data?.rankMode));
   if (data?.rankMode) {
     pointsLayer.style.setProperty("--rank-high-edge", `${yFromDataHubConsistencyPoints(data.thresholds.high)}%`);
     pointsLayer.style.setProperty("--rank-solid-edge", `${yFromDataHubConsistencyPoints(data.thresholds.solid)}%`);
   }
   chartBox.setAttribute("role", "img");
-  chartBox.setAttribute("aria-label", data?.rankMode
+  const description = data?.rankMode
     ? `${DATAHUB_STAT_LABELS[data.statKey]} weekly ${data.position} positional ranks. Green 1–12; blue 13–${data.rankZones.blueEnd}; purple ${data.rankZones.purpleStart}+. Point labels show statistic values.`
-    : "Weekly PPR fantasy points with position-specific scoring zones.");
+    : "Weekly PPR fantasy points with position-specific scoring zones.";
+  chartBox.setAttribute("aria-label", description + (Number.isFinite(data?.averageValue)
+    ? ` Average per played game: ${formatDataHubConsistencyMetricAverage(data, data.averageValue)}.` : ""));
   requestAnimationFrame(() => {
     if (state.currentGameLogsView !== "consistency" || gameLogsModal?.classList.contains("hidden")
       || gameLogsModal?.classList.contains("is-team-view") || document.querySelector("#gamelogs-tab-pane")?.classList.contains("hidden")) return;
     if (!data) {
       renderDataHubConsistencyXAxis({ axisWeeks: getDataHubConsistencyAxisWeeks() });
       renderDataHubConsistencyZoneSummary(null);
-      pointsLayer.querySelectorAll(".weekly-point, .weekly-skip-label").forEach((node) => node.remove());
+      pointsLayer.querySelectorAll(".weekly-point, .weekly-skip-label, .weekly-average").forEach((node) => node.remove());
       if (dataHubCurveSvg) {
         dataHubCurveSvg.remove();
         dataHubCurveSvg = null;
       }
       showDataHubConsistencyEmptyState(chartBox, "Consistency data unavailable.");
-      hydrateDataHubConsistencyProgressCircles(hudData);
+      hydrateDataHubConsistencyProgressCircles(data);
       return;
     }
     renderDataHubConsistencyXAxis(data);
     renderDataHubConsistencyZoneSummary(data);
     renderDataHubConsistencyPoints(data);
-    hydrateDataHubConsistencyProgressCircles(hudData);
+    hydrateDataHubConsistencyProgressCircles(data);
     const hasVisibleStatus = data.axisWeeks.some((week) => data.skippedLabels?.[week]);
     if (!data.chartSeries.length && !hasVisibleStatus) {
       showDataHubConsistencyEmptyState(chartBox, data.rankMode ? `No ${DATAHUB_STAT_LABELS[data.statKey]} recorded for these weeks.` : "No fantasy points recorded yet.");
@@ -17522,7 +17524,11 @@ function drawDataHubSegmentedCurve(pointsLayer, relativePoints, data) {
 }
 
 function getDataHubEdgePaddingPct(slotCount) {
-  return slotCount > 1 ? DATAHUB_CONSISTENCY_EDGE_PADDING_PCT : 0;
+  if (slotCount <= 1) return 0;
+  // A small pixel minimum keeps the longer fractional stat chips inside even
+  // a 320px phone. Axis and plot read this same width to retain aligned weeks.
+  const width = document.querySelector("#weekly-chart-points")?.clientWidth;
+  return Math.max(DATAHUB_CONSISTENCY_EDGE_PADDING_PCT, width > 0 ? (16 / width) * 100 : 0);
 }
 
 function yFromDataHubConsistencyPoints(points) {
@@ -17537,7 +17543,7 @@ function renderDataHubConsistencyPoints(data) {
   if (!pointsLayer) {
     return;
   }
-  pointsLayer.querySelectorAll(".weekly-point, .weekly-skip-label").forEach((node) => node.remove());
+  pointsLayer.querySelectorAll(".weekly-point, .weekly-skip-label, .weekly-average").forEach((node) => node.remove());
   if (dataHubCurveSvg) {
     dataHubCurveSvg.remove();
     dataHubCurveSvg = null;
@@ -17592,8 +17598,13 @@ function renderDataHubConsistencyPoints(data) {
     label.appendChild(valueSpan);
     if (data.rankMode) {
       const rankLabel = document.createElement("span");
-      rankLabel.className = "weekly-point-label__rank";
-      rankLabel.textContent = `${position}${entry.rank}`;
+      rankLabel.className = "weekly-point-label__suffix weekly-point-label__rank";
+      // Match the default week caption, with a slightly smaller uppercase
+      // position prefix so WR/RB/QB/TE do not visually outweigh its rank.
+      const positionLabel = document.createElement("span");
+      positionLabel.className = "weekly-point-label__position";
+      positionLabel.textContent = position;
+      rankLabel.append(positionLabel, document.createTextNode(String(entry.rank)));
       label.appendChild(rankLabel);
     }
     pointEl.appendChild(label);
@@ -17629,6 +17640,7 @@ function renderDataHubConsistencyPoints(data) {
     pointsLayer.appendChild(marker);
   });
   if (curvePoints.length) drawDataHubSegmentedCurve(pointsLayer, extendDataHubCurvePoints(curvePoints), data);
+  renderDataHubConsistencyAverage(pointsLayer, data);
 }
 
 function hydrateDataHubConsistencyProgressCircles(data) {
