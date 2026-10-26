@@ -10,13 +10,15 @@ const slice = (from, to) => app.slice(app.indexOf(from), app.indexOf(to, app.ind
 // deliberately disagree with the modal pool to catch accidental PPR fallbacks.
 function harness() {
   const state = {
-    players: { one: { position: 'RB' }, zero: { position: 'RB' }, negative: { position: 'RB' }, unqualified: { position: 'RB' } },
+    players: { one: { position: 'RB' }, zero: { position: 'RB' }, negative: { position: 'RB' }, unqualified: { position: 'RB' },
+      noGames: { position: 'RB' }, noSeasonRow: { position: 'RB' } },
     leagues: [{ league_id: 'ppr', scoring_settings: { rec: 1 } }, { league_id: 'standard', scoring_settings: { rec: 0 } }],
     currentLeagueId: 'ppr', currentGameLogsSeason: '2026', currentRosterView: 'positional',
     isStartSitMode: false, isCompareMode: false, startSitSelections: [], tradeBlock: {},
     playerSeasonStats: {
       one: { games_played: 3, rush_att: 15 }, zero: { games_played: 3, rush_att: 15 },
       negative: { games_played: 3, rush_att: 15 }, unqualified: { games_played: 1, rush_att: 1 },
+      noGames: { games_played: 0, rush_att: 0 },
     },
     rosters2026GameLogs: { latestRecordedWeek: 3, rankQualifierWeeks: 3 },
     weeklyStats: { 1: { one: { rec: 2, snp: 30 } }, 2: { one: { rec: 2, snp: 30 } }, 3: { one: { rec: 2, snp: 30 } } },
@@ -50,7 +52,7 @@ function expectPpg(markup, display, color) {
   assert.doesNotMatch(markup, /ADP:|player-adp|999\.9/);
 }
 
-test('all card modes share Game Logs league PPG and its qualified rank color, including zero/negative games', () => {
+test('all card modes share Game Logs PPG/colors, with hyphens for zero/no games and numeric negative scores', () => {
   const context = harness();
   for (const [view, preview, startSit] of [
     ['positional', false, false], ['depth', false, false], ['condensed', false, false],
@@ -60,7 +62,10 @@ test('all card modes share Game Logs league PPG and its qualified rank color, in
     expectPpg(card(context), '6.0', '#51CBA5');
     assert.equal(context.getRostersGameLogsPlayerRanks('one').ppg, '6.0');
     assert.equal(context.calculatePlayerStatsAndRanks('one').ppg, '18.0', 'legacy positive-only game count must not leak into PPG');
-    expectPpg(card(context, 'zero'), '0.0', '#51CBA5');
+    expectPpg(card(context, 'zero'), '-', '#51CBA5');
+    assert.equal(context.getRostersGameLogsPlayerRanks('zero').ppg, '0.0', 'card placeholder does not alter the Game Logs summary');
+    expectPpg(card(context, 'noGames'), '-', 'inherit');
+    expectPpg(card(context, 'noSeasonRow'), '-', 'inherit');
     expectPpg(card(context, 'negative'), '-1.0', '#51CBA5');
     expectPpg(card(context, 'unqualified'), '10.0', 'inherit');
   }
@@ -71,7 +76,7 @@ test('switching leagues recalculates PPG from the selected league, including unr
   context.state.matchupDataLoaded = false;
   expectPpg(card(context), '2.0', '#51CBA5');
   context.state.currentLeagueId = 'standard';
-  expectPpg(card(context), '0.0', '#51CBA5');
+  expectPpg(card(context), '-', '#51CBA5');
   assert.equal(context.state.calculatedRankCache.leagueId, 'standard');
   context.state.leagues[1].scoring_settings.rec = 0.5;
   expectPpg(card(context), '1.0', '#51CBA5');

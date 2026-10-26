@@ -80,7 +80,8 @@
 // Refresh Consistency summary precision to match DataHub Season/Weekly totals.
 // Refresh production-average tenths, restored status markers and AVG label placement.
 // Refresh Rosters card PPG, its Game Logs rank colors and current-league scoring readiness.
-const CACHE_NAME = 'DH3.52e-rosters-league-ppg';
+// Refresh roster PPG hyphens for zero scores and players without games.
+const CACHE_NAME = 'DH3.52f-rosters-ppg-zero-placeholder';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

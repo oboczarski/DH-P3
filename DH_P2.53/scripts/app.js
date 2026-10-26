@@ -9415,7 +9415,10 @@ function createPlayerRow(player, teamName) {
     // including its qualified positional rank for color. Do not reuse the
     // card's cached workbook/FPTS ranks or its positive-score-only game count.
     const ppgRanks = getRostersGameLogsPlayerRanks(player.id);
-    const ppgValue = ppgRanks?.ppg ?? '—';
+    // Rosters cards show a hyphen for zero PPG (including players with no
+    // games) or missing data; retain the summary's nonzero/negative precision.
+    const numericPpg = Number(ppgRanks?.ppg);
+    const ppgValue = Number.isFinite(numericPpg) && numericPpg !== 0 ? ppgRanks.ppg : '-';
     const teamKey = (player.team || 'FA').toUpperCase();
     const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
     const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
