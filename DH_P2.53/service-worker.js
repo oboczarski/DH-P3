@@ -78,7 +78,8 @@
 // Refresh DataHub's full-width Weekly body, flat chart connections, production baseline and padding.
 // Refresh DataHub's metric-aware Consistency HUD, average reference and chip spacing.
 // Refresh Consistency summary precision to match DataHub Season/Weekly totals.
-const CACHE_NAME = 'DH3.52c-datahub-consistency-formatting_v1.3';
+// Refresh production-average tenths, restored status markers and AVG label placement.
+const CACHE_NAME = 'DH3.52d-datahub-consistency-refinements_v1.3';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

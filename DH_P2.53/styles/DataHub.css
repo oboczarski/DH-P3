@@ -16702,8 +16702,8 @@ body[data-page="datahub"] #game-logs-modal .weekly-point-label__position {
   font-size: 0.85em;
 }
 
-/* A quiet dotted reference spans the plot, with its value just above the line.
-   Keep it below point chips and non-interactive so existing tooltips still work. */
+/* AVG sits directly on its dotted reference; JS shifts the label vertically
+   only when a point/chip/status would collide. Keep point interactions intact. */
 body[data-page="datahub"] #game-logs-modal .weekly-average {
   position: absolute;
   left: 0;
@@ -16716,7 +16716,8 @@ body[data-page="datahub"] #game-logs-modal .weekly-average {
 body[data-page="datahub"] #game-logs-modal .weekly-average__label {
   position: absolute;
   right: 0.3rem;
-  bottom: 0.18rem;
+  top: 0;
+  transform: translateY(-50%);
   padding: 0.08rem 0.25rem;
   border-radius: 4px;
   background: rgba(9, 16, 30, 0.64);
@@ -16725,6 +16726,10 @@ body[data-page="datahub"] #game-logs-modal .weekly-average__label {
   font-weight: 400;
   line-height: 1;
   white-space: nowrap;
+}
+
+body[data-page="datahub"] #game-logs-modal .weekly-skip-label {
+  z-index: 5;
 }
 
 /* The existing Team dialog keeps its own content and return behavior, while

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import { resolveGameLogsNavigation, rankWeeklyMetricValues, getConsistencyRankZones, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames } from '../DH_P2.53/scripts/datahub-gamelogs-controls.js';
+import { resolveGameLogsNavigation, rankWeeklyMetricValues, getConsistencyRankZones, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames, isConsistencyProductionStat, getConsistencyAverageLabelCenter } from '../DH_P2.53/scripts/datahub-gamelogs-controls.js';
 
 test('Performance and Season Stats share their navigation context while Weekly, Consistency and Career remain actionable', () => {
   for (const [content, topView, navView, performanceAction] of [
@@ -247,18 +247,18 @@ function formattingHarness(season) {
   }).join('\n');
   const sourceOnlyKeys = source.match(/const DATAHUB_NO_FALLBACK_KEYS = new Set\(\[[\s\S]*?\]\);/)?.[0];
   const context = vm.createContext({
-    state: { currentModalSeason: season },
+    state: { currentModalSeason: season }, isConsistencyProductionStat,
     DATAHUB_STAT_LABELS: { car_per_g: 'CAR/G', tgt_per_g: 'TGT/G', rec_ypg: 'recYPG' },
   });
   vm.runInContext(`${sourceOnlyKeys}\n${functions}`, context);
   return context.formatDataHubConsistencyMetricAverage;
 }
 
-test('Consistency averages match Season/Weekly footer precision instead of forcing decimals onto integers', () => {
+test('Consistency production summaries cap decimals while other stats retain Season/Weekly precision', () => {
   const format = formattingHarness('2026');
   for (const [position, statKey, value, expected] of [
-    ['RB', 'imp_per_g', 5, '5'], ['RB', 'imp_per_g', 5.6, '6'],
-    ['RB', 'rz_att', 2.6, '3'], ['RB', 'gl_att', 0, '0'], ['RB', 'rush_ybc', 18.6, '19'],
+    ['RB', 'imp_per_g', 5, '5'], ['RB', 'imp_per_g', 5.6, '5.6'],
+    ['RB', 'rz_att', 2.6, '2.6'], ['RB', 'gl_att', 0, '0'], ['RB', 'rush_ybc', 18.6, '18.6'],
     ['WR', 'rr', 25, '25'], ['WR', 'rz_tgt', 4, '4'], ['WR', 'rec', 6, '6'],
     ['WR', 'tprr', 0.35476, '0.355'], ['TE', 'first_down_rec_rate', 0.1876, '0.188'],
     ['RB', 'tprr', 0.3, '0.300'], ['WR', 'rec_yacr', 6, '6.0'],
@@ -266,7 +266,7 @@ test('Consistency averages match Season/Weekly footer precision instead of forci
     ['RB', 'car_per_g', 12.345, '12.3'], ['RB', 'tgt_per_g', 4.567, '4.6'],
     ['RB', 'rec_ypg', 30.456, '30.5'], ['WR', 'fpoe', 2.345, '2.3'],
     ['QB', 'cpoe', 2.345, '+2.3%'], ['QB', 'cpoe', -2.345, '-2.3%'],
-    ['QB', 'epa', 0.234, '+0.23'], ['QB', 'epa_per_db', -0.234, '-0.23'],
+    ['QB', 'epa', 0.234, '+0.2'], ['QB', 'epa_per_db', -0.234, '-0.23'],
     ['RB', 'snp_pct', 72.456, '72.5%'], ['WR', 'ay_pct', 45.678, '45.7%'],
     ['RB', 'expl_ru_pct', 0.125, '12.5%'], ['QB', 'dp_pct', 0.0876, '8.8%'],
   ]) {
@@ -283,4 +283,63 @@ test('archived Consistency formatting keeps the archived Season precision', () =
   assert.equal(format({ position: 'WR', statKey: 'first_down_rec_rate', rankMode: true }, 0.1876), '0.19');
   assert.equal(format({ position: 'RB', statKey: 'fpoe', rankMode: true }, -2.345), '-2.3');
   assert.equal(format({ position: 'QB', statKey: 'ttt', rankMode: true }, 3), '3');
+});
+
+
+test('all calculated production summaries use at most one decimal in either season', () => {
+  const production = ['pass_yd', 'pass_td', 'pass_att', 'pass_cmp', 'pass_fd', 'pass_imp', 'dropbacks',
+    'rush_att', 'rush_yd', 'rush_td', 'rush_fd', 'rush_yac', 'rush_ybc', 'mtf', 'rz_att', 'gl_att',
+    'rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'rr', 'rz_tgt', 'tgt_10_plus',
+    'yds_total', 'imp', 'imp_per_g', 'pass_sack', 'pass_int', 'fum', 'td_total', 'ryoe', 'epa'];
+  for (const season of ['2025', '2026']) {
+    const format = formattingHarness(season);
+    for (const position of ['QB', 'RB', 'WR', 'TE']) {
+      for (const statKey of production) {
+        const data = { position, statKey, rankMode: true };
+        assert.equal(format(data, 10 / 3), statKey === 'epa' ? '+3.3' : '3.3', `${season} ${position} ${statKey}`);
+        assert.equal(format(data, -10 / 3), '-3.3');
+        assert.equal(format(data, 0), '0');
+      }
+    }
+  }
+});
+
+test('BYE and injury markers survive unrecorded stat rows in default, ranked and status-only charts', () => {
+  const missed = (extra) => ({ pos: 'WR', fpt_ppr: 0, snp: 0, __hasRecordedStats: false, ...extra });
+  const weeklyStats = {
+    1: { target: { pos: 'WR', rec_yd: 10, fpt_ppr: 3, snp: 10, __hasRecordedStats: true } },
+    2: { target: missed({ opponent: 'BYE', proj: 0 }) },
+    3: { target: missed({ proj: 'IR' }) },
+    4: { target: missed({ proj: 'PUP' }) },
+    5: { target: missed({ proj: '' }) },
+    6: { target: { pos: 'WR', __hasRecordedStats: false, proj: '' } },
+    7: { target: missed({ proj: 'OUT' }) },
+  };
+  const api = harness({ currentModalSeason: '2026', weeklyStats });
+  for (const key of ['fpts', 'rec_yd']) {
+    const chart = api.buildDataHubConsistencyMetricData({ playerId: 'target', position: 'WR', axisWeeks: [1,2,3,4,5,6] }, key);
+    assert.deepEqual({ ...chart.skippedLabels }, { 2: 'BYE', 3: 'IR', 4: 'PUP', 5: 'OUT' });
+    assert.equal(chart.gamesPlayed, 1);
+    assert.equal(chart.chartSeries.length, 1);
+    assert.equal(chart.averageValue, key === 'fpts' ? 3 : 10);
+    delete weeklyStats[1].target;
+    const statusOnly = api.buildDataHubConsistencyMetricData({ playerId: 'target', position: 'WR', axisWeeks: [1,2,3,4,5,6] }, key);
+    assert.equal(statusOnly.chartSeries.length, 0);
+    assert.equal(statusOnly.gamesPlayed, 0);
+    assert.equal(statusOnly.averageValue, null);
+    assert.deepEqual({ ...statusOnly.skippedLabels }, { 2: 'BYE', 3: 'IR', 4: 'PUP', 5: 'OUT' });
+    weeklyStats[1].target = { pos: 'WR', rec_yd: 10, fpt_ppr: 3, snp: 10, __hasRecordedStats: true };
+  }
+});
+
+test('AVG is centered on the reference unless nearby points/chips/statuses require a clear row above or below', () => {
+  const label = { left: 70, right: 100, height: 10 };
+  const plot = { top: 0, bottom: 100 };
+  const obstacle = (top, bottom, left = 75, right = 95) => ({ top, bottom, left, right });
+  assert.equal(getConsistencyAverageLabelCenter(50, label, plot, []), 50);
+  assert.equal(getConsistencyAverageLabelCenter(50, label, plot, [obstacle(40,60,0,20)]), 50);
+  assert.equal(getConsistencyAverageLabelCenter(50, label, plot, [obstacle(42,58)]), 34);
+  assert.equal(getConsistencyAverageLabelCenter(10, label, plot, [obstacle(0,20)]), 28);
+  assert.equal(getConsistencyAverageLabelCenter(90, label, plot, [obstacle(80,100)]), 72);
+  assert.equal(getConsistencyAverageLabelCenter(50, label, plot, [obstacle(45,55), obstacle(30,38)]), 63);
 });

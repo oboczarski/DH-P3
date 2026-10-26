@@ -4,7 +4,7 @@ import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSe
 import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js";
 import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js";
-import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames } from "./datahub-gamelogs-controls.js?v=DH3.52c-datahub-consistency-formatting";
+import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames, isConsistencyProductionStat, getConsistencyAverageLabelCenter } from "./datahub-gamelogs-controls.js?v=DH3.52d-datahub-consistency-refinements";
 
 // ---------------------------------------------------------------------------
 // Hero copy and filter labels that drive the surrounding page shell.
@@ -16738,7 +16738,7 @@ function buildDataHubConsistencyMetricData(base, key) {
       const entries = [];
       Object.entries(rows).forEach(([playerId, stats]) => {
         const pos = String(stats.pos || state.playerSeasonStats?.[playerId]?.pos || state.sleeperPlayers?.[playerId]?.position || "").trim().toUpperCase();
-        if (pos !== position || stats.__hasRecordedStats === false) return;
+        if (pos !== position) return;
         // Weekly's SNP-aware status also excludes archived zero-snap DNP rows
         // from per-game denominators, while played zero/negative games remain.
         const projection = getDataHubGameLogProjectionDisplay(stats);
@@ -16747,6 +16747,9 @@ function buildDataHubConsistencyMetricData(base, key) {
           if (playerId === base.playerId) skippedLabels[week] = bye ? "BYE" : formatDataHubProjReason(projection);
           return;
         }
+        // Missed-game rows often have no recorded statistics. Preserve their
+        // chart designation before rejecting them from the played-game math.
+        if (stats.__hasRecordedStats === false) return;
         playedCounts.set(playerId, (playedCounts.get(playerId) || 0) + 1);
         const value = getDataHubConsistencyStatValue(key, stats, position);
         if (Number.isFinite(value)) entries.push({ playerId, value, opponent: stats.opponent || "" });
@@ -16882,11 +16885,16 @@ function formatDataHubHudPercentage(value, decimals = 1) {
 function formatDataHubConsistencyMetricAverage(data, value) {
   if (!Number.isFinite(value)) return "N/A";
   if (!data?.rankMode) return value.toFixed(1);
-  // DataHub Consistency summaries use the same display rules as Season and
-  // the Weekly totals footer. Supply the already-calculated average as the
-  // value to format; never read season totals or recalculate this average here.
-  // In particular, do not append a generic .0 to whole-number count displays.
+  // DataHub Consistency production summaries cap decimals below; other stats
+  // retain Season/Weekly totals' units and precision. Format the calculated
+  // average directly without reading season totals or recalculating it here.
   const key = data.statKey;
+  // Production totals become fractional after averaging: cap their display at
+  // one decimal, preserving integers/zero without unnecessary trailing .0.
+  if (isConsistencyProductionStat(key)) {
+    const formatted = String(Number(value.toFixed(1)));
+    return key === "epa" && value > 0 ? `+${formatted}` : formatted;
+  }
   const formatted = getDataHubGameLogsSeasonDisplayValue({
     key,
     seasonTotals: { [key]: value },
@@ -16917,22 +16925,19 @@ function renderDataHubConsistencyAverage(pointsLayer, data) {
   average.title = data.rankMode ? `Per-game average · ${data.position}${data.averageRank} among positional averages` : "Season points per game";
   average.appendChild(label);
   pointsLayer.appendChild(average);
-  // Keep AVG legible when a weekly chip sits on/near the reference. Prefer a
-  // small horizontal gap; a completely flat, crowded chart uses the row above
-  // its chips. Re-evaluate on each draw so phone/desktop resizing stays aligned.
+  // Keep the horizontal anchor stable and center the label directly on the
+  // dotted line. Move only the label to the nearest clear row above/below if
+  // it would cover a weekly point, its chip, or a missed-game designation.
   const plot = pointsLayer.getBoundingClientRect();
   const bounds = label.getBoundingClientRect();
-  const chips = [...pointsLayer.querySelectorAll(".weekly-point-label")].map((chip) => chip.getBoundingClientRect());
-  const overlaps = (left) => chips.some((chip) => left < chip.right + 2 && left + bounds.width > chip.left - 2
-    && bounds.top < chip.bottom + 2 && bounds.bottom > chip.top - 2);
-  let left = plot.right - bounds.width - 4;
-  while (left > plot.left + 4 && overlaps(left)) left -= 4;
-  label.style.right = "auto";
-  label.style.left = `${Math.max(4, left - plot.left)}px`;
-  if (overlaps(left)) {
-    const nearby = chips.filter((chip) => left < chip.right + 2 && left + bounds.width > chip.left - 2);
-    label.style.bottom = `${Math.max(3, average.getBoundingClientRect().top - Math.min(...nearby.map((chip) => chip.top)) + 3)}px`;
-  }
+  const reference = average.getBoundingClientRect();
+  const lineY = reference.top + reference.height / 2;
+  const obstacles = [...pointsLayer.querySelectorAll(".weekly-point, .weekly-point-label, .weekly-skip-label")]
+    .map((node) => node.getBoundingClientRect());
+  const centerY = getConsistencyAverageLabelCenter(lineY, bounds, plot, obstacles);
+  // Absolute child coordinates start inside the line's one-pixel border.
+  label.style.top = `${centerY - reference.top - average.clientTop}px`;
+  average.dataset.labelPlacement = Math.abs(centerY - lineY) < 1 ? "on-line" : centerY < lineY ? "above" : "below";
 }
 
 function getDataHubRankAccentColor(rank) {

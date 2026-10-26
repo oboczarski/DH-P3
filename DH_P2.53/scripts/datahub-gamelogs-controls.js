@@ -45,6 +45,29 @@ const CONSISTENCY_PRODUCTION_STATS = new Set([
   "yds_total", "imp", "imp_per_g",
 ]);
 
+// Calculated production summaries retain at most tenths, including turnover
+// counts and signed production totals. Efficiency/rate precision stays separate
+// from this display rule and from the chart's zero-production floor.
+export function isConsistencyProductionStat(statKey) {
+  return CONSISTENCY_PRODUCTION_STATS.has(statKey)
+    || ["pass_sack", "pass_int", "fum", "td_total", "ryoe", "epa"].includes(statKey);
+}
+
+// Center AVG on its reference by default. If a point, chip or status occupies
+// that vertical band, choose the nearest clear row above/below, within the plot.
+export function getConsistencyAverageLabelCenter(lineY, label, plot, obstacles, gap = 3) {
+  const halfHeight = label.height / 2;
+  const min = plot.top + halfHeight + gap;
+  const max = plot.bottom - halfHeight - gap;
+  const near = obstacles.filter((rect) => label.left < rect.right + gap && label.right > rect.left - gap);
+  const candidates = [Math.max(min, Math.min(max, lineY)), min, max,
+    ...near.flatMap((rect) => [rect.top - gap - halfHeight, rect.bottom + gap + halfHeight])];
+  const clear = (y) => y >= min && y <= max && near.every((rect) => y + halfHeight <= rect.top - gap
+    || y - halfHeight >= rect.bottom + gap);
+  return candidates.sort((a, b) => Math.abs(a - lineY) - Math.abs(b - lineY) || a - b).find(clear)
+    ?? Math.max(min, Math.min(max, lineY));
+}
+
 // Weekly ranks and the season-average reference use the same rank scale and
 // zero-production floor. The source statistic remains separate from this y value.
 export function getConsistencyRankPlotValue(value, rank, rankMax, statKey = "") {
