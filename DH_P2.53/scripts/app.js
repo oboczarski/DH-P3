@@ -2530,24 +2530,20 @@ async function handleLeagueSelect() {
             fetchWithCache(`${API_BASE}/league/${leagueId}/drafts`),
         ]);
 
-        // Fetch league-specific matchup data for FPTS/PPG
-        // If current league is a new season (e.g., 2026) with no games yet, use previous season's league
         const leagueSeason = parseInt(leagueInfo?.season, 10);
-        const previousLeagueId = leagueInfo?.previous_league_id;
-        const sheetDataSeason = 2025; // The season our Google Sheets data covers
-
-        // Use previous league's matchup data if current league season is newer than sheet data
-        // When using previous season, fetch all 18 weeks (full completed season)
-        const usePreviousSeason = previousLeagueId && leagueSeason > sheetDataSeason;
-        const matchupLeagueId = usePreviousSeason ? previousLeagueId : leagueId;
-        const matchupMaxWeek = usePreviousSeason ? 18 : null; // null uses current week
-        await fetchLeagueMatchupData(matchupLeagueId, matchupMaxWeek);
-        
-        // Rosters card metrics default to the active 2026 workbook. Load its
-        // FPTS/PPG rank snapshot before creating cards so the first paint uses
-        // the same season data as the Game Logs modal.
         if (pageType === 'rosters' && leagueSeason === 2026 && typeof window.activateRosters2026GameLogs === 'function') {
+            // Rosters card PPG shares the Game Logs summary's current-season
+            // league scores and qualifier pool. Activation clears old matchup
+            // data, so load this league's scores afterward, before the first card.
+            setGameLogsSelectedSeason('2026');
             await window.activateRosters2026GameLogs();
+            await ensureSleeperLiveStats();
+            await fetchLeagueMatchupData(leagueId, state.currentNflWeek || 18);
+        } else {
+            // Historical/shared callers retain their prior-season matchup source.
+            const previousLeagueId = leagueInfo?.previous_league_id;
+            const usePreviousSeason = previousLeagueId && leagueSeason > 2025;
+            await fetchLeagueMatchupData(usePreviousSeason ? previousLeagueId : leagueId, usePreviousSeason ? 18 : null);
         }
         // Hydrate draft order (for precise pick labels like 2026 1.02 and KTC early/mid/late buckets)
         await hydrateDraftOrderBySeason({ leagueId, leagueInfo, rosters, drafts });
@@ -3601,7 +3597,7 @@ function buildCalculatedRankCache(scoringSettings, leagueId, scoringHash) {
             ppgPosRank: formatRankValue(entry.ppgPosRank),
         };
     });
-    // Keep card rankings independent; only Game Logs consumes modalPlayers.
+    // Keep FPTS card ranks independent; card PPG shares the Game Logs modalPlayers pool.
     const modalPlayers = pageType === 'rosters' ? buildRostersLeagueModalRankCache(entries) : null;
     return { leagueId, scoringHash, players: cache, modalPlayers };
 }
@@ -4821,9 +4817,9 @@ function createRankAnnotation(rank, { wrapInParens = true, ordinal = false, vari
     span.textContent = wrapInParens ? `(${displayText})` : displayText;
     return span;
 }
-// Rosters modal-only qualification: preserve its default volume minimums,
-// adding the same half-season / 20 PPR points-per-game exception as DataHub.
-// Stats/Ownership pages and roster-card rank caches keep their existing rules.
+// Rosters Game Logs and card PPG qualification: preserve the default volume
+// minimums and half-season / 20 PPR points-per-game exception. Stats/Ownership
+// pages and roster-card FPTS rank caches keep their existing rules.
 function isRostersGameLogsRankQualified(stats, position, season, elapsedWeeks, qualifierWeeks = elapsedWeeks) {
     const gates = season === '2026'
         ? { QB: ['pass_att', 16 * qualifierWeeks], RB: ['rush_att', 5 * qualifierWeeks], WR: ['rr', 13 * qualifierWeeks], TE: ['rr', 13 * qualifierWeeks] }
@@ -9415,9 +9411,11 @@ function createPlayerRow(player, teamName) {
         }
     }
     const ktc = player.ktc || '—';
-    const numericAdpValue = Number(player.adp);
-    const hasAdpValue = Number.isFinite(numericAdpValue) && numericAdpValue > 0;
-    const adpValue = hasAdpValue ? numericAdpValue.toFixed(1) : 'NA';
+    // Every Rosters card uses the exact league-specific Game Logs PPG summary,
+    // including its qualified positional rank for color. Do not reuse the
+    // card's cached workbook/FPTS ranks or its positive-score-only game count.
+    const ppgRanks = getRostersGameLogsPlayerRanks(player.id);
+    const ppgValue = ppgRanks?.ppg ?? '—';
     const teamKey = (player.team || 'FA').toUpperCase();
     const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
     const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
@@ -9454,7 +9452,7 @@ function createPlayerRow(player, teamName) {
     const tradePreviewAgeHtml = isTradePreviewCard
         ? `<span class="trade-preview-age"><span class="player-age">${player.age || '?'}</span><span class="trade-preview-age-unit"> y.o.</span>${injuryBadgeHtml}</span>`
         : '';
-    const tradePreviewAdpHtml = `<span class="player-adp-wrapper trade-preview-adp-wrapper">ADP:<span class="value player-adp">${adpValue}</span></span>`;
+    const tradePreviewPpgHtml = `<span class="player-ppg-wrapper trade-preview-ppg-wrapper">PPG:<span class="value player-ppg" style="color: ${getConditionalColorByRank(ppgRanks?.ppgPosRank, basePos)}">${ppgValue}</span></span>`;
     const tradePreviewTeamHtml = isTradePreviewCard
         ? `<span class="trade-preview-team-slot">${teamTagHTML}</span>`
         : '';
@@ -9473,7 +9471,7 @@ function createPlayerRow(player, teamName) {
                     <span class="player-pos-rank" style="color: ${posRankColor}; font-weight: 400;">${fptsPosRankDisplay}</span>
                     <span class="separator">•</span>
                     ${isTradePreviewCard
-                        ? tradePreviewAdpHtml
+                        ? tradePreviewPpgHtml
                         : `<span><span class="player-age">${player.age || '?'} </span> y.o. </span>`}
                     ${isTradePreviewCard
                         ? `<span class="separator">•</span><span class="player-ktc-wrapper trade-preview-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span>`
@@ -9481,11 +9479,11 @@ function createPlayerRow(player, teamName) {
                 </div>`;
     const valueLineHtml = isTradePreviewCard
         ? (isCondensedView
-            ? `<div class="player-value-line trade-preview-condensed-value-line">${tradePreviewAdpHtml}<span class="player-ktc-wrapper trade-preview-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span></div>`
+            ? `<div class="player-value-line trade-preview-condensed-value-line">${tradePreviewPpgHtml}<span class="player-ktc-wrapper trade-preview-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span></div>`
             : '')
         : `<div class="player-value-line">
                     <span class="player-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span>
-                    <span class="player-adp-wrapper">ADP:<span class="value player-adp">${adpValue}</span></span>
+                    <span class="player-ppg-wrapper">PPG:<span class="value player-ppg" style="color: ${getConditionalColorByRank(ppgRanks?.ppgPosRank, basePos)}">${ppgValue}</span></span>
                 </div>`;
     // Team logo watermark: subtle background image behind card content (similar to watchlist cards)
     const rosterWatermarkHtml = (player.team && player.team !== 'FA')
@@ -9519,7 +9517,6 @@ function createPlayerRow(player, teamName) {
     }
     const ageEl = row.querySelector('.player-age');
     const ktcEl = row.querySelector('.player-ktc');
-    const adpEl = row.querySelector('.player-adp');
     const playerPosRankEl = row.querySelector('.player-pos-rank');
     if (playerPosRankEl) {
         playerPosRankEl.textContent = fptsPosRankDisplay;
@@ -9527,12 +9524,6 @@ function createPlayerRow(player, teamName) {
     }
     if (ageEl && player.age && player.age !== '?') ageEl.style.color = getAgeColorForRoster(player.pos, parseFloat(player.age));
     if (ktcEl && player.ktc) ktcEl.style.color = getKtcColor(player.ktc);
-    if (adpEl) {
-        adpEl.textContent = adpValue;
-        adpEl.style.color = hasAdpValue
-            ? getAdpColorForRoster(numericAdpValue)
-            : 'var(--color-text-tertiary)';
-    }
     const ktcWrapper = row.querySelector('.player-ktc-wrapper');
     if (ktcWrapper) {
         ktcWrapper.classList.add('has-rank-annotation');

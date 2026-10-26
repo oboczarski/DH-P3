@@ -3474,30 +3474,30 @@ body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-20 .
 
 
 /* ============================================================================
-   Roster player cards — league-format ADP + Trade Preview two-row layout
+   Roster player cards — league-specific PPG + Trade Preview two-row layout
    These selectors stay under the rosters page and the preview grid state so
    shared cards, Start/Sit, and every non-preview roster layout remain isolated.
    ============================================================================ */
 
-/* Default roster cards: ADP replaces PPG on the existing bottom value row. */
-body[data-page="rosters"] .player-adp-wrapper .value {
+/* Rosters card PPG shares the Game Logs positional-rank color unchanged;
+   disable legacy value brightening so the same rank has the same color. */
+body[data-page="rosters"] .player-ppg-wrapper .value {
   margin-left: 0.03rem;
 }
 
-body[data-page="rosters"] #rosterGrid .player-adp {
+body[data-page="rosters"] #rosterGrid .player-ppg {
   font-family: 'Google Sans', var(--font-sans);
   font-size: 0.55rem;
   font-weight: 300;
-  filter: brightness(1.25);
+  filter: none;
 }
 
-body[data-page="rosters"] #rosterGrid.condensed-mode .player-adp {
+body[data-page="rosters"] #rosterGrid.condensed-mode .player-ppg {
   font-size: 0.5rem;
 }
 
-/* Default condensed cards only: ADP can be wider than the former PPG value.
-   Tighten this 102px value row just enough to keep three-digit ADP and KTC
-   rank/value combinations on one line without widening every roster column. */
+/* Default condensed cards: keep league PPG and the KTC rank/value group
+   on one line within the existing 102px roster column. */
 body[data-page="rosters"] #rosterGrid.condensed-mode:not(.is-preview-mode) .player-value-line {
   gap: 0.06rem;
   padding-right: 0.02rem;
@@ -3506,13 +3506,13 @@ body[data-page="rosters"] #rosterGrid.condensed-mode:not(.is-preview-mode) .play
 }
 
 body[data-page="rosters"] #rosterGrid.condensed-mode:not(.is-preview-mode) .player-ktc-wrapper,
-body[data-page="rosters"] #rosterGrid.condensed-mode:not(.is-preview-mode) .player-adp-wrapper {
+body[data-page="rosters"] #rosterGrid.condensed-mode:not(.is-preview-mode) .player-ppg-wrapper {
   font-size: 0.44rem;
   white-space: nowrap;
 }
 
 body[data-page="rosters"] #rosterGrid.condensed-mode:not(.is-preview-mode) .player-ktc-wrapper .ktc-rank-display,
-body[data-page="rosters"] #rosterGrid.condensed-mode:not(.is-preview-mode) .player-adp {
+body[data-page="rosters"] #rosterGrid.condensed-mode:not(.is-preview-mode) .player-ppg {
   font-size: 0.45rem;
 }
 
@@ -3546,7 +3546,7 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) > .ro
 }
 
 /* Trade Preview player card: first row = current identity + age + far-right
-   team logo; second row = FPTS positional rank + ADP + KTC. */
+   team logo; second row = FPTS positional rank + PPG + KTC. */
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview {
   gap: 0.1rem;
   padding: 0.1rem 0.3rem 0.02rem;
@@ -3570,7 +3570,7 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .play
 }
 
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-age,
-body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-adp-wrapper {
+body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ppg-wrapper {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: baseline;
@@ -3649,7 +3649,7 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trad
 }
 
 /* Condensed Trade Preview already omits the meta row; retain its compact view
-   semantics while placing ADP beside KTC on the required second row. */
+   semantics while placing PPG beside KTC on the required second row. */
 body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-sit-mode) .trade-preview-condensed-value-line {
   justify-content: space-between;
   min-height: 18px;
@@ -3659,7 +3659,7 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-
 
 @media (max-width: 520px) {
   /* Small phones still keep the two comparison columns in one row; compact
-     spacing protects the identity, ADP, and logo sequence from wrapping. */
+     spacing protects the identity, PPG, and logo sequence from wrapping. */
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) {
     width: min(100%, 385px);
     max-width: 385px;
@@ -3677,7 +3677,7 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-
     gap: 0.28rem;
   }
   
-    body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-adp-wrapper,
+    body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ppg-wrapper,
     body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-wrapper {
       font-size: 0.6rem;
     }
@@ -3695,21 +3695,21 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-
 
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview .player-meta-line {
     /* Preserve the equal separator gap while reclaiming a little row width so
-       the longest rank/ADP/KTC combination stays visible on small phones. */
+       the longest rank/PPG/KTC combination stays visible on small phones. */
     --trade-preview-metric-gap: 0.12rem;
     padding-right: 0.2rem;
     padding-left: 0.2rem;
   }
 
-  /* Mobile preview row two must accommodate positional rank, ADP, and the
+  /* Mobile preview row two must accommodate positional rank, PPG, and the
      expanded KTC rank/value group inside a ~166px card without clipping. */
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview .player-meta-line,
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview .player-pos-rank {
     font-size: 0.55rem;
   }
 
-  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-adp-wrapper,
-  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-adp-wrapper .player-adp,
+  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ppg-wrapper,
+  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ppg-wrapper .player-ppg,
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-wrapper,
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-wrapper .ktc-rank-display,
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-wrapper .stat-rank-annotation {
