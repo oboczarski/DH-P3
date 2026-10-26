@@ -235,3 +235,52 @@ test('archived zero-snap DNP rows are excluded while played zero and negative ga
   assert.equal(fpts.gamesPlayed, 2);
   assert.equal(fpts.averageValue, -1);
 });
+
+// Exercise the actual modal formatters together: aggregate displays must retain
+// each season/position's established units and precision without changing values.
+function formattingHarness(season) {
+  const names = ['formatDataHubConsistencyMetricAverage', 'getDataHubGameLogsSeasonDisplayValue',
+    'computeDataHubSeasonValue', 'formatDataHubPercentage', 'formatDataHubSignedEpaValue'];
+  const functions = names.map(name => {
+    const start = source.indexOf(`function ${name}(`);
+    return source.slice(start, source.indexOf('\nfunction ', start + 1));
+  }).join('\n');
+  const sourceOnlyKeys = source.match(/const DATAHUB_NO_FALLBACK_KEYS = new Set\(\[[\s\S]*?\]\);/)?.[0];
+  const context = vm.createContext({
+    state: { currentModalSeason: season },
+    DATAHUB_STAT_LABELS: { car_per_g: 'CAR/G', tgt_per_g: 'TGT/G', rec_ypg: 'recYPG' },
+  });
+  vm.runInContext(`${sourceOnlyKeys}\n${functions}`, context);
+  return context.formatDataHubConsistencyMetricAverage;
+}
+
+test('Consistency averages match Season/Weekly footer precision instead of forcing decimals onto integers', () => {
+  const format = formattingHarness('2026');
+  for (const [position, statKey, value, expected] of [
+    ['RB', 'imp_per_g', 5, '5'], ['RB', 'imp_per_g', 5.6, '6'],
+    ['RB', 'rz_att', 2.6, '3'], ['RB', 'gl_att', 0, '0'], ['RB', 'rush_ybc', 18.6, '19'],
+    ['WR', 'rr', 25, '25'], ['WR', 'rz_tgt', 4, '4'], ['WR', 'rec', 6, '6'],
+    ['WR', 'tprr', 0.35476, '0.355'], ['TE', 'first_down_rec_rate', 0.1876, '0.188'],
+    ['RB', 'tprr', 0.3, '0.300'], ['WR', 'rec_yacr', 6, '6.0'],
+    ['WR', 'ay_per_tgt', 11.234, '11.2'], ['RB', 'ryoe_per_att', 0.234, '0.23'],
+    ['RB', 'car_per_g', 12.345, '12.3'], ['RB', 'tgt_per_g', 4.567, '4.6'],
+    ['RB', 'rec_ypg', 30.456, '30.5'], ['WR', 'fpoe', 2.345, '2.3'],
+    ['QB', 'cpoe', 2.345, '+2.3%'], ['QB', 'cpoe', -2.345, '-2.3%'],
+    ['QB', 'epa', 0.234, '+0.23'], ['QB', 'epa_per_db', -0.234, '-0.23'],
+    ['RB', 'snp_pct', 72.456, '72.5%'], ['WR', 'ay_pct', 45.678, '45.7%'],
+    ['RB', 'expl_ru_pct', 0.125, '12.5%'], ['QB', 'dp_pct', 0.0876, '8.8%'],
+  ]) {
+    assert.equal(format({ position, statKey, rankMode: true }, value), expected, `${position} ${statKey}`);
+  }
+  assert.equal(format({ statKey: 'fpts', rankMode: false }, 27.567), '27.6');
+  assert.equal(format({ statKey: 'rec', position: 'WR', rankMode: true }, null), 'N/A');
+  assert.equal(format({ statKey: 'rec', position: 'WR', rankMode: true }, NaN), 'N/A');
+});
+
+test('archived Consistency formatting keeps the archived Season precision', () => {
+  const format = formattingHarness('2025');
+  assert.equal(format({ position: 'WR', statKey: 'rec', rankMode: true }, 6), '6');
+  assert.equal(format({ position: 'WR', statKey: 'first_down_rec_rate', rankMode: true }, 0.1876), '0.19');
+  assert.equal(format({ position: 'RB', statKey: 'fpoe', rankMode: true }, -2.345), '-2.3');
+  assert.equal(format({ position: 'QB', statKey: 'ttt', rankMode: true }, 3), '3');
+});

@@ -4,7 +4,7 @@ import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSe
 import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js";
 import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js";
-import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames } from "./datahub-gamelogs-controls.js?v=DH3.52b-datahub-consistency-hud";
+import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames } from "./datahub-gamelogs-controls.js?v=DH3.52c-datahub-consistency-formatting";
 
 // ---------------------------------------------------------------------------
 // Hero copy and filter labels that drive the surrounding page shell.
@@ -16882,12 +16882,26 @@ function formatDataHubHudPercentage(value, decimals = 1) {
 function formatDataHubConsistencyMetricAverage(data, value) {
   if (!Number.isFinite(value)) return "N/A";
   if (!data?.rankMode) return value.toFixed(1);
-  const position = data.position;
-  const is2026 = state.currentModalSeason === "2026";
-  const formatted = formatDataHubGameLogCellValue(data.statKey, value, is2026 && position === "QB", is2026 && position === "RB", is2026 && ["WR", "TE"].includes(position));
-  // Weekly count cells use whole numbers, but their averages must retain a
-  // fractional game (for example 0.5 TDs). Rate/share units keep Weekly precision.
-  return /^[+-]?\d+$/.test(formatted) ? value.toFixed(1) : formatted;
+  // DataHub Consistency summaries use the same display rules as Season and
+  // the Weekly totals footer. Supply the already-calculated average as the
+  // value to format; never read season totals or recalculate this average here.
+  // In particular, do not append a generic .0 to whole-number count displays.
+  const key = data.statKey;
+  const formatted = getDataHubGameLogsSeasonDisplayValue({
+    key,
+    seasonTotals: { [key]: value },
+    aggregatedTotals: {},
+    snapPctValues: [],
+    statValueCounts: {},
+    gameLogsWithData: [],
+    player: { pos: data.position },
+    playerRanks: {},
+  });
+  // Season/Weekly totals apply this final RB per-game precision after their
+  // shared formatter. Mirror that display-only adjustment for HUD averages.
+  if (state.currentModalSeason === "2026" && data.position === "RB" && key !== "imp_per_g"
+    && /(?:\/G|YPG)$/.test(DATAHUB_STAT_LABELS[key])) return value.toFixed(1);
+  return formatted;
 }
 
 function renderDataHubConsistencyAverage(pointsLayer, data) {
