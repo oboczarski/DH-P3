@@ -9850,7 +9850,7 @@ body[data-page="datahub"] .hud-eyebrow {
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: #6b7096;
-  text-shadow: 0 0 12px rgba(102, 255, 153, 0.6);
+  text-shadow: none;
 }
 
 body[data-page="datahub"] .hud-context {
@@ -12652,7 +12652,7 @@ body[data-page="datahub"] #game-logs-modal .ownership-modal-content .ownership-m
 
   body[data-page="datahub"] .weekly-point-label__value {
     order: 1;
-    font-size: 0.5rem;
+    font-size: 0.48rem;
     font-weight: 700;
     border-radius: 4px;
     padding: 0;
@@ -12660,7 +12660,7 @@ body[data-page="datahub"] #game-logs-modal .ownership-modal-content .ownership-m
 
   body[data-page="datahub"] .weekly-point-label__suffix {
     order: 0;
-    font-size: 0.34rem;
+    font-size: 0.4rem;
     font-weight: 600;
     letter-spacing: 0.01em;
     text-transform: none;
@@ -16709,7 +16709,7 @@ body[data-page="datahub"] #game-logs-modal .weekly-average {
   left: 0;
   right: 0;
   z-index: 3;
-  border-top: 1px dotted rgba(220, 234, 255, 0.66);
+  border-top: 1px dotted rgba(220, 234, 255, 0.4);
   pointer-events: none;
 }
 
@@ -16719,11 +16719,11 @@ body[data-page="datahub"] #game-logs-modal .weekly-average__label {
   bottom: 0.18rem;
   padding: 0.08rem 0.25rem;
   border-radius: 4px;
-  background: rgba(9, 16, 30, 0.86);
+  background: rgba(9, 16, 30, 0.64);
   color: rgba(235, 244, 255, 0.9);
-  font-size: 0.55rem;
-  font-weight: 600;
-  line-height: 1.15;
+  font-size: 0.5rem;
+  font-weight: 400;
+  line-height: 1;
   white-space: nowrap;
 }
 
