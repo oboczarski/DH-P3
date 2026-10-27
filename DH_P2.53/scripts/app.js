@@ -9607,11 +9607,12 @@ function createPickRow(pick, teamName) {
         row.classList.add('player-selected');
     }
     const ktcValue = pick.ktc || '—';
-    // Rosters pick chips keep the original slot owner's lighter username next
-    // to the label, with centered KTC below. The full name remains available
-    // in the title when a narrow roster column truncates it; escape API text.
+    // Rosters pick chips retain the label and KTC together on top, with the
+    // original slot owner's lighter username centered below in parentheses.
+    // The full name remains in the title when a narrow roster column truncates
+    // it; escape API text.
     const ownerName = escapeHtml(pick.originalOwnerName || 'Unknown owner');
-    row.innerHTML = `<span class="pick-heading"><span class="pick-label">${escapeHtml(pick.label)}</span><span class="pick-original-owner" title="Original owner: ${ownerName}">(<span class="pick-owner-name">${ownerName}</span>)</span></span><span class="pick-ktc">KTC: <span class="value">${ktcValue}</span></span>`;
+    row.innerHTML = `<span class="pick-heading"><span class="pick-label">${escapeHtml(pick.label)}</span><span class="pick-ktc">KTC: <span class="value">${ktcValue}</span></span></span><span class="pick-original-owner" title="Original owner: ${ownerName}">(<span class="pick-owner-name">${ownerName}</span>)</span>`;
     if (pick.ktc) row.querySelector('.pick-ktc .value').style.color = getKtcColor(pick.ktc);
     return row;
 }

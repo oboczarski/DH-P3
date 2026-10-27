@@ -82,7 +82,8 @@
 // Refresh Rosters card PPG, its Game Logs rank colors and current-league scoring readiness.
 // Refresh roster PPG hyphens for zero scores and players without games.
 // Refresh taller Rosters draft-pick chips with original-owner usernames and centered KTC.
-const CACHE_NAME = 'DH3.52g-rosters-pick-owners';
+// Restore the pick label/KTC row and center original-owner usernames beneath it.
+const CACHE_NAME = 'DH3.52h-rosters-pick-owner-row';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

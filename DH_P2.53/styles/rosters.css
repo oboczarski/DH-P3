@@ -903,15 +903,15 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
   /* TE border */
 }
 
-/* Rosters draft-pick chips: give the label/original-owner heading its own row,
-   then center KTC underneath. Keep these taller chips inside roster styling. */
+/* Rosters draft-pick chips retain the original label/KTC row and center the
+   original owner's username underneath, with extra height for both rows. */
 
 body[data-page="rosters"] .pick-row {
   position: relative;
   background: var(--color-panel-bg);
   border: 1px solid var(--color-panel-border);
   border-radius: var(--card-border-radius);
-  min-height: 2.65rem;
+  min-height: 2.8rem;
   padding: 0.25rem 0.2rem;
   margin-top: 2px;
   display: flex;
@@ -1094,7 +1094,7 @@ body[data-page="rosters"] .roster-injury-indicator :is(.roster-bye-label, .roste
 }
 
 #rosterGrid.condensed-mode .pick-row {
-  min-height: 2rem;
+  min-height: 2.25rem;
   padding: 0.2rem 0.12rem;
   gap: 0.12rem;
 }
@@ -1164,11 +1164,12 @@ body[data-page="rosters"] .roster-injury-indicator :is(.roster-bye-label, .roste
   transform: translateY(0.0rem);
 }
 
-/* Keep both parentheses visible around long usernames; only the name may
-   ellipsize, so the pick label and the card's two-row layout stay intact. */
+/* Restore the pick label/KTC alignment on top. The separate owner row keeps
+   both parentheses visible around long usernames; only the name ellipsizes. */
 body[data-page="rosters"] .pick-heading {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.2rem;
   min-width: 0;
   line-height: 1.2;
@@ -1183,7 +1184,11 @@ body[data-page="rosters"] .pick-label {
 
 body[data-page="rosters"] .pick-original-owner {
   display: inline-flex;
+  align-self: center;
+  justify-content: center;
   min-width: 0;
+  max-width: 100%;
+  line-height: 1.2;
   font-size: 0.62rem;
   font-weight: 400;
   color: var(--color-text-secondary);
@@ -1197,7 +1202,8 @@ body[data-page="rosters"] .pick-owner-name {
 }
 
 body[data-page="rosters"] .pick-ktc {
-  text-align: center;
+  flex-shrink: 0;
+  white-space: nowrap;
   line-height: 1.2;
   font-size: 0.7rem;
   color: var(--color-text-secondary);
