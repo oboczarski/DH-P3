@@ -3489,7 +3489,6 @@ body[data-page="rosters"] #rosterGrid .player-ppg {
   font-family: 'Google Sans', var(--font-sans);
   font-size: 0.55rem;
   font-weight: 300;
-  filter: none;
 }
 
 body[data-page="rosters"] #rosterGrid.condensed-mode .player-ppg {

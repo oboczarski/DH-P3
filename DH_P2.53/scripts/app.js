@@ -9418,7 +9418,7 @@ function createPlayerRow(player, teamName) {
     // Rosters cards show a hyphen for zero PPG (including players with no
     // games) or missing data; retain the summary's nonzero/negative precision.
     const numericPpg = Number(ppgRanks?.ppg);
-    const ppgValue = Number.isFinite(numericPpg) && numericPpg !== 0 ? ppgRanks.ppg : '-';
+    const ppgValue = Number.isFinite(numericPpg) && numericPpg !== 0 ? ppgRanks.ppg : '(—)';
     const teamKey = (player.team || 'FA').toUpperCase();
     const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
     const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
