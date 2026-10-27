@@ -5250,6 +5250,13 @@ function parseStatValue(header, value) {
 }
 function processRosterData(rosters, users, tradedPicks, leagueInfo, previousSeasonData = null) {
     const userMap = users.reduce((acc, user) => ({ ...acc, [user.user_id]: user }), {});
+    // Rosters pick chips show the username attached to the pick's original
+    // roster slot, including traded picks. Resolve every slot before building
+    // teams; use the display name or slot number when a username is unavailable.
+    const pickOwnerNames = new Map(rosters.map(roster => {
+        const owner = userMap[roster.owner_id];
+        return [String(roster.roster_id), owner?.username || owner?.display_name || `Team ${roster.roster_id}`];
+    }));
     const rosterPositions = leagueInfo.roster_positions;
     const taxiSlots = leagueInfo.settings.taxi_slots || 0;
     const teams = rosters.map(roster => {
@@ -5291,7 +5298,10 @@ function processRosterData(rosters, users, tradedPicks, leagueInfo, previousSeas
             bench: bench.map(p => getPlayerData(p, 'BN')).sort((a, b) => (b.ktc || 0) - (a.ktc || 0)),
             taxi,
             draftPicks: draftPicks
-                .map(p => getPickData(p, leagueInfo))
+                .map(p => ({
+                    ...getPickData(p, leagueInfo),
+                    originalOwnerName: pickOwnerNames.get(String(p.original_owner_id)) || `Team ${p.original_owner_id}`
+                }))
                 .sort((a, b) => {
                     const aSeason = Number.parseInt(a.season, 10);
                     const bSeason = Number.parseInt(b.season, 10);
@@ -9597,7 +9607,11 @@ function createPickRow(pick, teamName) {
         row.classList.add('player-selected');
     }
     const ktcValue = pick.ktc || '—';
-    row.innerHTML = `<span class="pick-label">${pick.label}</span><span class="pick-ktc">KTC: <span class="value">${ktcValue}</span></span>`;
+    // Rosters pick chips keep the original slot owner's lighter username next
+    // to the label, with centered KTC below. The full name remains available
+    // in the title when a narrow roster column truncates it; escape API text.
+    const ownerName = escapeHtml(pick.originalOwnerName || 'Unknown owner');
+    row.innerHTML = `<span class="pick-heading"><span class="pick-label">${escapeHtml(pick.label)}</span><span class="pick-original-owner" title="Original owner: ${ownerName}">(<span class="pick-owner-name">${ownerName}</span>)</span></span><span class="pick-ktc">KTC: <span class="value">${ktcValue}</span></span>`;
     if (pick.ktc) row.querySelector('.pick-ktc .value').style.color = getKtcColor(pick.ktc);
     return row;
 }

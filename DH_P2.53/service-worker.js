@@ -81,7 +81,8 @@
 // Refresh production-average tenths, restored status markers and AVG label placement.
 // Refresh Rosters card PPG, its Game Logs rank colors and current-league scoring readiness.
 // Refresh roster PPG hyphens for zero scores and players without games.
-const CACHE_NAME = 'DH3.52f-rosters-ppg-zero-placeholder';
+// Refresh taller Rosters draft-pick chips with original-owner usernames and centered KTC.
+const CACHE_NAME = 'DH3.52g-rosters-pick-owners';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

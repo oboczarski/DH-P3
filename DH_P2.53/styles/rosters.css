@@ -903,18 +903,22 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
   /* TE border */
 }
 
-/* ⬇︎ ROSTER PICK CARD STYLES ⬇︎ */
+/* Rosters draft-pick chips: give the label/original-owner heading its own row,
+   then center KTC underneath. Keep these taller chips inside roster styling. */
 
-.pick-row {
+body[data-page="rosters"] .pick-row {
   position: relative;
   background: var(--color-panel-bg);
   border: 1px solid var(--color-panel-border);
   border-radius: var(--card-border-radius);
-  padding: 0.1rem 0.1rem 0rem 0.15rem;
+  min-height: 2.65rem;
+  padding: 0.25rem 0.2rem;
   margin-top: 2px;
   display: flex;
   flex-direction: column;
-  gap: 0.03rem;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.12rem;
   transition: all 0.2s ease;
   box-shadow: none;
   overflow: hidden;
@@ -1090,12 +1094,17 @@ body[data-page="rosters"] .roster-injury-indicator :is(.roster-bye-label, .roste
 }
 
 #rosterGrid.condensed-mode .pick-row {
-  padding: 0.08rem 0.12rem;
-  gap: 0.18rem;
+  min-height: 2rem;
+  padding: 0.2rem 0.12rem;
+  gap: 0.12rem;
 }
 
 #rosterGrid.condensed-mode .pick-label {
   font-size: 0.58rem;
+}
+
+#rosterGrid.condensed-mode .pick-original-owner {
+  font-size: 0.52rem;
 }
 
 #rosterGrid.condensed-mode .pick-ktc {
@@ -1118,7 +1127,7 @@ body[data-page="rosters"] .roster-injury-indicator :is(.roster-bye-label, .roste
 
 @media (min-width: 820px) {
 
-  .pick-row {
+  body[data-page="rosters"] .pick-row {
     background: none;
     contain: paint;
   }
@@ -1155,18 +1164,41 @@ body[data-page="rosters"] .roster-injury-indicator :is(.roster-bye-label, .roste
   transform: translateY(0.0rem);
 }
 
-.pick-row {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
+/* Keep both parentheses visible around long usernames; only the name may
+   ellipsize, so the pick label and the card's two-row layout stay intact. */
+body[data-page="rosters"] .pick-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  min-width: 0;
+  line-height: 1.2;
 }
 
-.pick-label {
+body[data-page="rosters"] .pick-label {
+  flex-shrink: 0;
+  white-space: nowrap;
   font-weight: 700;
   font-size: 0.75rem;
 }
 
-.pick-ktc {
+body[data-page="rosters"] .pick-original-owner {
+  display: inline-flex;
+  min-width: 0;
+  font-size: 0.62rem;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+body[data-page="rosters"] .pick-owner-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body[data-page="rosters"] .pick-ktc {
+  text-align: center;
+  line-height: 1.2;
   font-size: 0.7rem;
   color: var(--color-text-secondary);
 }
