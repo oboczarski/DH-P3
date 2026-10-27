@@ -2715,7 +2715,7 @@ body[data-page="rosters"] #game-logs-modal tfoot td.has-rank-annotation .stat-va
 }
 
 body[data-page="rosters"] #game-logs-modal td.proj-cell {
-  color: rgba(175, 181, 211, 0.68);
+  color: rgba(175, 181, 211, 0.68) !important;
   font-style: italic;
   font-size: 0.85em;
 }
