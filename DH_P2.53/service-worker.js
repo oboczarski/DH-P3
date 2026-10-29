@@ -96,7 +96,8 @@
 // breakdown heading, position gradients and aligned chart/opponent-chip track.
 // Restore compact two-row owner headers while retaining selected-team gradients.
 // Refresh aligned stat menus and Rosters' independent complete Game Log revamp.
-const CACHE_NAME = 'DH3.53-rosters-gamelogs_v1.3';
+// Refresh side-by-side Rosters preview headers, metric type and watermark offsets.
+const CACHE_NAME = 'DH3.53a-rosters-preview-refinements';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
