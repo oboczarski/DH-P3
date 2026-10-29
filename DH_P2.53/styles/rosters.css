@@ -1192,8 +1192,10 @@ body[data-page="rosters"] #rosterGrid.condensed-mode .team-header-item .team-rec
 }
 
 .player-selected {
-  border-color: var(--color-accent-primary) !important;
   box-shadow: 0 0 var(--glow-strength) var(--color-accent-primary-glow);
+  border: 1px solid transparent;
+  color: transparent;
+  background: linear-gradient(90deg, #74efff19 0%, #7297ff19 52%, #d97dff19 100%), linear-gradient(90deg, #74efff9b 0%, #7297ff9b 52%, #d97dff9b 100%) border-area;
 }
 
 .player-name-clickable {
@@ -3730,9 +3732,9 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .play
   justify-content: space-between;
   min-width: 0;
   gap: var(--trade-preview-metric-gap);
-  padding: 0.14rem 0.24rem;
+  padding: 0.05rem 0.24rem 0.1rem;
   border-radius: 6px;
-  background: #1d223faa;
+  background: #1d223f5c;
   line-height: 1;
 }
 
