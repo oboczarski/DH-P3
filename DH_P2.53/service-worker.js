@@ -87,7 +87,7 @@
 // Refresh Rosters owner headers with standings and records below the username.
 // Restore the original owner-chip heights with tighter two-row spacing.
 // Restore single-row owner headers with placement before the record.
-const CACHE_NAME = 'DH3.52l-rosters-inline-standings';
+const CACHE_NAME = 'DH3.52l-rosters-inline-standings2';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
