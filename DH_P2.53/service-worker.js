@@ -84,7 +84,7 @@
 // Refresh taller Rosters draft-pick chips with original-owner usernames and centered KTC.
 // Restore the pick label/KTC row and center original-owner usernames beneath it.
 // Refresh Trade Preview's inline pick owners and the verified WK8-WK10 projection exports.
-const CACHE_NAME = 'DH3.52i-preview-picks-wk8-wk10';
+const CACHE_NAME = 'DH3.52i-preview-picks-wk8-wk10v2';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
