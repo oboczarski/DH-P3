@@ -2653,7 +2653,7 @@ function handleCompareClick() {
 function getRostersMatchupController() {
     if (pageType !== 'rosters') return Promise.reject(new Error('Matchup Breakdown belongs to Rosters.'));
     if (!rostersMatchupsModulePromise) {
-        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.51a-matchups-abbreviated-conferences')
+        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.52r-rosters-defense-ranks')
             .then(({ createMatchupBreakdown }) => {
                 rostersMatchups = createMatchupBreakdown({ onDataChange: () => {
                     // Late matchup readiness updates selected previews without
@@ -2878,10 +2878,13 @@ function getPlayerMatchupForWeek(playerId, week = null) {
                 }
             }
         }
+        // Rosters' DRK/CSV ranks remain raw in state. Convert only this display
+        // snapshot, matching the Game Logs tags and leaving other pages intact.
+        if (pageType === 'rosters') rankValue = isBye ? null : getOpponentDefenseRank(rankRaw);
         const hasOpponent = Boolean(opponent) || isBye;
         const hasRank = Number.isFinite(rankValue);
         if (!hasOpponent && !hasRank) return null;
-        const rankDisplay = getRankDisplayText(rankRaw);
+        const rankDisplay = getRankDisplayText(pageType === 'rosters' ? rankValue : rankRaw);
         const ordinalDisplay = hasRank ? ordinalSuffix(rankValue) : null;
         const color = hasRank ? getOpponentRankColor(rankValue) : null;
         return {
@@ -5766,13 +5769,27 @@ async function handlePlayerNameClick(player) {
     if (isStaleRequest()) return;
     await renderGameLogs(gameLogs, player, playerRanks, requestSeq);
 }
-function getOpponentRankColor(rank) {
+// Rosters Game Logs and upcoming-opponent snapshots show defense strength:
+// 1 = fewest FPA, 32 = most. Never mutate DRK/CSV source ranks or turn missing,
+// zero, out-of-range or status cells into a defense rank. Other pages keep their
+// existing presentation because this shared app also runs outside Rosters.
+function getOpponentDefenseRank(rank) {
+    if (pageType !== 'rosters') return rank;
+    const value = typeof rank === 'number' ? rank : typeof rank === 'string' && rank.trim() ? Number(rank) : null;
+    return Number.isInteger(value) && value >= 1 && value <= 32 ? 33 - value : null;
+}
+// Reverse Rosters' defense color bands with its displayed rank. The same
+// defense keeps its matchup difficulty color; SOS explicitly retains the
+// descending (1 = easy) scale, as do existing callers on other pages.
+function getOpponentRankColor(rank, rankOrder = pageType === 'rosters' ? 'ascending' : 'descending') {
     const numericRank = typeof rank === 'number' ? rank : parseFloat(rank);
     if (!Number.isFinite(numericRank)) return null;
-    if (numericRank <= 8) return '#82d8bee0';
-    if (numericRank <= 16) return '#73b9e7e0';
-    if (numericRank <= 24) return '#c093ebe0';
-    if (numericRank <= 32) return '#c456b1e0';
+    if (pageType === 'rosters' && (!Number.isInteger(numericRank) || numericRank < 1 || numericRank > 32)) return null;
+    const colorRank = rankOrder === 'ascending' ? 33 - numericRank : numericRank;
+    if (colorRank <= 8) return '#82d8bee0';
+    if (colorRank <= 16) return '#73b9e7e0';
+    if (colorRank <= 24) return '#c093ebe0';
+    if (colorRank <= 32) return '#c456b1e0';
     return null;
 }
 let tableCoreLoaderPromise = null;
@@ -7766,7 +7783,11 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         if (isByeWeek) rowMeta.rowClasses.push('bye-week-row');
         if (isUnplayedWeek) rowMeta.rowClasses.push('unplayed-week-row');
         else if (isLiveWeek) rowMeta.rowClasses.push('live-week-row');
-        const opponentRankColor = getOpponentRankColor(stats?.opponent_rank);
+        // The weekly tag is a display boundary, including historical Game Logs
+        // and future schedule rows. Use the converted rank for number, suffix
+        // and color together; the source snapshot remains unchanged.
+        const opponentRank = isByeWeek ? null : getOpponentDefenseRank(stats?.opponent_rank);
+        const opponentRankColor = getOpponentRankColor(opponentRank);
         rowData.week = {
             render: (td) => {
                 const weekTag = document.createElement('div');
@@ -7786,7 +7807,6 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
                         opponentText.textContent = opponent;
                         if (opponentRankColor) opponentText.style.color = opponentRankColor;
                         opponentLine.appendChild(opponentText);
-                        const opponentRank = stats?.opponent_rank;
                         const opponentRankDisplay = getRankDisplayText(opponentRank);
                         if (opponentRankDisplay !== 'NA') {
                             const separator = document.createElement('span');
@@ -7795,6 +7815,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
                             opponentLine.appendChild(separator);
                             const rankSpan = document.createElement('span');
                             rankSpan.className = 'gamelog-week-tag-rank';
+                            if (pageType === 'rosters') rankSpan.title = 'Defense rank: 1 = best defense / fewest fantasy points allowed';
                             if (opponentRankColor) rankSpan.style.color = opponentRankColor;
                             const rankNumber = document.createElement('span');
                             rankNumber.className = 'gamelog-week-tag-rank-number';
@@ -9831,7 +9852,7 @@ function buildRostersDecisionPlayer(input) {
         matchupLoading: !rostersMatchupsLoadFailed && !matchupMetric && rostersMatchups?.status !== 'ready',
         matchupColor: matchupMetric?.actualRank ? getOpponentRankColor(matchupMetric.actualRank) : null,
         actualColor: matchupMetric?.actualRank ? getOpponentRankColor(matchupMetric.actualRank) : null,
-        sosColor: matchupMetric?.sosRank ? getOpponentRankColor(matchupMetric.sosRank) : null };
+        sosColor: matchupMetric?.sosRank ? getOpponentRankColor(matchupMetric.sosRank, 'descending') : null };
 }
 
 async function openRostersDecisionComparison(players) {

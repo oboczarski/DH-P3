@@ -56,9 +56,6 @@ svg { display:block; }
   display:none; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; align-items:start;
 }
 .teamPicker__panel:popover-open { display:grid; }
-.teamPickerDiv { display:flex; flex-direction:column; gap:6px; min-width:0; }
-.teamPickerDiv__title { display:flex; align-items:center; justify-content:center; gap:6px; font-size:10px; font-weight:500; letter-spacing:.06em; color:rgb(209,204,228); line-height:1.1; user-select:none; margin-bottom:1px; text-transform:uppercase; }
-.teamPickerDiv__confLogo { width:14px; height:14px; object-fit:contain; opacity:.9; filter:drop-shadow(0 0 6px rgba(0,0,0,.35)); }
 .teamOption { width:100%; display:flex; align-items:center; justify-content:center; gap:4px; padding:7px 3px; border-radius:14px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05); color:rgba(255,255,255,.9); font-weight:950; letter-spacing:.06em; }
 .teamOption:hover { border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.07); }
 .teamOption.is-selected { border-color:rgba(0,191,255,.55); background:linear-gradient(135deg,rgba(0,191,255,.14),rgba(207,120,255,.12)); }
@@ -69,18 +66,38 @@ svg { display:block; }
 .positionToggle {display:inline-flex;gap:3px;padding:3px;border:1px solid #aabbff1c;border-radius:11px;background:#03091642;box-shadow:inset 0 2px 9px #01051238;margin-left: auto;}
 .positionToggle button { position:relative; min-width:41px; padding:5px 9px; border:1px solid transparent; border-radius:8px; color:var(--muted); font-size:11px; font-weight:600; }
 .positionToggle button[aria-pressed="true"] { color:var(--pos-color,var(--position)); border-color:color-mix(in srgb,var(--pos-color,var(--position)) 35%,transparent); background:color-mix(in srgb,var(--pos-color,var(--position)) 12%,transparent); box-shadow:inset 0 3px 9px #ffffff08,0 0 9px color-mix(in srgb,var(--pos-color,var(--position)) 9%,transparent); }
-[data-pos="QB"] { --pos-color:#ffb2d8; }
-[data-pos="RB"] { --pos-color:#75e0b7; }
-[data-pos="WR"] { --pos-color:#63b0de; }
-[data-pos="TE"] { --pos-color:#ab9bff; }
-[data-pos="ALL"] { --pos-color:#aabaff; }
+[data-pos="QB"] { --pos-color:#ffb2d8; --pos-text-gradient:linear-gradient(90deg,#74efff 0%,#7297ff 19%,#d97dff 54%); --pos-text-tint:#ffb2d800; }
+[data-pos="RB"] { --pos-color:#75e0b7; --pos-text-gradient:linear-gradient(90deg,#74efff 60%,#7297ff 82%,#d97dff 100%); --pos-text-tint:#75e0b700; }
+[data-pos="WR"] { --pos-color:#63b0de; --pos-text-gradient:linear-gradient(90deg,#74efff -80%,#7297ff 50%,#d97dff 100%); --pos-text-tint:#63b0de00; }
+[data-pos="TE"] { --pos-color:#ab9bff; --pos-text-gradient:linear-gradient(90deg,#74efff 0%,#7297ff 10%,#d97dff 100%); --pos-text-tint:#6b00ff20; }
+[data-pos="ALL"] { --pos-color:#aabaff; --pos-text-gradient:linear-gradient(90deg,#e4efff 25%,#b2c7ff 50%,#d9addf 75%); --pos-text-tint:#aabaff00; }
 .positionBadge {color:var(--pos-color);padding:3px 7px;border:1px solid color-mix(in srgb,var(--pos-color) 25%,transparent);border-radius:7px;font-size: 14px;background:color-mix(in srgb,var(--pos-color) 8%,transparent);font-weight: 500;}
+/* Matchups' active weekly filters and heading badges use the same five
+   position gradients. Keep Rosters' control sizes and a readable fallback for
+   browsers without border-area clipping; expanded-player filters keep their
+   original per-position treatment, matching Matchups' expanded dialog. */
+.chartPositionToggle { background:#0309160a; }
+.positionBadge { box-shadow:inset 0 3px 9px #ffffff08,0 0 9px color-mix(in srgb,var(--pos-color) 9%,transparent); }
+@supports (background-clip:border-area) {
+  .chartPositionToggle button[aria-pressed="true"], .positionBadge {
+    color:var(--pos-text-tint);
+    border-color:transparent;
+    background:linear-gradient(90deg,#74efff33 0%,#7297ff33 52%,#d97dff33 100%),
+      linear-gradient(90deg,#74efffbb 0%,#7297ffbb 52%,#d97dffbb 100%) border-area,
+      var(--pos-text-gradient) text;
+  }
+}
 .defensePanel {padding: 4px 12px 4px;}
 .defenseHeader {display:flex;gap:10px;align-items:center;margin-bottom: 7px;}
 .defenseLogo { display:flex; align-items:center; justify-content:center; width:49px; height:43px; flex:none; border-radius:12px; border:1px solid #ffffff1c; background:#ffffff06; box-shadow:inset 4px 6px 16px #ffffff06,0 8px 24px #1f26691a; }
 .defenseLogo img { width:41px; height:35px; object-fit:contain; }
 .defenseHeader h2 {font-size: 20px;margin: 0px 0;}
-.defenseHeader > .positionBadge { margin-left:auto; }
+/* The defense ordinal sits immediately before the position badge, as on
+   Matchups. Team copy can wrap without pushing either rank out of the modal. */
+.defenseHeaderCopy { flex:1; min-width:0; }
+.defenseHeaderCopy h2 { overflow-wrap:anywhere; }
+.defenseMatchup { display:flex; align-items:center; align-self:flex-start; flex:none; gap:6px; margin-left:auto; white-space:nowrap; }
+.defenseRank { color:var(--text); font-size:14px; font-weight:600; font-variant-numeric:tabular-nums; }
 .panelSubtitle { font-size:10px; color:var(--muted); }
 /* The defense summary includes the positional SOS card without shrinking its typography. */
 .metricStrip {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap: 10px;margin-bottom: 6px;}
@@ -102,7 +119,7 @@ svg { display:block; }
 .chartLegend { display:flex; gap:10px; margin-left:auto; color:var(--muted); font-size:8px; }
 .chartLegend span { display:flex; align-items:center; gap:4px; }
 .chartHeading { flex-wrap:wrap; }
-.chartHeaderControls {display:flex;align-items:center;justify-content: center;flex-wrap: balance;gap: 4px;flex-wrap: nowrap;}
+.chartHeaderControls {display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap;}
 .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
 .positionToggle.chartPositionToggle button {min-width: 40px;padding: 3px 6px;font-size:9px;border-radius:6px;}
 .chartHeaderControls .chartLegend { margin-left:0; white-space:nowrap; }
@@ -116,15 +133,17 @@ svg { display:block; }
 .zeroLine { stroke:#aabbff; stroke-opacity:.3; }
 .chartPoint {cursor:pointer;outline:none;r: 5.5;fill: #e3b3ffa8;stroke: #f0f8ff9e;filter: drop-shadow(0px 3px 3px #0004);}
 .chartPoint:focus-visible circle, .chartPoint:focus-visible rect { stroke:#fff; stroke-width:2; }
-.weeklyMatchups {display:grid;grid-template-columns: repeat(auto-fit,minmax(40px,1fr));gap:5px;margin:4px 0 10px;}
+/* Matchups' chart and opponent chips share one track and exact plot insets.
+   A fixed slot count prevents wrapping or drift, including sparse venue weeks;
+   late-season content scrolls together while every W# stays on the chart axis. */
+.weeklyTimeline { width:100%; min-width:0; overflow-x:auto; scrollbar-width:thin; scrollbar-color:#4e5d8080 transparent; }
+.weeklyTimelineContent { width:100%; min-width:max(260px,calc(40px + var(--weekly-week-count,1) * 44px)); }
+.weeklyMatchups { display:grid; grid-template-columns:repeat(var(--weekly-week-count,1),minmax(0,1fr)); gap:0; padding-left:var(--weekly-plot-left,0%); padding-right:var(--weekly-plot-right,0%); margin:4px 0 10px; }
 .expectedLine {fill:none;stroke:url(#weekly-expected-line);stroke-width: 6px;stroke-dasharray: 1;filter: drop-shadow(0px 2px 4px #0008);}
-/* Weekly chips keep the week to the left of the opponent label/logo stack.
-   Retain the responsive grid and logo dimensions as additional weeks arrive. */
-.weekMatchup {display:flex;justify-content:center;align-items:center;gap: 9px;padding:4px 5px;color:var(--muted);background:#8f94a608;border:1px solid #aabbff10;border-radius:7px;font-size:9px;}
-.weekOpponentStack {display:flex;flex-direction:column;align-items:center;gap: 0px;min-width:0;}
-.weekMatchup .weekOpponent {max-width:100%;text-align:center;line-height: 1;text-wrap-mode: nowrap;}
+.weekMatchup {display:flex;justify-content:center;align-items:center;min-width:0;width:calc(100% - 4px);justify-self:center;gap:13px;padding:4px 5px;color:var(--muted);background:#8f94a608;border:1px solid #aabbff10;border-radius:7px;font-size:9px;}
+.weekOpponentStack {display:flex;flex-direction:column;align-items:center;gap:0;min-width:0;max-width:100%;}
+.weekMatchup .weekOpponent {max-width:100%;text-align:center;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .weekMatchup img { width:19px; height:18px; object-fit:contain; }
-.weekMatchup .weekNumber {flex:none;color:var(--dim);font-size: 10px;font-weight: 800;}
 .playersSection {padding-top: 3px;border-top:1px solid var(--border);}
 .playerFilters { display:flex; gap:10px; align-items:center; margin:0 0 7px; }
 .searchField { flex:1; display:flex; min-width:0; gap:6px; align-items:center; padding:0 8px; border:1px solid #aabbff1c; border-radius:7px; background:#03091635; }
@@ -195,6 +214,9 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .defenseLogo { width:42px; height:37px; border-radius:10px; }
   .defenseLogo img { width:36px; height:30px; }
   .defenseHeader h2 { font-size:17px; }
+  .defenseMatchup { gap:5px; }
+  .defenseRank { font-size:12px; }
+  .defenseHeaderCopy .fieldLabel { white-space:normal; }
   .fieldLabel {font-size: 9px;}
   .panelSubtitle { font-size:9px; }
   /* All five mobile summary cards stay on one row, including both rank cards. */
@@ -210,8 +232,14 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .metricMobile { display:inline; }
   .chartLegend { font-size:7px; gap:8px; }
   .sectionHeading h3 { font-size:11px; }
-  .weeklyMatchups {margin-bottom: 5px;gap:4px;margin: 0px 0 4px;}
-  .weekMatchup {font-size:8px;padding: 2px 2px 1px;gap: 5px;}
+  /* Phone slots/chips match the Matchups mobile track, including its outline. */
+  .weeklyTimelineContent { min-width:max(260px,calc(40px + var(--weekly-week-count,1) * 38px)); }
+  .weeklyMatchups { margin-bottom:8px; }
+  .weekMatchup {width:90%;font-size:8px;padding:3px;gap:5px;border-color:transparent;background:linear-gradient(90deg,#8f94a61f,#8f94a612) padding-box,linear-gradient(90deg,#74efff5b 0%,#7297ff5b 52%,#d97dff5b 100%) border-box;}
+  @supports (background-clip:border-area) {
+    .weekMatchup { background:linear-gradient(90deg,#8f94a61f,#8f94a612) border-box,linear-gradient(90deg,#74efff5b 0%,#7297ff5b 52%,#d97dff5b 100%) border-area; }
+    .defenseLogo {border-color:transparent;color:transparent;background:linear-gradient(90deg,#74efff33 0%,#7297ff33 52%,#d97dff33 100%),linear-gradient(90deg,#74efffbb 0%,#7297ffbb 52%,#d97dffbb 100%) border-area,linear-gradient(90deg,#74efff 0%,#7297ff 52%,#d97dff 100%) text;}
+  }
   .playerTable th, .playerTable td {padding: 3px 5px;}
   .playerTable th {font-size: 9px;}
   .playerTable td {font-size:10px;}
@@ -261,19 +289,18 @@ dialog { font:inherit; }
 
 /* Summary percent units remain slightly smaller at every modal breakpoint. */
 .metricValue .metricPercent { font-size:.8em; margin-left:1px; }
-/* Desktop defense selection: compact AFC/NFC columns of alphabetized team
-   abbreviations. Mobile retains its expanded player's division picker. */
-.teamPickerDesktop { display:none; }
-.teamPickerMobile { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; grid-column:1 / -1; }
+/* Both modal defense pickers use Matchups' two alphabetical AFC/NFC columns.
+   The main phone dropdown visibility stays local to the modal chrome above. */
+[data-picker-kind="team"] .teamPicker__panel { width:min(280px,calc(100vw - 28px)); grid-template-columns:1fr; }
+.teamPickerConferences { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; min-width:0; }
+.teamPickerConference { display:flex; flex-direction:column; gap:4px; min-width:0; }
+.teamPickerConference__title { display:flex; align-items:center; justify-content:center; gap:7px; font-size:11px; font-weight:600; margin:2px 0 5px; }
+.teamPickerConference__title img { width:18px; height:18px; object-fit:contain; }
+.teamPickerConference .teamOption { justify-content:flex-start; padding:7px 8px; gap:8px; border-radius:8px; letter-spacing:0; }
+.teamPickerConference .teamOption__code { font-size:12px; font-weight:650; text-align:left; }
 @media (width > 620px) {
-  [data-picker-kind="team"] .teamPicker__panel { width:min(280px,calc(100vw - 28px)); grid-template-columns:1fr; }
-  .teamPickerMobile { display:none; }
-  .teamPickerDesktop { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-  .teamPickerConference { display:flex; flex-direction:column; gap:4px; min-width:0; }
-  .teamPickerConference__title { display:flex; align-items:center; justify-content:center; gap:7px; font-size:11px; font-weight:600; margin:2px 0 5px; }
-  .teamPickerConference__title img { width:18px; height:18px; object-fit:contain; }
+  .teamPickerConferences { gap:10px; }
   .teamPickerConference .teamOption { justify-content:flex-start; padding:5px 8px; gap:8px; border-radius:8px; letter-spacing:0; }
-  .teamPickerConference .teamOption__code { font-size:12px; font-weight:650; text-align:left; }
 }
 /* This foreground layer has no inherited point stroke/filter to soften text. */
 .weeklySection .weeklyDataLabels .chartValue { stroke:none; paint-order:stroke fill; }

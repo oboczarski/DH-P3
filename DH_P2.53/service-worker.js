@@ -92,7 +92,9 @@
 // Refresh the smaller Matchups scatter markers and bounded overlap spacing.
 // Refresh Matchups' per-game scatter and consistent best-defense-first rank labels.
 // Refresh the scatter's total/game averages, one-decimal readouts and padded axes.
-const CACHE_NAME = 'DH3.52q-matchups-scatter-average-precision';
+// Refresh Rosters' defense-strength ranks/colors and its independently owned
+// breakdown heading, position gradients and aligned chart/opponent-chip track.
+const CACHE_NAME = 'DH3.52r-rosters-defense-ranks';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

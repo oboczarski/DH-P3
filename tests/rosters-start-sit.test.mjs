@@ -27,6 +27,7 @@ function harness(season = '2026') {
   vm.runInContext(slice('const PLAYER_STAT_HEADER_MAP = {', 'const SEASON_META_HEADERS = {')
     + slice('const SZN_STAT_SECTIONS_BY_POS = {', 'function computeSznProgressPercent(')
     + slice('function getGameLogsSeasonDisplayValue({', '// Rosters Game Logs Season headers own')
+    + slice('function getOpponentDefenseRank(', 'let tableCoreLoaderPromise')
     + slice('function buildRostersDecisionPlayer(input) {', 'async function openRostersDecisionComparison(')
     // Test the actual private renderers without expanding the production API.
     + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, metricRow, sparkline, projectionMatchup, projectionState, timelineOption, playerHero'), context);
@@ -231,11 +232,25 @@ test('both preview matchup ranks use FPFA, including matching missing/loading st
   assert.match(markup, /ss-rank-pill[^>]*>#7<small>/);
   assert.doesNotMatch(markup, /HOU \(30\)/);
   assert.match(markup, /ss-projection-matchup" style="color:#82d8bee0"/);
+  assert.match(markup, /Positional defense rank · 1 = best defense \/ fewest fantasy points allowed/);
   player.matchupMetric = null;
   const unavailable = renderPreview([player]);
   assert.match(unavailable, /ss-projection-matchup">@ HOU<\/small>/);
   assert.match(unavailable, /ss-rank-pill[^>]*>—<\/span>/);
   assert.doesNotMatch(unavailable, /\(30\)/, 'Game Logs DRK is never substituted during matchup loading/failure');
+});
+
+test('Start/Sit passes the converted FPFA rank to preview and comparison while retaining SOS colors', () => {
+  const context = harness();
+  context.rostersMatchups = { status: 'ready', canOpen: () => true,
+    preview: () => ({ team: 'HOU', actualRank: 1, actual: { rank: 1, avg: 10 }, sosRank: 1, expectedAvg: 20 }) };
+  const player = context.buildRostersDecisionPlayer({ id: 'one', pos: 'RB' });
+  assert.equal(player.matchupMetric.actualRank, 1);
+  assert.equal(player.matchupColor, '#c456b1e0', 'best defense is tough');
+  assert.equal(player.actualColor, '#c456b1e0');
+  assert.equal(player.sosColor, '#82d8bee0', 'SOS 1 remains the easiest schedule');
+  assert.match(context.window.RostersStartSit.projectionMatchup({ ...player, matchup: { opponent: '@ HOU' } }), /HOU \(1\)/);
+  assert.match(context.window.RostersStartSit.playerHero(player, 0, 5), /ss-rank-pill[^>]*>#1<small>/);
 });
 
 test('preview and comparison names are native Game Logs buttons and preview activation forwards the player', () => {

@@ -29,8 +29,19 @@ ignored; populated rows still require the original result validation.
 Only DH's existing `scripts/nfl-2026-sheets.js` workbook URL configuration is
 shared. Published FPFA totals/averages/ranks remain the season-to-date authority;
 FPA records supply weekly actual scores/player results, and FPF offense averages
-supply weekly/venue expected scoring. The preview keeps the opponent's positional
-matchup rank inline to the right of the projected value. Its separate info strip
+supply weekly/venue expected scoring. `rank-view.js` independently copies the
+Matchups presentation helpers: displayed defense ranks reverse published FPFA
+matchup ranks (`33 - rank`), so 1 is the strongest defense/fewest FPA per game.
+Already-ascending venue ranks keep their number, pool, missing values and ties.
+The cached source analysis, SOS and FPF offense ranks remain unchanged. Both
+Start/Sit preview rank locations, the comparison hero, breakdown heading and
+RANK card use this defense-strength convention; their colors reverse with the
+number so the same defense keeps its difficulty color. Game Logs independently
+converts its DRK/CSV opponent rank only when rendering, including historical and
+future weeks, without changing source snapshots or other pages.
+
+The preview keeps the opponent's positional defense rank inline to the right of
+the projected value. Its separate info strip
 is headed by the opponent abbreviation and player's base position (e.g. `DEN vs. RB:`).
 It shows SOS Rk., FPA/G, Expected/G and vs Expected, in that order. FPA/G and
 Expected/G use the published averages; vs Expected shows the panel's unrounded
@@ -56,3 +67,11 @@ guide shortens to `1 → 32`. CSS switches these presentation spans without
 changing desktop precision or any scoring calculation. The main modal's top
 defense/venue dropdowns are hidden on phones and their space is removed; its
 expanded-player controls and all desktop filters retain their existing behavior.
+
+The breakdown heading places the current defense ordinal directly before its
+position badge. Heading badges and weekly position filters use the Matchups
+gradients, retaining the modal's existing control sizes. Both defense menus use
+alphabetical AFC/NFC columns at every width. The weekly SVG and number-free
+opponent chips share a horizontal scroll track with identical slot counts and
+plot insets. Every week gets an axis label, including sparse venue selections
+and long seasons; chip tooltips and accessible labels retain the week number.

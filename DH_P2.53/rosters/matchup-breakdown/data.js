@@ -2,6 +2,7 @@
 // URL configuration is shared; no code or assets are read from the Matchups page.
 import { get2026SheetCsvUrl } from '../../scripts/nfl-2026-sheets.js';
 import Data from './model.js?v=DH3.50-byes-rosters-data';
+import { defenseMetric } from './rank-view.js?v=DH3.52r-rosters-defense-ranks';
 
 const SOURCES = Object.freeze([
   ['offense', 'FPF'], ['summary', 'FPFA'], ['weekly', 'FPA'],
@@ -69,10 +70,13 @@ export function createMatchupStore({ fetchImpl = globalThis.fetch } = {}) {
       const resolved = resolveMatchupSelection(selection);
       const metric = resolved && analyses.get('all')?.byTeam.get(resolved.team)?.metrics[resolved.pos];
       if (!metric) return null;
+      // Both Start/Sit rank locations and the breakdown header show defense
+      // strength. Keep the cached analysis/source ranks untouched, including SOS.
+      const actual = defenseMetric(metric.actual);
       // Percent is the exact defense-panel comparison. Divide its unrounded
       // total point difference by recorded games to express the same difference
       // per game; subtracting published rounded averages would change it.
-      return { ...resolved, ...metric,
+      return { ...resolved, ...metric, actual, actualRank: actual.rank,
         deltaPerGame: metric.delta !== null && metric.games > 0 ? metric.delta / metric.games : null,
       };
     },

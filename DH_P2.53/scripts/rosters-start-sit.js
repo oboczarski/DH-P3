@@ -95,7 +95,8 @@
   }
 
   // The schedule owns venue text. Both preview rank locations use the same
-  // published FPFA positional rank/color; DRK belongs to Game Logs only.
+  // FPFA positional defense-strength rank/color from the prepared display
+  // snapshot (1 = best defense). DRK remains the Game Logs rank source only.
   function projectionMatchup(player) {
     const opponent = String(player.matchup?.opponent || player.matchupMetric?.team || '').trim();
     if (player.matchup?.isBye || opponent.toUpperCase() === 'BYE') return '<small class="ss-projection-matchup">BYE</small>';
@@ -134,7 +135,7 @@
     const unavailable = noGame ? 'Bye week' : player.matchupLoading ? 'Loading matchup data' : 'Matchup data unavailable';
     const rank = metric?.actualRank;
     const color = player.matchupColor || '#aab6cb';
-    return `<div class="ss-opponent"><span>${logo(team)}<b>${escape(opponent)}</b><span class="ss-opponent-pos">vs. ${escape(player.pos)}</span></span><span class="ss-rank-pill" style="--ss-rank:${color}" title="Published positional matchup rank · 1 allows the most points">${rank ? `#${rank}<small> / 32</small>` : noGame ? 'BYE' : '—'}</span></div>
+    return `<div class="ss-opponent"><span>${logo(team)}<b>${escape(opponent)}</b><span class="ss-opponent-pos">vs. ${escape(player.pos)}</span></span><span class="ss-rank-pill" style="--ss-rank:${color}" title="Positional defense rank · 1 = best defense / fewest fantasy points allowed">${rank ? `#${rank}<small> / 32</small>` : noGame ? 'BYE' : '—'}</span></div>
       ${compact ? '' : `<div class="ss-defense-grid" aria-label="Opponent defense metrics"><div><span>FPA/G</span><b style="color:${escape(player.actualColor || '#c3cedf')}">${fmt(metric?.actual?.avg)}</b></div><div><span>Expected/G</span><b style="color:${escape(player.sosColor || '#c3cedf')}">${fmt(metric?.expectedAvg)}</b></div><div><span>SOS Rk.</span><b style="color:${escape(player.sosColor || '#c3cedf')}">${metric?.sosRank ?? '—'}<small>${metric?.sosRank ? '/32' : ''}</small></b></div></div>
       <div class="ss-defense-footer"><span title="Actual fantasy points allowed minus expected points, per game">vs Expected <b>${number(metric?.deltaPerGame) === null ? '—' : sign(metric.deltaPerGame, 2)}</b></span><button type="button" data-start-sit-matchup-id="${escape(player.id)}" aria-label="Matchup Breakdown for ${escape(player.name)}"${player.canBreakdown ? '' : ` disabled title="${unavailable}"`}>Matchup Breakdown ${icon('arrow')}</button></div>`}`;
   }

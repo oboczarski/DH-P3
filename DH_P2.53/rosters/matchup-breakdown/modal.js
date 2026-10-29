@@ -1,7 +1,8 @@
 // Rosters-owned defense panel: retain the current panel renderer, chart geometry,
 // tooltips, filters and player expansion in an isolated modal, with no Matchups imports.
 import Data from './model.js?v=DH3.50-byes-rosters-data';
-import { createMatchupStore, resolveMatchupSelection } from './data.js?v=DH3.50-byes-rosters-data';
+import { createMatchupStore, resolveMatchupSelection } from './data.js?v=DH3.52r-rosters-defense-ranks';
+import { defenseMetric, rankColor as heatColor, ordinalRank } from './rank-view.js?v=DH3.52r-rosters-defense-ranks';
 
 export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
   if (document.body?.dataset.page !== 'rosters') throw new Error('Matchup Breakdown belongs to Rosters.');
@@ -15,8 +16,8 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
   const POSITIONS = ["QB", "RB", "WR", "TE", "ALL"];
   const COLORS = { QB: "#ffb2d8", RB: "#75e0b7", WR: "#63b0de", TE: "#ab9bff", ALL: "#aabaff" };
   const LABELS = { QB: "quarterbacks", RB: "running backs", WR: "wide receivers", TE: "tight ends", ALL: "all positions" };
-  // Preserve the expanded mobile picker's division order. Desktop defense
-  // menus independently alphabetize displayed abbreviations in AFC/NFC columns.
+  // Both modal defense menus match Matchups' alphabetical AFC/NFC columns at
+  // every width; division membership remains local to this independent copy.
   const DIVISIONS = [
     { conf: "AFC", name: "East", teams: ["BUF", "MIA", "NE", "NYJ"] },
     { conf: "AFC", name: "North", teams: ["BAL", "CIN", "CLE", "PIT"] },
@@ -63,17 +64,14 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
   function buildPickers() {
     for (const root of pickerRoots) {
       const isTeam = root.dataset.pickerKind === "team", label = isTeam ? "Opponent defense" : "Defense venue";
-      const mobileTeams = DIVISIONS.map(division => `<div class="teamPickerDiv" role="group" aria-label="${division.conf} ${division.name}">
-        <div class="teamPickerDiv__title" aria-hidden="true"><img class="teamPickerDiv__confLogo" src="${assetUrl(division.conf)}" alt=""><span>${division.name}</span></div>
-        ${division.teams.filter(team => model.defenses.includes(team)).map(team => `<button type="button" class="teamOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${team}" aria-label="${esc(Data.TEAM_NAMES[team])}" title="${esc(Data.TEAM_NAMES[team])}">${pickerLogo(team)}<span class="teamOption__code">${team}</span></button>`).join("")}</div>`).join("");
-      const desktopTeams = ["AFC", "NFC"].map(conference => {
+      const conferenceTeams = ["AFC", "NFC"].map(conference => {
         const teams = DIVISIONS.filter(division => division.conf === conference).flatMap(division => division.teams)
           .filter(team => model.defenses.includes(team)).sort();
         return `<div class="teamPickerConference" role="group" aria-label="${conference}">
           <div class="teamPickerConference__title"><img src="${assetUrl(conference)}" alt="">${conference}</div>
           ${teams.map(team => `<button type="button" class="teamOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${team}" aria-label="${esc(Data.TEAM_NAMES[team])}" title="${esc(Data.TEAM_NAMES[team])}">${pickerLogo(team)}<span class="teamOption__code">${team}</span></button>`).join("")}</div>`;
       }).join("");
-      const options = isTeam ? `<div class="teamPickerDesktop">${desktopTeams}</div><div class="teamPickerMobile">${mobileTeams}</div>` :
+      const options = isTeam ? `<div class="teamPickerConferences">${conferenceTeams}</div>` :
         Object.entries(VENUES).map(([value, text]) => `<button type="button" class="teamOption venueOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${value}">${text}</button>`).join("");
       root.innerHTML = `<button type="button" class="teamPicker__btn" id="${root.id}Btn" data-picker-toggle="${root.id}" aria-haspopup="listbox" aria-expanded="false" aria-controls="${root.id}Panel" aria-label="${label}"><span class="teamPicker__left"></span><span class="teamPicker__chev" aria-hidden="true">▾</span></button><div class="teamPicker__panel" id="${root.id}Panel" popover="manual" role="listbox" aria-label="${label} options">${options}</div>`;
     }
@@ -126,16 +124,6 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
     focusPickerOption(options[next]);
   }
 
-  function heatColor(stat) {
-    if (stat.rank === null) return "#7b81a5";
-    const normalized = stat.pool < 2 ? .5 : (stat.rank - 1) / (stat.pool - 1);
-    const fraction = stat.rankOrder === "descending" ? 1 - normalized : normalized;
-    const a = fraction <= .5 ? [255, 178, 216] : [171, 155, 255];
-    const b = fraction <= .5 ? [171, 155, 255] : [117, 224, 183];
-    const t = fraction <= .5 ? fraction * 2 : (fraction - .5) * 2;
-    return "#" + a.map((value, i) => Math.round(value + (b[i] - value) * t).toString(16).padStart(2, "0")).join("");
-  }
-
   function syncControls() {
     for (const root of pickerRoots) {
       const isTeam = root.dataset.pickerKind === "team", value = isTeam ? state.team : state.venue;
@@ -159,16 +147,20 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
     $('analysis').setAttribute('aria-busy', 'false');
   }
   function renderProfile() {
-    const c = comparison(), stat = c.actual;
+    const c = comparison(), stat = defenseMetric(c.actual);
     $("defenseLogo").innerHTML = logo(state.team);
     $("defenseTitle").textContent = Data.TEAM_NAMES[state.team];
     $("defenseSubtitle").textContent = `vs. ${LABELS[state.pos]} · ${venueLabel()}`;
     $("selectedPosition").textContent = state.pos; $("selectedPosition").dataset.pos = state.pos;
+    // The heading and RANK card use the same displayed defense rank under
+    // every position/venue filter. Only published matchup ranks are reversed.
+    $("defenseRank").textContent = `${ordinalRank(stat.rank)} vs.`;
+    $("defenseRank").title = `Defense rank vs. ${LABELS[state.pos]} · ${venueLabel()} · Rank 1 = best defense / fewest FPA per game`;
     // Summary copy controls its own case; the percent unit is sized separately.
     const deltaValue = c.deltaPct !== null ? `${signed(c.deltaPct)}<span class="metricPercent">%</span>` : signed(c.delta, 2);
     const baselineNote = c.expectedTotal !== null ? `${fmt(c.expectedAvg, 1)} per game` : analysis.summaryAvailable ? "Not supplied in FPFA" : "Opponent average unavailable";
-    // The SOS card uses the positional season vRK, with low ranks colored easy
-    // like the published matchup ranks. It never reverses or re-ranks the feed.
+    // SOS retains the positional season vRK and its low-rank/easy colors.
+    // Defense-strength display conversion never reverses this schedule rank.
     // CSS switches the mobile spans to one-decimal Actual FPA and shorter notes;
     // desktop text and every underlying comparison retain their existing precision.
     const sosColor = heatColor({ rank: c.sosRank, pool: Data.TEAMS.length, rankOrder: "descending" });
@@ -176,7 +168,7 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
       <div class="metric"><div class="metricLabel">ACTUAL FPA</div><div class="metricValue"><span class="metricDesktop">${fmt(stat.total)}</span><span class="metricMobile">${fmt(stat.total, 1)}</span></div><div class="metricSub">${fmt(stat.avg, 1)} per game</div></div>
       <div class="metric"><div class="metricLabel">EXPECTED FPA</div><div class="metricValue">${fmt(c.expectedTotal, 1)}</div><div class="metricSub">${baselineNote}</div></div>
       <div class="metric"><div class="metricLabel">vs EXPECTED</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
-      <div class="metric"><div class="metricLabel" title="Rank 1 = ${stat.rankOrder === "descending" ? "most" : "fewest"} points allowed">MATCHUP RK</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub"><span class="metricDesktop">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</span><span class="metricMobile">${stat.games} game${stat.games === 1 ? "" : "s"}</span></div></div>
+      <div class="metric"><div class="metricLabel" title="Defense rank: 1 = best defense / fewest FPA per game">RANK</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub"><span class="metricDesktop">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</span><span class="metricMobile">${stat.games} game${stat.games === 1 ? "" : "s"}</span></div></div>
       <div class="metric metric--sos" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub"><span class="metricDesktop">1 easy · 32 tough</span><span class="metricMobile">1 → 32</span></div></div>`;
   }
   function width(id) {
@@ -200,14 +192,20 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
   // Each opponent's positional scoring average supplies its weekly expected line.
   function renderWeekly() {
     const entries = comparison().entries;
-    // Rosters owns this matching layout: the week sits inline to the left of
-    // the opponent label/logo stack, without importing any Matchups page files.
-    $("weeklyMatchups").innerHTML = entries.map(entry => `<div class="weekMatchup"><span class="weekNumber">W${entry.week}</span><span class="weekOpponentStack"><span class="weekOpponent">${entry.offense ? `${entry.venue === "home" ? "vs" : "@"} ${entry.offense}` : "Offense unknown"}</span>${logo(entry.offense)}</span></div>`).join("");
+    // Copy Matchups' shared scroll track, plot insets and filtered entry order.
+    // Each chip sits directly below its week tick; W# stays on the axis and in
+    // accessible chip labels/tooltips, including sparse venue-filtered weeks.
+    const timeline = $("weeklyTimelineContent");
+    timeline.style.setProperty("--weekly-week-count", Math.max(1, entries.length));
+    const W = width("weeklyChart"), H = 196, left = 31, right = W - 9, top = 22, bottom = H - 19;
+    timeline.style.setProperty("--weekly-plot-left", `${left / W * 100}%`);
+    timeline.style.setProperty("--weekly-plot-right", `${(W - right) / W * 100}%`);
+    $("weeklyMatchups").innerHTML = entries.map(entry => {
+      const opponent = entry.offense ? `${entry.venue === "home" ? "vs" : "@"} ${entry.offense}` : "Offense unknown";
+      const label = esc(`Week ${entry.week}: ${opponent}`);
+      return `<div class="weekMatchup" role="group" aria-label="${label}" title="${label}"><span class="weekOpponentStack"><span class="weekOpponent">${esc(opponent)}</span>${logo(entry.offense)}</span></div>`;
+    }).join("");
     if (!entries.some(entry => entry.actual !== null)) { $("weeklyChart").innerHTML = empty("No recorded games", "Choose another defense venue or position."); return; }
-    // Only the mobile Rosters weekly plot reclaims the blank space below its
-    // heading. Desktop geometry and other charts keep their existing insets.
-    const mobile = matchMedia("(max-width: 620px)").matches;
-    const W = width("weeklyChart"), H = mobile ? 188 : 196, left = 31, right = W - 9, top = mobile ? 14 : 22, bottom = H - 19;
     const bounds = scale(entries.flatMap(entry => [entry.actual, entry.expected]));
     const y = value => bottom - (value - bounds.low) / (bounds.high - bounds.low) * (bottom - top);
     const slot = (right - left) / entries.length, x = index => left + slot * (index + .5), barWidth = Math.min(49, slot * .4);
@@ -226,14 +224,15 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
       const key = `week:${entry.week}`;
       tooltips.set(key, `<strong>${state.team} vs. ${state.pos} · Week ${entry.week}</strong><br>Actual: ${fmt(entry.actual)} PPR points<br>Expected: ${fmt(entry.expected, 1)} · ${entry.offense || "Opponent"} season average<br>Offense rank: ${entry.offenseRank === null ? "—" : `#${entry.offenseRank}`}<br><span class="tooltipMuted">${entry.venue === "home" ? "Defense at home" : "Defense away"}</span>`);
       if (entry.actual !== null) {
-        const labelY = entry.actual >= 0 ? Math.max(mobile ? 9 : 0, y(entry.actual) - 7) : Math.min(bottom - 6, y(entry.actual) + 13);
+        const labelY = entry.actual >= 0 ? Math.max(0, y(entry.actual) - 7) : Math.min(bottom - 6, y(entry.actual) + 13);
         content += `<g class="chartPoint" role="img" tabindex="0" data-tooltip="${key}" aria-label="Week ${entry.week}: ${fmt(entry.actual)} actual, ${fmt(entry.expected, 1)} expected ${state.pos} points"><rect x="${x(i) - barWidth / 2}" y="${Math.min(y(0), y(entry.actual))}" width="${barWidth}" height="${Math.max(2, Math.abs(y(entry.actual) - y(0)))}" rx="4" fill="url(#weekly-bar)"/></g>`;
         labels += `<text class="chartValue" x="${x(i)}" y="${labelY}" text-anchor="middle">${fmt(entry.actual, 1)}</text>`;
       }
       const delta = entry.actual !== null && entry.expected !== null ? entry.actual - entry.expected : 0;
       const expectedFill = delta > 1e-9 ? "#8af7ffb5" : delta < -1e-9 ? "#e3b3ffa8" : "#aabaff";
       if (entry.expected !== null) content += `<circle class="chartPoint" cx="${x(i)}" cy="${y(entry.expected)}" r="3" style="fill:${expectedFill}" tabindex="0" role="img" data-tooltip="${key}" aria-label="${entry.offense || "Opponent"} expected Week ${entry.week} ${state.pos}: ${fmt(entry.expected, 1)} points"/>`;
-      if (entries.length <= 10 || i % 2 === 0) content += `<text x="${x(i)}" y="${bottom + 14}" text-anchor="middle">W${entry.week}</text>`;
+      // Minimum slot widths keep every tick legible, even after ten weeks.
+      content += `<text x="${x(i)}" y="${bottom + 14}" text-anchor="middle">W${entry.week}</text>`;
     });
     // SVG paint order puts this unfiltered label layer above bars, lines and dots.
     content += `<g class="weeklyDataLabels" aria-hidden="true" pointer-events="none">${labels}</g>`;
@@ -384,12 +383,12 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
   function mount() {
     if (mountPromise) return mountPromise;
     mountPromise = (async () => {
-      const response = await fetch(new URL('./panel.html?v=DH3.49d-matchups-mobile-nav-injuries', import.meta.url));
+      const response = await fetch(new URL('./panel.html?v=DH3.52r-rosters-defense-ranks', import.meta.url));
       if (!response.ok) throw new Error(`Matchup panel could not load (${response.status}).`);
       root.innerHTML = await response.text();
       const stylesheet = document.createElement('link');
       stylesheet.rel = 'stylesheet';
-      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.51a-matchups-abbreviated-conferences', import.meta.url).href;
+      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.52r-rosters-defense-ranks', import.meta.url).href;
       const styled = new Promise((resolve, reject) => {
         stylesheet.onload = resolve;
         stylesheet.onerror = () => reject(new Error('Matchup panel styling could not load.'));

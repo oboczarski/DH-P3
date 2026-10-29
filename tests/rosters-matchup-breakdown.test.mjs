@@ -3,10 +3,12 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { createMatchupStore, resolveMatchupSelection } from '../DH_P2.53/rosters/matchup-breakdown/data.js';
 import Data from '../DH_P2.53/rosters/matchup-breakdown/model.js';
+import { defenseMetric, rankColor, ordinalRank } from '../DH_P2.53/rosters/matchup-breakdown/rank-view.js';
 
 // The source model is used only as a test oracle. Rosters runtime files never
 // import it; a divergent summary/weekly fixture catches source-ownership drift.
 const sourceData = createRequire(import.meta.url)('../DH_P2.53/matchups/data-model.js');
+const sourceView = createRequire(import.meta.url)('../DH_P2.53/matchups/chart-lab-model.js');
 const positions = ['QB', 'RB', 'WR', 'TE', 'ALL'];
 const balSosRanks = [1, 8, 13, 21, 32];
 const weekly = 'WK,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,VS\n' + [
@@ -117,11 +119,14 @@ test('Start/Sit prepares updated sources with bye weeks, later games and unused 
   assert.equal(metric.deltaPerGame, 9.9 / 3);
 });
 
-test('preview keeps matchup rank and SOS while panel scoring comparisons remain unchanged', async () => {
+test('preview reverses the defensive rank while SOS and panel scoring comparisons remain unchanged', async () => {
   const store = createMatchupStore({ fetchImpl: fetchFixture });
   await store.prepare();
   const metric = store.preview({ basePos: 'QB', pos: 'SUPER_FLEX', matchup: { opponent: 'vs BAL' } });
-  assert.equal(metric.actualRank, 7);
+  assert.equal(metric.actualRank, 26);
+  assert.equal(metric.actual.rank, 26);
+  assert.equal(metric.actual.rankOrder, 'ascending');
+  assert.equal(store.analysis().byTeam.get('BAL').metrics.QB.actual.rank, 7, 'cached source rank stays raw');
   assert.equal(metric.sosRank, 1);
   assert.equal(metric.actual.total, 90.1);
   assert.equal(metric.expectedTotal, 80.2);
@@ -144,7 +149,7 @@ test('Start/Sit resolves SOS from the player base position and retains season ra
     if (pos !== 'ALL') {
       const preview = store.preview({ basePos: pos, pos: 'FLEX', matchup: { opponent: '@ BAL' } });
       assert.equal(preview.sosRank, balSosRanks[i]);
-      assert.equal(preview.actualRank, 7);
+      assert.equal(preview.actualRank, 26);
     }
   });
   // QB SOS 1 is independent of the venue comparison's expected-total rank 2.
@@ -159,7 +164,39 @@ test('Start/Sit resolves SOS from the player base position and retains season ra
   await blankStore.prepare();
   const preview = blankStore.preview({ pos: 'QB', matchup: { opponent: 'BAL' } });
   assert.equal(preview.sosRank, null);
-  assert.equal(preview.actualRank, 7);
+  assert.equal(preview.actualRank, 26);
+});
+
+test('Rosters defense display matches Matchups for every rank, position and venue without mutating analysis', async () => {
+  for (const rankOrder of ['ascending', 'descending']) for (let rank = 1; rank <= 32; rank++) {
+    const stat = Object.freeze({ total: 50, avg: 0, games: 2, rank, pool: 32, rankOrder });
+    const display = defenseMetric(stat);
+    assert.deepEqual(display, sourceView.defenseMetric(stat));
+    assert.equal(rankColor(display), sourceView.rankColor(display));
+    assert.equal(rankColor(display), rankColor(stat), 'same defense retains its difficulty color');
+    assert.equal(stat.rank, rank);
+  }
+  const store = createMatchupStore({ fetchImpl: fetchFixture });
+  await store.prepare();
+  for (const venue of ['all', 'home', 'away']) for (const pos of positions) {
+    const metric = store.analysis(venue).byTeam.get('BAL').metrics[pos];
+    const before = structuredClone(metric);
+    const display = defenseMetric(metric.actual);
+    assert.deepEqual(display, sourceView.defenseMetric(metric.actual));
+    if (venue !== 'all') assert.equal(display.rank, metric.actual.rank, 'venue ranks are already best-defense-first');
+    assert.deepEqual(metric, before, 'source stats, ties, expected ranks and SOS stay intact');
+  }
+  for (const rank of [null, undefined, '', 'NA', 0, -1, 33, 2.5, NaN, Infinity]) {
+    assert.equal(defenseMetric({ rank, pool: 32, rankOrder: 'descending' }).rank, null);
+  }
+  assert.equal(defenseMetric({ rank: 1, pool: 0, rankOrder: 'descending' }).rank, null);
+  assert.equal(defenseMetric({ rank: 1, pool: 2, rankOrder: 'ascending' }).rank, 1, 'sparse venue pools are not reversed');
+  assert.equal(rankColor({ rank: 1, pool: 32, rankOrder: 'ascending' }), '#ffb2d8');
+  assert.equal(rankColor({ rank: 32, pool: 32, rankOrder: 'ascending' }), '#75e0b7');
+  assert.equal(rankColor({ rank: null, pool: 0 }), '#7b81a5');
+  for (const [rank, text] of [[1, '1st'], [2, '2nd'], [3, '3rd'], [11, '11th'], [12, '12th'], [13, '13th'], [21, '21st'], [22, '22nd'], [23, '23rd'], [32, '32nd'], [null, '—']]) {
+    assert.equal(ordinalRank(rank), text);
+  }
 });
 
 test('opponent resolution preserves base positions and rejects byes or missing defenses', () => {
