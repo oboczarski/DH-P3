@@ -1277,7 +1277,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) tbody tr:hover td { background:#aabbff09; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) th button { color:inherit; font:inherit; border:0; padding:1px 0; width:100%; text-align:inherit; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .sortArrow { color:#88b8ff; margin-left:3px; font-size:9px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTableScroll { max-height: 180px;min-height: 160px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTableScroll {max-height: 210px;min-height: 160px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable th:first-child,
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td:first-child { width:35px; color:var(--dim); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable th:last-child,
@@ -1372,7 +1372,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle.chartPositionToggle button { min-width: 40px;padding: 3px 6px;font-size:9px;border-radius:6px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart { min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg { display:block; width:100%; height:auto; overflow:visible; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg {display:block;width: 104%;height:auto;overflow:visible;margin-left: -9px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg text { font:9px var(--font); fill:var(--dim); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg .axisTitle { fill:#adb4d3; font-size:10px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg .zoneLabel { fill:#9199bd; font-size:8px; }
@@ -1484,7 +1484,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle.chartPositionToggle button {min-width: 40px;padding: 4px 6px;font-size: 10px;border-radius:6px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart { min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg { display:block; width:100%; height:auto; overflow:visible; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg {display:block;width: 102%;height:auto;overflow:visible;margin-left: -8px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg text { font:9px var(--font); fill:var(--dim); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg .axisTitle { fill:#adb4d3; font-size:10px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg .zoneLabel { fill:#9199bd; font-size:8px; }
@@ -1493,7 +1493,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chartPoint:focus-visible circle { stroke:#fff; stroke-width:2; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .panelHeader { display:flex;justify-content:space-between;align-items:center;gap:10px;padding: 14px 12px 2px; }
   :where(body[data-page="matchups"]) .comparisonPanel:where([data-matchups-area="comparison"]) .panelHeader { flex-wrap:wrap; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonChart { padding: 0px 0px 18px 4px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonChart {padding: 0px 0px 18px 4px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonDetail {display:flex;gap: 30px;align-items:center;flex-wrap:wrap;padding: 5px 12px;border-top: 2px double #aabbff34;color:var(--dim);font-size: 13px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonDetail strong {color:#d3daf5;font-weight:550;margin-left:3px;font-size: 14px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonDetail .is-easy,
@@ -1566,10 +1566,10 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="offenses"]) .smallMuted { color:var(--dim); font-size:9px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="offenses"]) .sectionHeading { display:flex;align-items:center;gap:8px;margin-bottom: 0px;min-height:19px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="offenses"]) .sectionHeading > .smallMuted { margin-left:auto; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="offenses"]) .tableScroll { min-width:0; overflow:auto; border:1px solid var(--border); border-radius:9px; scrollbar-width:thin; scrollbar-color:#aabbff26 transparent; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="offenses"]) .tableScroll {min-width:0;overflow:auto;border:1px solid var(--border);border-radius:9px;scrollbar-width:thin;scrollbar-color:#aabbff26 transparent;max-height: 188px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="offenses"]) .tableScroll::-webkit-scrollbar { width:6px; height:6px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="offenses"]) .tableScroll::-webkit-scrollbar-thumb { border-radius:8px; background:#aabbff26; border:1px solid transparent; background-clip:padding-box; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="offenses"]) table { width:100%; border-collapse:separate; border-spacing:0; font-variant-numeric:tabular-nums; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="offenses"]) table {width:100%;border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="offenses"]) th { background:#182039; position:sticky; top:0; z-index:2; color:#bbc0e8; font-size:9px; font-weight:550; white-space:nowrap; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="offenses"]) th,
   :where(body[data-page="matchups"]) :where([data-matchups-area="offenses"]) td { text-align:left; padding:5px 7px; }
