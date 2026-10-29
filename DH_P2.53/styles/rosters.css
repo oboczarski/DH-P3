@@ -750,7 +750,7 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  column-gap: 0.01rem;
+  column-gap: 0.05rem;
   font-size: 0.68rem;
   font-weight: 500;
   color: #d0d1ee;
