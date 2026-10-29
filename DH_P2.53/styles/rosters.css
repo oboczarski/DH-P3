@@ -777,8 +777,8 @@ body[data-page="rosters"] .team-header-item:has(.team-record-champ) {
 
 body[data-page="rosters"] .team-header-item .team-record-champ {
   font-size: 0.52rem;
-  margin-left: -0.1rem;
-  margin-right: 1.5px;
+  margin-left: 0rem;
+  margin-right: 2px;
 }
 
 .team-header-item:hover {
