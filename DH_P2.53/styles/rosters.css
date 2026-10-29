@@ -787,7 +787,13 @@ body[data-page="rosters"] .team-header-item .team-record-champ {
 
 .team-header-item:has(.team-compare-checkbox.selected) {
   border: 1px solid #6300ffaa;
-  box-shadow: inset 0 0 2px #6300ff55, inset 0 0 30px #5300ff35;
+  box-shadow: inset 0 0 2px #6300ff55, inset 0 0 10px #5300ff35;
+  border: 1px solid transparent;
+  color: transparent;
+  background: 
+linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), 
+linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, 
+linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
 }
 
 .team-card {
@@ -1244,6 +1250,12 @@ body[data-page="rosters"] .pick-ktc {
   border-color: var(--color-accent-primary);
   background-color: var(--color-accent-primary);
   box-shadow: 0 0 var(--glow-strength) var(--color-accent-primary-glow);
+  border: 2px solid transparent;
+  color: transparent;
+  background: 
+linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), 
+linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, 
+linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
 }
 
 .team-compare-checkbox.selected::after {
@@ -1255,6 +1267,9 @@ body[data-page="rosters"] .pick-ktc {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  border: 0px solid transparent;
+  color: transparent;
+  background: linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
 }
 
 /* ⬇︎ TRADE PREVIEW ⬇︎ */
