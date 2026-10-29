@@ -727,7 +727,7 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
 }
 
 .roster-column {
-  width: 127px;
+  width: 122px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
