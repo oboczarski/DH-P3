@@ -1268,7 +1268,7 @@ linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area;
   content: '✔';
   position: absolute;
   color: var(--color-bg);
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   font-weight: 900;
   top: 50%;
   left: 50%;
