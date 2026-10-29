@@ -7,7 +7,10 @@ const WORKBOOK_ID = '16fOWHEuPWkNz9AHLCiySjxwW_y4ulLemNaMVc3srE94';
 // Native exports preserve mixed numeric/status PROJ cells (gviz can drop text).
 const PROJECTION_SHEET_GIDS = Object.freeze({
     1: '946140193', 2: '1480597852', 3: '3751902', 4: '2067451265',
-    5: '749604963', 6: '677856696', 7: '696122995'
+    5: '749604963', 6: '677856696', 7: '696122995',
+    // Verified WK8-WK10 exports supply future PROJ cells to the independent
+    // Rosters/DataHub loaders; completed results still come only from the CSV.
+    8: '1110983817', 9: '102083848', 10: '462792316'
 });
 
 export function get2026ProjectionWeeks(latestCompletedWeek) {

@@ -3582,6 +3582,24 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) > .ro
   max-width: 250px;
 }
 
+/* Trade Preview alone keeps each draft pick, KTC and original owner inline
+   in that order. Regular roster chips retain the centered owner row below;
+   long usernames still ellipsize inside the available comparison width. */
+body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .pick-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.25rem;
+}
+
+body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .pick-heading {
+  display: contents;
+}
+
+body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .pick-original-owner {
+  flex: 0 1 auto;
+}
+
 /* Trade Preview player card: first row = current identity + age + far-right
    team logo; second row = FPTS positional rank + PPG + KTC. */
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview {

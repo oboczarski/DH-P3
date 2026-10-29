@@ -196,14 +196,21 @@ test('the shipped combined CSV preserves all original column values through Data
 });
 
 test('projection URL configuration selects only published weeks after the CSV cutoff', () => {
-  assert.deepEqual(get2026ProjectionWeeks(4), [5, 6, 7]);
-  assert.deepEqual(get2026ProjectionWeeks(6), [7]);
+  assert.deepEqual(get2026ProjectionWeeks(4), [5, 6, 7, 8, 9, 10]);
+  assert.deepEqual(get2026ProjectionWeeks(6), [7, 8, 9, 10]);
+  assert.deepEqual(get2026ProjectionWeeks(7), [8, 9, 10]);
+  assert.deepEqual(get2026ProjectionWeeks(10), []);
   assert.deepEqual(get2026ProjectionWeeks(18), []);
   assert.throws(() => get2026ProjectionWeeks(NaN), /cutoff/);
   const url = new URL(get2026ProjectionCsvUrl(5));
   assert.equal(url.pathname.split('/').at(-1), 'export');
   assert.equal(url.searchParams.get('gid'), '749604963');
   assert.equal(url.searchParams.get('sheet'), 'WK5');
+  for (const [week, gid] of [[8, '1110983817'], [9, '102083848'], [10, '462792316']]) {
+    const futureUrl = new URL(get2026ProjectionCsvUrl(week));
+    assert.equal(futureUrl.searchParams.get('gid'), gid);
+    assert.equal(futureUrl.searchParams.get('sheet'), `WK${week}`);
+  }
 });
 
 test('DataHub future projections preserve zero/status text without importing sheet results or rereading CSV', async () => {
@@ -213,15 +220,15 @@ test('DataHub future projections preserve zero/status text without importing she
   const projectionSource = await load2026ProjectionSourceData({ weeklySource, parseCsv, fetchImpl: async (url) => {
     const week = Number(new URL(url).searchParams.get('sheet').slice(2));
     requests.push(week);
-    const value = { 5: '0', 6: 'OUT', 7: 'BYE' }[week];
+    const value = { 5: '0', 6: 'OUT', 7: 'BYE', 8: '18.6', 9: 'IR', 10: '0' }[week];
     return { ok: true, text: async () => `WK,SLPR_ID,PLAYER NAME,POS,TM,PROJ,FPT_PPR,GM_P,SNP\n${week},4984,Josh Allen,QB,BUF,${value},999,1,90` };
   } });
-  assert.deepEqual(requests.sort(), [5, 6, 7]);
+  assert.deepEqual(requests.sort((a, b) => a - b), [5, 6, 7, 8, 9, 10]);
   const data = await load2026WeeklySourceData({ ...fixture.options, weeklySource, projectionSource });
   assert.equal(fixture.requests.filter(({ pathname }) => pathname.endsWith('2026_AllWKs.csv')).length, 1);
   assert.equal(data.weeklyRows[4][0].PROJ, '23.4');
   assert.equal(data.weeklyRows[4][0].FPT_PPR, '19.52');
-  for (const [week, value] of [[5, '0'], [6, 'OUT'], [7, 'BYE']]) {
+  for (const [week, value] of [[5, '0'], [6, 'OUT'], [7, 'BYE'], [8, '18.6'], [9, 'IR'], [10, '0']]) {
     assert.equal(data.weeklyRows[week][0].PROJ, value);
     assert.equal(data.weeklyRows[week][0].FPT_PPR, undefined);
     assert.equal(data.weeklyRows[week][0].SNP, undefined);
