@@ -787,7 +787,7 @@ body[data-page="rosters"] .team-header-item .team-name {
   grid-column: 2;
   grid-row: 1;
   margin-bottom: 0px;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 body[data-page="rosters"] .team-header-item .team-record {
