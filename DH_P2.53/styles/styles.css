@@ -3625,11 +3625,10 @@ main#content {
 }
 
 .team-header-item .team-record {
-  font-size: 0.54rem;
+  font-size: 0.5rem;
   color: #9ea5d8;
   white-space: nowrap;
   justify-self: start;
-  word-spacing: -0.14em;
   margin-top: 1px;
 }
 

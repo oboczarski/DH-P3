@@ -727,7 +727,7 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
 }
 
 .roster-column {
-  width: 128px;
+  width: 121px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -750,12 +750,12 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  column-gap: 0.05rem;
-  font-size: 0.68rem;
+  column-gap: 0.1rem;
+  font-size: 0.7rem;
   font-weight: 500;
   color: #d0d1ee;
   text-align: center;
-  padding: 0.32rem 0.2rem 0.32rem 0.15rem;
+  padding: 0.1rem 0.2rem 0.1rem 0.2rem;
   cursor: pointer;
   /* · · Glass look to match filter groups · · */
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgba(100, 100, 200, 0.0951));
@@ -773,9 +773,8 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
    cannot stretch the first row. Keep the previous compact chip height alongside
    the newer column widths, type sizes and independently owned text gradients. */
 body[data-page="rosters"] .team-header-item {
-  min-height: calc(1.69rem + 2px);
-  padding-block: 0.205rem;
-  row-gap: 0;
+  min-height: calc(1.39rem + 0px);
+  row-gap: 1px;
   line-height: 1;
 }
 
@@ -787,6 +786,8 @@ body[data-page="rosters"] .team-header-item .team-compare-checkbox {
 body[data-page="rosters"] .team-header-item .team-name {
   grid-column: 2;
   grid-row: 1;
+  margin-bottom: 0px;
+  margin-top: 1px;
 }
 
 body[data-page="rosters"] .team-header-item .team-record {
@@ -824,6 +825,7 @@ linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area;
 body[data-page="rosters"] .team-header-item:has(.team-compare-checkbox.selected) .team-name {
   color: transparent;
   background: linear-gradient(90deg, #74efff -50%, #7297ff 52%, #d97dff 130%) text;
+  filter: drop-shadow(1px 1px 0px #0005);
 }
 
 .team-card {
@@ -1267,14 +1269,15 @@ body[data-page="rosters"] .pick-ktc {
   width: 1rem;
   height: 1rem;
   border: 2px solid var(--color-text-tertiary);
-  box-shadow: 0 0 7px #5300ff, inset 0 0 2px #7300ff;
   border-radius: 50%;
   cursor: pointer;
   position: relative;
   transition: all 0.2s ease-in-out;
   justify-self: start;
-  margin-right: 1px;
-  margin-left: 1px;
+  margin-right: 0px;
+  margin-left: 2px;
+  border: 1px solid transparent;
+  background: linear-gradient(90deg, #74efff10 0%, #7297ff10 52%, #d97dff10 100%), linear-gradient(90deg, #74efff88 0%, #7297ff88 52%, #d97dff88 100%) border-area;
 }
 
 /* The selected Rosters circle owns only the fill/border gradients. Its ::after
@@ -1284,18 +1287,17 @@ body[data-page="rosters"] .pick-ktc {
   background-color: var(--color-accent-primary);
   box-shadow: 0 0 var(--glow-strength) var(--color-accent-primary-glow);
   border: 1px solid transparent;
-  background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), 
-linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) border-area;
+  background: linear-gradient(90deg, #74efff53 0%, #7297ff53 52%, #d97dff53 100%), linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) border-area;
 }
 
 .team-compare-checkbox.selected::after {
-  content: '✔';
+  content: '✔︎';
   position: absolute;
   color: var(--color-bg);
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   font-weight: 900;
   top: 50%;
-  left: 50%;
+  left: 54%;
   transform: translate(-50%, -50%);
   border: 0px solid transparent;
   color: transparent;
