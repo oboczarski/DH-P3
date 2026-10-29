@@ -9106,7 +9106,7 @@ function renderAllTeamData(teams) {
         teamNameSpan.className = 'team-name';
         teamNameSpan.textContent = team.teamName;
         // Rosters owner headers put the ordinal standing and parenthesized record
-        // together beneath the username; keep the same detail in the full tooltip.
+        // together beside the username; keep the same detail in the full tooltip.
         const standingAndRecord = [
             team.standing ? ordinalSuffix(team.standing) : '',
             team.record ? `(${team.record})` : ''
