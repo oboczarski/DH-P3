@@ -7053,33 +7053,36 @@ body::before {
 /* · · Compare button in trade preview · · */
 #comparePlayersButton.enabled {
   opacity: 1.0;
+  border: 1px solid transparent;
+  color: transparent;
+  background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
+  border-radius: 10px;
 }
 
 #comparePlayersButton.enabled i {
-  text-shadow:
-    0 0 4px rgba(43, 0, 255, 0.7),
-    0 0 7px rgba(73, 0, 255, 0.55),
-    0 0 12px rgba(103, 0, 255, 0.4);
+  border: 0px solid transparent;
+  color: transparent;
+  background: linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
 }
 
 #comparePlayersButton.enabled .label {
-  text-shadow:
-    0 0 4px rgba(43, 0, 255, 0.6),
-    0 0 7px rgba(73, 0, 255, 0.3);
+  border: 0px solid transparent;
+  color: transparent;
+  background: linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
 }
 
 #comparePlayersButton {
-  display: flex;
+  display: grid;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 1px;
   /* no gap between icon & label */
   color: #bec7ff99;
   font-size: 1rem;
   /* icon size */
   line-height: 1;
   /* kill extra inline spacing */
-  padding: 4px 0px 4px 12px;
+  padding: 4px 4px 4px 4px;
   min-height: 0;
   opacity: 0.4;
   transition: opacity 0.1s ease-in-out;
