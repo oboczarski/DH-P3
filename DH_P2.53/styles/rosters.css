@@ -1208,6 +1208,8 @@ body[data-page="rosters"] .pick-owner-name {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: 0.04em;
+  font-weight: 300;
 }
 
 body[data-page="rosters"] .pick-ktc {
