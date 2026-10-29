@@ -5250,6 +5250,9 @@ function parseStatValue(header, value) {
 }
 function processRosterData(rosters, users, tradedPicks, leagueInfo, previousSeasonData = null) {
     const userMap = users.reduce((acc, user) => ({ ...acc, [user.user_id]: user }), {});
+    // Rosters owner headers use league-wide standings before the visible columns
+    // are reordered for the connected user or narrowed to a comparison.
+    const standingsRanks = buildRostersStandingsRanks(rosters, userMap);
     // Rosters pick chips show the username attached to the pick's original
     // roster slot, including traded picks. Resolve every slot before building
     // teams; use the display name or slot number when a username is unavailable.
@@ -5293,6 +5296,7 @@ function processRosterData(rosters, users, tradedPicks, leagueInfo, previousSeas
             isUserTeam,
             teamName: owner?.display_name || `Team ${roster.roster_id}`,
             record,
+            standing: standingsRanks.get(String(roster.roster_id)) ?? null,
             isChamp,
             starters,
             bench: bench.map(p => getPlayerData(p, 'BN')).sort((a, b) => (b.ktc || 0) - (a.ktc || 0)),
@@ -5332,6 +5336,33 @@ function formatTeamRecord(settings = {}) {
     }
     const baseRecord = `${wins}-${losses}`;
     return ties ? `${baseRecord}-${ties}` : baseRecord;
+}
+
+// Rosters owner standings come from the same current-league settings as the
+// record. Match LeagueHub's ordering: win percentage (ties count as half a win),
+// wins, then points for including Sleeper's hundredths. Names/roster IDs provide
+// a stable final order; missing records stay unranked rather than becoming 0-0.
+function buildRostersStandingsRanks(rosters, userMap) {
+    const standings = rosters.filter(roster => formatTeamRecord(roster.settings) !== null).map(roster => {
+        const settings = roster.settings;
+        const wins = settings.wins;
+        const losses = settings.losses;
+        const ties = Number.isFinite(settings.ties) ? settings.ties : 0;
+        const games = wins + losses + ties;
+        return {
+            rosterId: String(roster.roster_id),
+            teamName: userMap[roster.owner_id]?.display_name || `Team ${roster.roster_id}`,
+            winPct: games > 0 ? (wins + ties * 0.5) / games : 0,
+            wins,
+            pointsFor: (Number(settings.fpts) || 0) + (Number(settings.fpts_decimal) || 0) / 100
+        };
+    });
+    standings.sort((a, b) => b.winPct - a.winPct
+        || b.wins - a.wins
+        || b.pointsFor - a.pointsFor
+        || a.teamName.localeCompare(b.teamName)
+        || Number(a.rosterId) - Number(b.rosterId));
+    return new Map(standings.map((entry, index) => [entry.rosterId, index + 1]));
 }
 
 // --- Draft order hydration (Sleeper) ---
@@ -9074,9 +9105,13 @@ function renderAllTeamData(teams) {
         const teamNameSpan = document.createElement('span');
         teamNameSpan.className = 'team-name';
         teamNameSpan.textContent = team.teamName;
-        // Rosters header: the prior champion's crown follows the username, while
-        // every available record stays visible at the right for the active season.
-        header.title = `${team.teamName}${team.isChamp ? ' - Previous Champion' : ''}${team.record ? ` (${team.record})` : ''}`;
+        // Rosters owner headers put the ordinal standing and parenthesized record
+        // together beneath the username; keep the same detail in the full tooltip.
+        const standingAndRecord = [
+            team.standing ? ordinalSuffix(team.standing) : '',
+            team.record ? `(${team.record})` : ''
+        ].filter(Boolean).join(' ');
+        header.title = `${team.teamName}${team.isChamp ? ' - Previous Champion' : ''}${standingAndRecord ? ` - ${standingAndRecord}` : ''}`;
         header.appendChild(checkbox);
         header.appendChild(teamNameSpan);
         if (team.isChamp) {
@@ -9085,10 +9120,10 @@ function renderAllTeamData(teams) {
             champIcon.setAttribute('aria-hidden', 'true');
             header.appendChild(champIcon);
         }
-        if (team.record) {
+        if (standingAndRecord) {
             const recordSpan = document.createElement('span');
             recordSpan.className = 'team-record';
-            recordSpan.textContent = `(${team.record})`;
+            recordSpan.textContent = standingAndRecord;
             header.appendChild(recordSpan);
         }
         const card = (state.currentRosterView === 'positional' || state.currentRosterView === 'condensed')
