@@ -16545,8 +16545,16 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-stat-mode {
   letter-spacing: 0.02em;
 }
 
+/* The trigger and popup share a positioned wrapper: the popup is exactly
+   button-width and centered immediately above it at every viewport width. */
+body[data-page="datahub"] #game-logs-modal .gamelogs-stat-picker {
+  position: relative;
+  flex: 0 0 155px;
+}
+
 body[data-page="datahub"] #game-logs-modal .gamelogs-stat-control .gamelogs-context-action {
-  min-width: 155px;
+  width: 100%;
+  min-width: 0;
   justify-content: space-between;
 }
 
@@ -16557,7 +16565,7 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-stat-menu {
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  width: min(100%, 376px);
+  width: 100%;
   max-height: min(290px, 42dvh);
   overflow-y: auto;
   overscroll-behavior: contain;

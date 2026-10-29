@@ -26,7 +26,7 @@
   <!-- Ownership modal styles (needed for watchlist → ownership flow) -->
   <link rel="stylesheet" href="../styles/ownership.css?v=DH3.1t-vi10" />
   <!-- Rosters Game Logs owns its complete responsive theme; it loads last to replace the older shared modal rules. -->
-  <link rel="stylesheet" href="../styles/rosters-gamelogs.css?v=DH3.49v-team-injuries-start-sit-layout" />
+  <link rel="stylesheet" href="../styles/rosters-gamelogs.css?v=DH3.53-rosters-gamelogs" />
   <!-- Start/Sit owns a separate mobile-first dashboard theme and desktop layer. -->
   <link rel="stylesheet" href="../styles/rosters-start-sit.css?v=DH3.51g-start-sit-drilldowns" />
   <!-- Cloudflare Web Analytics: tracks visits for the current Dynasty Hub Cloudflare property; kept deferred so it does not block app rendering. -->
@@ -393,7 +393,7 @@
                   <path d="M12 16h4"></path>
                   <path d="M8 11h.01"></path>
                   <path d="M8 16h.01"></path>
-                </svg>GameLog</button>
+                </svg>Weekly</button>
           <button type="button" class="gamelogs-view-option" aria-pressed="false" data-gamelogs-view="szn"><svg class="rosters-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M3 3v18h18"></path>
                   <path d="M7 16v-4"></path>
@@ -533,45 +533,6 @@
           </section>
         </div>
     </div>
-   <div class="modal-footer">
-  <div class="key-chip modal-info-btn active" data-panel="game-logs">
-    <svg class="rosters-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="8" y="2" width="8" height="4" rx="1"></rect>
-              <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"></path>
-              <path d="M12 11h4"></path>
-              <path d="M12 16h4"></path>
-              <path d="M8 11h.01"></path>
-              <path d="M8 16h.01"></path>
-            </svg>
-    <span>GM-Logs</span>
-  </div>
-  <div class="key-chip modal-info-btn" data-panel="radar-chart">
-    <svg class="rosters-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M3 3v18h18"></path>
-              <path d="m7 14 3-4 3 2 4-6 3 3"></path>
-              <path d="M7 21v-7"></path>
-              <path d="M20 21v-9"></path>
-            </svg>
-    <span>Performance</span>
-  </div>
-  <div class="key-chip modal-info-btn" data-panel="consistency">
-    <svg class="rosters-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M3 3v18h18"></path>
-              <path d="m6 15 4-5 4 3 4-6"></path>
-              <path d="m18 7 1.5 1.5L21 7"></path>
-            </svg>
-    <span>Consistency</span>
-  </div>
-  <div class="key-chip modal-info-btn" data-panel="stats-key">
-    <svg class="rosters-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="7.5" cy="15.5" r="5.5"></circle>
-              <path d="m21 2-9.6 9.6"></path>
-              <path d="m15.5 7.5 3 3"></path>
-              <path d="m18.5 4.5 3 3"></path>
-            </svg>
-    <span>Key</span>
-  </div>
-</div>
   </div><!-- end #gamelogs-tab-pane -->
 
   <!-- === Ownership pane (hidden by default, shown when Ownership tab is selected) === -->
@@ -599,6 +560,80 @@
     <header class="team-modal-header"></header>
     <div class="team-modal-body" tabindex="0" aria-label="Team players by position"></div>
   </section>
+  <!-- Rosters owns its detached Liquid Glass dock and context controls. -->
+      <div class="gamelogs-dock" data-gamelogs-dock>
+        <div class="gamelogs-context-row">
+          <div class="gamelogs-performance-control hidden" data-gamelogs-performance-control>
+            <span class="gamelogs-context-caption" data-gamelogs-performance-current>Performance Overview</span>
+            <button type="button" class="gamelogs-context-action" data-gamelogs-performance-toggle>
+              <svg class="rosters-modal-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M7 16v-4m5 4V8m5 8v-7"></path></svg>
+              <span data-gamelogs-performance-action>Season Stats</span>
+              <svg class="rosters-modal-icon gamelogs-context-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"></path></svg>
+            </button>
+          </div>
+          <div class="gamelogs-stat-control hidden" data-gamelogs-stat-dropdown>
+            <div class="gamelogs-stat-caption">
+              <span id="gamelogs-stat-label" class="gamelogs-context-caption">Chart statistic</span>
+              <span class="gamelogs-stat-mode" data-gamelogs-stat-mode>Weekly scoring</span>
+            </div>
+            <!-- Anchor the listbox to the trigger, so both share one width. -->
+            <div class="gamelogs-stat-picker">
+              <button type="button" id="gamelogs-stat-toggle" class="gamelogs-context-action" data-gamelogs-stat-toggle aria-haspopup="listbox" aria-expanded="false" aria-controls="gamelogs-stat-menu" aria-labelledby="gamelogs-stat-label gamelogs-stat-value">
+                <svg class="rosters-modal-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18m-15-6 4-5 4 3 4-6"></path></svg>
+                <span id="gamelogs-stat-value" data-gamelogs-stat-value>PPR FPTS</span>
+                <svg class="rosters-modal-icon gamelogs-stat-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 14 6-6 6 6"></path></svg>
+              </button>
+              <div id="gamelogs-stat-menu" class="gamelogs-stat-menu hidden" data-gamelogs-stat-menu role="listbox" aria-label="Weekly chart statistic"></div>
+            </div>
+          </div>
+        </div>
+        <nav class="gamelogs-bottom-nav" aria-label="Player Game Log navigation">
+          <button type="button" class="gamelogs-nav-button active" data-gamelogs-panel="gl" aria-pressed="true" aria-controls="modal-body">
+            <svg class="rosters-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="8" y="2" width="8" height="4" rx="1"></rect>
+              <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"></path>
+              <path d="M12 11h4"></path>
+              <path d="M12 16h4"></path>
+              <path d="M8 11h.01"></path>
+              <path d="M8 16h.01"></path>
+            </svg>
+            <span>Game Log</span>
+          </button>
+          <button type="button" class="gamelogs-nav-button" data-gamelogs-panel="performance" aria-pressed="false" aria-controls="radar-chart-container">
+            <svg class="rosters-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 3v18h18"></path>
+              <path d="m7 14 3-4 3 2 4-6 3 3"></path>
+              <path d="M7 21v-7"></path>
+              <path d="M20 21v-9"></path>
+            </svg>
+            <span>Performance</span>
+          </button>
+          <button type="button" class="gamelogs-nav-button" data-gamelogs-panel="consistency" aria-pressed="false" aria-controls="consistency-container">
+            <svg class="rosters-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 3v18h18"></path>
+              <path d="m6 15 4-5 4 3 4-6"></path>
+              <path d="m18 7 1.5 1.5L21 7"></path>
+            </svg>
+            <span>Consistency</span>
+          </button>
+          <button type="button" class="gamelogs-nav-button" data-gamelogs-panel="team" aria-pressed="false" aria-controls="gamelogs-team-pane">
+            <svg class="rosters-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+            </svg>
+            <span>Team</span>
+          </button>
+          <button type="button" class="gamelogs-nav-button" data-gamelogs-panel="key" aria-pressed="false" aria-controls="stats-key-container">
+            <svg class="rosters-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="7.5" cy="15.5" r="5.5"></circle>
+              <path d="m21 2-9.6 9.6"></path>
+              <path d="m15.5 7.5 3 3"></path>
+              <path d="m18.5 4.5 3 3"></path>
+            </svg>
+            <span>Key</span>
+          </button>
+        </nav>
+      </div>
 </div>
 
 <!-- Player Watchlist Modal -->
@@ -664,7 +699,9 @@
   <!-- Start/Sit lazily prepares the Rosters-owned Matchup Breakdown modal before player selection. -->
   <script defer="True" src="../scripts/app.js?v=DH3.52s-rosters-stacked-owner-headers"></script>
   <script defer="True" src="../scripts/rosters-2026-gamelogs.js?v=DH3.51f-rosters-availability"></script>
-  <script defer src="../scripts/rosters-gamelogs.js?v=DH3.49v-team-injuries-start-sit-layout"></script>
+  <script defer src="../scripts/rosters-gamelogs-controls.js?v=DH3.53-rosters-gamelogs"></script>
+  <script defer src="../scripts/rosters-gamelogs-consistency.js?v=DH3.53-rosters-gamelogs"></script>
+  <script defer src="../scripts/rosters-gamelogs.js?v=DH3.53-rosters-gamelogs"></script>
   <script defer src="../scripts/rosters-start-sit.js?v=DH3.52r-rosters-defense-ranks"></script>
 </body>
 </html>

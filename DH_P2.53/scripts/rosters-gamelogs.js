@@ -356,8 +356,10 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
     const isExpandedReceivingTable = keys.includes('tgt_10_plus');
     const sizes = keys.map(key => key === 'first_down_rec_rate' && isExpandedReceivingTable
       ? 44 : ROSTERS_GAMELOG_COLUMN_WIDTHS[key] || 54);
+    const total = `${sizes.reduce((sum, size) => sum + size, 0)}px`;
+    // The body must span the same full scroll width as its header/totals.
+    modal.querySelector('.game-logs-hscroll-content').style.width = total;
     modal.querySelectorAll('.game-logs-table').forEach(table => {
-      const total = `${sizes.reduce((sum, size) => sum + size, 0)}px`;
       table.style.width = total;
       table.style.minWidth = total;
       table.querySelectorAll('colgroup col').forEach((col, index) => { col.style.width = `${sizes[index]}px`; });
@@ -379,8 +381,16 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
     });
   };
 
-  // Year selection applies to GameLog/Season. Career has its own full history,
-  // so its year capsule is quiet and cannot open a misleading year menu.
+  // Rosters owns this state bridge. Weekly/Season describe the period while
+  // one content state coordinates the detached dock, overlays and table views.
+  const { resolveGameLogsNavigation } = window.RostersGameLogsControls;
+  const consistency = window.RostersGameLogsConsistency;
+  const dock = modal.querySelector('[data-gamelogs-dock]');
+  const navButtons = [...modal.querySelectorAll('[data-gamelogs-panel]')];
+  const topButtons = [...modal.querySelectorAll('[data-gamelogs-view]')].filter(node => node.classList.contains('gamelogs-view-option'));
+  const performanceControl = modal.querySelector('[data-gamelogs-performance-control]');
+  const performanceToggle = modal.querySelector('[data-gamelogs-performance-toggle]');
+  let pendingSeasonNavigation = null;
   const syncYearControl = () => {
     const toggle = modal.querySelector('#gamelogsSeasonToggle');
     if (!toggle) return;
@@ -390,17 +400,124 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
     toggle.setAttribute('aria-disabled', String(!yearBacked));
     if (!yearBacked) closeGameLogsSeasonMenu();
   };
-  const originalSetView = window.setGameLogsModalView;
-  window.setGameLogsModalView = function(view) {
-    const result = originalSetView(view);
+  function syncRostersGameLogsNavigation() {
+    const navigation = resolveGameLogsNavigation(state.currentGameLogsView);
+    const topView = navigation.content === 'key' ? state.currentGameLogsKeyPeriod || 'gl' : navigation.topView;
+    const team = modal.classList.contains('is-team-view');
+    const ownership = modal.querySelector('#gamelogs-tab-pane').classList.contains('hidden');
+    dock.classList.toggle('hidden', ownership && !team);
     syncYearControl();
+    topButtons.forEach(button => {
+      const active = button.dataset.gamelogsView === topView;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+    navButtons.forEach(button => {
+      const active = button.dataset.gamelogsPanel === (team ? 'team' : navigation.navView);
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+      if (button.dataset.gamelogsPanel === 'team') button.disabled = !rostersTeamNames[rostersTeamKey(state.currentGameLogsPlayer?.team)];
+      if (button.dataset.gamelogsPanel === 'performance') button.setAttribute('aria-controls', navigation.content === 'szn' ? 'modal-body' : 'radar-chart-container');
+    });
+    performanceControl.classList.toggle('hidden', team || !navigation.performanceAction);
+    modal.querySelector('[data-gamelogs-stat-dropdown]').classList.toggle('hidden', team || navigation.content !== 'consistency');
+    const seasonStats = navigation.content === 'szn';
+    performanceControl.querySelector('[data-gamelogs-performance-current]').textContent = seasonStats ? 'Season Stats' : 'Performance Overview';
+    performanceControl.querySelector('[data-gamelogs-performance-action]').textContent = seasonStats ? 'Performance Overview' : 'Season Stats';
+    performanceToggle.setAttribute('aria-controls', seasonStats ? 'radar-chart-container' : 'modal-body');
+  }
+  window.setGameLogsModalView = function(view) {
+    const next = resolveGameLogsNavigation(view).content;
+    if (next === 'key' && state.currentGameLogsView !== 'key') {
+      state.currentGameLogsKeyPeriod = resolveGameLogsNavigation(state.currentGameLogsView).topView === 'szn' ? 'szn' : 'gl';
+    }
+    state.currentGameLogsView = next;
+    closeGameLogsSeasonMenu();
+    consistency.closeMenu();
+    modalBody.classList.remove('hidden');
+    modalBody.querySelectorAll('.game-logs-table-container, .no-logs[data-gamelogs-view="gl"]').forEach(node => node.classList.toggle('hidden', next !== 'gl'));
+    modalBody.querySelectorAll('.game-logs-szn-view').forEach(node => node.classList.toggle('hidden', next !== 'szn'));
+    modalBody.querySelectorAll('.game-logs-career-view').forEach(node => node.classList.toggle('hidden', next !== 'career'));
+    statsKeyContainer?.classList.toggle('hidden', next !== 'key');
+    radarChartContainer?.classList.toggle('hidden', next !== 'performance');
+    consistencyContainer?.classList.toggle('hidden', next !== 'consistency');
+    state.isGameLogsCareerPlaceholderActive = next === 'career';
+    syncRostersGameLogsNavigation();
     hideTooltip();
-    return result;
+    if (next === 'performance' && state.currentGameLogsPlayer && !modal.classList.contains('loading')) {
+      window.renderPlayerRadarChart(state.currentGameLogsPlayer.id, state.currentGameLogsPlayer.pos);
+    }
+    if (next === 'consistency') window.renderConsistencyChart();
   };
+  navButtons.forEach(button => button.addEventListener('click', () => {
+    if (button.dataset.gamelogsPanel === 'team') { rostersOpenTeamView(button); return; }
+    rostersResetTeamView();
+    window.setGameLogsModalView(button.dataset.gamelogsPanel);
+  }));
+  performanceToggle.addEventListener('click', () => window.setGameLogsModalView(resolveGameLogsNavigation(state.currentGameLogsView).performanceAction));
   const originalToggleSeasonMenu = window.toggleGameLogsSeasonMenu;
   window.toggleGameLogsSeasonMenu = function() {
     if (state.currentGameLogsView === 'career') return;
+    consistency.closeMenu();
     return originalToggleSeasonMenu();
+  };
+  // Preserve content/metric when the existing loader reloads this player for a
+  // different season. Its request sequence still rejects late/stale responses.
+  gameLogsSeasonMenu.addEventListener('click', event => {
+    const option = event.target.closest('[data-gamelogs-season-value]');
+    // A second year selection can arrive while openModal has temporarily
+    // reset content to Weekly. Retain the user's original view/metric then.
+    const inFlight = modal.classList.contains('loading')
+      && pendingSeasonNavigation?.playerId === String(state.currentGameLogsPlayer?.id)
+      ? pendingSeasonNavigation : null;
+    if (option) pendingSeasonNavigation = {
+      playerId: String(state.currentGameLogsPlayer?.id), season: option.dataset.gamelogsSeasonValue,
+      view: inFlight?.view || (state.currentGameLogsView === 'career' ? 'gl' : state.currentGameLogsView),
+      stat: inFlight?.stat || state.currentConsistencyStat,
+      keyPeriod: inFlight?.keyPeriod || state.currentGameLogsKeyPeriod,
+    };
+  }, true);
+  gameLogsSeasonToggle.addEventListener('keydown', event => {
+    if (!['ArrowDown','ArrowUp','Home','End'].includes(event.key) || state.currentGameLogsView === 'career') return;
+    event.preventDefault();
+    if (gameLogsSeasonMenu.classList.contains('hidden')) window.toggleGameLogsSeasonMenu();
+    const options = [...gameLogsSeasonMenu.querySelectorAll('[role="option"]')];
+    (event.key === 'End' || event.key === 'ArrowUp' ? options.at(-1) : options[0])?.focus();
+  });
+  gameLogsSeasonMenu.addEventListener('keydown', event => {
+    if (event.key === 'Tab') { closeGameLogsSeasonMenu(); return; }
+    const options = [...gameLogsSeasonMenu.querySelectorAll('[role="option"]')];
+    const index = options.indexOf(document.activeElement);
+    const next = event.key === 'ArrowDown' ? (index + 1) % options.length : event.key === 'ArrowUp' ? (index - 1 + options.length) % options.length : event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 : null;
+    if (next !== null) { event.preventDefault(); options[next]?.focus(); }
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !gameLogsSeasonMenu.classList.contains('hidden')) {
+      event.preventDefault(); event.stopImmediatePropagation(); closeGameLogsSeasonMenu(); gameLogsSeasonToggle.focus();
+    }
+  }, true);
+  const originalOpenModal = window.openModal;
+  window.openModal = function(...args) {
+    consistency.dispose();
+    state.currentConsistencyStat = pendingSeasonNavigation?.playerId === String(state.currentGameLogsPlayer?.id) ? pendingSeasonNavigation.stat : 'fpts';
+    state.currentGameLogsKeyPeriod = 'gl';
+    return originalOpenModal(...args);
+  };
+  const originalCloseModal = window.closeModal;
+  window.closeModal = function(...args) {
+    pendingSeasonNavigation = null;
+    consistency.dispose();
+    state.currentConsistencyStat = 'fpts';
+    return originalCloseModal(...args);
+  };
+  const originalSwitchTab = window.switchGameLogsModalTab;
+  window.switchGameLogsModalTab = function(tab) {
+    rostersResetTeamView();
+    consistency.closeMenu();
+    const result = originalSwitchTab(tab);
+    syncRostersGameLogsNavigation();
+    if (!modal.querySelector('#gamelogs-tab-pane').classList.contains('hidden')) window.setGameLogsModalView(state.currentGameLogsView);
+    return result;
   };
 
   // These adapters run as part of each render, including asynchronous season
@@ -433,7 +550,17 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
     decorateStatLabels();
     decorateWeeklyTable();
     decorateVitals(modal.querySelector('#modal-player-vitals'), args[1]?.pos);
-    syncYearControl();
+    if (pendingSeasonNavigation && pendingSeasonNavigation.playerId === String(args[1]?.id)
+      && pendingSeasonNavigation.season === state.currentGameLogsSeason) {
+      const pending = pendingSeasonNavigation;
+      pendingSeasonNavigation = null;
+      if (window.RostersGameLogsConsistency.availableStats().includes(pending.stat)) state.currentConsistencyStat = pending.stat;
+      consistency.syncControl();
+      window.setGameLogsModalView(pending.view);
+      // Key keeps the period it was opened from, including after year reloads.
+      if (pending.view === 'key') state.currentGameLogsKeyPeriod = pending.keyPeriod || 'gl';
+    }
+    syncRostersGameLogsNavigation();
   };
 
   // Game Logs uses the reference's three-color vitals scale. Read the already
@@ -972,6 +1099,8 @@ function rostersResetTeamView({ restoreFocus = false } = {}) {
   const pane = modal?.querySelector('#gamelogs-team-pane');
   modal?.classList.remove('is-team-view');
   pane?.classList.add('hidden');
+  consistency.closeMenu();
+  syncRostersGameLogsNavigation();
   if (restoreFocus && rostersTeamTrigger?.isConnected) rostersTeamTrigger.focus({ preventScroll: true });
   rostersTeamTrigger = null;
 }
@@ -1067,7 +1196,7 @@ function rostersFitTeamText() {
 }
 function rostersOpenTeamView(trigger) {
   const pane = modal?.querySelector('#gamelogs-team-pane');
-  const team = rostersTeamKey(trigger.dataset.teamModalOpen);
+  const team = rostersTeamKey(trigger.dataset.teamModalOpen || state.currentGameLogsPlayer?.team);
   if (!pane || !rostersTeamNames[team] || modal.classList.contains('loading')) return;
   const players = rostersTeamPlayers(team);
   const revision = ++rostersTeamViewRevision;
@@ -1086,6 +1215,8 @@ function rostersOpenTeamView(trigger) {
   body.scrollTop = 0;
   modal.classList.add('is-team-view');
   pane.classList.remove('hidden');
+  consistency.closeMenu();
+  syncRostersGameLogsNavigation();
   void rostersUpdateTeamSummary(team, state.currentGameLogsSeason, revision);
   requestAnimationFrame(rostersFitTeamText);
   document.fonts?.ready.then(rostersFitTeamText);
@@ -1093,7 +1224,7 @@ function rostersOpenTeamView(trigger) {
 }
 function rostersTeamKeydown(event) {
   if (!modal?.classList.contains('is-team-view') || event.key !== 'Tab') return;
-  const controls = [...modal.querySelectorAll('#gamelogs-team-pane button, #gamelogs-team-pane [tabindex="0"]')];
+  const controls = [...modal.querySelectorAll('#gamelogs-team-pane button, #gamelogs-team-pane [tabindex="0"], .gamelogs-bottom-nav button:enabled')];
   const first = controls[0], last = controls[controls.length - 1];
   if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
   else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
@@ -1126,5 +1257,5 @@ window.addEventListener('resize', rostersFitTeamText);
 // when that face finishes loading so long names never spill into adjacent cards.
 document.fonts?.addEventListener('loadingdone', rostersFitTeamText);
 
-  syncYearControl();
+  syncRostersGameLogsNavigation();
 })();
