@@ -269,8 +269,8 @@
     $("weeklyChart").innerHTML = frame(W, H, `${state.team} ${state.pos}: actual weekly totals versus opposing offense averages`, content);
   }
 
-  // Both scatter modes describe per-game defense quality. Season points use
-  // FPFA's published averages; defense ranks reverse only the displayed matchup
+  // Both scatter modes describe per-game defense quality. Points divide the
+  // original totals by games played; defense ranks reverse only the displayed matchup
   // number, while published SOS stays intact. Venue expected ranks use averages.
   function renderScatter() {
     document.querySelectorAll("[data-scatter-mode]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.scatterMode === state.mode)));
@@ -308,7 +308,10 @@
     // This scatter alone uses smaller logos and bounded collision spacing at
     // both widths. Lay out before selection sorting so picking a team never
     // reshuffles the cluster; connectors retain each team's exact data anchor.
-    const markers = Charts.spreadScatterPoints(points.map(point => ({ team: point.team, x: x(point.x), y: y(point.y) })), { left, right, top, bottom });
+    // Point domains provide anchor padding; also keep collision-adjusted logos
+    // fully inside the plot. Rank-mode spacing retains its existing bounds.
+    const markerBounds = ranked ? { left, right, top, bottom } : { left: left + 11, right: right - 11, top: top + 11, bottom: bottom - 11 };
+    const markers = Charts.spreadScatterPoints(points.map(point => ({ team: point.team, x: x(point.x), y: y(point.y) })), markerBounds);
     const markerByTeam = new Map(markers.map(marker => [marker.team, marker]));
     const moved = markers.filter(marker => Math.hypot(marker.displayX - marker.x, marker.displayY - marker.y) > 1);
     if (moved.length) {
@@ -318,18 +321,20 @@
     points.sort((a, b) => Number(a.team === state.team) - Number(b.team === state.team)).forEach(point => {
       const c = point.c, selected = point.team === state.team, key = `scatter:${point.team}`;
       const marker = markerByTeam.get(point.team);
-      tooltips.set(key, `<strong>${esc(Data.TEAM_NAMES[point.team])} · ${state.pos}</strong><br>Expected: ${fmt(point.expectedAvg, 2)} PPR points/game<br>Actual: ${fmt(point.actual.avg, 2)} PPR points/game<br><span class="${direction(point.deltaAvg)}">${signed(point.deltaAvg, 2)} points/game versus expected</span><br><span class="tooltipMuted">${c.games} games · Defense rank ${point.actual.rank ?? "—"} (1 = best)${ranked ? ` · ${seasonRanks ? "SOS" : "Expected FPA/game"} rank ${point.expectedRank}` : ""}</span>`);
-      content += `<g class="chartPoint" role="button" tabindex="0" aria-pressed="${selected}" data-chart-team="${point.team}" data-tooltip="${key}" aria-label="Explore ${point.team}: ${ranked && seasonRanks ? "SOS" : "expected"} ${fmt(point.x, ranked ? 0 : 2)}, ${ranked ? "defense rank" : "actual"} ${fmt(point.y, ranked ? 0 : 2)} ${ranked ? "" : "points/game"}"><circle cx="${marker.displayX}" cy="${marker.displayY}" r="${selected ? 10.5 : 8.5}" fill="#10182b" stroke="${selected ? COLORS[state.pos] : heatColor(point.actual)}" stroke-width="${selected ? 2 : .9}"/><image href="assets/NFL-Tags_webp/${point.team.toLowerCase()}.webp" x="${marker.displayX - 7}" y="${marker.displayY - 7}" width="14" height="14"/></g>`;
+      // Scatter readouts round only for display, to one decimal. Plot coordinates
+      // and axis domains continue using the precise total/game calculations.
+      tooltips.set(key, `<strong>${esc(Data.TEAM_NAMES[point.team])} · ${state.pos}</strong><br>Expected: ${fmt(point.expectedAvg, 1)} PPR points/game<br>Actual: ${fmt(point.actual.avg, 1)} PPR points/game<br><span class="${direction(point.deltaAvg)}">${signed(point.deltaAvg, 1)} points/game versus expected</span><br><span class="tooltipMuted">${c.games} games · Defense rank ${point.actual.rank ?? "—"} (1 = best)${ranked ? ` · ${seasonRanks ? "SOS" : "Expected FPA/game"} rank ${point.expectedRank}` : ""}</span>`);
+      content += `<g class="chartPoint" role="button" tabindex="0" aria-pressed="${selected}" data-chart-team="${point.team}" data-tooltip="${key}" aria-label="Explore ${point.team}: ${ranked && seasonRanks ? "SOS" : "expected"} ${fmt(point.x, ranked ? 0 : 1)}, ${ranked ? "defense rank" : "actual"} ${fmt(point.y, ranked ? 0 : 1)} ${ranked ? "" : "points/game"}"><circle cx="${marker.displayX}" cy="${marker.displayY}" r="${selected ? 10.5 : 8.5}" fill="#10182b" stroke="${selected ? COLORS[state.pos] : heatColor(point.actual)}" stroke-width="${selected ? 2 : .9}"/><image href="assets/NFL-Tags_webp/${point.team.toLowerCase()}.webp" x="${marker.displayX - 7}" y="${marker.displayY - 7}" width="14" height="14"/></g>`;
     });
     $("comparisonChart").innerHTML = frame(W, H, `${state.pos} ${ranked ? seasonRanks ? "SOS versus defense ranks" : "expected FPA/game versus defense ranks" : "expected versus actual FPA per game"}, ${venueLabel()}`, content);
   }
   function renderScatterDetail(team) {
     const point = View.scatterRows(analysis, state.pos).find(row => row.team === team), ranked = state.mode === "rank";
-    const expected = ranked ? point.expectedRank === null ? "—" : `#${point.expectedRank}` : fmt(point.expectedAvg, 2);
-    const actual = ranked ? point.actual.rank === null ? "—" : `#${point.actual.rank}` : fmt(point.actual.avg, 2);
+    const expected = ranked ? point.expectedRank === null ? "—" : `#${point.expectedRank}` : fmt(point.expectedAvg, 1);
+    const actual = ranked ? point.actual.rank === null ? "—" : `#${point.actual.rank}` : fmt(point.actual.avg, 1);
     const delta = ranked ? point.actual.rank === null || point.expectedRank === null ? null : point.actual.rank - point.expectedRank : point.deltaAvg;
     const seasonRanks = ranked && analysis.summaryAvailable;
-    $("comparisonDetail").innerHTML = `<span class="comparisonTeam">${logo(team)}<strong>${team}</strong></span><span>${ranked ? seasonRanks ? "SOS" : "Expected" : "Expected/game"} <strong>${expected}</strong></span><span>${ranked ? "Defense" : "Actual/game"} <strong>${actual}</strong></span><span class="${direction(delta)}">${signed(delta, ranked ? 0 : 2)} ${ranked ? "ranks" : "pts/game"}</span>`;
+    $("comparisonDetail").innerHTML = `<span class="comparisonTeam">${logo(team)}<strong>${team}</strong></span><span>${ranked ? seasonRanks ? "SOS" : "Expected" : "Expected/game"} <strong>${expected}</strong></span><span>${ranked ? "Defense" : "Actual/game"} <strong>${actual}</strong></span><span class="${direction(delta)}">${signed(delta, ranked ? 0 : 1)} ${ranked ? "ranks" : "pts/game"}</span>`;
   }
   function renderOpponents() {
     const c = comparison();
@@ -523,7 +528,7 @@
       $("sourceNotes").textContent = `Live 2026-Wkly sheets: FPA (formerly FPAv2), FPFA and FPF. ${model.audit.excludedRows} rows without an opposing defense are excluded. ` +
         (differences.length ? "FPFA season totals and FPAv2 weekly totals differ beyond rounding for " + [...new Set(differences.map(row => row.team))].join(", ") + ". Each view preserves its source. " : "") +
         (repeatedExpectations ? "FPFA supplies identical RB and WR expected totals, averages, and ranks for every team; these are retained as provided. " : "") +
-        "FPFA values stay intact; displayed season defense rank = 33 minus the published matchup rank. SOS and FPF offense ranks retain their supplied direction. The scatter uses published per-game averages; rounded averages can differ from totals divided by games. Rounded positional averages may sum differently from the supplied ALL average.";
+        "FPFA values stay intact; displayed season defense rank = 33 minus the published matchup rank. SOS and FPF offense ranks retain their supplied direction. The scatter divides actual and expected totals by games played and displays one decimal; the other average-based panels retain their published averages. Rounded positional averages may sum differently from the supplied ALL average.";
       render();
     } catch (error) {
       $("loadError").textContent = `Matchup data could not load: ${error.message}`; $("loadError").hidden = false;

@@ -97,7 +97,7 @@ The user's mobile main-filter gradients are also copied to desktop main filters,
 all five defense-heading position badges, and the weekly/scatter position buttons
 at both breakpoints. Each area keeps separate literal per-position declarations;
 editing one area or breakpoint does not restyle another. Badge/chart geometry
-remains local, and the scatter's Per Game/Ranks controls retain their own styling.
+remains local, and the scatter's Points/Ranks controls retain their own styling.
 
 The defense heading groups its defense-strength ordinal immediately before the
 existing position badge (for example, `14th vs. QB`). It uses the same current
@@ -113,10 +113,12 @@ readouts and the scatter all use that same display conversion. Rank colors stay
 with the same defense after the displayed number reverses. Source models and the
 independent Rosters matchup modal retain their original ranks.
 
-FPA vs Expected uses FPFA's published actual/expected per-game averages in the
-season view and recorded-game actual/expected averages in home/away views.
-Its axes, tooltips, differences and readout use points per game, preserving
-published rounding without dividing by calendar weeks or counting BYEs as games.
+FPA vs Expected divides its original actual/expected totals by each defense's
+games played, in both season and home/away views. This avoids the separately
+published average columns, which can already be rounded to whole numbers.
+It keeps full precision for plotting and displays one decimal in tooltips,
+differences and readouts, without counting BYEs as games. Each axis fits its
+own values with marker padding and readable ticks inside the padded range.
 In Ranks mode, season x values retain published SOS (1 = easiest schedule), venue
 x values rank expected averages lowest first, and y values use defense ranks
 (1 = best defense). The raw published SOS and offense ranks keep their meaning.

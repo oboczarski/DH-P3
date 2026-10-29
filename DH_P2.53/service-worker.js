@@ -91,7 +91,8 @@
 // Refresh Matchups' FPA vs Expected tick-label spacing on mobile and desktop.
 // Refresh the smaller Matchups scatter markers and bounded overlap spacing.
 // Refresh Matchups' per-game scatter and consistent best-defense-first rank labels.
-const CACHE_NAME = 'DH3.52p-matchups-per-game-defense-ranks';
+// Refresh the scatter's total/game averages, one-decimal readouts and padded axes.
+const CACHE_NAME = 'DH3.52q-matchups-scatter-average-precision';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

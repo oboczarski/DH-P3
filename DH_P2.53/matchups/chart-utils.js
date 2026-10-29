@@ -6,18 +6,24 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  // FPA vs Expected now plots per-game averages. Use an adaptive points scale
-  // (down to tenths) so narrow positional ranges do not collapse into ten-point ticks.
+  // FPA vs Expected fits each axis to its own unrounded per-game values, with
+  // padding for marker radii at both ends. Bounds use finer increments than the
+  // readable grid ticks, avoiding whole extra tick intervals of empty space.
   function pointBounds(values) {
     const finite = values.filter(Number.isFinite);
     if (!finite.length) return { low: 0, high: 1, step: .2, ticks: [0, .2, .4, .6, .8, 1] };
     let low = Math.min(...finite), high = Math.max(...finite);
-    if (low === high) { const padding = Math.max(1, Math.abs(low) * .1); low -= padding; high += padding; }
+    const span = high - low;
+    const padding = span > 0 ? Math.max(.1, span * .08) : Math.max(.5, Math.abs(low) * .05);
+    low -= padding; high += padding;
     const rough = (high - low) / 5, magnitude = 10 ** Math.floor(Math.log10(rough));
-    const step = Math.max(.1, ([1, 2, 5, 10].find(n => n * magnitude >= rough) || 10) * magnitude);
+    const candidates = [1, 2, 5, 10].map(n => Math.max(.1, n * magnitude));
+    const step = candidates.reduce((best, candidate) => Math.abs(Math.log(candidate / rough)) < Math.abs(Math.log(best / rough)) ? candidate : best);
     const clean = n => Math.round(n * 1e9) / 1e9 || 0;
-    low = clean(Math.floor(low / step) * step); high = clean(Math.ceil(high / step) * step);
-    const ticks = Array.from({ length: Math.round((high - low) / step) + 1 }, (_, index) => clean(low + index * step));
+    const boundStep = step / 5;
+    low = clean(Math.floor(low / boundStep) * boundStep); high = clean(Math.ceil(high / boundStep) * boundStep);
+    const first = Math.ceil((low - step * 1e-9) / step), last = Math.floor((high + step * 1e-9) / step);
+    const ticks = Array.from({ length: last - first + 1 }, (_, index) => clean((first + index) * step));
     return { low, high, step, ticks };
   }
 

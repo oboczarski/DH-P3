@@ -28,16 +28,21 @@
     return "#" + a.map((value, i) => Math.round(value + (b[i] - value) * t).toString(16).padStart(2, "0")).join("");
   }
 
-  // FPA vs Expected uses supplied season averages or recorded-game venue
-  // averages, never totals divided by the calendar week (which includes BYEs).
+  // FPA vs Expected divides its original actual/expected totals by each
+  // defense's games played. The separately supplied average columns can already
+  // be rounded to integers (especially QB), so they cannot preserve this chart's
+  // precision. Keep full calculated precision until display; BYEs add no games.
   // Its season x rank remains published SOS; venue expected ranks compare
   // opponent averages ascending. The y rank matches every other defense display.
   function scatterRows(analysis, pos) {
     const rows = analysis.rows.map(row => {
-      const c = row.metrics[pos], actual = defenseMetric(c.actual);
-      return { team: row.team, c, actual, expectedAvg: c.expectedAvg,
+      const c = row.metrics[pos], games = c.actual.games;
+      const perGame = total => Number.isFinite(total) && Number.isInteger(games) && games > 0 ? total / games : null;
+      const actual = { ...defenseMetric(c.actual), avg: perGame(c.actual.total) };
+      const expectedAvg = perGame(c.expectedTotal);
+      return { team: row.team, c, actual, expectedAvg,
         expectedRank: analysis.summaryAvailable ? c.sosRank : null,
-        deltaAvg: Number.isFinite(actual.avg) && Number.isFinite(c.expectedAvg) ? actual.avg - c.expectedAvg : null };
+        deltaAvg: actual.avg !== null && expectedAvg !== null ? actual.avg - expectedAvg : null };
     });
     if (!analysis.summaryAvailable) {
       const comparable = rows.filter(row => Number.isFinite(row.actual.avg) && Number.isFinite(row.expectedAvg));
