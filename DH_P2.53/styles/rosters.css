@@ -727,7 +727,7 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
 }
 
 .roster-column {
-  width: 128px;
+  width: 121px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -755,7 +755,7 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
   font-weight: 500;
   color: #d0d1ee;
   text-align: center;
-  padding: 0.32rem 0.2rem 0.32rem 0.15rem;
+  padding: 0.12rem 0.2rem 0.12rem 0.15rem;
   cursor: pointer;
   /* · · Glass look to match filter groups · · */
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgba(100, 100, 200, 0.0951));
@@ -773,8 +773,7 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
    cannot stretch the first row. Keep the previous compact chip height alongside
    the newer column widths, type sizes and independently owned text gradients. */
 body[data-page="rosters"] .team-header-item {
-  min-height: calc(1.59rem + 0px);
-  padding-block: 0.205rem;
+  min-height: calc(1.49rem + 0px);
   row-gap: 0;
   line-height: 1;
 }
