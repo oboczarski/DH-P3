@@ -310,10 +310,21 @@
     if (yBounds.high - 9 / (bottom - top) * (yBounds.high - yBounds.low) > xBounds.low + 5 / (right - left) * (xBounds.high - xBounds.low)) content += `<text class="zoneLabel" x="${left + 5}" y="${top + 9}">${ranked ? "Higher actual rank" : "Points Allowed Above Opponenet Average"}</text>`;
     if (yBounds.low + 6 / (bottom - top) * (yBounds.high - yBounds.low) < xBounds.high - 5 / (right - left) * (xBounds.high - xBounds.low)) content += `<text class="zoneLabel" x="${right - 5}" y="${bottom - 6}" text-anchor="end">${ranked ? "Lower actual rank" : "Points Allowed Below Opponent Average"}</text>`;
     content += `<text class="axisTitle" x="${(left + right) / 2}" y="${H - 10}" text-anchor="middle">${seasonRanks ? "SOS Ranking" : `Expected FPA ${ranked ? " · Rank" : " · Points | [Opponent Average]"}`}</text><text class="axisTitle" transform="translate(19 ${(top + bottom) / 2}) rotate(-90)" text-anchor="middle">${seasonRanks ? "Matchup rank" : `Actual FPA${ranked ? " rank" : " · total points"}`}</text>`;
+    // This scatter alone uses smaller logos and bounded collision spacing at
+    // both widths. Lay out before selection sorting so picking a team never
+    // reshuffles the cluster; connectors retain each team's exact data anchor.
+    const markers = Charts.spreadScatterPoints(points.map(point => ({ team: point.team, x: x(point.x), y: y(point.y) })), { left, right, top, bottom });
+    const markerByTeam = new Map(markers.map(marker => [marker.team, marker]));
+    const moved = markers.filter(marker => Math.hypot(marker.displayX - marker.x, marker.displayY - marker.y) > 1);
+    if (moved.length) {
+      content += `<g class="scatterLeaders" aria-hidden="true" pointer-events="none" stroke="#9eb0d9" stroke-width=".8" stroke-opacity=".45">${moved.map(marker => `<line x1="${marker.x}" y1="${marker.y}" x2="${marker.displayX}" y2="${marker.displayY}"/><circle cx="${marker.x}" cy="${marker.y}" r="1.4" fill="#9eb0d9" fill-opacity=".55" stroke="none"/>`).join("")}</g>`;
+      $("comparisonNote").textContent += " Crowded logos are nudged slightly; connectors mark exact values.";
+    }
     points.sort((a, b) => Number(a.team === state.team) - Number(b.team === state.team)).forEach(point => {
       const c = point.c, selected = point.team === state.team, key = `scatter:${point.team}`;
+      const marker = markerByTeam.get(point.team);
       tooltips.set(key, `<strong>${esc(Data.TEAM_NAMES[point.team])} · ${state.pos}</strong><br>Expected: ${fmt(c.expectedTotal, 1)} PPR points<br>Actual: ${fmt(c.actual.total)} PPR points<br><span class="${direction(c.delta)}">${signed(c.delta, 2)} points versus expected</span><br><span class="tooltipMuted">${c.games} games${ranked ? ` · ${seasonRanks ? "SOS" : "Expected"} rank ${c.expectedRank}, ${seasonRanks ? "matchup" : "actual"} rank ${c.actualRank}` : ""}</span>`);
-      content += `<g class="chartPoint" role="button" tabindex="0" aria-pressed="${selected}" data-chart-team="${point.team}" data-tooltip="${key}" aria-label="Explore ${point.team}: ${seasonRanks ? "SOS" : "expected"} ${fmt(point.x, ranked ? 0 : 1)}, ${seasonRanks ? "matchup" : "actual"} ${fmt(point.y, ranked ? 0 : 2)} ${ranked ? "rank" : "total points"}"><circle cx="${x(point.x)}" cy="${y(point.y)}" r="${selected ? 12 : 10}" fill="#10182b" stroke="${selected ? COLORS[state.pos] : heatColor(c.actual)}" stroke-width="${selected ? 2 : .9}"/><image href="assets/NFL-Tags_webp/${point.team.toLowerCase()}.webp" x="${x(point.x) - 8}" y="${y(point.y) - 8}" width="16" height="16"/></g>`;
+      content += `<g class="chartPoint" role="button" tabindex="0" aria-pressed="${selected}" data-chart-team="${point.team}" data-tooltip="${key}" aria-label="Explore ${point.team}: ${seasonRanks ? "SOS" : "expected"} ${fmt(point.x, ranked ? 0 : 1)}, ${seasonRanks ? "matchup" : "actual"} ${fmt(point.y, ranked ? 0 : 2)} ${ranked ? "rank" : "total points"}"><circle cx="${marker.displayX}" cy="${marker.displayY}" r="${selected ? 10.5 : 8.5}" fill="#10182b" stroke="${selected ? COLORS[state.pos] : heatColor(c.actual)}" stroke-width="${selected ? 2 : .9}"/><image href="assets/NFL-Tags_webp/${point.team.toLowerCase()}.webp" x="${marker.displayX - 7}" y="${marker.displayY - 7}" width="14" height="14"/></g>`;
     });
     $("comparisonChart").innerHTML = frame(W, H, `${state.pos} ${seasonRanks ? "SOS versus matchup ranks" : `expected versus actual FPA ${ranked ? "total ranks" : "totals"}`}, ${venueLabel()}`, content);
   }

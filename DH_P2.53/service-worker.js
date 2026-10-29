@@ -89,7 +89,8 @@
 // Restore single-row owner headers with placement before the record.
 // Refresh selected Rosters gradients without duplicated checkmark text clipping.
 // Refresh Matchups' FPA vs Expected tick-label spacing on mobile and desktop.
-const CACHE_NAME = 'DH3.52n-matchups-axis-label-spacing';
+// Refresh the smaller Matchups scatter markers and bounded overlap spacing.
+const CACHE_NAME = 'DH3.52o-matchups-scatter-spacing';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
