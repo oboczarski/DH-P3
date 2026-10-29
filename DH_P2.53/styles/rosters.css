@@ -799,7 +799,7 @@ linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area;
    which can leave a second, offset checkmark outside the selection circle. */
 body[data-page="rosters"] .team-header-item:has(.team-compare-checkbox.selected) .team-name {
   color: transparent;
-  background: linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
+  background: linear-gradient(90deg, #74efff -50%, #7297ff 52%, #d97dff 130%) text;
 }
 
 .team-card {
