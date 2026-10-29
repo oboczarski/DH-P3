@@ -825,6 +825,7 @@ linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area;
 body[data-page="rosters"] .team-header-item:has(.team-compare-checkbox.selected) .team-name {
   color: transparent;
   background: linear-gradient(90deg, #74efff -50%, #7297ff 52%, #d97dff 130%) text;
+  filter: drop-shadow(1px 1px 0px #0005);
 }
 
 .team-card {
