@@ -87,7 +87,8 @@
 // Refresh Rosters owner headers with standings and records below the username.
 // Restore the original owner-chip heights with tighter two-row spacing.
 // Restore single-row owner headers with placement before the record.
-const CACHE_NAME = 'DH3.52l-rosters-inline-standings2';
+// Refresh selected Rosters gradients without duplicated checkmark text clipping.
+const CACHE_NAME = 'DH3.52m-rosters-selection-gradient-fix';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
