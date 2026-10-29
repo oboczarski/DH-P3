@@ -3630,6 +3630,7 @@ main#content {
   white-space: nowrap;
   justify-self: start;
   word-spacing: -0.14em;
+  margin-top: 1px;
 }
 
 #analyzeLeagueButton {
