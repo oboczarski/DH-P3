@@ -768,16 +768,20 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
   z-index: 2;
 }
 
-/* Rosters owner headers keep the username, selection control and champion crown
-   on the first row, with the standing/record centered beneath the username.
-   Explicit slots prevent either line from moving when a crown is absent. */
+/* Rosters owner headers fit both text rows inside the original single-row chip:
+   tighten the line boxes/padding and let the selection circle span both rows so
+   its height does not enlarge the username row. The minimum preserves the old
+   0.7rem * 1.5 line box + 0.64rem padding + borders when a record is missing. */
 body[data-page="rosters"] .team-header-item {
-  row-gap: 0.05rem;
+  min-height: calc(1.69rem + 2px);
+  padding-block: 0.205rem;
+  row-gap: 0;
+  line-height: 1;
 }
 
 body[data-page="rosters"] .team-header-item .team-compare-checkbox {
   grid-column: 1;
-  grid-row: 1;
+  grid-row: 1 / span 2;
 }
 
 body[data-page="rosters"] .team-header-item .team-name {
@@ -1007,8 +1011,11 @@ body[data-page="rosters"] .roster-injury-indicator :is(.roster-bye-label, .roste
   gap: 0.2rem;
 }
 
-#rosterGrid.condensed-mode .team-header-item {
-  padding: 0.1rem 0.2rem;
+/* Condensed owner chips retain their original 0.58rem * 1.5 record line box,
+   0.2rem total padding and borders; the tighter two-row stack fits that height. */
+body[data-page="rosters"] #rosterGrid.condensed-mode .team-header-item {
+  min-height: calc(1.07rem + 2px);
+  padding: 0.015rem 0.2rem;
   font-size: 0.56rem;
 }
 

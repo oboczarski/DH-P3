@@ -85,7 +85,8 @@
 // Restore the pick label/KTC row and center original-owner usernames beneath it.
 // Refresh Trade Preview's inline pick owners and the verified WK8-WK10 projection exports.
 // Refresh Rosters owner headers with standings and records below the username.
-const CACHE_NAME = 'DH3.52j-rosters-owner-standings';
+// Restore the original owner-chip heights with tighter two-row spacing.
+const CACHE_NAME = 'DH3.52k-rosters-owner-chip-spacing';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
