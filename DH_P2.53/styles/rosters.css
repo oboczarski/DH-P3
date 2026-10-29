@@ -1287,7 +1287,7 @@ body[data-page="rosters"] .pick-ktc {
   background-color: var(--color-accent-primary);
   box-shadow: 0 0 var(--glow-strength) var(--color-accent-primary-glow);
   border: 1px solid transparent;
-  background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) border-area;
+  background: linear-gradient(90deg, #74efff53 0%, #7297ff53 52%, #d97dff53 100%), linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) border-area;
 }
 
 .team-compare-checkbox.selected::after {
@@ -1297,7 +1297,7 @@ body[data-page="rosters"] .pick-ktc {
   font-size: 0.55rem;
   font-weight: 900;
   top: 50%;
-  left: 52%;
+  left: 54%;
   transform: translate(-50%, -50%);
   border: 0px solid transparent;
   color: transparent;
