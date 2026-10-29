@@ -768,14 +768,38 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
   z-index: 2;
 }
 
-/* Rosters owner headers keep the selection control, username, optional crown
-   and standing/record on one row. Only the username truncates; preserve the
-   tuned column widths, font sizes and text spacing for the combined detail. */
-body[data-page="rosters"] .team-header-item:has(.team-record-champ) {
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+/* Rosters owner headers restore the compact two-row chip: the standing/record
+   sits beneath the username, while the selection circle spans both rows so it
+   cannot stretch the first row. Keep the previous compact chip height alongside
+   the newer column widths, type sizes and independently owned text gradients. */
+body[data-page="rosters"] .team-header-item {
+  min-height: calc(1.69rem + 2px);
+  padding-block: 0.205rem;
+  row-gap: 0;
+  line-height: 1;
+}
+
+body[data-page="rosters"] .team-header-item .team-compare-checkbox {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+
+body[data-page="rosters"] .team-header-item .team-name {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+body[data-page="rosters"] .team-header-item .team-record {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: center;
+  /* The inline layout's baseline offset would add space between these rows. */
+  margin-top: 0;
 }
 
 body[data-page="rosters"] .team-header-item .team-record-champ {
+  grid-column: 3;
+  grid-row: 1;
   font-size: 0.52rem;
   margin-left: 0rem;
   margin-right: 2px;
@@ -1002,10 +1026,11 @@ body[data-page="rosters"] .roster-injury-indicator :is(.roster-bye-label, .roste
   gap: 0.2rem;
 }
 
-/* Condensed owner chips use their original single-row padding while retaining
-   the smaller type used for the inline standing and record. */
+/* Condensed owner chips retain the previous compact two-row height and tight
+   vertical padding, with the standing/record still smaller than the username. */
 body[data-page="rosters"] #rosterGrid.condensed-mode .team-header-item {
-  padding: 0.1rem 0.2rem;
+  min-height: calc(1.07rem + 2px);
+  padding: 0.015rem 0.2rem;
   font-size: 0.56rem;
 }
 

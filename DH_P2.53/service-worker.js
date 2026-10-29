@@ -94,7 +94,8 @@
 // Refresh the scatter's total/game averages, one-decimal readouts and padded axes.
 // Refresh Rosters' defense-strength ranks/colors and its independently owned
 // breakdown heading, position gradients and aligned chart/opponent-chip track.
-const CACHE_NAME = 'DH3.52r-rosters-defense-ranks';
+// Restore compact two-row owner headers while retaining selected-team gradients.
+const CACHE_NAME = 'DH3.52s-rosters-stacked-owner-headers';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
