@@ -163,7 +163,7 @@ tbody tr:last-child td { border-bottom:0; }
 tbody tr:hover td { background:#aabbff09; }
 th button { color:inherit; font:inherit; border:0; padding:1px 0; width:100%; text-align:inherit; }
 .sortArrow { color:#88b8ff; margin-left:3px; font-size:9px; }
-.playerTableScroll {max-height: 180px;min-height: 160px;}
+.playerTableScroll {max-height: 160px;min-height: 150px;}
 .playerTable th:first-child, .playerTable td:first-child { width:35px; color:var(--dim); }
 .playerTable th:last-child, .playerTable td:last-child { text-align:right; width:64px; }
 .playerTable td:last-child { font-weight:550; }
@@ -209,7 +209,7 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .positionToggle button { flex:1; min-width:0; font-size:10px; padding:5px 7px; }
   .venueMenuLabel { font-size:10px; }
   .glass-panel { border-radius:12px; }
-  .defensePanel {padding: 2px 10px 9px;}
+  .defensePanel {padding: 2px 10px 4px;}
   .defenseHeader {gap:7px;margin-bottom: 4px;}
   .defenseLogo { width:42px; height:37px; border-radius:10px; }
   .defenseLogo img { width:36px; height:30px; }
@@ -218,7 +218,7 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .defenseRank { font-size:12px; }
   .defenseHeaderCopy .fieldLabel { white-space:normal; }
   .fieldLabel {font-size: 9px;}
-  .panelSubtitle { font-size:9px; }
+  .panelSubtitle {font-size: 9px;}
   /* All five mobile summary cards stay on one row, including both rank cards. */
   .metricStrip {grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;margin-bottom: 4px;}
   .metricStrip > .metric,
@@ -231,7 +231,7 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .metricDesktop { display:none; }
   .metricMobile { display:inline; }
   .chartLegend { font-size:7px; gap:8px; }
-  .sectionHeading h3 { font-size:11px; }
+  .sectionHeading h3 {font-size:11px;}
   /* Phone slots/chips match the Matchups mobile track, including its outline. */
   .weeklyTimelineContent { min-width:max(260px,calc(40px + var(--weekly-week-count,1) * 38px)); }
   .weeklyMatchups { margin-bottom:8px; }
@@ -250,7 +250,7 @@ dialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
   .expandedControls { flex-wrap:wrap; gap:7px; }
   .expandedControls > .teamPicker { min-width:120px; flex:1 1 45%; }
   .expandedControls .positionToggle { order:3; width:100%; }
-  .dialogHeader, .dialogBody {padding: 2px 10px 3px;}
+  .dialogHeader, .dialogBody {padding: 2px 10px 2px;}
 }
 @media (max-width:400px) {
   /* At 320px the five-card row needs its width for labels, not side padding. */
@@ -284,7 +284,7 @@ dialog { font:inherit; }
   /* Mobile Breakdown opens the selected player's opponent directly. Hide only
      its top team/venue controls and reclaim their space; expanded-table controls remain available. */
   .matchupDialog #analysis > .expandedControls { display:none; }
-  .matchupDialog > .dialogBody {padding-top: 4px;}
+  .matchupDialog > .dialogBody {padding-top: 4px;padding-bottom: 8px;}
 }
 
 /* Summary percent units remain slightly smaller at every modal breakpoint. */
@@ -308,5 +308,5 @@ dialog { font:inherit; }
 @media (max-width:620px) {
   /* Only mobile Matchup Breakdown tightens the wrapped row below Week by week.
      Players faced, expanded-table headings and desktop spacing stay independent. */
-  .matchupDialog .weeklySection > .sectionHeading.chartHeading { row-gap:2px; }
+  .matchupDialog .weeklySection > .sectionHeading.chartHeading {row-gap: 0px;}
 }
