@@ -1291,13 +1291,13 @@ body[data-page="rosters"] .pick-ktc {
 }
 
 .team-compare-checkbox.selected::after {
-  content: '✔';
+  content: '✔︎';
   position: absolute;
   color: var(--color-bg);
   font-size: 0.55rem;
   font-weight: 900;
   top: 50%;
-  left: 50%;
+  left: 52%;
   transform: translate(-50%, -50%);
   border: 0px solid transparent;
   color: transparent;
