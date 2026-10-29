@@ -299,15 +299,17 @@
     const geometry = Charts.comparisonGeometry(xBounds, yBounds);
     const polygon = (vertices, color) => vertices.length < 3 ? "" : `<polygon points="${vertices.map(([a, b]) => `${x(a)},${y(b)}`).join(" ")}" fill="${color}" fill-opacity=".025"/>`;
     let content = polygon(geometry.above, ranked ? "#ffb2d8" : "#75e0b7") + polygon(geometry.below, ranked ? "#75e0b7" : "#ffb2d8");
-    content += yBounds.ticks.map(n => `<line class="gridLine" x1="${left}" x2="${right}" y1="${y(n)}" y2="${y(n)}"/><text x="${left - 7}" y="${y(n) + 3}" text-anchor="end">${tick(n, yBounds)}</text>`).join("");
-    content += xBounds.ticks.map(n => `<line class="gridLine" x1="${x(n)}" x2="${x(n)}" y1="${top}" y2="${bottom}"/><text x="${x(n)}" y="${bottom + 13}" text-anchor="middle">${tick(n, xBounds)}</text>`).join("");
+    // FPA vs Expected tick labels sit 5px farther right and 4px higher on both
+    // layouts; only label offsets change, preserving the plot and axis titles.
+    content += yBounds.ticks.map(n => `<line class="gridLine" x1="${left}" x2="${right}" y1="${y(n)}" y2="${y(n)}"/><text x="${left - 2}" y="${y(n) + 3}" text-anchor="end">${tick(n, yBounds)}</text>`).join("");
+    content += xBounds.ticks.map(n => `<line class="gridLine" x1="${x(n)}" x2="${x(n)}" y1="${top}" y2="${bottom}"/><text x="${x(n)}" y="${bottom + 9}" text-anchor="middle">${tick(n, xBounds)}</text>`).join("");
     if (geometry.equality.length) {
       const [a, b] = geometry.equality;
       content += `<line x1="${x(a[0])}" y1="${y(a[1])}" x2="${x(b[0])}" y2="${y(b[1])}" stroke="#9eb0d9" stroke-opacity=".6" stroke-dasharray="4 4"/>`;
     }
     if (yBounds.high - 9 / (bottom - top) * (yBounds.high - yBounds.low) > xBounds.low + 5 / (right - left) * (xBounds.high - xBounds.low)) content += `<text class="zoneLabel" x="${left + 5}" y="${top + 9}">${ranked ? "Higher actual rank" : "Points Allowed Above Opponenet Average"}</text>`;
     if (yBounds.low + 6 / (bottom - top) * (yBounds.high - yBounds.low) < xBounds.high - 5 / (right - left) * (xBounds.high - xBounds.low)) content += `<text class="zoneLabel" x="${right - 5}" y="${bottom - 6}" text-anchor="end">${ranked ? "Lower actual rank" : "Points Allowed Below Opponent Average"}</text>`;
-    content += `<text class="axisTitle" x="${(left + right) / 2}" y="${H - 8}" text-anchor="middle">${seasonRanks ? "SOS Ranking" : `Expected FPA ${ranked ? " · Rank" : " · Points | [Opponent Average]"}`}</text><text class="axisTitle" transform="translate(11 ${(top + bottom) / 2}) rotate(-90)" text-anchor="middle">${seasonRanks ? "Matchup rank" : `Actual FPA${ranked ? " rank" : " · total points"}`}</text>`;
+    content += `<text class="axisTitle" x="${(left + right) / 2}" y="${H - 10}" text-anchor="middle">${seasonRanks ? "SOS Ranking" : `Expected FPA ${ranked ? " · Rank" : " · Points | [Opponent Average]"}`}</text><text class="axisTitle" transform="translate(19 ${(top + bottom) / 2}) rotate(-90)" text-anchor="middle">${seasonRanks ? "Matchup rank" : `Actual FPA${ranked ? " rank" : " · total points"}`}</text>`;
     points.sort((a, b) => Number(a.team === state.team) - Number(b.team === state.team)).forEach(point => {
       const c = point.c, selected = point.team === state.team, key = `scatter:${point.team}`;
       tooltips.set(key, `<strong>${esc(Data.TEAM_NAMES[point.team])} · ${state.pos}</strong><br>Expected: ${fmt(c.expectedTotal, 1)} PPR points<br>Actual: ${fmt(c.actual.total)} PPR points<br><span class="${direction(c.delta)}">${signed(c.delta, 2)} points versus expected</span><br><span class="tooltipMuted">${c.games} games${ranked ? ` · ${seasonRanks ? "SOS" : "Expected"} rank ${c.expectedRank}, ${seasonRanks ? "matchup" : "actual"} rank ${c.actualRank}` : ""}</span>`);

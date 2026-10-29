@@ -88,7 +88,8 @@
 // Restore the original owner-chip heights with tighter two-row spacing.
 // Restore single-row owner headers with placement before the record.
 // Refresh selected Rosters gradients without duplicated checkmark text clipping.
-const CACHE_NAME = 'DH3.52m-rosters-selection-gradient-fix';
+// Refresh Matchups' FPA vs Expected tick-label spacing on mobile and desktop.
+const CACHE_NAME = 'DH3.52n-matchups-axis-label-spacing';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
