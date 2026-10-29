@@ -7,10 +7,49 @@
   "use strict";
   const POSITIONS = Object.freeze(["QB", "RB", "WR", "TE", "ALL"]);
 
+  // Matchups displays defense strength: 1 = best/fewest FPA per game. Reverse
+  // published matchup ranks for display only; venue ranks already run this way.
+  // Preserve source statistics, missing ranks and ties without re-ranking FPFA.
+  function defenseMetric(stat) {
+    const valid = Number.isInteger(stat.rank) && stat.rank >= 1 && stat.rank <= stat.pool;
+    return { ...stat, rank: valid ? stat.rankOrder === "descending" ? stat.pool + 1 - stat.rank : stat.rank : null,
+      rankOrder: "ascending" };
+  }
+
+  // Keep the same pink-to-purple-to-green treatment for the same defense when
+  // its displayed rank reverses. SOS can still pass its own descending scale.
+  function rankColor(stat) {
+    if (stat.rank === null) return "#7b81a5";
+    const normalized = stat.pool < 2 ? .5 : (stat.rank - 1) / (stat.pool - 1);
+    const fraction = stat.rankOrder === "descending" ? 1 - normalized : normalized;
+    const a = fraction <= .5 ? [255, 178, 216] : [171, 155, 255];
+    const b = fraction <= .5 ? [171, 155, 255] : [117, 224, 183];
+    const t = fraction <= .5 ? fraction * 2 : (fraction - .5) * 2;
+    return "#" + a.map((value, i) => Math.round(value + (b[i] - value) * t).toString(16).padStart(2, "0")).join("");
+  }
+
+  // FPA vs Expected uses supplied season averages or recorded-game venue
+  // averages, never totals divided by the calendar week (which includes BYEs).
+  // Its season x rank remains published SOS; venue expected ranks compare
+  // opponent averages ascending. The y rank matches every other defense display.
+  function scatterRows(analysis, pos) {
+    const rows = analysis.rows.map(row => {
+      const c = row.metrics[pos], actual = defenseMetric(c.actual);
+      return { team: row.team, c, actual, expectedAvg: c.expectedAvg,
+        expectedRank: analysis.summaryAvailable ? c.sosRank : null,
+        deltaAvg: Number.isFinite(actual.avg) && Number.isFinite(c.expectedAvg) ? actual.avg - c.expectedAvg : null };
+    });
+    if (!analysis.summaryAvailable) {
+      const comparable = rows.filter(row => Number.isFinite(row.actual.avg) && Number.isFinite(row.expectedAvg));
+      comparable.forEach(row => { row.expectedRank = 1 + comparable.filter(other => other.expectedAvg < row.expectedAvg - 1e-9).length; });
+    }
+    return rows;
+  }
+
   function build(analysis, pos, order = []) {
     const teams = [...new Set([...order, ...analysis.rows.map(row => row.team)])].filter(team => analysis.byTeam.has(team));
     const cells = teams.flatMap(team => POSITIONS.map(position => {
-      const c = analysis.byTeam.get(team).metrics[position], stat = c.actual;
+      const c = analysis.byTeam.get(team).metrics[position], stat = defenseMetric(c.actual);
       return { team, pos: position, avg: stat.avg, rank: stat.rank, pool: stat.pool, games: stat.games,
         rankOrder: stat.rankOrder, expectedAvg: c.expectedAvg };
     }));
@@ -57,5 +96,5 @@
     if (min === max) { min -= unit; max += unit; }
     return { min, max };
   }
-  return Object.freeze({ POSITIONS, build, extent, dumbbellBounds });
+  return Object.freeze({ POSITIONS, build, extent, dumbbellBounds, defenseMetric, rankColor, scatterRows });
 });

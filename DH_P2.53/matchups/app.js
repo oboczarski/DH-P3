@@ -3,7 +3,7 @@
   "use strict";
   // This copied dashboard owns only the integrated Matchups document.
   if (document.body?.dataset.page !== "matchups") return;
-  const Data = window.FPAData, Charts = window.FPACharts, $ = id => document.getElementById(id);
+  const Data = window.FPAData, Charts = window.FPACharts, View = window.FPAChartLabData, $ = id => document.getElementById(id);
   const POSITIONS = ["QB", "RB", "WR", "TE", "ALL"];
   const COLORS = { QB: "#ffb2d8", RB: "#75e0b7", WR: "#63b0de", TE: "#ab9bff", ALL: "#aabaff" };
   const LABELS = { QB: "quarterbacks", RB: "running backs", WR: "wide receivers", TE: "tight ends", ALL: "all positions" };
@@ -46,7 +46,7 @@
   const direction = value => value > 0 ? "is-easy" : value < 0 ? "is-tough" : "";
   const empty = (title, detail) => `<div class="emptyState"><strong>${esc(title)}</strong>${esc(detail)}</div>`;
 
-  // The defense heading displays the supplied FPA rank as an ordinal. Missing
+  // The defense heading displays the defense-strength rank as an ordinal. Missing
   // ranks stay unavailable; 11th/12th/13th retain "th" despite their last digit.
   function ordinalRank(rank) {
     if (!Number.isInteger(rank) || rank < 1) return "—";
@@ -124,15 +124,9 @@
     focusPickerOption(options[next]);
   }
 
-  function heatColor(stat) {
-    if (stat.rank === null) return "#7b81a5";
-    const normalized = stat.pool < 2 ? .5 : (stat.rank - 1) / (stat.pool - 1);
-    const fraction = stat.rankOrder === "descending" ? 1 - normalized : normalized;
-    const a = fraction <= .5 ? [255, 178, 216] : [171, 155, 255];
-    const b = fraction <= .5 ? [171, 155, 255] : [117, 224, 183];
-    const t = fraction <= .5 ? fraction * 2 : (fraction - .5) * 2;
-    return "#" + a.map((value, i) => Math.round(value + (b[i] - value) * t).toString(16).padStart(2, "0")).join("");
-  }
+  // Defense and SOS displays share the tested color scale but retain their own
+  // rank direction; reversing a defense's displayed number preserves its color.
+  const heatColor = View.rankColor;
 
   // Keep only current matchup selection in the URL. Removed week-range controls
   // and saved uploads cannot carry an old dataset or recent window into this app.
@@ -180,20 +174,20 @@
     window.FPAChartLab?.update(window.FPAChartContext);
   }
   function renderProfile() {
-    const c = comparison(), stat = c.actual;
+    const c = comparison(), stat = View.defenseMetric(c.actual);
     $("defenseLogo").innerHTML = logo(state.team);
     $("defenseTitle").textContent = Data.TEAM_NAMES[state.team];
     $("defenseSubtitle").textContent = `vs. ${LABELS[state.pos]} · ${venueLabel()}`;
     $("selectedPosition").textContent = state.pos; $("selectedPosition").dataset.pos = state.pos;
-    // Mirror MATCHUP RK's actual FPA rank for this team/position/venue. Keep
+    // Mirror RANK's defense-strength rank for this team/position/venue. Keep
     // the existing styled position badge as the final part of "14th vs. QB".
     $("defenseRank").textContent = `${ordinalRank(stat.rank)} vs.`;
-    $("defenseRank").title = `FPA rank vs. ${LABELS[state.pos]} · ${venueLabel()} · Rank 1 = ${stat.rankOrder === "descending" ? "most" : "fewest"} points allowed`;
+    $("defenseRank").title = `Defense rank vs. ${LABELS[state.pos]} · ${venueLabel()} · Rank 1 = best defense / fewest FPA per game`;
     // Summary copy controls its own case; the percent unit is sized separately.
     const deltaValue = c.deltaPct !== null ? `${signed(c.deltaPct)}<span class="metricPercent">%</span>` : signed(c.delta, 2);
     const baselineNote = c.expectedTotal !== null ? `${fmt(c.expectedAvg, 1)} per game` : analysis.summaryAvailable ? "Not supplied in FPFA" : "Opponent average unavailable";
-    // The SOS card uses the positional season vRK, with low ranks colored easy
-    // like the published matchup ranks. It never reverses or re-ranks the feed.
+    // The SOS card keeps the positional season vRK and its low-rank/easy color
+    // direction. Defense-rank reversal never applies to schedule or offense ranks.
     // CSS switches the mobile spans to one-decimal Actual FPA and shorter notes;
     // desktop text and every underlying comparison retain their existing precision.
     const sosColor = heatColor({ rank: c.sosRank, pool: Data.TEAMS.length, rankOrder: "descending" });
@@ -201,7 +195,7 @@
       <div class="metric"><div class="metricLabel">ACTUAL FPA</div><div class="metricValue"><span class="metricDesktop">${fmt(stat.total)}</span><span class="metricMobile">${fmt(stat.total, 1)}</span></div><div class="metricSub">${fmt(stat.avg, 1)} per game</div></div>
       <div class="metric"><div class="metricLabel">EXPECTED FPA</div><div class="metricValue">${fmt(c.expectedTotal, 1)}</div><div class="metricSub">${baselineNote}</div></div>
       <div class="metric"><div class="metricLabel">vs EXPECTED</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
-      <div class="metric"><div class="metricLabel" title="Rank 1 = ${stat.rankOrder === "descending" ? "most" : "fewest"} points allowed">MATCHUP RK</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub"><span class="metricDesktop">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</span><span class="metricMobile">${stat.games} game${stat.games === 1 ? "" : "s"}</span></div></div>
+      <div class="metric"><div class="metricLabel" title="Defense rank: 1 = best defense / fewest FPA per game">RANK</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub"><span class="metricDesktop">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</span><span class="metricMobile">${stat.games} game${stat.games === 1 ? "" : "s"}</span></div></div>
       <div class="metric metric--sos" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub"><span class="metricDesktop">1 easy · 32 tough</span><span class="metricMobile">1 → 32</span></div></div>`;
   }
   function width(id) {
@@ -275,19 +269,18 @@
     $("weeklyChart").innerHTML = frame(W, H, `${state.team} ${state.pos}: actual weekly totals versus opposing offense averages`, content);
   }
 
-  // Point mode compares totals. Full-season rank mode keeps FPFA's supplied
-  // matchup/SOS ranks without recomputing ties; vRK is now ascending schedule
-  // difficulty, so its labels must distinguish it from venue expected-total ranks.
+  // Both scatter modes describe per-game defense quality. Season points use
+  // FPFA's published averages; defense ranks reverse only the displayed matchup
+  // number, while published SOS stays intact. Venue expected ranks use averages.
   function renderScatter() {
     document.querySelectorAll("[data-scatter-mode]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.scatterMode === state.mode)));
     const ranked = state.mode === "rank";
     const seasonRanks = ranked && analysis.summaryAvailable;
-    const points = analysis.rows.map(row => {
-      const c = row.metrics[state.pos];
-      return { team: row.team, c, x: ranked ? c.expectedRank : c.expectedTotal, y: ranked ? c.actualRank : c.actual.total };
-    }).filter(point => point.x !== null && point.y !== null);
+    const points = View.scatterRows(analysis, state.pos).map(point => ({ ...point,
+      x: ranked ? point.expectedRank : point.expectedAvg, y: ranked ? point.actual.rank : point.actual.avg,
+    })).filter(point => Number.isFinite(point.x) && Number.isFinite(point.y));
     renderScatterDetail(state.team);
-    $("comparisonNote").textContent = ranked ? `${seasonRanks ? "FPFA ranks · 1 = easiest matchup / schedule" : "Selected-game ranks · 1 = highest"} · ${points.length} comparable defenses. Select a logo.` : `Above the line = more points allowed than expected. ${points.length} comparable defenses.`;
+    $("comparisonNote").textContent = ranked ? `${seasonRanks ? "Defense rank: 1 = best · SOS: 1 = easiest schedule" : "Defense rank: 1 = fewest FPA/game · Expected rank: 1 = lowest opponent average"}. ${points.length} comparable defenses. Select a logo.` : `Per-game averages · Above the line = more FPA/game than expected. ${points.length} comparable defenses. Select a logo.`;
     if (!points.length) { $("comparisonChart").innerHTML = empty("No complete comparisons", analysis.unavailableReason); return; }
     const W = width("comparisonChart"), H = innerWidth <= 620 ? 320 : 330, left = 43, right = W - 16, top = 18, bottom = H - 34;
     const pool = Data.TEAMS.length;
@@ -298,7 +291,9 @@
     const y = value => bottom - (value - yBounds.low) / (yBounds.high - yBounds.low) * (bottom - top);
     const geometry = Charts.comparisonGeometry(xBounds, yBounds);
     const polygon = (vertices, color) => vertices.length < 3 ? "" : `<polygon points="${vertices.map(([a, b]) => `${x(a)},${y(b)}`).join(" ")}" fill="${color}" fill-opacity=".025"/>`;
-    let content = polygon(geometry.above, ranked ? "#ffb2d8" : "#75e0b7") + polygon(geometry.below, ranked ? "#75e0b7" : "#ffb2d8");
+    // A larger defense rank now means more permissive defense. In both modes,
+    // the region above the baseline is easier/green and below is tougher/pink.
+    let content = polygon(geometry.above, "#75e0b7") + polygon(geometry.below, "#ffb2d8");
     // FPA vs Expected tick labels sit 5px farther right and 4px higher on both
     // layouts; only label offsets change, preserving the plot and axis titles.
     content += yBounds.ticks.map(n => `<line class="gridLine" x1="${left}" x2="${right}" y1="${y(n)}" y2="${y(n)}"/><text x="${left - 2}" y="${y(n) + 3}" text-anchor="end">${tick(n, yBounds)}</text>`).join("");
@@ -307,9 +302,9 @@
       const [a, b] = geometry.equality;
       content += `<line x1="${x(a[0])}" y1="${y(a[1])}" x2="${x(b[0])}" y2="${y(b[1])}" stroke="#9eb0d9" stroke-opacity=".6" stroke-dasharray="4 4"/>`;
     }
-    if (yBounds.high - 9 / (bottom - top) * (yBounds.high - yBounds.low) > xBounds.low + 5 / (right - left) * (xBounds.high - xBounds.low)) content += `<text class="zoneLabel" x="${left + 5}" y="${top + 9}">${ranked ? "Higher actual rank" : "Points Allowed Above Opponenet Average"}</text>`;
-    if (yBounds.low + 6 / (bottom - top) * (yBounds.high - yBounds.low) < xBounds.high - 5 / (right - left) * (xBounds.high - xBounds.low)) content += `<text class="zoneLabel" x="${right - 5}" y="${bottom - 6}" text-anchor="end">${ranked ? "Lower actual rank" : "Points Allowed Below Opponent Average"}</text>`;
-    content += `<text class="axisTitle" x="${(left + right) / 2}" y="${H - 10}" text-anchor="middle">${seasonRanks ? "SOS Ranking" : `Expected FPA ${ranked ? " · Rank" : " · Points | [Opponent Average]"}`}</text><text class="axisTitle" transform="translate(19 ${(top + bottom) / 2}) rotate(-90)" text-anchor="middle">${seasonRanks ? "Matchup rank" : `Actual FPA${ranked ? " rank" : " · total points"}`}</text>`;
+    if (yBounds.high - 9 / (bottom - top) * (yBounds.high - yBounds.low) > xBounds.low + 5 / (right - left) * (xBounds.high - xBounds.low)) content += `<text class="zoneLabel" x="${left + 5}" y="${top + 9}">${ranked ? "Weaker Defense vs. Baseline" : "Above Expected FPA/Game"}</text>`;
+    if (yBounds.low + 6 / (bottom - top) * (yBounds.high - yBounds.low) < xBounds.high - 5 / (right - left) * (xBounds.high - xBounds.low)) content += `<text class="zoneLabel" x="${right - 5}" y="${bottom - 6}" text-anchor="end">${ranked ? "Stronger Defense vs. Baseline" : "Below Expected FPA/Game"}</text>`;
+    content += `<text class="axisTitle" x="${(left + right) / 2}" y="${H - 10}" text-anchor="middle">${ranked ? seasonRanks ? "SOS Rank · 1 = Easiest" : "Expected FPA/Game · Rank" : "Expected FPA · Points | [Opponent Weekly Avg.]"}</text><text class="axisTitle" transform="translate(19 ${(top + bottom) / 2}) rotate(-90)" text-anchor="middle">${ranked ? "Defense Rank · 1 = Best" : "Actual FPA · Points/Game"}</text>`;
     // This scatter alone uses smaller logos and bounded collision spacing at
     // both widths. Lay out before selection sorting so picking a team never
     // reshuffles the cluster; connectors retain each team's exact data anchor.
@@ -323,18 +318,18 @@
     points.sort((a, b) => Number(a.team === state.team) - Number(b.team === state.team)).forEach(point => {
       const c = point.c, selected = point.team === state.team, key = `scatter:${point.team}`;
       const marker = markerByTeam.get(point.team);
-      tooltips.set(key, `<strong>${esc(Data.TEAM_NAMES[point.team])} · ${state.pos}</strong><br>Expected: ${fmt(c.expectedTotal, 1)} PPR points<br>Actual: ${fmt(c.actual.total)} PPR points<br><span class="${direction(c.delta)}">${signed(c.delta, 2)} points versus expected</span><br><span class="tooltipMuted">${c.games} games${ranked ? ` · ${seasonRanks ? "SOS" : "Expected"} rank ${c.expectedRank}, ${seasonRanks ? "matchup" : "actual"} rank ${c.actualRank}` : ""}</span>`);
-      content += `<g class="chartPoint" role="button" tabindex="0" aria-pressed="${selected}" data-chart-team="${point.team}" data-tooltip="${key}" aria-label="Explore ${point.team}: ${seasonRanks ? "SOS" : "expected"} ${fmt(point.x, ranked ? 0 : 1)}, ${seasonRanks ? "matchup" : "actual"} ${fmt(point.y, ranked ? 0 : 2)} ${ranked ? "rank" : "total points"}"><circle cx="${marker.displayX}" cy="${marker.displayY}" r="${selected ? 10.5 : 8.5}" fill="#10182b" stroke="${selected ? COLORS[state.pos] : heatColor(c.actual)}" stroke-width="${selected ? 2 : .9}"/><image href="assets/NFL-Tags_webp/${point.team.toLowerCase()}.webp" x="${marker.displayX - 7}" y="${marker.displayY - 7}" width="14" height="14"/></g>`;
+      tooltips.set(key, `<strong>${esc(Data.TEAM_NAMES[point.team])} · ${state.pos}</strong><br>Expected: ${fmt(point.expectedAvg, 2)} PPR points/game<br>Actual: ${fmt(point.actual.avg, 2)} PPR points/game<br><span class="${direction(point.deltaAvg)}">${signed(point.deltaAvg, 2)} points/game versus expected</span><br><span class="tooltipMuted">${c.games} games · Defense rank ${point.actual.rank ?? "—"} (1 = best)${ranked ? ` · ${seasonRanks ? "SOS" : "Expected FPA/game"} rank ${point.expectedRank}` : ""}</span>`);
+      content += `<g class="chartPoint" role="button" tabindex="0" aria-pressed="${selected}" data-chart-team="${point.team}" data-tooltip="${key}" aria-label="Explore ${point.team}: ${ranked && seasonRanks ? "SOS" : "expected"} ${fmt(point.x, ranked ? 0 : 2)}, ${ranked ? "defense rank" : "actual"} ${fmt(point.y, ranked ? 0 : 2)} ${ranked ? "" : "points/game"}"><circle cx="${marker.displayX}" cy="${marker.displayY}" r="${selected ? 10.5 : 8.5}" fill="#10182b" stroke="${selected ? COLORS[state.pos] : heatColor(point.actual)}" stroke-width="${selected ? 2 : .9}"/><image href="assets/NFL-Tags_webp/${point.team.toLowerCase()}.webp" x="${marker.displayX - 7}" y="${marker.displayY - 7}" width="14" height="14"/></g>`;
     });
-    $("comparisonChart").innerHTML = frame(W, H, `${state.pos} ${seasonRanks ? "SOS versus matchup ranks" : `expected versus actual FPA ${ranked ? "total ranks" : "totals"}`}, ${venueLabel()}`, content);
+    $("comparisonChart").innerHTML = frame(W, H, `${state.pos} ${ranked ? seasonRanks ? "SOS versus defense ranks" : "expected FPA/game versus defense ranks" : "expected versus actual FPA per game"}, ${venueLabel()}`, content);
   }
   function renderScatterDetail(team) {
-    const c = comparison(team), ranked = state.mode === "rank";
-    const expected = ranked ? c.expectedRank === null ? "—" : `#${c.expectedRank}` : fmt(c.expectedTotal, 1);
-    const actual = ranked ? c.actualRank === null ? "—" : `#${c.actualRank}` : fmt(c.actual.total);
-    const delta = ranked ? c.actualRank === null || c.expectedRank === null ? null : c.actualRank - c.expectedRank : c.delta;
+    const point = View.scatterRows(analysis, state.pos).find(row => row.team === team), ranked = state.mode === "rank";
+    const expected = ranked ? point.expectedRank === null ? "—" : `#${point.expectedRank}` : fmt(point.expectedAvg, 2);
+    const actual = ranked ? point.actual.rank === null ? "—" : `#${point.actual.rank}` : fmt(point.actual.avg, 2);
+    const delta = ranked ? point.actual.rank === null || point.expectedRank === null ? null : point.actual.rank - point.expectedRank : point.deltaAvg;
     const seasonRanks = ranked && analysis.summaryAvailable;
-    $("comparisonDetail").innerHTML = `<span class="comparisonTeam">${logo(team)}<strong>${team}</strong></span><span>${seasonRanks ? "SOS" : "Expected"} <strong>${expected}</strong></span><span>${seasonRanks ? "Matchup" : "Actual"} <strong>${actual}</strong></span><span class="${direction(ranked && delta !== null ? -delta : delta)}">${signed(delta, ranked ? 0 : 2)} ${ranked ? "ranks" : "pts"}</span>`;
+    $("comparisonDetail").innerHTML = `<span class="comparisonTeam">${logo(team)}<strong>${team}</strong></span><span>${ranked ? seasonRanks ? "SOS" : "Expected" : "Expected/game"} <strong>${expected}</strong></span><span>${ranked ? "Defense" : "Actual/game"} <strong>${actual}</strong></span><span class="${direction(delta)}">${signed(delta, ranked ? 0 : 2)} ${ranked ? "ranks" : "pts/game"}</span>`;
   }
   function renderOpponents() {
     const c = comparison();
@@ -347,17 +342,17 @@
     }).join("") : '<tr><td colspan="6">No recorded games in this venue.</td></tr>'}${placeholder}</tbody>`;
   }
   function renderHeatmap() {
-    $("heatRankNote").textContent = `Rank 1 = ${analysis.summaryAvailable ? "most points allowed (FPFA)" : "fewest points allowed (venue)"}`;
+    $("heatRankNote").textContent = "Rank 1 = best defense / fewest FPA per game";
     document.querySelectorAll("[data-heat-order]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.heatOrder === state.heatSort.pos)));
     const sorted = [...analysis.actual.rows].sort((a, b) => {
       const first = a.metrics[state.heatSort.pos].avg, second = b.metrics[state.heatSort.pos].avg;
       if (first === null || second === null) return first === second ? a.team.localeCompare(b.team) : first === null ? 1 : -1;
       return (state.heatSort.direction === "desc" ? second - first : first - second) || a.team.localeCompare(b.team);
     });
-    const head = POSITIONS.map(pos => `<th scope="col" data-pos="${pos}" aria-sort="${state.heatSort.pos === pos ? state.heatSort.direction === "desc" ? "descending" : "ascending" : "none"}"><button type="button" data-heat-sort="${pos}" aria-label="Sort matchups by ${pos}">${pos}${state.heatSort.pos === pos ? `<span class="sortArrow">${state.heatSort.direction === "desc" ? "↓" : "↑"}</span>` : ""}</button></th>`).join("");
+    const head = POSITIONS.map(pos => `<th scope="col" data-pos="${pos}" aria-sort="${state.heatSort.pos === pos ? state.heatSort.direction === "desc" ? "descending" : "ascending" : "none"}"><button type="button" data-heat-sort="${pos}" aria-label="Sort defenses by ${pos} FPA per game">${pos}${state.heatSort.pos === pos ? `<span class="sortArrow">${state.heatSort.direction === "desc" ? "↓" : "↑"}</span>` : ""}</button></th>`).join("");
     const body = sorted.map(row => `<tr class="${row.team === state.team ? "selectedTeam" : ""}"><td><button type="button" class="heatTeamButton" data-team="${row.team}" aria-label="Explore ${esc(Data.TEAM_NAMES[row.team])}">${logo(row.team)}${row.team}</button></td>${POSITIONS.map(pos => {
-      const stat = row.metrics[pos];
-      return `<td><button type="button" class="heatCell" data-team="${row.team}" data-cell-position="${pos}" style="--heat-color:${heatColor(stat)}" aria-pressed="${row.team === state.team && state.pos === pos}" aria-label="${row.team} ${pos}: ${fmt(stat.avg)} FPA per game, rank ${stat.rank ?? "unavailable"} of ${stat.pool}, ${stat.games} games"${stat.avg === null ? " disabled" : ""}>${fmt(stat.avg, 1)}${stat.rank === null ? "" : `<sup>#${stat.rank}</sup>`}</button></td>`;
+      const stat = View.defenseMetric(row.metrics[pos]);
+      return `<td><button type="button" class="heatCell" data-team="${row.team}" data-cell-position="${pos}" style="--heat-color:${heatColor(stat)}" aria-pressed="${row.team === state.team && state.pos === pos}" aria-label="${row.team} ${pos}: ${fmt(stat.avg)} FPA per game, defense rank ${stat.rank ?? "unavailable"} of ${stat.pool} (1 = best), ${stat.games} games"${stat.avg === null ? " disabled" : ""}>${fmt(stat.avg, 1)}${stat.rank === null ? "" : `<sup>#${stat.rank}</sup>`}</button></td>`;
     }).join("")}</tr>`).join("");
     $("heatTable").innerHTML = `<caption class="srOnly">2026 FPA per game and defense ranks, ${venueLabel()}</caption><thead><tr><th scope="col">DEF</th>${head}</tr></thead><tbody>${body}</tbody>`;
   }
@@ -528,7 +523,7 @@
       $("sourceNotes").textContent = `Live 2026-Wkly sheets: FPA (formerly FPAv2), FPFA and FPF. ${model.audit.excludedRows} rows without an opposing defense are excluded. ` +
         (differences.length ? "FPFA season totals and FPAv2 weekly totals differ beyond rounding for " + [...new Set(differences.map(row => row.team))].join(", ") + ". Each view preserves its source. " : "") +
         (repeatedExpectations ? "FPFA supplies identical RB and WR expected totals, averages, and ranks for every team; these are retained as provided. " : "") +
-        "Published FPFA summaries and FPF offense averages/ranks are used directly. Rounded opponent averages may sum differently from FPFA's expected total; full-season comparisons preserve FPFA. Rounded positional averages may sum differently from the supplied ALL average.";
+        "FPFA values stay intact; displayed season defense rank = 33 minus the published matchup rank. SOS and FPF offense ranks retain their supplied direction. The scatter uses published per-game averages; rounded averages can differ from totals divided by games. Rounded positional averages may sum differently from the supplied ALL average.";
       render();
     } catch (error) {
       $("loadError").textContent = `Matchup data could not load: ${error.message}`; $("loadError").hidden = false;

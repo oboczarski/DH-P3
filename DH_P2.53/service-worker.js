@@ -90,7 +90,8 @@
 // Refresh selected Rosters gradients without duplicated checkmark text clipping.
 // Refresh Matchups' FPA vs Expected tick-label spacing on mobile and desktop.
 // Refresh the smaller Matchups scatter markers and bounded overlap spacing.
-const CACHE_NAME = 'DH3.52o-matchups-scatter-spacing';
+// Refresh Matchups' per-game scatter and consistent best-defense-first rank labels.
+const CACHE_NAME = 'DH3.52p-matchups-per-game-defense-ranks';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

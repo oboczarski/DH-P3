@@ -104,7 +104,9 @@
     scene.paint?.();
   }
   function cellTooltip(row) {
-    return `[bold]${row.team} · ${row.pos}[/]\n${fmt(row.avg, 2)} FPA/game · rank ${row.rank ?? "—"} of ${row.pool}\nExpected FPA: ${fmt(row.expectedAvg, 2)} /game\n${row.games} recorded games\nSelect to explore this defense and position`;
+    // Chart cells use the same display-only defense-rank conversion as the
+    // summary and heatmap; offense ranks in the game tooltips stay source-owned.
+    return `[bold]${row.team} · ${row.pos}[/]\n${fmt(row.avg, 2)} FPA/game · defense rank ${row.rank ?? "—"} of ${row.pool}\nRank 1 = best defense / fewest FPA per game\nExpected FPA: ${fmt(row.expectedAvg, 2)} /game\n${row.games} recorded games\nSelect to explore this defense and position`;
   }
   function scoringBreakdown(definition) {
     const scene = makeScene(definition), root = scene.root, palette = am5.ColorSet.new(root, {});
@@ -347,7 +349,7 @@
   function readouts() {
     if (!snapshot || !current) return;
     const selectedCells = snapshot.cells.filter(row => row.team === current.team);
-    $("compositionReadout").innerHTML = teamMarkup(current.team) + selectedCells.map(row => `<span class="labValue">${row.pos} <strong>${fmt(row.avg, 2)}</strong><span>/game · #${row.rank ?? "—"}</span></span>`).join("");
+    $("compositionReadout").innerHTML = teamMarkup(current.team) + selectedCells.map(row => `<span class="labValue">${row.pos} <strong>${fmt(row.avg, 2)}</strong><span>/game · rank #${row.rank ?? "—"}</span></span>`).join("");
     const pair = snapshot.dumbbell.find(row => row.team === current.team);
     $("dumbbellReadout").innerHTML = teamMarkup(current.team) + (pair ? `<span>Actual <strong>${fmt(pair.actualAvg, 2)}</strong>/game</span><span>Expected <strong>${fmt(pair.expectedAvg, 2)}</strong>/game</span><span>Difference <strong>${signedPoints(pair.deltaAvg)}</strong> points/game</span><span>${pair.games} games · ${current.pos}</span>` : '<span class="labUnavailable">Expected FPA is unavailable for this scope.</span>');
     const games = snapshot.polar.filter(row => row.team === current.team);

@@ -97,13 +97,29 @@ The user's mobile main-filter gradients are also copied to desktop main filters,
 all five defense-heading position badges, and the weekly/scatter position buttons
 at both breakpoints. Each area keeps separate literal per-position declarations;
 editing one area or breakpoint does not restyle another. Badge/chart geometry
-remains local, and the scatter's Points/Ranks controls retain their own styling.
+remains local, and the scatter's Per Game/Ranks controls retain their own styling.
 
-The defense heading groups its actual FPA ordinal immediately before the
+The defense heading groups its defense-strength ordinal immediately before the
 existing position badge (for example, `14th vs. QB`). It uses the same current
-team/position/venue rank as MATCHUP RK and displays a dash when unavailable.
+team/position/venue rank as RANK and displays a dash when unavailable.
 Its `.defenseMatchup`, `.defenseRank`, and `.defenseHeaderCopy` styles belong
 to the separate `DEFENSE-HEADING` mobile and desktop blocks.
+
+`chart-lab-model.js` owns the page's read-only defense-rank presentation. Season
+defense ranks display `33 - published matchup rank` (1 = best, 32 = weakest),
+preserving supplied ties and missing ranks. Home/away defense ranks already order
+FPA per game ascending. Summary chips, headings, heatmap, scoring-bar tooltips,
+readouts and the scatter all use that same display conversion. Rank colors stay
+with the same defense after the displayed number reverses. Source models and the
+independent Rosters matchup modal retain their original ranks.
+
+FPA vs Expected uses FPFA's published actual/expected per-game averages in the
+season view and recorded-game actual/expected averages in home/away views.
+Its axes, tooltips, differences and readout use points per game, preserving
+published rounding without dividing by calendar weeks or counting BYEs as games.
+In Ranks mode, season x values retain published SOS (1 = easiest schedule), venue
+x values rank expected averages lowest first, and y values use defense ranks
+(1 = best defense). The raw published SOS and offense ranks keep their meaning.
 
 The weekly opponent chips omit visible W# labels and sit directly beneath the
 corresponding chart week ticks. `renderWeekly()` gives their grid the SVG's

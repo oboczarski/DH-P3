@@ -6,19 +6,19 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  // Round each points axis outward to tens; a positive range need not start at zero.
+  // FPA vs Expected now plots per-game averages. Use an adaptive points scale
+  // (down to tenths) so narrow positional ranges do not collapse into ten-point ticks.
   function pointBounds(values) {
     const finite = values.filter(Number.isFinite);
-    if (!finite.length) return { low: 0, high: 10, step: 10, ticks: [0, 10] };
-    let low = Math.floor(Math.min(...finite) / 10) * 10;
-    let high = Math.ceil(Math.max(...finite) / 10) * 10;
-    if (low === high) { low -= 10; high += 10; }
+    if (!finite.length) return { low: 0, high: 1, step: .2, ticks: [0, .2, .4, .6, .8, 1] };
+    let low = Math.min(...finite), high = Math.max(...finite);
+    if (low === high) { const padding = Math.max(1, Math.abs(low) * .1); low -= padding; high += padding; }
     const rough = (high - low) / 5, magnitude = 10 ** Math.floor(Math.log10(rough));
-    const step = Math.max(10, ([1, 2, 5, 10].find(n => n * magnitude >= rough) || 10) * magnitude);
-    const ticks = [];
-    for (let n = low; n < high; n += step) ticks.push(n === 0 ? 0 : n);
-    ticks.push(high === 0 ? 0 : high);
-    return { low: low === 0 ? 0 : low, high: high === 0 ? 0 : high, step, ticks };
+    const step = Math.max(.1, ([1, 2, 5, 10].find(n => n * magnitude >= rough) || 10) * magnitude);
+    const clean = n => Math.round(n * 1e9) / 1e9 || 0;
+    low = clean(Math.floor(low / step) * step); high = clean(Math.ceil(high / step) * step);
+    const ticks = Array.from({ length: Math.round((high - low) / step) + 1 }, (_, index) => clean(low + index * step));
+    return { low, high, step, ticks };
   }
 
   // Clip the two comparison regions to y=x in data coordinates. Different axis
