@@ -3621,15 +3621,13 @@ main#content {
   text-overflow: ellipsis;
   text-align: center;
   justify-self: center;
-  letter-spacing: -0.04em;
 }
 
 .team-header-item .team-record {
-  font-size: 0.54rem;
+  font-size: 0.58rem;
   color: #9ea5d8;
   white-space: nowrap;
   justify-self: start;
-  word-spacing: -0.14em;
 }
 
 #analyzeLeagueButton {

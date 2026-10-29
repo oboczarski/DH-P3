@@ -727,7 +727,7 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
 }
 
 .roster-column {
-  width: 128px;
+  width: 127px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -751,7 +751,7 @@ body[data-page="rosters"] .start-sit-matchup-breakdown:disabled {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   column-gap: 0.05rem;
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 500;
   color: #d0d1ee;
   text-align: center;
