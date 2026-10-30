@@ -2654,7 +2654,7 @@ function getRostersMatchupController() {
     if (pageType !== 'rosters') return Promise.reject(new Error('Matchup Breakdown belongs to Rosters.'));
     if (!rostersMatchupsModulePromise) {
         // Start/Sit and Weekly opponent tags share this Rosters-owned panel.
-        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.53e-rosters-matchup-quality')
+        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.53f-rosters-matchup-header')
             .then(({ createMatchupBreakdown }) => {
                 rostersMatchups = createMatchupBreakdown({ onDataChange: () => {
                     // Late matchup readiness updates selected previews without

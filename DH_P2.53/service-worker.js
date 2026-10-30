@@ -100,8 +100,9 @@
 // Refresh the shared text baseline throughout the side-by-side preview metadata.
 // Refresh Weekly opponent links, nested-panel focus and team-metric feedback.
 // Refresh independently scoped modal styles and wider, fixed-height mobile charts.
-// Refresh matching defense-rank colors, matchup-quality badges and position-first subtitles.
-const CACHE_NAME = 'DH3.53e-rosters-matchup-quality';
+// Refresh matching defense-rank colors and position-first subtitles.
+// Remove the quality badge while retaining the colored rank and player subtitle order.
+const CACHE_NAME = 'DH3.53f-rosters-matchup-header';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

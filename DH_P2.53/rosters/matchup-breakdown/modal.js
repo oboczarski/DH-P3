@@ -2,7 +2,7 @@
 // tooltips, filters and player expansion in an isolated modal, with no Matchups imports.
 import Data from './model.js?v=DH3.50-byes-rosters-data';
 import { createMatchupStore, resolveMatchupSelection } from './data.js?v=DH3.52r-rosters-defense-ranks';
-import { defenseMetric, rankColor as heatColor, ordinalRank, matchupQuality } from './rank-view.js?v=DH3.53e-rosters-matchup-quality';
+import { defenseMetric, rankColor as heatColor, ordinalRank } from './rank-view.js?v=DH3.53f-rosters-matchup-header';
 
 export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
   if (document.body?.dataset.page !== 'rosters') throw new Error('Matchup Breakdown belongs to Rosters.');
@@ -156,16 +156,9 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
     // every position/venue filter. Only published matchup ranks are reversed.
     $("defenseRank").textContent = `${ordinalRank(stat.rank)} vs.`;
     $("defenseRank").title = `Defense rank vs. ${LABELS[state.pos]} · ${venueLabel()} · Rank 1 = best defense / fewest FPA per game`;
-    // The heading and quality badge follow the RANK metric's exact filtered
-    // color and displayed rank. Unavailable ranks do not imply a quality tier.
-    const defenseColor = heatColor(stat), quality = matchupQuality(stat.rank);
-    $("defenseRank").style.color = defenseColor;
-    const qualityBadge = $("matchupQuality");
-    qualityBadge.textContent = quality || '';
-    qualityBadge.hidden = !quality;
-    qualityBadge.style.setProperty('--matchup-quality-color', defenseColor);
-    qualityBadge.setAttribute('aria-label', quality ? `Matchup quality: ${quality}` : 'Matchup quality unavailable');
-    qualityBadge.title = quality ? `Matchup quality: ${quality} · Defense rank ${stat.rank}` : '';
+    // Keep the defense heading's conditional color identical to the RANK
+    // metric as position/venue filters change, including unavailable ranks.
+    $("defenseRank").style.color = heatColor(stat);
     // Summary copy controls its own case; the percent unit is sized separately.
     const deltaValue = c.deltaPct !== null ? `${signed(c.deltaPct)}<span class="metricPercent">%</span>` : signed(c.delta, 2);
     const baselineNote = c.expectedTotal !== null ? `${fmt(c.expectedAvg, 1)} per game` : analysis.summaryAvailable ? "Not supplied in FPFA" : "Opponent average unavailable";
@@ -410,14 +403,14 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
   function mount() {
     if (mountPromise) return mountPromise;
     mountPromise = (async () => {
-      const response = await fetch(new URL('./panel.html?v=DH3.53e-rosters-matchup-quality', import.meta.url));
+      const response = await fetch(new URL('./panel.html?v=DH3.53f-rosters-matchup-header', import.meta.url));
       if (!response.ok) throw new Error(`Matchup panel could not load (${response.status}).`);
       root.innerHTML = await response.text();
       // One Rosters-owned stylesheet contains independent MOBILE and DESKTOP
       // sections, with separate selectors for each modal area in both sections.
       const stylesheet = document.createElement('link');
       stylesheet.rel = 'stylesheet';
-      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.53e-rosters-matchup-quality', import.meta.url).href;
+      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.53f-rosters-matchup-header', import.meta.url).href;
       const styled = new Promise((resolve, reject) => {
         stylesheet.onload = resolve;
         stylesheet.onerror = () => reject(new Error('Matchup panel styling could not load.'));
