@@ -27,9 +27,9 @@ dialog { font:inherit; }
 :host { color-scheme:dark; --page-bg:#050b13; --text:#e6e9ff; --muted:#a5accb; --dim:#7b81a5; --border:rgba(170,187,255,.14); --mint:#75e0b7; --pink:#ffb2d8; --accent-gradient:linear-gradient(90deg,#74efff 0%,#7297ff 52%,#d97dff 100%); --position:#ffb2d8; --font:"Google Sans Flex","Google Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; display:contents; font:12px/1.4 var(--font); color:var(--text); -webkit-font-smoothing:antialiased; }
 .loadError { margin:0 0 8px; padding:10px; color:#ffd1da; border:1px solid #ff8fab40; background:#852b4920; border-radius:10px; }
 .metricStrip { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:3px; margin-bottom:4px; }
-.weekMatchup {display:flex;justify-content:center;align-items:center;min-width:0;justify-self:center;color:var(--muted);border:1px solid #aabbff10;border-radius:7px;width: 85%;font-size:8px;padding:3px;gap:5px;border-color:transparent;background:linear-gradient(90deg,#8f94a61f,#8f94a612) padding-box,linear-gradient(90deg,#74efff5b 0%,#7297ff5b 52%,#d97dff5b 100%) border-box;}
+.weekMatchup {display:flex;justify-content:center;align-items:center;min-width:0;justify-self:center;color:var(--muted);border:1px solid #aabbff10;border-radius:7px;width: 85%;font-size:8px;padding: 3px 0 1px;gap:5px;border-color:transparent;background:linear-gradient(90deg,#8f94a61f,#8f94a612) padding-box,linear-gradient(90deg,#74efff5b 0%,#7297ff5b 52%,#d97dff5b 100%) border-box;}
 .weekOpponentStack { display:flex; flex-direction:column; align-items:center; gap:0; min-width:0; max-width:100%; }
-.weekMatchup .weekOpponent { max-width:100%; text-align:center; line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.weekMatchup .weekOpponent {max-width:100%;text-align:center;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;word-spacing: -0.08em;}
 .weekMatchup img { width:19px; height:18px; object-fit:contain; }
 .playersSection { padding-top:3px; border-top:1px solid var(--border); }
 .tooltipMuted { color:var(--dim); }
@@ -87,8 +87,8 @@ dialog { font:inherit; }
 :where(#weeklyHeading) h3 { margin:0; font-size:12px; font-weight:550; }
 .sectionHeading:where(#weeklyHeading) { display:flex; align-items:center; gap:8px; margin-bottom:0px; min-height:19px; }
 .sectionHeading:where(#weeklyHeading) > .smallMuted { margin-left:auto; }
-.sectionHeading:where(#weeklyHeading) h3 { font-size:11px; }
-.matchupDialog .weeklySection > .sectionHeading:where(#weeklyHeading).chartHeading { row-gap:0px; }
+.sectionHeading:where(#weeklyHeading) h3 {font-size: 12.5px;margin: 1px 0 -15px;}
+.matchupDialog .weeklySection > .sectionHeading:where(#weeklyHeading).chartHeading {row-gap:0px;margin: 6px 0 -10px;}
 
 /* Players faced heading */
 :where(#playersHeading) h3 { margin:0; font-size:12px; font-weight:550; }
@@ -314,7 +314,7 @@ dialog.glass-panel:where(#playersDialog) { position:fixed; inset:0; margin:auto;
       var(--pos-text-gradient) text; }
 }
 .positionToggle:where(#weeklyPositionToggle).chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
-.positionToggle:where(#weeklyPositionToggle).chartPositionToggle button { min-width:40px; padding:3px 6px; font-size:9px; border-radius:6px; }
+.positionToggle:where(#weeklyPositionToggle).chartPositionToggle button {min-width: 38px;padding:3px 6px;font-size:9px;border-radius:6px;}
 .expandedControls .positionToggle:where(#weeklyPositionToggle) { order:3; width:100%; }
 @media (max-width:400px) {
 .positionToggle:where(#weeklyPositionToggle) button { padding-inline:5px; }
@@ -420,7 +420,7 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 }
 
 /* Selected player subtitle */
-#breakdownPlayer { color:var(--muted); font-size:9px; }
+#breakdownPlayer {color:var(--muted);font-size: 12px;font-weight: 300;}
 
 /* Defense subtitle */
 #defenseSubtitle { color:var(--muted); font-size:9px; }
@@ -562,9 +562,9 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 #weeklyChart { --weekly-chart-height:196px; --weekly-axis-inset:18px; --weekly-right-inset:2px; --weekly-label-gap:4px; --weekly-label-edge:1px; }
 .chartLegend { display:flex; margin-left:auto; color:var(--muted); font-size:7px; gap:8px; }
 .chartLegend span { display:flex; align-items:center; gap:4px; }
-.chartHeading { flex-wrap:wrap; }
-.chartHeaderControls { display:flex; align-items:center; justify-content:center; gap:4px; flex-wrap:nowrap; }
-.chartHeaderControls .chartLegend { margin-left:0; white-space:nowrap; }
+.chartHeading {flex-wrap: wrap;}
+.chartHeaderControls {display:flex;align-items:center;justify-content:center;gap: 5px;flex-wrap:nowrap;}
+.chartHeaderControls .chartLegend {margin-left:0;white-space:nowrap;margin-bottom: -12px;}
 .legendExpected { width:14px; height:2px; background:linear-gradient(90deg,#8af7ffb5,#e3b3ffa8); }
 .legendActual { width:7px; height:7px; border-radius:2px; background:var(--position); box-shadow:0 0 6px color-mix(in srgb,var(--position) 25%,transparent); }
 .chart { min-width:0; }
@@ -578,7 +578,7 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 .chartPoint:focus-visible rect { stroke:#fff; stroke-width:2; }
 .weeklyTimeline {width: calc(100% + 10px);margin-inline: -6px;min-width:0;overflow-x:auto;scrollbar-width:thin;scrollbar-color:#4e5d8080 transparent;}
 .weeklyTimelineContent { width:100%; min-width:max(260px,calc(20px + var(--weekly-week-count,1) * 38px)); }
-.weeklyMatchups { display:grid; grid-template-columns:repeat(var(--weekly-week-count,1),minmax(0,1fr)); gap:0; padding-left:var(--weekly-plot-left,0%); padding-right:var(--weekly-plot-right,0%); margin:4px 0 10px; margin-bottom:8px; }
+.weeklyMatchups {display:grid;grid-template-columns:repeat(var(--weekly-week-count,1),minmax(0,1fr));gap:0;padding-left:var(--weekly-plot-left,0%);padding-right:var(--weekly-plot-right,0%);margin: -2px 0 10px;margin-bottom:8px;}
 .expectedLine { fill:none; stroke:url(#weekly-expected-line); stroke-width:6px; stroke-dasharray:1; filter:drop-shadow(0px 2px 4px #0008); }
 :where(#weeklyChart) .emptyState { padding:18px 8px; text-align:center; color:var(--dim); font-size:10px; }
 :where(#weeklyChart) .emptyState strong { display:block; color:#bdc1d8; font-size:12px; margin-bottom:4px; font-weight:500; }
@@ -589,7 +589,7 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 .chartTooltip { display:none; }
 }
 .weeklySection .weeklyDataLabels .chartValue { stroke:none; paint-order:stroke fill; }
-.matchupDialog .chartHeaderControls { max-width:100%; flex-wrap:wrap; }
+.matchupDialog .chartHeaderControls {max-width:100%;flex-wrap: nowrap;}
 
 /* playerTableScroll */
 .tableScroll:where(#playerTableScroll) { min-width:0; overflow:auto; border:1px solid var(--border); border-radius:9px; scrollbar-width:thin; scrollbar-color:#aabbff26 transparent; }
