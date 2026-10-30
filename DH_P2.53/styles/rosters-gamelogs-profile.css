@@ -1,482 +1,267 @@
-/* Rosters Player Data: the entire surface above gamelogs-nav-row. This file
-   targets the profile subtree and the upper Player Data/Ownership tab rail.
-   Pane contents, Game Logs navigation, tables and other pages retain their
-   existing styles. The upper tabs keep their original switching behavior.
-   Important declarations below defeat legacy phone header overrides only. */
+/* Compact Rosters Game Logs header only. This replaces the upper layout;
+   gamelogs-nav-row, lower panes and other pages keep their existing rules.
+   A private alias loads the actual Google Sans Flex font without activating
+   unrelated, previously unloaded Google Sans Flex declarations below here.
+   Font source: Google Fonts / Google Sans Flex; OFL ships with the assets. */
+@font-face {
+  font-family: 'Google Sans Flex Header';
+  font-style: normal;
+  font-weight: 100 1000;
+  font-display: swap;
+  src: url('../assets/fonts/google-sans-flex/latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Google Sans Flex Header';
+  font-style: normal;
+  font-weight: 100 1000;
+  font-display: swap;
+  src: url('../assets/fonts/google-sans-flex/latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
-/* A restrained tab rail aligns the upper modal chrome with the profile card.
-   Its active underline identifies the pane without another oversized pill. */
+/* Keep the modal's own tab surfaces. Only their typography and density change
+   to match the new header; tab selection/Ownership behavior stays in app.js. */
 body[data-page="rosters"] #game-logs-modal > .gamelogs-modal-tabs {
-  width: min(94vw, 686px);
-  max-width: 94vw;
-  justify-content: start;
-  gap: 6px;
-  margin-bottom: 8px;
-  padding: 0 12px;
-  border: 0;
-  border-bottom: 1px solid #9db8e52e;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
+  margin-bottom: 6px;
 }
 body[data-page="rosters"] #game-logs-modal > .gamelogs-modal-tabs .gamelogs-modal-tab {
-  position: relative;
-  justify-content: center;
-  min-height: 36px;
-  padding: 7px 15px !important;
-  border: 0;
-  border-radius: 9px 9px 0 0;
-  background: transparent !important;
-  box-shadow: none !important;
-  color: #97a9c8;
+  min-height: 30px;
+  padding: 6px 22px !important;
+  font-family: 'Google Sans Flex Header', 'Google Sans Flex', sans-serif;
   font-size: 12px !important;
-  font-weight: 400;
-  letter-spacing: 0.01em;
+  font-weight: 450;
+  letter-spacing: 0;
+  gap: 6px;
 }
-body[data-page="rosters"] #game-logs-modal > .gamelogs-modal-tabs .gamelogs-modal-tab.is-active {
-  color: #e0eeff;
-  background: linear-gradient(180deg, transparent, #88b8f115) !important;
-}
-body[data-page="rosters"] #game-logs-modal > .gamelogs-modal-tabs .gamelogs-modal-tab.is-active::after {
-  content: "";
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: -1px;
-  height: 2px;
-  background: linear-gradient(90deg, #9cdbff, #b2a3ef);
-  box-shadow: 0 0 10px #9fbbff50;
-}
-body[data-page="rosters"] #game-logs-modal > .gamelogs-modal-tabs .gamelogs-modal-tab .rosters-modal-icon { width: 14px; height: 14px; }
-body[data-page="rosters"] #game-logs-modal > .gamelogs-modal-tabs .gamelogs-modal-tab:focus-visible { outline: 2px solid #b2d6ff; outline-offset: 2px; }
 
 body[data-page="rosters"] #game-logs-modal #modal-header {
   display: block;
   grid-template: none;
 }
 
+/* Identity, vitals, metrics and SOS share the modal surface. There is no
+   second framed card, title bar, or independently scrolling header. */
 body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile {
-  --profile-team: #64748b;
-  --profile-ink: #ecf2ff;
-  --profile-muted: #99a8c2;
   position: relative;
-  isolation: isolate;
-  margin: 0 0 12px;
-  border: 1px solid rgba(170, 197, 244, 0.2);
-  border-radius: 18px;
-  background:
-    radial-gradient(ellipse at 0 5%, color-mix(in srgb, var(--profile-team) 27%, transparent), transparent 65%),
-    radial-gradient(ellipse at 100% 100%, rgba(111, 84, 185, 0.12), transparent 60%),
-    linear-gradient(130deg, #1a2538, #101927 58%, #14192b);
-  box-shadow: inset 0 1px 0 rgba(231, 243, 255, 0.08), 0 8px 26px rgba(0, 0, 0, 0.16);
-  color: var(--profile-ink);
+  display: grid;
+  grid-template-areas: 'intro' 'vitals' 'stats' 'schedule';
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3px;
+  margin: 0 0 5px;
+  color: #c7cedf;
+  font-family: 'Google Sans Flex Header', 'Google Sans Flex', sans-serif;
+  font-optical-sizing: auto;
+  font-variation-settings: normal;
+  line-height: 1.15;
   text-align: left;
 }
-
-body[data-page="rosters"] #game-logs-modal .gl-profile::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  top: -1px;
-  left: 18px;
-  right: 18px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #b7dfff80 35%, #c7b3ff60 70%, transparent);
-  pointer-events: none;
+body[data-page="rosters"] #game-logs-modal .gl-profile :where(h3, h4, span, div, button, summary, p) {
+  font-family: inherit;
 }
 
-body[data-page="rosters"] #game-logs-modal .gl-profile-topline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 9px 0 15px;
-}
-
-body[data-page="rosters"] #game-logs-modal .gl-profile-eyebrow {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 5px 10px;
-  color: #b9cbe7;
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.13em;
-  line-height: 1.2;
-  text-transform: uppercase;
-}
-
-body[data-page="rosters"] #game-logs-modal .gl-profile-season {
-  padding-left: 10px;
-  border-left: 1px solid #a3bbdb33;
-  color: var(--profile-muted);
-  font-size: 9px;
-  font-weight: 400;
-  letter-spacing: 0.05em;
-}
-
-body[data-page="rosters"] #game-logs-modal .gl-profile-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex: 0 0 auto;
-}
-
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile-actions :is(#watchlist-modal-toggle, .modal-close-btn) {
-  position: static !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 32px;
-  width: 32px;
-  height: 32px;
-  min-height: 32px;
-  margin: 0;
-  padding: 0 !important;
-  border: 1px solid #abc4e91c;
-  border-radius: 10px !important;
-  background: #b2c8f008;
-  color: #b3c3df;
-  box-shadow: inset 0 1px 0 #ddecff08;
-  transform: none;
-  line-height: 1;
-  cursor: pointer;
-  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
-}
-
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile-actions .modal-close-btn { font-size: 24px; padding-bottom: 2px !important; }
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile-actions #watchlist-modal-toggle { font-size: 13px; }
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile-actions #watchlist-modal-toggle.is-watchlisted {
-  color: #a5f3d8;
-  border-color: #86e5bf50;
-  background: #51cba51a;
-}
-
-/* Portrait, identity and biometrics form one compact hero. The portrait has a
-   team-colored stage with an initials fallback occupying the same geometry. */
-body[data-page="rosters"] #game-logs-modal .gl-profile-hero {
+body[data-page="rosters"] #game-logs-modal .gl-profile-intro {
+  grid-area: intro;
   display: grid;
-  grid-template-columns: 82px minmax(0, 1fr);
-  gap: 6px 13px;
+  grid-template-columns: 44px minmax(0, 1fr) 52px;
   align-items: center;
-  padding: 3px 15px 12px;
+  gap: 8px;
+  min-height: 44px;
 }
-
 body[data-page="rosters"] #game-logs-modal .gl-profile-portrait {
   position: relative;
-  grid-row: span 2;
-  align-self: stretch;
-  min-height: 99px;
+  width: 44px;
+  height: 44px;
   overflow: hidden;
-  border: 1px solid #d5e7ff2a;
-  border-radius: 13px;
-  background:
-    radial-gradient(ellipse at 50% 32%, #b7dfff24, transparent 65%),
-    linear-gradient(150deg, color-mix(in srgb, var(--profile-team) 65%, #243a56), #111e30);
-  box-shadow: inset 0 1px 0 #eff7ff26, inset 0 -20px 26px #020a1450, 0 4px 14px #0003;
+  border: 1px solid #b8c4e01f;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 80%, color-mix(in srgb, var(--profile-team, #64748b) 18%, transparent), transparent 75%);
 }
-
-body[data-page="rosters"] #game-logs-modal .gl-profile-portrait::after {
-  content: "";
-  position: absolute;
-  inset: 55% 0 0;
-  background: linear-gradient(transparent, #0c162de0);
-  pointer-events: none;
-}
-
 body[data-page="rosters"] #game-logs-modal .gl-profile-headshot {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 15%;
+  object-position: center 18%;
 }
 body[data-page="rosters"] #game-logs-modal .gl-profile-headshot[hidden] { display: none; }
-
 body[data-page="rosters"] #game-logs-modal .gl-profile-monogram {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  padding-bottom: 8px;
-  color: #d6e6ff;
-  font-size: 25px;
+  color: #aab9ce;
+  font-size: 16px;
   font-weight: 500;
-  letter-spacing: -0.04em;
 }
-body[data-page="rosters"] #game-logs-modal .gl-profile-portrait.has-headshot .gl-profile-monogram { visibility: hidden; }
-
-body[data-page="rosters"] #game-logs-modal .gl-profile-portrait-caption {
-  position: absolute;
-  z-index: 1;
-  bottom: 7px;
-  left: 0;
-  right: 0;
-  color: #d4e5fdba;
-  font-size: 6px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-align: center;
-}
-
+body[data-page="rosters"] #game-logs-modal .has-headshot .gl-profile-monogram { visibility: hidden; }
 body[data-page="rosters"] #game-logs-modal .gl-profile-identity { min-width: 0; }
-
 body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-player-name {
   display: block !important;
-  width: auto;
   max-width: 100% !important;
-  margin: 0 0 5px !important;
+  margin: 0 !important;
   padding: 0;
   overflow: visible !important;
-  color: #f0f5ff;
-  font-size: clamp(20px, 3.5vw, 28px) !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.035em;
+  color: #dfe5f1;
+  font-size: 19px !important;
+  font-weight: 500 !important;
   line-height: 1.08;
+  letter-spacing: -0.025em;
   text-align: left !important;
   text-overflow: clip !important;
   white-space: normal !important;
   overflow-wrap: anywhere;
-  text-wrap: balance;
-  text-shadow: 0 2px 18px #94b5f51a;
+  text-shadow: none;
 }
+body[data-page="rosters"] #game-logs-modal .gl-profile-byline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  margin-top: 2px;
+}
+body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .gl-profile-affiliation-content { position: static !important; display: flex !important; align-items: center !important; gap: 7px !important; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-position { color: #a8b9d1; font-size: 10px; font-weight: 550; letter-spacing: 0.025em; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-position[data-pos="QB"] { color: #d59ab4; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-position[data-pos="RB"] { color: #89beb4; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-position[data-pos="WR"] { color: #91afd0; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-position[data-pos="TE"] { color: #b59acd; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-team {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #aab8d0;
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+}
+body[data-page="rosters"] #game-logs-modal .gl-profile-team:disabled { cursor: default; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-team-logo { width: 17px; height: 17px; object-fit: contain; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-team-arrow { width: 9px; height: 9px; fill: none; stroke: #7988a4; stroke-width: 1.6; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-season { padding-left: 8px; border-left: 1px solid #9eacc52e; color: #77849d; font-size: 9px; }
 
-body[data-page="rosters"] #game-logs-modal .gl-profile .modal-header-left-container {
+body[data-page="rosters"] #game-logs-modal .gl-profile-actions { display: flex; align-items: center; justify-content: end; gap: 2px; }
+body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile-actions :is(#watchlist-modal-toggle, .modal-close-btn) {
   position: static !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 25px;
+  width: 25px !important;
+  height: 26px !important;
+  min-height: 26px;
+  margin: 0;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #7f8da8;
+  font-size: 12px;
+  line-height: 1;
+  transform: none;
+  cursor: pointer;
+}
+body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile-actions .modal-close-btn { font-size: 22px !important; padding-bottom: 2px !important; }
+body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile-actions #watchlist-modal-toggle.is-watchlisted { color: #a3cebc; }
+
+/* Five inline label/value pairs retain the same vital nodes and colors. The
+   legacy modal class remains for app.js's width lookup, overridden only here. */
+body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-player-vitals {
+  grid-area: vitals;
+  display: block !important;
+  min-width: 0;
+  margin: 0;
+}
+body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .gl-profile-vitals-list {
   display: flex !important;
   align-items: center !important;
+  justify-content: space-between !important;
   gap: 6px !important;
-  width: fit-content;
-}
-
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile :is(.modal-pos-tag, .modal-team-logo-chip) {
-  min-width: 0;
-  min-height: 28px !important;
-  max-height: none;
-  height: 28px;
-  margin: 0;
-  padding: 0 8px !important;
-  border: 1px solid #bad6ff22;
-  border-radius: 7px !important;
-  background: #a8c9ff08;
-  box-shadow: none !important;
-  font-size: 11px !important;
-  font-weight: 600;
-  line-height: 1 !important;
-  letter-spacing: 0.04em;
-  text-shadow: none;
-  backdrop-filter: none;
-}
-
-body[data-page="rosters"] #game-logs-modal .gl-profile :is(.modal-pos-tag, .modal-team-logo-chip)::after { display: none; }
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .modal-team-logo-chip { gap: 6px; cursor: pointer; }
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .modal-team-logo-chip:disabled { cursor: default; }
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .modal-team-logo-chip img.team-logo {
-  width: 21px !important;
-  height: 21px !important;
-  object-fit: contain;
-  filter: none;
-}
-body[data-page="rosters"] #game-logs-modal .gl-profile .gl-profile-team-name { color: #c6d7ee; font-size: 10px; font-weight: 500; }
-body[data-page="rosters"] #game-logs-modal .gl-profile-team-arrow { width: 11px; height: 11px; fill: none; stroke: #8da5c9; stroke-width: 1.7; }
-
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-player-vitals {
-  display: block !important;
-  grid-area: auto;
-  min-width: 0;
-  margin: 0;
-}
-
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .player-vitals--modal {
-  display: grid !important;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 0.9fr) minmax(0, 1.4fr) minmax(0, 0.6fr) minmax(0, 1fr);
-  align-items: start !important;
-  justify-content: start !important;
-  gap: 5px !important;
   width: 100% !important;
   min-width: 0;
   max-width: 100%;
+  min-height: 14px;
   margin: 0 !important;
-  padding: 7px 0 0 !important;
+  padding: 0 !important;
   border: 0;
-  border-top: 1px solid #b6cefa18;
   border-radius: 0 !important;
   background: transparent;
   box-shadow: none;
   backdrop-filter: none;
 }
-body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals--modal::after { display: none; }
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .player-vitals__item { align-items: start !important; gap: 4px !important; }
-body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__label { color: #94a4c1; font-size: 8px; letter-spacing: 0.04em; }
-body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__value { color: #d3ddf0; font-size: 12px; line-height: 1.1; letter-spacing: normal; font-variant-numeric: tabular-nums; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-vitals-list::after { display: none; }
+body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__item { display: flex !important; flex-direction: row !important; align-items: baseline !important; gap: 3px !important; min-width: 0; }
+body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__label { color: #738098; font-size: 7.5px; font-weight: 400; line-height: 1; letter-spacing: 0; }
+body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__value { color: #b7c1d5; font-size: 10px; font-weight: 400; line-height: 1; letter-spacing: 0; white-space: nowrap; }
 
-/* Three equal metric columns retain all six positional/overall ranks. The
-   shared renderer's original values and conditional colors are untouched. */
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-summary-row {
-  display: block !important;
-  margin: 0 !important;
-  padding: 0 14px;
-}
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-summary-chips {
-  display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0 !important;
-  width: 100% !important;
-  border-top: 1px solid #bfd6ff26;
-  border-bottom: 1px solid #bfd6ff1c;
-  background: linear-gradient(100deg, #adc8fa06, transparent);
-}
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .gamelogs-summary-chip {
-  position: relative;
-  min-width: 0 !important;
-  margin: 0;
-  padding: 10px 12px 11px !important;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  text-align: left !important;
-}
-body[data-page="rosters"] #game-logs-modal .gl-profile .gamelogs-summary-chip + .gamelogs-summary-chip { border-left: 1px solid #b6cefa1c !important; }
-body[data-page="rosters"] #game-logs-modal .gl-profile .gamelogs-summary-chip::after { display: none; }
-body[data-page="rosters"] #game-logs-modal .gl-profile-metric-caption { display: block; margin-bottom: 6px; color: #9faecc; font-size: 9px; font-weight: 400; letter-spacing: 0.01em; }
+/* Each metric is two tight lines: label + original value, then both ranks.
+   Original value nodes preserve every number and conditional rank color. */
+body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-summary-row { grid-area: stats; display: block !important; margin: 0 !important; padding: 5px 0 3px; border-top: 1px solid #a0afce1c; }
+body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-summary-chips { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 !important; width: 100% !important; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-stat { min-width: 0; padding: 0 7px; text-align: center; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-stat + .gl-profile-stat { border-left: 1px solid #a0afce1a; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-stat-main { display: flex; align-items: baseline; justify-content: center; gap: 5px; margin: 0; padding: 0; font-size: inherit; font-weight: 400; line-height: 1; letter-spacing: 0; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-stat-unit { color: #8493b0; font-size: 9px; font-weight: 450; letter-spacing: 0; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-stat-value { font-size: 19px; font-weight: 500; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-stat-ranks { display: flex; align-items: baseline; justify-content: center; gap: 4px; margin-top: 3px; font-size: 10px; font-weight: 400; line-height: 1.1; white-space: nowrap; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-stat-ranks .pos-rank-container { letter-spacing: 0; }
+body[data-page="rosters"] #game-logs-modal .gl-profile .chip-pos-rank-label { margin: 0; font-size: 0.9em; font-weight: 400 !important; }
+body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .chip-separator { margin: 0 !important; color: #5c6882; font-size: 8px; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-rank-label { color: #6e7c97; font-size: 7px; font-weight: 400; }
 
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .gamelogs-summary-chip h4 {
-  display: flex !important;
-  align-items: baseline;
-  justify-content: start;
-  flex-wrap: wrap;
-  gap: 3px;
-  margin: 0 0 6px !important;
-  padding: 0 !important;
-  border: 0 !important;
-  font-size: 10px !important;
-  line-height: 1;
-}
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .gamelogs-summary-chip .chip-header-value { font-size: 25px !important; font-weight: 500; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
-body[data-page="rosters"] #game-logs-modal .gl-profile .chip-unit { color: #93a8c9; font-size: 9px; font-weight: 400; letter-spacing: 0.04em; }
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .gamelogs-summary-chip .chip-values { justify-content: start !important; gap: 4px !important; font-size: 11px !important; font-weight: 400 !important; line-height: 1.15; }
-body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .chip-separator { margin: 0 2px !important; color: #697e9e; font-size: 8px; }
-body[data-page="rosters"] #game-logs-modal .gl-profile-rank-label { color: #8598b8; font-size: 8px; letter-spacing: 0.03em; }
-
-/* Quiet schedule context stays on one line where space permits. Its help is a
-   native disclosure: keyboard/touch users can read the rank direction, source
-   and cutoff without a hover-only tooltip or a large permanent explanation. */
-body[data-page="rosters"] #game-logs-modal .gl-profile-schedule {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  min-height: 36px;
-  padding: 5px 14px;
-  color: #9caecc;
-  font-size: 10px;
-}
-body[data-page="rosters"] #game-logs-modal .gl-profile-schedule-position { color: #b3c5df; font-size: 8px; font-weight: 600; letter-spacing: 0.08em; white-space: nowrap; }
-body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; }
-body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric strong { color: #c9d7ed; font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
-body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric[data-difficulty="easy"] strong { color: #94d6c5; }
-body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric[data-difficulty="tough"] strong { color: #d2b0db; }
-body[data-page="rosters"] #game-logs-modal .gl-profile-sos-denominator { margin-left: -4px; color: #7386a5; font-size: 9px; }
-body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help { margin-left: auto; }
-body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help summary { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; color: #8ca4c9; list-style: none; cursor: pointer; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-schedule { grid-area: schedule; display: flex; align-items: center; justify-content: center; gap: 13px; min-width: 0; min-height: 18px; color: #7786a0; font-size: 9px; line-height: 1; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-schedule-position { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric { display: flex; align-items: baseline; gap: 4px; white-space: nowrap; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric strong { color: #b0bed5; font-size: 11px; font-weight: 500; font-variant-numeric: tabular-nums; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric[data-difficulty="easy"] strong { color: #99c0b8; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric[data-difficulty="tough"] strong { color: #b8a4c6; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-sos-denominator { margin-left: -3px; color: #65738d; font-size: 7.5px; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help summary { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 5px; color: #7c8aa3; list-style: none; cursor: pointer; }
 body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help summary::-webkit-details-marker { display: none; }
-body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
-body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help p {
-  position: absolute;
-  z-index: 10;
-  bottom: 33px;
-  right: 10px;
-  left: 10px;
-  margin: 0;
-  padding: 12px 14px;
-  border: 1px solid #8ba9d950;
-  border-radius: 12px;
-  background: #162137;
-  box-shadow: 0 8px 28px #0008, inset 0 1px 0 #d4e8ff12;
-  color: #c7d6ee;
-  font-size: 11px;
-  line-height: 1.55;
-  text-align: left;
-}
-
-body[data-page="rosters"] #game-logs-modal :is(.gl-profile:focus-visible, .gl-profile :is(button, summary):focus-visible) { outline: 2px solid #b2d6ff; outline-offset: 3px; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help p { position: absolute; z-index: 20; top: calc(100% + 3px); left: 0; right: 0; margin: 0; padding: 10px 12px; border: 1px solid #8e9db440; border-radius: 8px; background: #131b2c; box-shadow: 0 8px 22px #0008; color: #c1ccdf; font-size: 10.5px; font-weight: 400; line-height: 1.5; text-align: left; }
+body[data-page="rosters"] #game-logs-modal .gl-profile :is(button, summary):focus-visible { outline: 2px solid #a8bbdb; outline-offset: 2px; }
 @media (hover: hover) and (pointer: fine) {
-  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile :is(.modal-team-logo-chip:enabled:hover, .gl-profile-actions button:hover, .gl-profile-sos-help summary:hover) {
-    border-color: #a9cfff60;
-    background: #b8d7ff12;
-    color: #edf5ff;
-  }
+  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile-actions button:hover { background: #b2c5e30c !important; color: #d0daed; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile :is(.gl-profile-team:enabled:hover, .gl-profile-sos-help summary:hover) { color: #d0daed; }
 }
 
-@media (min-width: 560px) {
-  body[data-page="rosters"] #game-logs-modal .gl-profile-hero { grid-template-columns: 88px minmax(0, 1fr); gap: 8px 17px; padding-top: 1px; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-portrait { min-height: 110px; }
-  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .player-vitals--modal { max-width: min(100%, 365px); gap: 12px !important; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__label { font-size: 9px; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__value { font-size: 13px; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-schedule { gap: 24px; font-size: 11px; }
+@media (min-width: 681px) {
+  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile { grid-template-areas: 'intro intro' 'vitals schedule' 'stats stats'; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 4px 16px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-intro { grid-template-columns: 50px minmax(0, 1fr) 52px; gap: 10px; min-height: 50px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-portrait { width: 50px; height: 50px; }
+  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-player-name { font-size: 22px !important; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__label { font-size: 8px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__value { font-size: 10.5px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-schedule { justify-content: end; gap: 12px; font-size: 8.5px; }
 }
 
-@media (max-width: 380px) {
-  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile { border-radius: 14px; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-topline { padding-left: 10px; padding-right: 6px; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-eyebrow { gap: 5px; font-size: 8px; letter-spacing: 0.06em; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-season { padding-left: 5px; font-size: 8px; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-hero { grid-template-columns: 64px minmax(0, 1fr); column-gap: 9px; padding: 5px 10px 10px; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-portrait { min-height: 100px; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__label { font-size: 7px; letter-spacing: 0; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__value { font-size: 10px; }
-  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-summary-row { padding: 0 8px; }
-  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .gamelogs-summary-chip { padding: 9px 7px !important; }
-  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .gamelogs-summary-chip .chip-header-value { font-size: 22px !important; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-metric-caption { font-size: 8px; }
-  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .gamelogs-summary-chip .chip-values { gap: 2px !important; font-size: 10px !important; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-schedule { gap: 8px; padding: 4px 8px; font-size: 8px; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-schedule-position { font-size: 7px; letter-spacing: 0; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric { gap: 4px; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help summary { width: 24px; }
+@media (max-width: 359px) {
+  body[data-page="rosters"] #game-logs-modal .gl-profile-intro { grid-template-columns: 40px minmax(0, 1fr) 52px; min-height: 40px; gap: 6px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-portrait { width: 40px; height: 40px; }
+  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-player-name { font-size: 17px !important; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__label { font-size: 7px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__value { font-size: 9px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-stat-value { font-size: 17px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-stat-unit { font-size: 8px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-stat-ranks { font-size: 9px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-schedule { font-size: 8.5px; gap: 10px; }
 }
 
-@media (max-width: 480px) {
-  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .gamelogs-summary-chip h4 {
-    flex-direction: column;
-    align-items: start;
-    gap: 4px;
-  }
-}
-
-/* Short windows compress only the profile. The established navigation and
-   independently scrollable content keep their original rules and controls. */
-@media (max-height: 600px) and (min-width: 681px) {
-  body[data-page="rosters"] #game-logs-modal .gl-profile-topline { padding-top: 4px; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-hero { grid-template-columns: 66px minmax(0, 1fr) minmax(220px, 1fr); gap: 8px 12px; padding-bottom: 8px; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-portrait { grid-row: auto; min-height: 64px; }
-  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-player-name { font-size: 20px !important; }
-  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .player-vitals--modal { padding-top: 0 !important; border-top: 0; }
-  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .gamelogs-summary-chip { padding-top: 7px !important; padding-bottom: 7px !important; }
-  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .gamelogs-summary-chip .chip-header-value { font-size: 21px !important; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-schedule { min-height: 28px; padding-block: 0; }
-  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile { margin-bottom: 7px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body[data-page="rosters"] #game-logs-modal .gl-profile-actions button { transition: none; }
-}
-
-/* On compact phones/landscape, let the profile scroll within its own bounded
-   surface. Every metric remains reachable while the unchanged table retains
-   room for rows. Expanded schedule help joins that scrollable flow. */
-@media (max-height: 650px) {
-  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile {
-    max-height: clamp(96px, calc(100dvh - 380px), 210px);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
-    scrollbar-color: #667f9c60 transparent;
-  }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-schedule:has(.gl-profile-sos-help[open]) { flex-wrap: wrap; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help[open] { flex-basis: 100%; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help[open] summary { margin-left: auto; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help p { position: static; margin-block: 4px; }
+/* The original short-landscape header uses two columns. Here identity/stats
+   share its first row and vitals/SOS share the second, with no hidden content. */
+@media (min-width: 681px) and (max-height: 540px) {
+  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile { grid-template-areas: 'intro stats' 'vitals schedule'; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 4px 12px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-intro { grid-template-columns: 36px minmax(0, 1fr) 52px; min-height: 38px; gap: 7px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-portrait { width: 36px; height: 36px; }
+  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-player-name { font-size: 16px !important; }
+  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-summary-row { align-self: center; padding: 0; border-top: 0; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-stat-value { font-size: 17px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-schedule { gap: 8px; font-size: 8px; }
 }

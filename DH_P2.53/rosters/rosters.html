@@ -28,7 +28,7 @@
   <!-- Rosters Game Logs owns its complete responsive theme; it loads last to replace the older shared modal rules. -->
   <link rel="stylesheet" href="../styles/rosters-gamelogs.css?v=DH3.53c-rosters-gamelog-matchups" />
   <!-- Player profile styles apply only above the Rosters Game Logs navigation. -->
-  <link rel="stylesheet" href="../styles/rosters-gamelogs-profile.css?v=DH3.54-player-profile" />
+  <link rel="stylesheet" href="../styles/rosters-gamelogs-profile.css?v=DH3.54b-compact-profile" />
   <!-- Start/Sit owns a separate mobile-first dashboard theme and desktop layer. -->
   <link rel="stylesheet" href="../styles/rosters-start-sit.css?v=DH3.51g-start-sit-drilldowns" />
   <!-- Cloudflare Web Analytics: tracks visits for the current Dynasty Hub Cloudflare property; kept deferred so it does not block app rendering. -->
@@ -354,11 +354,21 @@
   <!-- === Game Logs pane (default modal content) === -->
   <div id="gamelogs-tab-pane" class="modal-content glass-panel gamelogs-tab-pane">
     <div id="modal-header">
-      <!-- Rosters' profile owns identity, portrait, vitals, existing summary
-           metrics and schedule context. The navigation below is unchanged. -->
-      <section class="gl-profile" aria-label="Player overview" tabindex="0">
-        <div class="gl-profile-topline">
-          <span class="gl-profile-eyebrow">Player overview <span class="gl-profile-season" data-profile-season>2026 season</span></span>
+      <!-- Compact Rosters header: portrait/identity, inline vitals and existing
+           metrics fit the original header footprint. Navigation stays intact. -->
+      <section class="gl-profile" aria-label="Player overview">
+        <div class="gl-profile-intro">
+          <div class="gl-profile-portrait" data-profile-portrait>
+            <span class="gl-profile-monogram" data-profile-monogram aria-hidden="true">DH</span>
+            <img class="gl-profile-headshot" data-profile-headshot alt="" width="160" height="160" decoding="async" hidden />
+          </div>
+          <div class="gl-profile-identity">
+            <h3 id="modal-player-name">Player Game Logs</h3>
+            <div class="gl-profile-byline">
+              <div class="gl-profile-affiliation" data-profile-affiliation></div>
+              <span class="gl-profile-season" data-profile-season>2026 season</span>
+            </div>
+          </div>
           <div class="gl-profile-actions">
             <button type="button" id="watchlist-modal-toggle" class="watchlist-toggle-btn" aria-label="Add to watchlist" aria-pressed="false" data-player-id="">
               <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
@@ -366,18 +376,7 @@
             <button type="button" class="modal-close-btn" aria-label="Close Game Logs">&times;</button>
           </div>
         </div>
-        <div class="gl-profile-hero">
-          <div class="gl-profile-portrait" data-profile-portrait>
-            <span class="gl-profile-monogram" data-profile-monogram aria-hidden="true">DH</span>
-            <img class="gl-profile-headshot" data-profile-headshot alt="" width="160" height="160" decoding="async" hidden />
-            <span class="gl-profile-portrait-caption" aria-hidden="true">DYNASTY HUB</span>
-          </div>
-          <div class="gl-profile-identity">
-            <h3 id="modal-player-name">Player Game Logs</h3>
-            <div class="gl-profile-affiliation" data-profile-affiliation></div>
-          </div>
-          <div id="modal-player-vitals"></div>
-        </div>
+        <div id="modal-player-vitals"></div>
         <div id="modal-summary-row">
           <div id="modal-summary-chips" aria-label="Player scoring and dynasty value">
             <!-- Existing values and ranks are rendered by the Game Logs loader. -->
@@ -731,7 +730,7 @@
   <script defer src="../scripts/rosters-gamelogs-controls.js?v=DH3.53-rosters-gamelogs"></script>
   <script defer src="../scripts/rosters-gamelogs-consistency.js?v=DH3.53-rosters-gamelogs"></script>
   <script defer src="../scripts/rosters-gamelogs.js?v=DH3.53c-rosters-gamelog-matchups"></script>
-  <script defer src="../scripts/rosters-gamelogs-profile.js?v=DH3.54-player-profile"></script>
+  <script defer src="../scripts/rosters-gamelogs-profile.js?v=DH3.54b-compact-profile"></script>
   <script defer src="../scripts/rosters-start-sit.js?v=DH3.52r-rosters-defense-ranks"></script>
 </body>
 </html>

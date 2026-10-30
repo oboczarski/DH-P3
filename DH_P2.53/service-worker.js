@@ -103,7 +103,7 @@
 // Refresh matching defense-rank colors and position-first subtitles.
 // Remove the quality badge while retaining the colored rank and player subtitle order.
 // Refresh Rosters' independent player profile, headshot and positional SOS assets.
-const CACHE_NAME = 'DH3.54-player-profile';
+const CACHE_NAME = 'DH3.54b-compact-profile';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -131,6 +131,9 @@ const CORE_ASSET_PATHS = [
   // Rosters Game Logs owns its modal styling without loading DataHub.css.
   '/styles/rosters-gamelogs.css',
   '/styles/rosters-gamelogs-profile.css',
+  // Scoped Google Sans Flex assets keep the rest of the modal typography intact.
+  '/assets/fonts/google-sans-flex/latin.woff2',
+  '/assets/fonts/google-sans-flex/latin-ext.woff2',
   '/styles/rosters-start-sit.css',
   '/styles/leaguehub.css',
   '/styles/research.css',

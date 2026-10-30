@@ -12,15 +12,6 @@
   let sosModule = null, revision = 0, historicalPending = null;
   const rankCache = new WeakMap();
 
-  // In short windows the profile scrolls independently. Keep those gestures
-  // out of the modal's existing Season-table scroll forwarding; native wheel,
-  // touch and keyboard scrolling inside the profile remain available.
-  for (const type of ['wheel', 'touchstart', 'touchmove', 'touchend', 'touchcancel']) {
-    profile.addEventListener(type, event => {
-      if (profile.scrollHeight > profile.clientHeight + 1) event.stopPropagation();
-    }, { passive: true });
-  }
-
   function showIdentity(player) {
     const full = state.players?.[player?.id] || player || {};
     const name = full.full_name || [full.first_name, full.last_name].filter(Boolean).join(' ') || player?.name || 'Player';
@@ -113,26 +104,43 @@
     const affiliation = find('[data-profile-affiliation]');
     const tags = modal.querySelector('#modal-header .modal-header-left-container');
     if (tags) {
-      // Keep the original position and team button nodes, including the team
-      // directory action. Their ownership-pane counterparts are never moved.
+      // Reuse the original team button/action and position text, but give this
+      // header its own unboxed typography instead of inheriting badge styles.
+      const position = tags.querySelector('.modal-pos-tag');
+      if (position) position.className = 'gl-profile-position';
+      // Retain the container's legacy class for app.js's player-switch cleanup;
+      // the position/team children now use header-local presentation classes.
+      tags.className = 'modal-header-left-container gl-profile-affiliation-content';
       affiliation.replaceChildren(tags);
       const teamButton = tags.querySelector('.modal-team-logo-chip');
-      if (teamButton && !teamButton.querySelector('.gl-profile-team-name')) {
+      if (teamButton) {
+        teamButton.className = 'gl-profile-team';
+        const logo = teamButton.querySelector('img');
+        if (logo) logo.className = 'gl-profile-team-logo';
         const label = document.createElement('span');
         label.className = 'gl-profile-team-name';
         label.textContent = teamButton.dataset.team || 'FA';
-        teamButton.appendChild(label);
+        teamButton.replaceChildren(...(logo ? [logo, label] : [label]));
         if (!teamButton.disabled) teamButton.insertAdjacentHTML('beforeend', '<svg class="gl-profile-team-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg>');
       }
     }
+    // Retain the existing vital value nodes and their conditional colors.
+    // Only the outer layout changes from a capsule to inline label/value pairs.
+    const vitals = find('#modal-player-vitals .player-vitals');
+    if (vitals) vitals.className = 'gl-profile-vitals-list player-vitals--modal';
     find('#modal-summary-chips').querySelectorAll('.gamelogs-summary-chip').forEach((chip, index) => {
+      chip.className = 'gl-profile-stat';
       chip.dataset.profileMetric = ['points', 'average', 'value'][index];
       chip.setAttribute('aria-label', ['Season fantasy points and ranks', 'Points per game and ranks', 'KeepTradeCut dynasty value and ranks'][index]);
-      const caption = document.createElement('span');
-      caption.className = 'gl-profile-metric-caption';
-      caption.textContent = ['Season production', 'Per game', 'Dynasty value'][index];
-      chip.prepend(caption);
+      const heading = chip.querySelector('h4');
+      const value = heading.querySelector('.chip-header-value');
+      const unit = heading.querySelector('.chip-unit');
+      heading.className = 'gl-profile-stat-main';
+      value.className = 'gl-profile-stat-value';
+      unit.className = 'gl-profile-stat-unit';
+      heading.replaceChildren(unit, value);
       const ranks = chip.querySelector('.chip-values');
+      ranks.className = 'gl-profile-stat-ranks';
       const overall = ranks?.lastElementChild;
       if (overall) {
         const label = document.createElement('span');
