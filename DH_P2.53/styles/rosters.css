@@ -3652,6 +3652,7 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .team
   column-gap: 0.2rem;
   row-gap: 0;
   font-size: 0.76rem;
+  min-height: 1.6rem;
 }
 
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .team-header-item .team-compare-checkbox {
@@ -3660,12 +3661,14 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .team
 
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .team-header-item .team-name {
   margin-top: 0;
+  font-size: 12.5px;
 }
 
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .team-header-item .team-record {
   grid-column: 3;
   grid-row: 1;
-  font-size: 0.54rem;
+  font-size: 0.6rem;
+  font-weight: 600;
 }
 
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .team-header-item .team-record-champ {
@@ -3922,7 +3925,7 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-
   }
 
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-meta-line .player-ktc {
-    font-size: 0.57rem;
+    font-size: 0.6rem;
   }
 }
 
