@@ -102,7 +102,8 @@
 // Refresh independently scoped modal styles and wider, fixed-height mobile charts.
 // Refresh matching defense-rank colors and position-first subtitles.
 // Remove the quality badge while retaining the colored rank and player subtitle order.
-const CACHE_NAME = 'DH3.53f-rosters-matchup-header';
+// Refresh Rosters' independent player profile, headshot and positional SOS assets.
+const CACHE_NAME = 'DH3.54-player-profile';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -129,6 +130,7 @@ const CORE_ASSET_PATHS = [
   '/styles/rosters.css',
   // Rosters Game Logs owns its modal styling without loading DataHub.css.
   '/styles/rosters-gamelogs.css',
+  '/styles/rosters-gamelogs-profile.css',
   '/styles/rosters-start-sit.css',
   '/styles/leaguehub.css',
   '/styles/research.css',
@@ -136,6 +138,9 @@ const CORE_ASSET_PATHS = [
   '/styles/contact.css',
   '/scripts/app.js',
   '/scripts/rosters-gamelogs.js',
+  // Rosters' upper profile and schedule math are independent of other pages.
+  '/scripts/rosters-gamelogs-profile.js',
+  '/scripts/rosters-gamelogs-sos.js',
   '/scripts/rosters-start-sit.js',
   '/scripts/stats.js',
   '/scripts/DataHub.js',
