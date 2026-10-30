@@ -97,7 +97,8 @@
 // Restore compact two-row owner headers while retaining selected-team gradients.
 // Refresh aligned stat menus and Rosters' independent complete Game Log revamp.
 // Refresh side-by-side Rosters preview headers, metric type and watermark offsets.
-const CACHE_NAME = 'DH3.53a-rosters-preview-refinements';
+// Refresh the shared text baseline throughout the side-by-side preview metadata.
+const CACHE_NAME = 'DH3.53b-rosters-preview-baseline';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

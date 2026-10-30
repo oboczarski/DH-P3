@@ -3776,6 +3776,7 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .play
   /* One shared gap spaces both Trade Preview dots equally on every side. */
   --trade-preview-metric-gap: 0.22rem;
   justify-content: space-between;
+  align-items: baseline;
   min-width: 0;
   gap: var(--trade-preview-metric-gap);
   padding: 0.05rem 0.24rem 0.1rem;
@@ -3831,6 +3832,19 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trad
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-wrapper .stat-rank-annotation {
   margin-left: -1px;
   transform: none;
+}
+
+/* Side-by-side metadata shares one text baseline through every nested KTC flex
+   box. Both the wrapper and its rank/suffix/parentheses must participate so
+   different font sizes align like typed text, rather than centering their boxes.
+   Keep this under the meta row so condensed value rows retain their layout. */
+body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-meta-line .trade-preview-ktc-wrapper {
+  align-items: baseline;
+}
+
+body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-meta-line .trade-preview-ktc-wrapper :is(.ktc-rank-display, .ktc-rank-suffix-display, .stat-rank-annotation) {
+  align-items: baseline;
+  align-self: baseline;
 }
 
 /* Condensed Trade Preview already omits the meta row; retain its compact view
