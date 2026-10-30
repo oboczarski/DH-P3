@@ -2596,6 +2596,23 @@ body[data-page="rosters"] #game-logs-modal .gamelog-week-tag::after {
   pointer-events: none;
 }
 
+/* Weekly opponent buttons retain the existing compact tag geometry. Native
+   buttons add keyboard activation; focus/hover feedback stays Rosters-local. */
+body[data-page="rosters"] #game-logs-modal button.gamelog-week-matchup {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: center;
+  cursor: pointer;
+  appearance: none;
+}
+body[data-page="rosters"] #game-logs-modal button.gamelog-week-matchup:is(:hover, :focus-visible) {
+  border-color: #9dc9ff;
+  outline: 1px solid #9dc9ff;
+  outline-offset: -1px;
+}
+body[data-page="rosters"] #game-logs-modal button.gamelog-week-matchup[aria-busy="true"] { cursor: progress; }
+
 body[data-page="rosters"] #game-logs-modal .unplayed-week-row .gamelog-week-tag {
   opacity: 0.52;
 }
@@ -6484,12 +6501,17 @@ body[data-page="rosters"] #game-logs-modal .team-modal-heading p {
   font-size: 15px;
   line-height: 1.2;
 }
-/* Team summary values keep each rank next to its metric; whole metrics wrap cleanly. */
+/* Team summary values keep each rank next to its metric; whole metrics wrap
+   cleanly, with a readable space after the caption's colon at every width. */
 body[data-page="rosters"] #game-logs-modal .team-modal-summary {display: flex;flex-wrap: wrap;align-items: baseline;column-gap: 53px;row-gap: 3px;font-variant-numeric: normal;}
 body[data-page="rosters"] #game-logs-modal .team-modal-metric {display: inline-flex;align-items: baseline;gap: 1px;color: #95a7c2;white-space: nowrap;}
-body[data-page="rosters"] #game-logs-modal .team-modal-metric strong { color: #dce7f7; font-weight: 550; }
+body[data-page="rosters"] #game-logs-modal .team-modal-metric strong { color: #dce7f7; font-weight: 550; margin-inline-start: 2px; }
 body[data-page="rosters"] #game-logs-modal .team-modal-metric-rank {color: #a0aec6;font-weight: 350;font-size: .9em;font-variant: none;}
 body[data-page="rosters"] #game-logs-modal .team-modal-player-count { color: #8396b2; white-space: nowrap; }
+/* The team-header loader/error occupies a wrapping row under the metrics so
+   its live announcement remains readable even on narrow phones. */
+body[data-page="rosters"] #game-logs-modal .team-modal-summary-status { flex-basis: 100%; color: #a8c9f2; font-size: .9em; }
+body[data-page="rosters"] #game-logs-modal .team-modal-summary-status[hidden] { display: none; }
 body[data-page="rosters"] #game-logs-modal .team-modal-body {
   min-height: 0;
   overflow-y: auto;

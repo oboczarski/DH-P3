@@ -98,7 +98,8 @@
 // Refresh aligned stat menus and Rosters' independent complete Game Log revamp.
 // Refresh side-by-side Rosters preview headers, metric type and watermark offsets.
 // Refresh the shared text baseline throughout the side-by-side preview metadata.
-const CACHE_NAME = 'DH3.53b-rosters-preview-baseline';
+// Refresh Weekly opponent links, nested-panel focus and team-metric feedback.
+const CACHE_NAME = 'DH3.53c-rosters-gamelog-matchups';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

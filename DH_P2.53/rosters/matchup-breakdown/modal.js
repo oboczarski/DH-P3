@@ -326,9 +326,12 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
         document.body.style.overflow = scrollState.body;
         scrollState = null;
       }
-      const trigger = [...document.querySelectorAll('[data-start-sit-matchup-id]')]
+      // Weekly Game Logs keeps its clicked tag; Start/Sit may rebuild its
+      // preview during loading, so retain the player-ID fallback for that entry.
+      const trigger = returnTrigger?.isConnected ? returnTrigger : [...document.querySelectorAll('[data-start-sit-matchup-id]')]
         .find(button => button.dataset.startSitMatchupId === triggerPlayerId);
       trigger?.focus({ preventScroll: true });
+      returnTrigger = null;
     });
     // Listen only inside this panel's shadow root. Its original data-position,
     // picker and sorting attributes cannot trigger another Rosters feature.
@@ -388,7 +391,7 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
       root.innerHTML = await response.text();
       const stylesheet = document.createElement('link');
       stylesheet.rel = 'stylesheet';
-      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.52r-rosters-defense-ranks', import.meta.url).href;
+      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.53c-rosters-gamelog-matchups', import.meta.url).href;
       const styled = new Promise((resolve, reject) => {
         stylesheet.onload = resolve;
         stylesheet.onerror = () => reject(new Error('Matchup panel styling could not load.'));
@@ -454,18 +457,24 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
     return preparationPromise;
   }
 
+  let returnTrigger = null;
   async function open(selection, trigger) {
     const resolved = resolveMatchupSelection(selection);
     if (!resolved) throw new Error('No opponent defense is available for this player.');
     const request = ++launch;
     await mount();
     if (request !== launch) return;
+    // The panel can now launch from either a Start/Sit preview or a weekly
+    // opponent tag. Do not reopen over an entry removed while mounting assets.
+    if (trigger?.classList.contains('gamelog-week-matchup') && (!trigger.isConnected
+      || trigger.closest('#game-logs-modal')?.classList.contains('hidden'))) return;
+    returnTrigger = trigger;
     closePicker(); hideTooltip();
     // Every entry starts with that player's defense/position. Table search and
     // venue changes remain modal-local and never alter projections or selection.
     state.team = resolved.team; state.pos = resolved.pos; state.venue = 'all';
     state.query = ''; state.hideZero = true; state.playerSort = { key: 'week', direction: 'desc', activeKey: null, step: 0 };
-    triggerPlayerId = String(selection.id);
+    triggerPlayerId = trigger?.hasAttribute('data-start-sit-matchup-id') ? String(selection.id) : null;
     $('breakdownPlayer').textContent = `${selection.label} · ${selection.matchup.opponent} · ${resolved.pos}`;
     const dialog = $('breakdownDialog');
     if (!dialog.open) {

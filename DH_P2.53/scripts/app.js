@@ -2653,7 +2653,8 @@ function handleCompareClick() {
 function getRostersMatchupController() {
     if (pageType !== 'rosters') return Promise.reject(new Error('Matchup Breakdown belongs to Rosters.'));
     if (!rostersMatchupsModulePromise) {
-        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.52r-rosters-defense-ranks')
+        // Start/Sit and Weekly opponent tags share this Rosters-owned panel.
+        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.53c-rosters-gamelog-matchups')
             .then(({ createMatchupBreakdown }) => {
                 rostersMatchups = createMatchupBreakdown({ onDataChange: () => {
                     // Late matchup readiness updates selected previews without

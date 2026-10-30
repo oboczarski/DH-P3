@@ -343,7 +343,7 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
     ru_ypg: 36,
     rec_ypg: 36,
   };
-  const decorateWeeklyTable = () => {
+  const decorateWeeklyTable = (player) => {
     const headers = [...modal.querySelectorAll('.game-logs-table-header th')];
     if (!headers.length) return;
     const labels = buildStatLabels();
@@ -379,7 +379,48 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
       const suffix = element.querySelector('.gamelog-week-tag-rank-suffix');
       if (suffix && Number.isFinite(number) && number > 0) suffix.textContent = ordinalSuffix(number).slice(String(number).length);
     });
+    // Rosters Weekly only: valid opponent tags open the existing, independently
+    // owned defense panel at this player's base position. Keep BYE/unknown tags
+    // inert and preserve the rendered week, rank, colors and source statistics.
+    const position = String(player?.basePos || player?.pos || '').toUpperCase();
+    if (!rostersTeamPositions.includes(position)) return;
+    modal.querySelectorAll('.gamelog-week-tag:not(button)').forEach(tag => {
+      const opponent = tag.querySelector('.gamelog-week-tag-opponent-text')?.textContent.trim();
+      const match = /^(?:(?:vs\.?|@)\s*)?([a-z]{2,3})$/i.exec(opponent || '');
+      const team = match && rostersTeamKey(match[1]);
+      if (!rostersTeamNames[team]) return;
+      const trigger = document.createElement('button');
+      trigger.type = 'button';
+      trigger.className = `${tag.className} gamelog-week-matchup`;
+      const week = tag.querySelector('.gamelog-week-tag-number').textContent;
+      const label = `Open ${team} vs. ${position} matchup breakdown · ${week}`;
+      trigger.setAttribute('aria-label', label);
+      trigger.setAttribute('aria-haspopup', 'dialog');
+      trigger.title = label;
+      trigger.append(...tag.childNodes);
+      const selection = { id: player.id, label: player.name || player.full_name || `${position} player`,
+        basePos: position, matchup: { opponent } };
+      trigger.addEventListener('click', () => rostersOpenWeeklyMatchup(selection, trigger));
+      tag.replaceWith(trigger);
+    });
   };
+
+  async function rostersOpenWeeklyMatchup(selection, trigger) {
+    if (trigger.getAttribute('aria-busy') === 'true') return;
+    const request = gameLogsModalRequestSeq;
+    trigger.setAttribute('aria-busy', 'true');
+    try {
+      const controller = await getRostersMatchupController();
+      // A pending module import must not open over a closed/replaced player log.
+      if (request !== gameLogsModalRequestSeq || !trigger.isConnected || modal.classList.contains('hidden')) return;
+      await controller.open(selection, trigger);
+    } catch (error) {
+      console.warn('Unable to open Game Logs matchup details.', error);
+      if (trigger.isConnected) showTemporaryTooltip(trigger, 'Unable to open matchup details. Please try again.');
+    } finally {
+      trigger.removeAttribute('aria-busy');
+    }
+  }
 
   // Rosters owns this state bridge. Weekly/Season describe the period while
   // one content state coordinates the detached dock, overlays and table views.
@@ -548,7 +589,7 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
     const requestSeq = args[3];
     if (Number.isFinite(requestSeq) && requestSeq !== gameLogsModalRequestSeq) return;
     decorateStatLabels();
-    decorateWeeklyTable();
+    decorateWeeklyTable(state.currentGameLogsPlayer);
     decorateVitals(modal.querySelector('#modal-player-vitals'), args[1]?.pos);
     if (pendingSeasonNavigation && pendingSeasonNavigation.playerId === String(args[1]?.id)
       && pendingSeasonNavigation.season === state.currentGameLogsSeason) {
@@ -1109,6 +1150,11 @@ async function rostersUpdateTeamSummary(team, season, revision) {
   // retryable; late responses cannot replace a different team or historical view.
   if (season !== '2026') return;
   const summary = modal.querySelector('.team-modal-summary');
+  // Team-header feedback stays next to the four TM_STAT metrics. Each freshly
+  // opened pane owns its status node, so late responses cannot label another team.
+  const status = summary.querySelector('.team-modal-summary-status');
+  status.textContent = 'Loading team metrics…';
+  status.hidden = false;
   summary.setAttribute('aria-busy', 'true');
   try {
     rostersTeamStatsPromise ||= import('./rosters-team-stats.js').then(async ({ load2026TeamStats, build2026TeamRanks, get2026TeamStatColor }) => {
@@ -1130,8 +1176,13 @@ async function rostersUpdateTeamSummary(team, season, revision) {
       node.parentElement.querySelector('.team-modal-metric-rank').textContent = value != null && rank ? `(${rank})` : '';
     });
     summary.title = teams[team] ? '2026 team season totals · TM_STAT' : 'Team stats unavailable in TM_STAT';
+    status.textContent = teams[team] ? '' : 'Team metrics unavailable.';
+    status.hidden = Boolean(teams[team]);
   } catch (error) {
-    if (revision === rostersTeamViewRevision) summary.title = 'Team stats unavailable. Reopen the team view to retry.';
+    if (revision === rostersTeamViewRevision) {
+      summary.title = 'Team stats unavailable. Reopen the team view to retry.';
+      status.textContent = 'Team metrics unavailable. Reopen to retry.';
+    }
     console.warn('Unable to load Rosters team summary.', error);
   } finally {
     summary.removeAttribute('aria-busy');
@@ -1203,7 +1254,9 @@ function rostersOpenTeamView(trigger) {
   rostersTeamTrigger = trigger;
   closeGameLogsSeasonMenu();
   pane.querySelector('.team-modal-season').textContent = `${state.currentGameLogsSeason} SEASON · PPR`;
-  pane.querySelector('.team-modal-header').innerHTML = `<img class="team-modal-logo" src="${`../assets/NFL_logos_svg/${({ WAS: 'was' })[team] || team.toLowerCase()}.svg`}" alt="${team}" width="48" height="48"><div class="team-modal-heading"><h3 id="team-modal-title">${escapeHtml(rostersTeamNames[team])}</h3><p class="team-modal-summary" title="${state.currentGameLogsSeason === '2026' ? '2026 team season totals · TM_STAT' : 'TM_STAT team stats are available for 2026'}"><span class="team-modal-player-count">${players.length} players</span>${rostersTeamSummaryFields.map(key => `<span class="team-modal-metric">${({ paYds: 'PaYds', ruYds: 'RuYds' })[key] || key} <strong data-team-summary-stat="${key}">—</strong> <span class="team-modal-metric-rank" data-team-summary-rank="${key}"></span></span>`).join('')}</p></div>`;
+  // Team summary captions include a colon before their value at every width;
+  // the live status is separate from the values so loading never resembles zero.
+  pane.querySelector('.team-modal-header').innerHTML = `<img class="team-modal-logo" src="${`../assets/NFL_logos_svg/${({ WAS: 'was' })[team] || team.toLowerCase()}.svg`}" alt="${team}" width="48" height="48"><div class="team-modal-heading"><h3 id="team-modal-title">${escapeHtml(rostersTeamNames[team])}</h3><p class="team-modal-summary" title="${state.currentGameLogsSeason === '2026' ? '2026 team season totals · TM_STAT' : 'TM_STAT team stats are available for 2026'}"><span class="team-modal-player-count">${players.length} players</span>${rostersTeamSummaryFields.map(key => `<span class="team-modal-metric">${({ paYds: 'PaYds', ruYds: 'RuYds' })[key] || key}: <strong data-team-summary-stat="${key}">—</strong> <span class="team-modal-metric-rank" data-team-summary-rank="${key}"></span></span>`).join('')}<span class="team-modal-summary-status" role="status" aria-live="polite" hidden></span></p></div>`;
   const groupNames = { QB: 'Quarterbacks', RB: 'Running backs', WR: 'Wide receivers', TE: 'Tight ends' };
   const body = pane.querySelector('.team-modal-body');
   // Rosters team view stacks full-width QB/RB/WR/TE sections in a fixed order.

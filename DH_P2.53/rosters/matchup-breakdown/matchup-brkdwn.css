@@ -309,4 +309,7 @@ dialog { font:inherit; }
   /* Only mobile Matchup Breakdown tightens the wrapped row below Week by week.
      Players faced, expanded-table headings and desktop spacing stay independent. */
   .matchupDialog .weeklySection > .sectionHeading.chartHeading {row-gap: 0px;}
+  /* Weekly Game Logs opens this same panel on narrow phones. Let the legend
+     and position controls wrap within it so every position stays reachable. */
+  .matchupDialog .chartHeaderControls { max-width:100%; flex-wrap:wrap; }
 }

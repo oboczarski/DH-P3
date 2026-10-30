@@ -1,6 +1,7 @@
 # Rosters Matchup Breakdown
 
-Start/Sit owns this copy of the current Matchups `defensePanel`. It imports no
+Rosters owns this copy of the current Matchups `defensePanel`, opened from
+Start/Sit or the player Game Logs Weekly `WK · VS` tags. It imports no
 files from `matchups/`: `model.js` copies the pure parsers/calculations,
 `modal.js` copies the defense profile, weekly SVG chart, player table and picker
 renderers, `panel.html` retains the exact panel and expanded-player markup,
@@ -10,8 +11,9 @@ contains its own team/conference logos.
 The panel lives in a shadow root so its selectors, IDs, position colors, symbols
 and event handlers cannot affect other Rosters controls. Native dialogs provide
 focus trapping, Escape/backdrop dismissal and the nested expanded player view.
-Closing restores the prior scroll locks and focuses that player's Breakdown
-action. The projection and selected-player snapshots remain Rosters-owned.
+Closing restores the prior scroll locks and focuses the clicked Weekly tag or
+that player's Breakdown action. The projection and selected-player snapshots
+remain Rosters-owned.
 
 Pressing Start/Sit starts preparation before awaiting its existing projection
 loader. Preparation mounts/styles the modal, loads fresh FPF/FPFA/FPA CSV exports
@@ -19,6 +21,11 @@ in parallel, validates the complete source set, computes all/home/away analyses
 and warms its copied logos. Concurrent consumers reuse the same pending promise.
 Data is reused only within the current document; reloading reads current sheets.
 Failures display an error/retry state, without bundled or historical fallbacks.
+Weekly tags prepare this same panel on demand without requiring Start/Sit.
+Every valid tag selects its opponent defense and the player's base position;
+BYE and unknown opponents remain inert. The panel always uses the current 2026
+matchup sources, including when opened from a historical player log; it does
+not replace that log's CSV results, selected season, projections or ranks.
 
 The independently owned parser accepts `BYE` (case insensitive) in every FPFA
 `wN` opponent column without adding an opponent or played game. Later week
