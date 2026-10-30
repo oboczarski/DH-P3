@@ -2497,8 +2497,8 @@ body[data-page="rosters"] #game-logs-modal .game-logs-table {
 }
 
 body[data-page="rosters"] #game-logs-modal .game-logs-table-footer {
-  padding-bottom: 4px;
-  margin-bottom: 0;
+  padding-bottom: 0px;
+  margin-bottom: -4px;
 }
 
 body[data-page="rosters"] #game-logs-modal .game-logs-table thead,
