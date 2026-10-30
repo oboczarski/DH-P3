@@ -53,7 +53,7 @@ dialog { font:inherit; }
 :where(#defensePanel) h2 { margin:0; font-size:17px; line-height:1.2; font-weight:550; letter-spacing:-.3px; }
 .glass-panel:where(#defensePanel) { position:relative; min-width:0; border:1px solid var(--border); background:linear-gradient(155deg,rgba(255,255,255,.055),rgba(255,255,255,.009)),linear-gradient(180deg,rgba(15,21,39,.76),rgba(8,13,26,.7)); box-shadow:0 8px 28px rgba(2,5,17,.22),inset 0 4px 18px rgba(255,255,255,.035); backdrop-filter:blur(7px) saturate(140%); -webkit-backdrop-filter:blur(7px) saturate(140%); border-radius:12px; }
 .glass-panel:where(#defensePanel)::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:linear-gradient(135deg,rgba(215,225,255,.065),transparent 30%); }
-.positionBadge { color:var(--pos-color); padding:3px 7px; border:1px solid color-mix(in srgb,var(--pos-color) 25%,transparent); border-radius:7px; font-size:14px; background:color-mix(in srgb,var(--pos-color) 8%,transparent); font-weight:500; box-shadow:inset 0 3px 9px #ffffff08,0 0 9px color-mix(in srgb,var(--pos-color) 9%,transparent); }
+.positionBadge {color:var(--pos-color);padding: 2px 6px;border:1px solid color-mix(in srgb,var(--pos-color) 25%,transparent);border-radius:7px;font-size: 13px;background:color-mix(in srgb,var(--pos-color) 8%,transparent);font-weight:500;box-shadow:inset 0 3px 9px #ffffff08,0 0 9px color-mix(in srgb,var(--pos-color) 9%,transparent);}
 @supports (background-clip:border-area) {
 .positionBadge { color:var(--pos-text-tint); border-color:transparent; background:linear-gradient(90deg,#74efff33 0%,#7297ff33 52%,#d97dff33 100%),
       linear-gradient(90deg,#74efffbb 0%,#7297ffbb 52%,#d97dffbb 100%) border-area,
