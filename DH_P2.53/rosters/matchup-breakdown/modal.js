@@ -1,4 +1,4 @@
-// Rosters-owned defense panel: retain the current panel renderer, chart geometry,
+// Rosters-owned defense panel: isolate its renderer, responsive chart geometry,
 // tooltips, filters and player expansion in an isolated modal, with no Matchups imports.
 import Data from './model.js?v=DH3.50-byes-rosters-data';
 import { createMatchupStore, resolveMatchupSelection } from './data.js?v=DH3.52r-rosters-defense-ranks';
@@ -164,12 +164,14 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
     // CSS switches the mobile spans to one-decimal Actual FPA and shorter notes;
     // desktop text and every underlying comparison retain their existing precision.
     const sosColor = heatColor({ rank: c.sosRank, pool: Data.TEAMS.length, rankOrder: "descending" });
+    // Stable card IDs let each metric's labels, values and notes be styled
+    // independently in the stylesheet's mobile and desktop sections.
     $("metrics").innerHTML = `
-      <div class="metric"><div class="metricLabel">ACTUAL FPA</div><div class="metricValue"><span class="metricDesktop">${fmt(stat.total)}</span><span class="metricMobile">${fmt(stat.total, 1)}</span></div><div class="metricSub">${fmt(stat.avg, 1)} per game</div></div>
-      <div class="metric"><div class="metricLabel">EXPECTED FPA</div><div class="metricValue">${fmt(c.expectedTotal, 1)}</div><div class="metricSub">${baselineNote}</div></div>
-      <div class="metric"><div class="metricLabel">vs EXPECTED</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
-      <div class="metric"><div class="metricLabel" title="Defense rank: 1 = best defense / fewest FPA per game">RANK</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub"><span class="metricDesktop">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</span><span class="metricMobile">${stat.games} game${stat.games === 1 ? "" : "s"}</span></div></div>
-      <div class="metric metric--sos" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub"><span class="metricDesktop">1 easy · 32 tough</span><span class="metricMobile">1 → 32</span></div></div>`;
+      <div class="metric" id="actualMetric"><div class="metricLabel">ACTUAL FPA</div><div class="metricValue"><span class="metricDesktop">${fmt(stat.total)}</span><span class="metricMobile">${fmt(stat.total, 1)}</span></div><div class="metricSub">${fmt(stat.avg, 1)} per game</div></div>
+      <div class="metric" id="expectedMetric"><div class="metricLabel">EXPECTED FPA</div><div class="metricValue">${fmt(c.expectedTotal, 1)}</div><div class="metricSub">${baselineNote}</div></div>
+      <div class="metric" id="deltaMetric"><div class="metricLabel">vs EXPECTED</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
+      <div class="metric" id="rankMetric"><div class="metricLabel" title="Defense rank: 1 = best defense / fewest FPA per game">RANK</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub"><span class="metricDesktop">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</span><span class="metricMobile">${stat.games} game${stat.games === 1 ? "" : "s"}</span></div></div>
+      <div class="metric metric--sos" id="sosMetric" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub"><span class="metricDesktop">1 easy · 32 tough</span><span class="metricMobile">1 → 32</span></div></div>`;
   }
   function width(id) {
     const element = $(id), style = getComputedStyle(element);
@@ -187,17 +189,30 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
     return { low, high, ticks, step };
   }
   const tick = (value, bounds) => fmt(value, bounds.step ? Math.max(0, -Math.floor(Math.log10(bounds.step))) : 0);
-  const frame = (W, H, label, content) => `<svg viewBox="0 0 ${W} ${H}" role="group" aria-label="${esc(label)}">${content}</svg>`;
+  const frame = (W, H, label, content) => `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="group" aria-label="${esc(label)}">${content}</svg>`;
 
   // Each opponent's positional scoring average supplies its weekly expected line.
   function renderWeekly() {
     const entries = comparison().entries;
-    // Copy Matchups' shared scroll track, plot insets and filtered entry order.
-    // Each chip sits directly below its week tick; W# stays on the axis and in
-    // accessible chip labels/tooltips, including sparse venue-filtered weeks.
+    // Rosters' mobile and desktop CSS independently control the horizontal
+    // gutters. Both pin the original 196px SVG height: widening the mobile
+    // track must never scale it taller. Chips keep the chart's exact x slots.
     const timeline = $("weeklyTimelineContent");
     timeline.style.setProperty("--weekly-week-count", Math.max(1, entries.length));
-    const W = width("weeklyChart"), H = 196, left = 31, right = W - 9, top = 22, bottom = H - 19;
+    const chartStyle = getComputedStyle($("weeklyChart"));
+    const setting = (name, fallback) => {
+      const value = Number.parseFloat(chartStyle.getPropertyValue(name));
+      return Number.isFinite(value) ? value : fallback;
+    };
+    const bounds = scale(entries.flatMap(entry => [entry.actual, entry.expected]));
+    const axisLabelGap = setting('--weekly-label-gap', 6);
+    // Measure the current tick text so tight mobile gutters also fit negative
+    // or three-digit scores. Only width changes; vertical plot bounds stay put.
+    const measure = document.createElement('canvas').getContext('2d');
+    measure.font = `9px ${chartStyle.fontFamily}`;
+    const widestTick = Math.max(...bounds.ticks.map(value => measure.measureText(tick(value, bounds)).width));
+    const left = Math.max(setting('--weekly-axis-inset', 31), Math.ceil(widestTick) + axisLabelGap + setting('--weekly-label-edge', 1));
+    const W = width("weeklyChart"), H = setting('--weekly-chart-height', 196), right = W - setting('--weekly-right-inset', 9), top = 22, bottom = H - 19;
     timeline.style.setProperty("--weekly-plot-left", `${left / W * 100}%`);
     timeline.style.setProperty("--weekly-plot-right", `${(W - right) / W * 100}%`);
     $("weeklyMatchups").innerHTML = entries.map(entry => {
@@ -206,11 +221,10 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
       return `<div class="weekMatchup" role="group" aria-label="${label}" title="${label}"><span class="weekOpponentStack"><span class="weekOpponent">${esc(opponent)}</span>${logo(entry.offense)}</span></div>`;
     }).join("");
     if (!entries.some(entry => entry.actual !== null)) { $("weeklyChart").innerHTML = empty("No recorded games", "Choose another defense venue or position."); return; }
-    const bounds = scale(entries.flatMap(entry => [entry.actual, entry.expected]));
     const y = value => bottom - (value - bounds.low) / (bounds.high - bounds.low) * (bottom - top);
     const slot = (right - left) / entries.length, x = index => left + slot * (index + .5), barWidth = Math.min(49, slot * .4);
     let content = `<defs><linearGradient id="weekly-bar" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${COLORS[state.pos]}" stop-opacity=".83"/><stop offset="1" stop-color="${COLORS[state.pos]}" stop-opacity=".24"/></linearGradient><linearGradient id="weekly-expected-line" gradientUnits="userSpaceOnUse" x1="${left}" y1="0" x2="${right}" y2="0"><stop stop-color="#8af7ff" stop-opacity=".71"/><stop offset="1" stop-color="#e3b3ff" stop-opacity=".66"/></linearGradient></defs>`;
-    content += bounds.ticks.map(n => `<line class="${n === 0 ? "zeroLine" : "gridLine"}" x1="${left}" x2="${right}" y1="${y(n)}" y2="${y(n)}"/><text x="${left - 6}" y="${y(n) + 3}" text-anchor="end">${tick(n, bounds)}</text>`).join("");
+    content += bounds.ticks.map(n => `<line class="${n === 0 ? "zeroLine" : "gridLine"}" x1="${left}" x2="${right}" y1="${y(n)}" y2="${y(n)}"/><text x="${left - axisLabelGap}" y="${y(n) + 3}" text-anchor="end">${tick(n, bounds)}</text>`).join("");
     let segment = [];
     const finish = () => {
       if (segment.length > 1) content += `<polyline class="expectedLine" points="${segment.join(" ")}"/>`;
@@ -386,12 +400,14 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
   function mount() {
     if (mountPromise) return mountPromise;
     mountPromise = (async () => {
-      const response = await fetch(new URL('./panel.html?v=DH3.52r-rosters-defense-ranks', import.meta.url));
+      const response = await fetch(new URL('./panel.html?v=DH3.53d-rosters-modal-style-areas', import.meta.url));
       if (!response.ok) throw new Error(`Matchup panel could not load (${response.status}).`);
       root.innerHTML = await response.text();
+      // One Rosters-owned stylesheet contains independent MOBILE and DESKTOP
+      // sections, with separate selectors for each modal area in both sections.
       const stylesheet = document.createElement('link');
       stylesheet.rel = 'stylesheet';
-      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.53c-rosters-gamelog-matchups', import.meta.url).href;
+      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.53d-rosters-modal-style-areas', import.meta.url).href;
       const styled = new Promise((resolve, reject) => {
         stylesheet.onload = resolve;
         stylesheet.onerror = () => reject(new Error('Matchup panel styling could not load.'));

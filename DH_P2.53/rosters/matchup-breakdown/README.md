@@ -4,8 +4,8 @@ Rosters owns this copy of the current Matchups `defensePanel`, opened from
 Start/Sit or the player Game Logs Weekly `WK · VS` tags. It imports no
 files from `matchups/`: `model.js` copies the pure parsers/calculations,
 `modal.js` copies the defense profile, weekly SVG chart, player table and picker
-renderers, `panel.html` retains the exact panel and expanded-player markup,
-`matchup-brkdwn.css` retains their original declarations/media queries, and `assets/`
+renderers, `panel.html` owns the panel and expanded-player markup,
+`matchup-brkdwn.css` owns their independently scoped styling rules, and `assets/`
 contains its own team/conference logos.
 
 The panel lives in a shadow root so its selectors, IDs, position colors, symbols
@@ -82,3 +82,19 @@ alphabetical AFC/NFC columns at every width. The weekly SVG and number-free
 opponent chips share a horizontal scroll track with identical slot counts and
 plot insets. Every week gets an axis label, including sparse venue selections
 and long seasons; chip tooltips and accessible labels retain the week number.
+
+Styling is kept in the existing `matchup-brkdwn.css` file. Its MOBILE
+(`max-width:620px`) and DESKTOP (`min-width:621px`) sections each declare their
+own visual rules. Selected-player, defense and expanded-player subtitles use
+`#breakdownPlayer`, `#defenseSubtitle` and `#expandedSubtitle` separately. The main
+and expanded headers, bodies, filters, defense/venue pickers, position controls,
+tables and footers have distinct ID scopes. Each of the five metric cards has
+its own scope, including its labels, values and notes. Matching values are
+intentionally repeated so a local edit cannot restyle a different area.
+
+Only the mobile weekly timeline extends through the defense panel's side
+padding. Its y-axis gutter fits the current tick text, with a small edge inset;
+the grid's right inset is 2px. CSS declares chart geometry separately in each
+breakpoint section. The SVG height stays fixed at the original 196px rather than
+scaling with width. The desktop track retains its original gutters, and opponent
+chips continue to use the same horizontal slots as the chart's week ticks.
