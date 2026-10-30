@@ -3687,7 +3687,7 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-
 /* Shift every preview watermark 4px left in addition to its existing team-specific
    placement. Preserve each logo's size, height, opacity and filter settings. */
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row .roster-card-watermark {
-  transform: translate(-4px, -50%);
+  transform: translate(-8px, -50%);
 }
 
 /* Trade Preview alone keeps each draft pick, KTC and original owner inline
