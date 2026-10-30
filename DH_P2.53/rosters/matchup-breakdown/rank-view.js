@@ -27,3 +27,16 @@ export function ordinalRank(rank) {
   const suffix = lastTwo >= 11 && lastTwo <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[rank % 10] || 'th');
   return `${rank}${suffix}`;
 }
+
+// The Rosters defense-header quality badge uses the displayed defense rank
+// directly (1 = strongest defense), including venue-filtered ranks. Missing or
+// invalid ranks have no label; SOS and the source ranks remain unchanged.
+export function matchupQuality(rank) {
+  if (!Number.isInteger(rank) || rank < 1 || rank > 32) return null;
+  if (rank <= 6) return 'Brutal';
+  if (rank <= 12) return 'Tough';
+  if (rank <= 16) return 'Moderate';
+  if (rank <= 20) return 'Favorable';
+  if (rank <= 26) return 'Great';
+  return 'Prime';
+}

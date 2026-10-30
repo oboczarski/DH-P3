@@ -100,7 +100,8 @@
 // Refresh the shared text baseline throughout the side-by-side preview metadata.
 // Refresh Weekly opponent links, nested-panel focus and team-metric feedback.
 // Refresh independently scoped modal styles and wider, fixed-height mobile charts.
-const CACHE_NAME = 'DH3.53d-rosters-modal-style-areas';
+// Refresh matching defense-rank colors, matchup-quality badges and position-first subtitles.
+const CACHE_NAME = 'DH3.53e-rosters-matchup-quality';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

@@ -98,3 +98,11 @@ the grid's right inset is 2px. CSS declares chart geometry separately in each
 breakpoint section. The SVG height stays fixed at the original 196px rather than
 scaling with width. The desktop track retains its original gutters, and opponent
 chips continue to use the same horizontal slots as the chart's week ticks.
+
+The defense heading reuses the RANK metric's exact conditional color. Its own
+quality badge sits beneath the ordinal/position row and uses the displayed
+rank: 1–6 Brutal, 7–12 Tough, 13–16 Moderate, 17–20 Favorable, 21–26 Great,
+27–32 Prime. Missing ranks hide the badge. Both update with position/venue
+filters; SOS stays unchanged. The selected-player subtitle is ordered as
+`Position · Player name · Opponent`. Badge styling has separate mobile and
+desktop rules in the same stylesheet.
