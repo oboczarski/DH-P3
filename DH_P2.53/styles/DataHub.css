@@ -16799,3 +16799,376 @@ body[data-page="datahub"] #game-logs-modal.is-team-view .team-modal-pane {
   body[data-page="datahub"] #game-logs-modal #modal-summary-chips { width: 100%; gap: 8px; }
   body[data-page="datahub"] #game-logs-modal .gamelogs-nav-row { grid-area: 3 / 1 / 4 / 3; margin: 0; }
 }
+
+/* DataHub Game Logs: the player profile is a self-contained header above the
+   unchanged navigation. Every override is rooted in this new profile so Team,
+   Ownership, Compare, Rosters and the content views retain their own styles. */
+body[data-page="datahub"] #game-logs-modal #modal-header:has(> .gamelogs-profile) {
+  display: block;
+  padding-bottom: 0;
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile {
+  --profile-accent: 119, 182, 255;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-areas: "topline topline" "overview summary" "schedule schedule";
+  gap: 10px 16px;
+  margin: 0 0 10px;
+  padding: 12px 14px 10px;
+  border: 1px solid rgba(172, 199, 238, .17);
+  border-radius: 16px;
+  background: radial-gradient(ellipse at 4% 0%, rgba(var(--profile-accent), .17), transparent 58%),
+    linear-gradient(122deg, rgba(25, 37, 57, .96), rgba(13, 19, 32, .97) 68%);
+  box-shadow: inset 0 1px 0 rgba(219, 235, 255, .09), 0 9px 22px rgba(0, 0, 0, .14);
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile[data-position="QB"] { --profile-accent: 255, 112, 158; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile[data-position="RB"] { --profile-accent: 91, 224, 190; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile[data-position="TE"] { --profile-accent: 186, 143, 255; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 18px;
+  width: 35%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(var(--profile-accent), .9), transparent);
+  box-shadow: 0 0 14px rgba(var(--profile-accent), .4);
+  pointer-events: none;
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__topline {
+  grid-area: topline;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 25px;
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 9px;
+  color: rgba(var(--profile-accent), .95);
+  font-size: 8px;
+  font-weight: 650;
+  letter-spacing: .14em;
+  line-height: 1.25;
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__season {
+  color: #8795ad;
+  font-weight: 450;
+  letter-spacing: .08em;
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__actions { display: flex; gap: 5px; flex-shrink: 0; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile .modal-close-btn {
+  position: static !important;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin: -4px -5px -4px 0;
+  padding: 0 0 2px;
+  border: 1px solid rgba(189, 211, 245, .13);
+  border-radius: 9px;
+  background: rgba(174, 199, 255, .06);
+  color: #b7c5dc;
+  font-size: 23px !important;
+  line-height: 1;
+  transform: none;
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__overview {
+  grid-area: overview;
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__portrait {
+  position: relative;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  min-height: 90px;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--profile-accent), .22);
+  background: radial-gradient(ellipse at 50% 32%, rgba(var(--profile-accent), .3), rgba(var(--profile-accent), .03) 73%),
+    linear-gradient(155deg, #1e2c40, #0b1321);
+  box-shadow: inset 0 0 20px rgba(var(--profile-accent), .07);
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__portrait::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(0deg, rgba(10, 18, 31, .6), transparent 35%);
+  pointer-events: none;
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__portrait img {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 136%;
+  max-width: none;
+  height: 112%;
+  object-fit: cover;
+  object-position: center top;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .24));
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__initials { color: rgba(var(--profile-accent), .6); font-size: 28px; font-weight: 650; letter-spacing: -.04em; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__initials[hidden] { display: none; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__identity { min-width: 0; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile .modal-header-left-container {
+  position: static !important;
+  display: flex;
+  gap: 5px !important;
+  align-items: center;
+  margin: 0 0 4px;
+  padding: 0;
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile :is(.modal-pos-tag, .modal-team-logo-chip) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 23px !important;
+  height: 23px;
+  max-height: none;
+  min-width: 0;
+  margin: 0;
+  padding: 2px 7px !important;
+  border: 1px solid rgba(var(--profile-accent), .18);
+  border-radius: 6px !important;
+  background: rgba(var(--profile-accent), .07);
+  font-size: 10px !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
+  text-shadow: none;
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile .modal-team-logo-chip img.team-logo { width: 22px !important; height: 20px !important; object-fit: contain; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile #modal-player-name {
+  display: block !important;
+  max-width: none !important;
+  margin: 0 0 8px !important;
+  padding: 0;
+  overflow: visible !important;
+  color: #eef4ff;
+  font-size: 22px !important;
+  font-weight: 620 !important;
+  letter-spacing: -.035em;
+  line-height: 1.08;
+  text-align: left !important;
+  text-wrap: balance;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile #modal-player-vitals { display: block !important; min-width: 0; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile .player-vitals--modal {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  flex-wrap: nowrap !important;
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile .player-vitals--modal::after { display: none; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile .player-vitals__item { align-items: flex-start !important; gap: 4px !important; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile .player-vitals__label { font-size: 7px; letter-spacing: .07em; color: #8190a9; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile .player-vitals__value { font-size: 11px; line-height: 1; letter-spacing: 0; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile #modal-summary-row {
+  grid-area: summary;
+  align-self: stretch;
+  display: flex !important;
+  align-items: stretch !important;
+  min-width: 0;
+  margin: 0 !important;
+  gap: 0 !important;
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile #modal-summary-chips {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  width: 100% !important;
+  min-width: 0;
+  gap: 0 !important;
+  overflow: hidden;
+  border: 1px solid rgba(169, 198, 239, .11);
+  border-radius: 11px;
+  background: linear-gradient(160deg, rgba(151, 186, 233, .065), rgba(0, 0, 0, .08));
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile .gamelogs-summary-chip {
+  min-width: 0 !important;
+  margin: 0;
+  padding: 8px 4px !important;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  white-space: nowrap;
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile .gamelogs-summary-chip + .gamelogs-summary-chip { border-left: 1px solid rgba(167, 195, 234, .12); }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile .gamelogs-summary-chip::after { display: none; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile .gamelogs-summary-chip h4 {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 7px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  line-height: 1;
+}
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile .chip-header-value { font-size: 19px !important; font-weight: 600; letter-spacing: -.035em; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile .chip-unit { color: #93a3bb; font-size: 8px; font-weight: 550; letter-spacing: .1em; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile .chip-values { display: flex; align-items: center; justify-content: center; font-size: 10px !important; gap: 0; line-height: 1.2; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile .chip-pos-rank-label { margin: 0; font-size: .86em; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile .chip-separator { margin: 0 3px !important; color: #61738e; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__schedule { grid-area: schedule; min-width: 0; padding-top: 9px; border-top: 1px solid rgba(162, 193, 235, .12); }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__schedule-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 8px; margin-bottom: 7px; color: #b4c3da; font-size: 8px; font-weight: 550; letter-spacing: .1em; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__schedule-context { color: #7f91ac; font-size: 8px; font-weight: 400; letter-spacing: .02em; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos { --sos-color: #9aa8bd; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 1px 6px; min-width: 0; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos[data-tone="easy"] { --sos-color: #88dfc1; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos[data-tone="favorable"] { --sos-color: #87bdf5; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos[data-tone="difficult"] { --sos-color: #bea2f0; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos[data-tone="tough"] { --sos-color: #e69ac2; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-label { color: #c0cee3; font-size: 11px; font-weight: 500; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-rank { grid-column: 2; grid-row: 1 / 3; color: var(--sos-color); font-size: 23px; font-weight: 600; line-height: 1; letter-spacing: -.04em; text-shadow: 0 0 18px color-mix(in srgb, var(--sos-color), transparent 80%); }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-rank span { margin-left: 2px; color: #6f829e; font-size: 10px; font-weight: 450; letter-spacing: 0; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-detail { color: #8192ac; font-size: 9px; line-height: 1.4; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-track { position: relative; grid-column: 1 / -1; height: 3px; margin: 6px 3px 0; border-radius: 3px; background: linear-gradient(90deg, #76cbb3, #79ace0 40%, #ab8ed0 70%, #cd7da8); opacity: .85; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-marker { position: absolute; top: 50%; width: 6px; height: 6px; border: 1px solid #e7f4ff; border-radius: 50%; background: #182233; transform: translate(-50%, -50%); box-shadow: 0 0 0 2px #182233, 0 0 8px var(--sos-color); }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-marker[hidden] { display: none; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__method { margin-top: 7px; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__method summary { display: flex; gap: 10px; align-items: center; color: #8598b3; font-size: 8px; line-height: 1.5; cursor: pointer; list-style: none; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__method summary::-webkit-details-marker { display: none; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__method-link { margin-left: auto; color: #a3b7d4; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile__method p { margin: 8px 0 0; padding: 9px; border: 1px solid rgba(170, 197, 236, .12); border-radius: 8px; background: #0c1423; color: #a9b9d0; font-size: 10px; line-height: 1.5; max-height: 100px; overflow-y: auto; }
+body[data-page="datahub"] #game-logs-modal .gamelogs-profile :is(button, summary):focus-visible { outline: 2px solid #a8d5ff; outline-offset: 3px; }
+@media (hover: hover) {
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile :is(.modal-close-btn, .modal-team-logo-chip):hover { background: rgba(174, 199, 255, .15); color: #fff; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__method summary:hover { color: #d6e5fa; }
+}
+/* Phones keep a full-width production strip beneath the integrated identity;
+   larger screens place it alongside the portrait to avoid wasted vertical space. */
+@media (max-width: 580px) {
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile { grid-template-columns: minmax(0, 1fr); grid-template-areas: "topline" "overview" "summary" "schedule"; gap: 10px; padding: 10px 11px 9px; border-radius: 13px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__overview { grid-template-columns: 78px minmax(0, 1fr); gap: 12px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__portrait { min-height: 89px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile #modal-player-name { font-size: 23px !important; margin-bottom: 9px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .player-vitals--modal { gap: clamp(6px, calc(6px + (100vw - 320px) * .1), 14px) !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .gamelogs-summary-chip { padding: 7px 4px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .gamelogs-summary-chip h4 { flex-direction: row; align-items: baseline; justify-content: center; gap: 5px; margin-bottom: 5px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .chip-header-value { font-size: 19px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__schedule { padding-top: 8px; }
+}
+@media (max-width: 360px) {
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile { padding-inline: 9px; gap: 9px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__overview { grid-template-columns: 66px minmax(0, 1fr); gap: 10px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile #modal-player-name { font-size: 21px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .player-vitals--modal { gap: 6px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .chip-header-value { font-size: 17px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .chip-values { font-size: 9px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__schedule-heading { font-size: 7px; letter-spacing: .06em; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-pair { gap: 12px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-label { font-size: 10px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-rank { font-size: 21px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-rank span { font-size: 8px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-detail { font-size: 8px; }
+}
+/* Short landscape keeps the profile compact without changing the navigation,
+   table/chart styling or content-view behavior below it. */
+@media (min-width: 581px) and (max-height: 540px) {
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile {
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, .95fr) minmax(0, 1.15fr);
+    grid-template-areas: "overview summary schedule";
+    gap: 4px 12px;
+    padding: 5px 10px;
+    margin-bottom: 6px;
+  }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__topline { display: contents; }
+  /* The duplicated eyebrow/year yields space to the actual profile data; the
+     selected year remains visible in the schedule context and season control. */
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__eyebrow { display: none; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__actions { position: absolute; top: 8px; right: 10px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__overview { grid-template-columns: 45px minmax(0, 1fr); gap: 7px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__portrait { min-height: 54px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile #modal-player-name { font-size: 16px !important; margin-bottom: 5px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .player-vitals--modal { gap: 6px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .player-vitals__value { font-size: 10px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .gamelogs-summary-chip { padding: 5px 2px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .chip-header-value { font-size: 16px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .chip-values { font-size: 8px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .chip-separator { margin-inline: 2px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__schedule { padding: 0 0 0 10px; border-top: 0; border-left: 1px solid rgba(162, 193, 235, .12); }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__schedule-heading { padding-right: 22px; font-size: 7px; margin-bottom: 3px; line-height: 1.15; gap: 0; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__schedule-heading > span:first-child { display: none; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__schedule-context { font-size: 7px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-label { font-size: 9px; line-height: 1.1; white-space: nowrap; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos { grid-template-columns: 1fr; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-rank { grid-area: 2 / 1; margin-block: 1px; font-size: 16px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-detail { font-size: 7px; line-height: 1.15; white-space: nowrap; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-track { height: 2px; margin-top: 1px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__method { margin-top: 3px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__method summary { flex-wrap: wrap; gap: 0 5px; font-size: 7px; line-height: 1.15; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__method-link { margin-left: 0; }
+}
+
+/* Very short landscape profiles use a single compact row: retain all five
+   vitals and both SOS metrics without consuming the unchanged table's space. */
+@media (min-width: 701px) and (max-height: 430px) {
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile { padding: 4px 8px; gap: 4px 10px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__overview { grid-template-columns: 35px minmax(0, 1fr); gap: 6px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__portrait { min-height: 43px; border-radius: 7px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__identity { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: center; gap: 4px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .modal-header-left-container { margin: 0; gap: 3px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile :is(.modal-pos-tag, .modal-team-logo-chip) { height: 18px; min-height: 18px !important; padding: 1px 4px !important; font-size: 8px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .modal-team-logo-chip img.team-logo { width: 18px !important; height: 16px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile #modal-player-name { margin: 0 !important; font-size: 13px !important; text-wrap: initial; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile #modal-player-vitals { grid-column: 1 / -1; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .player-vitals--modal { gap: 6px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .player-vitals__item { gap: 2px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .player-vitals__label { font-size: 5.5px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .player-vitals__value { font-size: 8px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .gamelogs-summary-chip { padding: 3px 2px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .gamelogs-summary-chip h4 { gap: 3px; margin-bottom: 4px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .chip-header-value { font-size: 13px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .chip-unit { font-size: 6px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .chip-values { font-size: 7px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__schedule { padding-left: 8px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__schedule-heading { margin-bottom: 2px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__schedule-context { font-size: 6px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-label { font-size: 7px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-rank { margin-block: 0; font-size: 14px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-rank span { font-size: 7px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-detail { font-size: 6px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__method { margin-top: 2px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__method summary { font-size: 6px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__actions { top: 7px; right: 8px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile .modal-close-btn { width: 20px; height: 20px; font-size: 17px !important; border-radius: 6px; }
+}
+
+/* Narrow landscape/tablet windows put the schedule below the identity, where
+   its two period cards have enough room and no vital is squeezed out. */
+@media (min-width: 581px) and (max-width: 700px) and (max-height: 540px) {
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); grid-template-areas: "overview summary" "schedule schedule"; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__overview { grid-template-columns: 40px minmax(0, 1fr); }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__schedule { margin-top: 3px; padding: 5px 0 0; border-left: 0; border-top: 1px solid rgba(162, 193, 235, .12); }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos { grid-template-columns: 1fr auto; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-profile__sos-rank { grid-area: 1 / 2 / 3 / 3; margin: 0; }
+}

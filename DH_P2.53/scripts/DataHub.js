@@ -1,7 +1,8 @@
+import { buildHistoricalProfileSource, renderGameLogsProfile } from "./datahub-gamelogs-profile.js?v=DH3.54-profile";
 import { get2026QualifierOptions } from "./datahub-stats-season.js";
 import { getDataHubStatsPeriodOptions, getDataHubWeeklyColumns, getDataHubWeeklyColumnGroups, getDataHubWeeklyTableSourceRows } from "./datahub-stats-period.js";
 import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSeasonRankQualified } from "./datahub-stats-positional-ranks.js";
-import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js";
+import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js?v=DH3.54-profile";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js";
 import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js";
 import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames, isConsistencyProductionStat, getConsistencyAverageLabelCenter } from "./datahub-gamelogs-controls.js?v=DH3.53-rosters-gamelogs";
@@ -13689,7 +13690,7 @@ async function openDataHubGameLogs(row, triggerButton = null, { season = state.s
 
   const loadingPlayer = buildDataHubModalPlayer(meta);
   state.currentGameLogsPlayer = loadingPlayer;
-  prepareDataHubModalForLoading(loadingPlayer);
+  prepareDataHubModalForLoading(loadingPlayer, season);
   openDataHubModal(season);
   state.currentGameLogsView = view;
   showDataHubLoadingPanel();
@@ -13747,11 +13748,12 @@ function buildDataHubModalPlayer(meta) {
   };
 }
 
-function prepareDataHubModalForLoading(player) {
+function prepareDataHubModalForLoading(player, season = state.currentModalSeason) {
   // DataHub modal pre-open state:
   // clear prior player chrome before async game log work starts so the modal can
   // open instantly with the new player name and the existing loading panel.
   modalPlayerName.textContent = player.fullName || player.name || "Player";
+  renderGameLogsProfile(gameLogsModal, player, null, season, { loading: true });
   modalPlayerVitals?.replaceChildren();
   modalSummaryChips?.replaceChildren();
   modalBody?.replaceChildren();
@@ -13818,7 +13820,7 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
   if (!state.seasonDataPromises[season]) {
     state.seasonDataPromises[season] = (async () => {
       await Promise.all([fetchDataHubSleeperPlayers(), ensureDataHubSupplementalData(), bootstrapDataHubUserContext()]);
-      let seasonStats, seasonRanks, weeklyStats;
+      let seasonStats, seasonRanks, weeklyStats, profileSource;
       if (season === "2026") {
         const source = await ensureDataHub2026Data();
         // Weekly CSV/DRK/schedule are modal-only dependencies. Reuse the DH snapshot so
@@ -13831,6 +13833,8 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
           scheduleUrl: new URL("../data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv", window.location.href),
         });
         source.weeklyRows = weeklySource.weeklyRows;
+        // The profile reuses these modal-only DRK/schedule reads without new fetches.
+        profileSource = { scheduleByTeam: weeklySource.scheduleByTeam, defenseByTeam: weeklySource.defenseByTeam, resultsAvailable: !Object.keys(weeklySource.weekErrors).length };
         if (Object.keys(weeklySource.weekErrors).length) {
           console.warn("DataHub skipped unavailable or invalid 2026 weeks:", weeklySource.weekErrors);
         }
@@ -13844,7 +13848,9 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
         ]);
         seasonStats = parseDataHubSeasonStatsRows(parseCsv(seasonText));
         seasonRanks = parseDataHubSeasonRanksRows(parseCsv(rankText));
-        weeklyStats = Object.fromEntries(weekTexts.map((text, index) => [index + 1, parseDataHubWeeklyStatsRows(parseCsv(text))]));
+        const profileWeeks = Object.fromEntries(weekTexts.map((text, index) => [index + 1, parseCsv(text)]));
+        weeklyStats = Object.fromEntries(Object.entries(profileWeeks).map(([week, rows]) => [week, parseDataHubWeeklyStatsRows(rows)]));
+        profileSource = buildHistoricalProfileSource(profileWeeks, 18);
       }
       // Share the results cutoff with the Stats scoring exception and divider.
       // Schedule/projection-only rows and BYEs do not advance the season week.
@@ -13859,7 +13865,7 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
       }));
       seasonRanks = computeDataHubComparisonSeasonRankSets(rankPlayers,
         getDataHubGameLogsQualifiedIds(season, latestRecordedWeek || getStatsElapsedWeeks(season))).positional;
-      const snapshot = { season, seasonStats, seasonRanks, weeklyStats, latestRecordedWeek };
+      const snapshot = { ...profileSource, season, seasonStats, seasonRanks, weeklyStats, latestRecordedWeek };
       state.seasonDataCache[season] = snapshot;
       rebuildStatsPositionalRanks();
       if (state.activePageView === "stats") refreshGrid();
@@ -14809,7 +14815,8 @@ function renderDataHubModalHeader(player, playerRanks) {
     <div class="player-tag modal-pos-tag ${dataHubEscapeHtml(player.pos)}">${dataHubEscapeHtml(player.pos)}</div>
     ${getDataHubTeamLogoMarkup(player.team, { interactive: true })}
   `;
-  header.insertBefore(left, header.firstChild);
+  // Keep the existing interactive team button in the new identity area.
+  header.querySelector(".gamelogs-profile__tags").replaceChildren(left);
   modalPlayerName.textContent = player.fullName || player.name || "Player";
   if (modalPlayerVitals) {
     modalPlayerVitals.innerHTML = "";
@@ -14860,15 +14867,9 @@ function renderDataHubModalHeader(player, playerRanks) {
         </div>
       </div>
     `;
-    // DataHub Game Logs header parity:
-    // match the shared Rosters/Stats modal by sizing the vitals capsule to the
-    // rendered summary-chip row width after the chips exist in the DOM.
-    const playerVitalsElement = modalPlayerVitals?.querySelector(".player-vitals--modal");
-    const summaryChipsWidth = modalSummaryChips.offsetWidth;
-    if (playerVitalsElement && summaryChipsWidth > 0) {
-      playerVitalsElement.style.width = `${summaryChipsWidth}px`;
-    }
   }
+  // Profile/SOS uses only the activated page-local season snapshot.
+  renderGameLogsProfile(gameLogsModal, player, state.seasonDataCache[state.currentModalSeason], state.currentModalSeason);
 }
 
 // DataHub modal parity:

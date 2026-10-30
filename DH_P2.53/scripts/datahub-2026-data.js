@@ -194,6 +194,10 @@ export async function load2026WeeklySourceData({
   return {
     ...build2026SourceData({ seasonRows, weeklyRows: localSource.weeklyRows,
       projectionRows: projectionSource?.projectionRows, scheduleRows, defenseRows }),
+    // Expose original modal-only sources for the positional header SOS; this
+    // does not change results, projections, qualifiers or published SOS ranks.
+    scheduleByTeam: Object.fromEntries(scheduleRows.map(row => [normalize2026Team(row.TM), row])),
+    defenseByTeam: Object.fromEntries(defenseRows.map(row => [normalize2026Team(row.TM), row])),
     weekErrors: localSource.weekErrors, projectionErrors: projectionSource?.projectionErrors || {},
   };
 }
