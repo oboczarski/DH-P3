@@ -343,3 +343,62 @@ test('AVG is centered on the reference unless nearby points/chips/statuses requi
   assert.equal(getConsistencyAverageLabelCenter(90, label, plot, [obstacle(80,100)]), 72);
   assert.equal(getConsistencyAverageLabelCenter(50, label, plot, [obstacle(45,55), obstacle(30,38)]), 63);
 });
+
+// Render the production Weekly opponent descriptor with a minimal DOM. This
+// checks the actual number/suffix/color wiring without booting live data feeds.
+function opponentRankHarness() {
+  const element = () => ({ children: [], style: {}, appendChild(child) { this.children.push(child); } });
+  const context = vm.createContext({ document: { createElement: element } });
+  const functions = ['getDataHubOpponentDefenseRank', 'getDataHubOpponentRankColor', 'getDataHubRankDisplayText', 'getDataHubOrdinalSuffix']
+    .map(name => source.match(new RegExp(`function ${name}\\([^]*?\\n}`))?.[0]).join('\n');
+  const start = source.indexOf('  const buildWeekDescriptor = (week, statsForWeek) => ({');
+  const end = source.indexOf('\n  const tableRows = [];', start);
+  assert.ok(start >= 0 && end > start, 'exercise the actual weekly descriptor');
+  vm.runInContext(functions + '\n' + source.slice(start, end) + '\nthis.buildWeekDescriptor = buildWeekDescriptor;', context);
+  return { context, render(week, stats) {
+    const cell = element();
+    context.buildWeekDescriptor(week, stats).render(cell);
+    const tag = cell.children[0];
+    const opponent = tag.children[1];
+    return { tag, opponent, text: opponent?.children.find(child => child.className === 'gamelog-week-tag-opponent-text'),
+      rank: opponent?.children.find(child => child.className === 'gamelog-week-tag-rank') };
+  } };
+}
+
+test('DataHub Weekly tags reverse all 32 defense ranks, suffixes and both colors without changing their source', () => {
+  const { render } = opponentRankHarness();
+  const sourceColors = ['#82d8bee0', '#73b9e7e0', '#c093ebe0', '#c456b1e0'];
+  const ordinals = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th','13th','14th','15th','16th',
+    '17th','18th','19th','20th','21st','22nd','23rd','24th','25th','26th','27th','28th','29th','30th','31st','32nd'];
+  for (const week of [1, 8, 18]) for (let raw = 1; raw <= 32; raw += 1) {
+    const stats = Object.freeze({ opponent: '@ BAL', opponent_rank: raw, proj: '18.5' });
+    const result = render(week, stats);
+    const display = 33 - raw;
+    assert.equal(result.tag.children[0].textContent, `WK-${week}`);
+    assert.equal(result.text.textContent, '@ BAL');
+    assert.equal(result.rank.children[0].textContent, String(display));
+    assert.equal(result.rank.children.map(child => child.textContent).join(''), ordinals[display - 1]);
+    assert.equal(result.rank.style.color, sourceColors[Math.floor((raw - 1) / 8)]);
+    assert.equal(result.text.style.color, result.rank.style.color);
+    assert.match(result.rank.title, /1 = best defense/);
+    assert.equal(stats.opponent_rank, raw);
+    assert.equal(stats.proj, '18.5');
+  }
+});
+
+test('DataHub Weekly tags keep BYE, missing and invalid ranks neutral instead of rounding or inventing a rank', () => {
+  const { render, context } = opponentRankHarness();
+  for (const rank of [undefined, null, '', 'NA', 'N/A', 0, -1, 33, 1.5, NaN, Infinity, true]) {
+    const result = render(18, { opponent: 'vs HOU', opponent_rank: rank });
+    assert.equal(result.rank, undefined, String(rank));
+    assert.equal(result.text.style.color, undefined);
+    assert.equal(result.text.textContent, 'VS HOU');
+    assert.equal(context.getDataHubOpponentRankColor(rank), null);
+  }
+  for (const opponent of ['BYE', 'bye', ' BYE ']) {
+    const result = render(7, { opponent, opponent_rank: 1 });
+    assert.equal(result.opponent.textContent, 'BYE');
+    assert.equal(result.rank, undefined);
+  }
+  assert.equal(render(8, {}).opponent, undefined);
+});

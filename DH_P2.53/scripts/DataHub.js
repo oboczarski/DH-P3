@@ -15006,7 +15006,10 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
   const buildWeekDescriptor = (week, statsForWeek) => ({
     render(td) {
       const opponent = String(statsForWeek?.opponent || "").trim().toUpperCase();
-      const opponentRank = Number.isFinite(statsForWeek?.opponent_rank) ? Math.round(statsForWeek.opponent_rank) : null;
+      // DataHub's Weekly opponent tag displays defense strength, matching
+      // Rosters/Matchups. Convert only the label; retain the source rank and
+      // leave BYE/missing/invalid ranks unavailable in either season.
+      const opponentRank = opponent === "BYE" ? null : getDataHubOpponentDefenseRank(statsForWeek?.opponent_rank);
       const opponentRankColor = getDataHubOpponentRankColor(opponentRank);
       const weekTag = document.createElement("div");
       weekTag.className = "gamelog-week-tag";
@@ -15039,6 +15042,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
 
             const rankSpan = document.createElement("span");
             rankSpan.className = "gamelog-week-tag-rank";
+            rankSpan.title = "Defense rank: 1 = best defense / fewest fantasy points allowed; 32 = most allowed";
             if (opponentRankColor) {
               rankSpan.style.color = opponentRankColor;
             }
@@ -16591,12 +16595,22 @@ function buildDataHubStatsKeyMarkup() {
   `;
 }
 
+// DataHub Game Logs only: published matchup ranks run in the opposite direction
+// to defense strength. Keep raw CSV/DRK rows intact and never round an invalid
+// rank into a valid one; player performance ranks use their existing helpers.
+function getDataHubOpponentDefenseRank(rank) {
+  return Number.isInteger(rank) && rank >= 1 && rank <= 32 ? 33 - rank : null;
+}
+
+// Reverse the opponent tag's color bands with its displayed defense rank:
+// low ranks are tough matchups (pink), high ranks favorable (mint). Both the
+// opponent text and rank use this scale, preserving each defense's difficulty.
 function getDataHubOpponentRankColor(rank) {
-  if (!Number.isFinite(rank)) return null;
-  if (rank <= 8) return "#82d8bee0";
-  if (rank <= 16) return "#73b9e7e0";
-  if (rank <= 24) return "#c093ebe0";
-  if (rank <= 32) return "#c456b1e0";
+  if (!Number.isInteger(rank) || rank < 1 || rank > 32) return null;
+  if (rank <= 8) return "#c456b1e0";
+  if (rank <= 16) return "#c093ebe0";
+  if (rank <= 24) return "#73b9e7e0";
+  if (rank <= 32) return "#82d8bee0";
   return null;
 }
 
