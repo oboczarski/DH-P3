@@ -330,6 +330,10 @@
                 // Regular roster badges need the team's bye even for IR/rookie
                 // players who have no DH season row or recorded weekly result.
                 scheduleByTeam: Object.fromEntries(schedule),
+                // The Rosters profile compares team schedules against the same
+                // unmodified positional defense ranks used by its weekly tags.
+                // Expose existing data only: SOS adds no request or loading gate.
+                defenseRanksByTeam: Object.fromEntries(defense),
                 latestRecordedWeek, rankQualifierWeeks: Math.max(1, weeksOfData), weekErrors, projectionWeeks };
             applyRosters2026Projections(snapshot);
             state.rosters2026GameLogs = snapshot;

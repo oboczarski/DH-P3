@@ -27,6 +27,8 @@
   <link rel="stylesheet" href="../styles/ownership.css?v=DH3.1t-vi10" />
   <!-- Rosters Game Logs owns its complete responsive theme; it loads last to replace the older shared modal rules. -->
   <link rel="stylesheet" href="../styles/rosters-gamelogs.css?v=DH3.53c-rosters-gamelog-matchups" />
+  <!-- Rosters profile header only; navigation and every content panel retain their own styles. -->
+  <link rel="stylesheet" href="../styles/rosters-gamelogs-profile.css?v=DH3.54-rosters-player-profile" />
   <!-- Start/Sit owns a separate mobile-first dashboard theme and desktop layer. -->
   <link rel="stylesheet" href="../styles/rosters-start-sit.css?v=DH3.51g-start-sit-drilldowns" />
   <!-- Cloudflare Web Analytics: tracks visits for the current Dynasty Hub Cloudflare property; kept deferred so it does not block app rendering. -->
@@ -351,19 +353,40 @@
 
   <!-- === Game Logs pane (default modal content) === -->
   <div id="gamelogs-tab-pane" class="modal-content glass-panel gamelogs-tab-pane">
-    <!-- Watchlist add/remove toggle (positioned to the left of close button) -->
-    <button id="watchlist-modal-toggle" class="watchlist-toggle-btn" aria-label="Add to watchlist" data-player-id="">
-      <i class="fa-solid fa-user-plus"></i>
-    </button>
-    <button class="modal-close-btn">&times;</button>
-    <div id="modal-header">
-      <h3 id="modal-player-name">Player Game Logs</h3>
-      <div id="modal-player-vitals"></div>
-      <div id="modal-summary-row">
-        <div id="modal-summary-chips">
-          <!-- Summary chips will be rendered here -->
+    <div id="modal-header" class="has-player-profile">
+      <!-- The profile uses the existing header's space. Existing IDs retain their
+           renderers/handlers; the navigation row below stays outside this surface. -->
+      <section class="gl-profile" aria-label="Player overview">
+        <div class="gl-profile-portrait" aria-hidden="true">
+          <span class="gl-profile-monogram"></span>
+          <img class="gl-profile-headshot" alt="" decoding="async" hidden />
+          <span class="gl-profile-portrait-caption">PLAYER PROFILE</span>
         </div>
-      </div>
+        <div class="gl-profile-identity">
+          <div class="gl-profile-context"><span class="gl-profile-team-name"></span></div>
+          <h3 id="modal-player-name">Player Game Logs</h3>
+          <div id="modal-player-vitals"></div>
+        </div>
+        <div class="gl-profile-actions">
+          <button id="watchlist-modal-toggle" class="watchlist-toggle-btn" type="button" aria-label="Add to watchlist" data-player-id="">
+            <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+          </button>
+          <button class="modal-close-btn" type="button" aria-label="Close Game Logs">&times;</button>
+        </div>
+        <div id="modal-summary-row">
+          <div id="modal-summary-chips"><!-- Existing values and all six rank annotations render here. --></div>
+        </div>
+        <div class="gl-profile-schedule" aria-label="Position-specific strength of schedule">
+          <button type="button" class="gl-profile-sos" data-profile-sos="faced" aria-expanded="false" aria-controls="gl-profile-sos-help">
+            <span>SOS so far</span><strong data-profile-sos-value>—</strong><span class="gl-profile-sos-scale">/32</span>
+          </button>
+          <button type="button" class="gl-profile-sos" data-profile-sos="remaining" aria-expanded="false" aria-controls="gl-profile-sos-help">
+            <span>Remaining SOS</span><strong data-profile-sos-value>—</strong><span class="gl-profile-sos-scale">/32</span>
+          </button>
+          <span class="gl-profile-schedule-key">1 easiest · 32 toughest</span>
+        </div>
+        <div id="gl-profile-sos-help" class="gl-profile-sos-help" role="status" hidden></div>
+      </section>
       <div class="gamelogs-nav-row" aria-label="Game logs navigation">
         <div class="gamelogs-season-controls" role="group" aria-label="Season">
           <!-- Game Logs modal season controls: replaces the 2025/2026 button pair with a dropdown,
@@ -698,10 +721,11 @@
   <!-- Rosters data stays in the existing loader; local presentation supplies modal icons, help, and view styling. -->
   <!-- Start/Sit and Weekly opponent tags lazily open the Rosters-owned Matchup Breakdown. -->
   <script defer="True" src="../scripts/app.js?v=DH3.53f-rosters-matchup-header"></script>
-  <script defer="True" src="../scripts/rosters-2026-gamelogs.js?v=DH3.51f-rosters-availability"></script>
+  <script defer="True" src="../scripts/rosters-2026-gamelogs.js?v=DH3.54-rosters-player-profile"></script>
   <script defer src="../scripts/rosters-gamelogs-controls.js?v=DH3.53-rosters-gamelogs"></script>
   <script defer src="../scripts/rosters-gamelogs-consistency.js?v=DH3.53-rosters-gamelogs"></script>
   <script defer src="../scripts/rosters-gamelogs.js?v=DH3.53c-rosters-gamelog-matchups"></script>
+  <script defer src="../scripts/rosters-gamelogs-profile.js?v=DH3.54-rosters-player-profile"></script>
   <script defer src="../scripts/rosters-start-sit.js?v=DH3.52r-rosters-defense-ranks"></script>
 </body>
 </html>
