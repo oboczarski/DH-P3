@@ -16998,30 +16998,18 @@ function updateDataHubConsistencyHud(data) {
       ? `${Math.round(data.ceilingRank)}<span class="ceiling-rank-suffix">${getDataHubOrdinalSuffix(Math.round(data.ceilingRank))}</span>`
       : "NA";
   }
-  const consistencyCaptionEl = consistencyContainer.querySelector("[data-consistency-circle-caption]");
-  if (consistencyCaptionEl) consistencyCaptionEl.textContent = "CSTY RATE";
-  const ceilingCaptionEl = consistencyContainer.querySelector("[data-ceiling-circle-caption]");
-  if (ceilingCaptionEl) ceilingCaptionEl.textContent = "CL POS RANK";
-  const consistencyRing = consistencyContainer.querySelector(".progress-circle--consistency .progress-ring-fill");
-  const ceilingRing = consistencyContainer.querySelector(".progress-circle--ceiling .progress-ring-fill--ceiling");
   applyDataHubRankStyling({
     rank: data?.consistencyRank,
     metricValueEl: consistencyRankEl,
     metricSubEl: null,
     circleValueEl: consistencyCircleValue,
   });
-  if (consistencyRing) {
-    consistencyRing.setAttribute("stroke", getDataHubRankAccentColor(data?.consistencyRank));
-  }
   applyDataHubRankStyling({
     rank: data?.ceilingRank,
     metricValueEl: ceilingValueEl,
     metricSubEl: null,
     circleValueEl: ceilingCircleValue,
   });
-  if (ceilingRing) {
-    ceilingRing.setAttribute("stroke", getDataHubRankAccentColor(data?.ceilingRank));
-  }
   const cstyCountEl = consistencyContainer.querySelector("[data-insight-cstycount]");
   if (cstyCountEl) {
     const made = Number.isFinite(data?.solidHighCount) ? data.solidHighCount : null;
@@ -17677,19 +17665,30 @@ function renderDataHubConsistencyPoints(data) {
 }
 
 function hydrateDataHubConsistencyProgressCircles(data) {
-  const consistencyCircle = document.querySelector(".progress-circle--consistency .progress-ring-fill");
+  // DataHub's research-style dials share one progress value across the arc,
+  // inner echo and endpoint. Keep the existing rate/rank normalization and
+  // semantic rank colors; zero and unavailable values render an empty track.
+  const consistencyCircle = consistencyContainer?.querySelector(".progress-circle--consistency");
   const pctValue = data && Number.isFinite(data.consistencyPct)
     ? Math.max(0, Math.min(100, data.consistencyPct)) / 100
     : 0;
   if (consistencyCircle) {
-    consistencyCircle.style.setProperty("--progress", pctValue.toFixed(3));
+    consistencyCircle.style.setProperty("--progress", String(pctValue));
+    consistencyCircle.style.setProperty("--dial-accent", getDataHubRankAccentColor(data?.consistencyRank));
+    consistencyCircle.dataset.hasProgress = String(pctValue > 0);
+    consistencyCircle.setAttribute("aria-label", `Season consistency rate: ${formatDataHubHudPercentage(data?.consistencyPct)}`);
   }
-  const ceilingCircle = document.querySelector(".progress-circle--ceiling .progress-ring-fill--ceiling");
+  const ceilingCircle = consistencyContainer?.querySelector(".progress-circle--ceiling");
   if (ceilingCircle) {
     const rankMax = Math.max(2, data?.ceilingRankMax || 24);
     const rank = Number.isFinite(data?.ceilingRank) ? data.ceilingRank : rankMax;
     const normalized = Math.max(0, Math.min(1, (rankMax - rank) / (rankMax - 1)));
-    ceilingCircle.style.setProperty("--progress", normalized.toFixed(3));
+    ceilingCircle.style.setProperty("--progress", String(normalized));
+    ceilingCircle.style.setProperty("--dial-accent", getDataHubRankAccentColor(data?.ceilingRank));
+    ceilingCircle.dataset.hasProgress = String(normalized > 0);
+    ceilingCircle.setAttribute("aria-label", Number.isFinite(data?.ceilingRank)
+      ? `Ceiling positional rank: ${Math.round(data.ceilingRank)} of ${rankMax}`
+      : "Ceiling positional rank: no data");
   }
 }
 

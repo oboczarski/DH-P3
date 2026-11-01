@@ -16799,3 +16799,195 @@ body[data-page="datahub"] #game-logs-modal.is-team-view .team-modal-pane {
   body[data-page="datahub"] #game-logs-modal #modal-summary-chips { width: 100%; gap: 8px; }
   body[data-page="datahub"] #game-logs-modal .gamelogs-nav-row { grid-area: 3 / 1 / 4 / 3; margin: 0; }
 }
+
+/* DataHub Consistency HUD only: adapt the Rookie ADP / NFL Draft hit-rate
+   dials' tick rim, gradient arc, endpoint and recessed core to this compact
+   layout. Progress and rank accents come from DataHub's existing calculations;
+   every layer stays local to this modal, without importing research styles. */
+body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-circle {
+  --dial-size: 78px;
+  --dial-inset: 4px;
+  --dial-width: 5px;
+  --dial-core-gap: 4px;
+  --dial-accent: #a68dff;
+  --dial-start: color-mix(in srgb, var(--dial-accent) 62%, #fff);
+  --dial-end: color-mix(in srgb, var(--dial-accent) 78%, #635bff);
+  --arc-end: calc(var(--progress, 0) * 1turn);
+  --arc-mid: calc(var(--progress, 0) * 0.5turn);
+  isolation: isolate;
+  flex: 0 0 auto;
+  width: var(--dial-size);
+  height: var(--dial-size);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  filter: drop-shadow(0 7px 13px color-mix(in srgb, var(--dial-accent) 14%, transparent));
+}
+
+body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-circle--ceiling {
+  --dial-accent: #00ddfa;
+}
+
+body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-circle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.25) 0deg 1deg, transparent 1deg 18deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 0);
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 0);
+  opacity: 0.48;
+  pointer-events: none;
+}
+
+body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-circle::after {
+  content: "";
+  position: absolute;
+  inset: var(--dial-inset);
+  z-index: 0;
+  border: var(--dial-width) solid rgba(255, 255, 255, 0.065);
+  border-radius: inherit;
+  box-shadow: inset 0 0 9px rgba(0, 0, 0, 0.72), 0 0 0 1px rgba(255, 255, 255, 0.025);
+  pointer-events: none;
+}
+
+body[data-page="datahub"] #game-logs-modal .consistency-hud :is(.progress-dial-arc, .progress-dial-glow, .progress-dial-echo) {
+  position: absolute;
+  inset: var(--dial-inset);
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, var(--dial-start) 0deg, var(--dial-accent) var(--arc-mid), var(--dial-end) var(--arc-end), transparent var(--arc-end) 1turn);
+  pointer-events: none;
+}
+
+body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-dial-arc {
+  z-index: 2;
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--dial-width)), #000 0);
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--dial-width)), #000 0);
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--dial-accent) 42%, transparent));
+}
+
+body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-dial-glow {
+  z-index: 1;
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--dial-width) - 4px), #000 0);
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--dial-width) - 4px), #000 0);
+  filter: blur(3px);
+  opacity: 0.4;
+}
+
+body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-dial-echo {
+  inset: calc(var(--dial-inset) + var(--dial-width) + 2px);
+  z-index: 2;
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1px), #000 0);
+  mask: radial-gradient(farthest-side, transparent calc(100% - 1px), #000 0);
+  opacity: 0.3;
+}
+
+body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-dial-cap {
+  position: absolute;
+  inset: var(--dial-inset);
+  z-index: 5;
+  border-radius: 50%;
+  transform: rotate(var(--arc-end));
+  pointer-events: none;
+}
+
+body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-dial-cap::after,
+body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-dial-origin {
+  content: "";
+  position: absolute;
+  top: calc(var(--dial-width) / 2);
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--dial-end);
+  border-radius: 50%;
+  background: #f8fbff;
+  box-shadow: 0 0 5px var(--dial-end), 0 0 10px color-mix(in srgb, var(--dial-accent) 55%, transparent);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-dial-origin {
+  top: calc(var(--dial-inset) + var(--dial-width) / 2);
+  z-index: 4;
+  width: 3px;
+  height: 3px;
+  border-color: rgba(255, 255, 255, 0.58);
+  background: var(--dial-start);
+}
+
+/* A genuine zero or an unavailable metric has no lit endpoint. The textual
+   value still distinguishes 0% from NA, and the track keeps its full rim. */
+body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-circle[data-has-progress="false"] :is(.progress-dial-origin, .progress-dial-cap) {
+  visibility: hidden;
+}
+
+body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-circle-inner {
+  position: absolute;
+  inset: calc(var(--dial-inset) + var(--dial-width) + var(--dial-core-gap));
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 33% 24%, rgba(44, 61, 102, 0.62), transparent 40%),
+    radial-gradient(circle at 52% 63%, color-mix(in srgb, var(--dial-accent) 8%, transparent), transparent 48%),
+    linear-gradient(150deg, #0f1930, #050914 72%);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.09), inset 0 -9px 14px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(3, 7, 17, 0.48), 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-circle-inner::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: inherit;
+  border-top: 1px solid rgba(255, 255, 255, 0.045);
+  transform: rotate(-24deg);
+  pointer-events: none;
+}
+
+body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-value {
+  font-size: 0.94rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  white-space: nowrap;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.48);
+}
+
+body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-label {
+  color: #a8b3cb;
+  font-size: 0.39rem;
+  font-weight: 500;
+  line-height: 1.18;
+  letter-spacing: 0.055em;
+}
+
+/* Desktop has room for the deeper core and wider arc used by the research
+   cards. Phones retain the existing three-column HUD and center metrics. */
+@media (min-width: 681px) {
+  body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-circle {
+    --dial-size: 104px;
+    --dial-inset: 5px;
+    --dial-width: 7px;
+    --dial-core-gap: 5px;
+  }
+  body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-value { font-size: 1.3rem; }
+  body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-label { font-size: 0.48rem; }
+  body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-dial-cap::after { width: 8px; height: 8px; border-width: 2px; }
+}
+
+@media (max-width: 380px) {
+  body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-circle {
+    --dial-size: 68px;
+    --dial-inset: 3px;
+    --dial-core-gap: 3px;
+  }
+  body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-value { font-size: 0.82rem; }
+  body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-label { font-size: 0.34rem; }
+}

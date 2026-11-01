@@ -104,7 +104,8 @@
 // Remove the quality badge while retaining the colored rank and player subtitle order.
 // Refresh DataHub's Weekly opponent tags with defense-strength ranks and the
 // matching reversed colors; source stats and player-performance ranks stay intact.
-const CACHE_NAME = 'DH3.53g-datahub-defense-ranks';
+// Refresh DataHub's research-style Consistency HUD dials and their local renderer.
+const CACHE_NAME = 'DH3.53h-datahub-consistency-dials';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
