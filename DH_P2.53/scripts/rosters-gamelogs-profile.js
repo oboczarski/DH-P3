@@ -12,6 +12,20 @@
   let sosModule = null, revision = 0, historicalPending = null;
   const rankCache = new WeakMap();
 
+  // Clip only Rosters' portrait artwork to the modal panel's actual top edge.
+  // Account for the opening scale transform so the cutoff stays correct after
+  // the animation, font loading, player changes and responsive layout changes.
+  function syncPortraitClip() {
+    if (modal.classList.contains('hidden') || !portrait.offsetHeight) return;
+    const panel = modal.querySelector('#gamelogs-tab-pane');
+    const portraitRect = portrait.getBoundingClientRect();
+    const scale = portraitRect.height / portrait.offsetHeight || 1;
+    const top = (panel.getBoundingClientRect().top - portraitRect.top) / scale;
+    portrait.style.setProperty('--profile-art-clip-top', `${top}px`);
+  }
+  const portraitLayout = new ResizeObserver(syncPortraitClip);
+  [modal.querySelector('#gamelogs-tab-pane'), portrait, find('.gl-profile-intro')].forEach(node => portraitLayout.observe(node));
+
   function showIdentity(player) {
     const full = state.players?.[player?.id] || player || {};
     const name = full.full_name || [full.first_name, full.last_name].filter(Boolean).join(' ') || player?.name || 'Player';
@@ -51,11 +65,11 @@
     // Keep SOS as the visible group heading; the selected year labels completed
     // games and ROS labels the remaining schedule without repeating SOS twice.
     find('[data-profile-sos-position]').textContent = 'SOS';
-    find('[data-profile-sos-season]').textContent = state.currentGameLogsSeason;
+    find('[data-profile-sos-season]').textContent = `${state.currentGameLogsSeason}:`;
     find('.gl-profile-schedule').setAttribute('aria-label', `${pos} strength of schedule; ${state.currentGameLogsSeason} so far and rest of season`.trim());
     profile.querySelectorAll('[data-profile-sos]').forEach(node => {
       node.textContent = '—';
-      node.parentElement.removeAttribute('data-difficulty');
+      node.style.removeProperty('color');
       node.parentElement.title = 'Schedule difficulty is loading.';
     });
     find('.gl-profile-sos-help').open = false;
@@ -93,7 +107,14 @@
         const metric = ranked?.[period]?.[team];
         const node = find(`[data-profile-sos="${period}"]`);
         node.textContent = metric?.rank ?? '—';
-        if (metric?.rank) node.parentElement.dataset.difficulty = metric.rank <= 10 ? 'easy' : metric.rank >= 23 ? 'tough' : 'neutral';
+        // SOS uses 1 = easiest (green) through 32 = toughest (pink). Reuse
+        // app.js's explicit SOS direction and ordinal exceptions (11th–13th).
+        if (metric?.rank) {
+          const suffix = document.createElement('sup');
+          suffix.textContent = ordinalSuffix(metric.rank).slice(String(metric.rank).length);
+          node.appendChild(suffix);
+          node.style.color = getOpponentRankColor(metric.rank, 'descending');
+        }
         const range = period === 'faced' ? `Weeks 1–${ranked?.cutoff || 0}` : `Weeks ${(ranked?.cutoff ?? 0) + 1}–18`;
         const average = ranked?.basis === 'rank'
           ? `Average opponent defensive rank vs ${pos}: ${metric?.average?.toFixed(2)} (1 easiest, 32 toughest).`
@@ -171,6 +192,7 @@
     const onList = watchlist?.classList.contains('is-watchlisted');
     watchlist?.setAttribute('aria-pressed', String(Boolean(onList)));
     watchlist?.setAttribute('aria-label', onList ? 'Remove from watchlist' : 'Add to watchlist');
+    syncPortraitClip();
     void renderSchedule(player, revision);
   }
 

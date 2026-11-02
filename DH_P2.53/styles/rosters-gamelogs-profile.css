@@ -72,15 +72,18 @@ body[data-page="rosters"] #game-logs-modal .gl-profile-intro {
   gap: 8px;
   min-height: 44px;
 }
-/* Rosters portrait: a wide, unframed team watermark sits behind the headshot.
-   Keep the existing row height and contain every layer inside the portrait. */
+/* Rosters portrait: preserve the enlarged artwork and horizontal overflow.
+   JS measures the panel's top edge; the shared bottom offset clips both images
+   exactly where the headshot ends, without clipping menus or header controls. */
 body[data-page="rosters"] #game-logs-modal .gl-profile-portrait {
+  --profile-headshot-bottom: -2px;
   position: relative;
   isolation: isolate;
   width: 64px;
   height: 44px;
   overflow: visible;
   border-radius: 6px;
+  clip-path: inset(var(--profile-art-clip-top, 0px) -100vmax var(--profile-headshot-bottom) -100vmax);
 }
 body[data-page="rosters"] #game-logs-modal .gl-profile-watermark {
   position: absolute;
@@ -99,13 +102,16 @@ body[data-page="rosters"] #game-logs-modal .gl-profile-headshot {
   position: absolute;
   z-index: 1;
   right: -1px;
-  bottom: -2px;
+  bottom: var(--profile-headshot-bottom);
   width: 110%;
   height: 128%;
   object-fit: cover;
   object-position: center 18%;
 }
 body[data-page="rosters"] #game-logs-modal :is(.gl-profile-headshot, .gl-profile-watermark)[hidden] { display: none; }
+/* The translucent Game Logs loader must never reveal the portrait, watermark
+   or fallback initials. Visibility preserves their space throughout loading. */
+body[data-page="rosters"] #game-logs-modal.loading .gl-profile-portrait { visibility: hidden; }
 body[data-page="rosters"] #game-logs-modal .gl-profile-monogram {
   position: absolute;
   z-index: 1;
@@ -244,10 +250,10 @@ body[data-page="rosters"] #game-logs-modal .gl-profile-rank-label {color: #6e7c9
 body[data-page="rosters"] #game-logs-modal .gl-profile-schedule {grid-area: schedule;display: flex;align-items: center;justify-content: center;gap: 0;min-width: 0;min-height: 20px;color: #8794ac;font-size: 11px;line-height: 1;}
 body[data-page="rosters"] #game-logs-modal .gl-profile-schedule-position {flex: 0 0 auto;padding-right: 10px;color: #b0bed5;font-size: 13px;font-weight: 550;letter-spacing: .06em;}
 body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric { display: flex; align-items: baseline; gap: 5px; padding: 0 10px; border-left: 1px solid #9eacc52e; white-space: nowrap; }
-body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric strong {color: #b0bed5;font-size: 12px;font-weight: 500;font-variant-numeric: tabular-nums;}
-body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric[data-difficulty="easy"] strong { color: #99c0b8; }
-body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric[data-difficulty="tough"] strong { color: #b8a4c6; }
-body[data-page="rosters"] #game-logs-modal .gl-profile-sos-denominator {margin-left: -3px;color: #65738d;font-size: 10px;}
+/* SOS values use the existing easy-to-tough rank palette from app.js. The
+   superscript shares its number's color; unavailable ranks remain neutral. */
+body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric strong {color: #b0bed5;font-size: 12px;font-weight: 550;font-variant-numeric: tabular-nums;}
+body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric sup {position: relative;top: -.35em;margin-left: 1px;color: inherit;font-size: .65em;font-weight: 500;line-height: 0;vertical-align: baseline;}
 body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help summary { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 5px; color: #7c8aa3; list-style: none; cursor: pointer; }
 body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help summary::-webkit-details-marker { display: none; }
 body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }

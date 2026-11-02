@@ -104,7 +104,8 @@
 // Remove the quality badge while retaining the colored rank and player subtitle order.
 // Refresh Rosters' independent player profile, headshot and positional SOS assets.
 // Refresh Rosters' grouped SOS periods, rank-based averages and portrait watermark.
-const CACHE_NAME = 'DH3.54c-profile-sos-ranks';
+// Refresh portrait overflow boundaries, hidden loading artwork and colored SOS ordinals.
+const CACHE_NAME = 'DH3.54d-profile-art-ordinals';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
