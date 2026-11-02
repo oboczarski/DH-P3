@@ -106,7 +106,7 @@
 // Refresh Rosters' grouped SOS periods, rank-based averages and portrait watermark.
 // Refresh portrait overflow boundaries, hidden loading artwork and colored SOS ordinals.
 // Refresh identity-aligned vitals, proportionally extended portraits and desktop header layout.
-const CACHE_NAME = 'DH3.54e-profile-vitals-layout';
+const CACHE_NAME = 'DH3.54e-profile-vitals-layoutv2';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
