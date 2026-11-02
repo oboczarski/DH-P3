@@ -112,7 +112,8 @@
 // Refresh precise matchup averages, conditional FPA chip colors and defense-rank labels.
 // Refresh neutral Actual/Expected FPA footers while retaining colored main values.
 // Refresh per-game summary values, muted total footers and OPP AVG weekly legends.
-const CACHE_NAME = 'DH3.58-per-game-summary-chips';
+// Refresh Rosters Weekly chip spacing while preserving its existing height.
+const CACHE_NAME = 'DH3.58a-week-chip-spacing';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
