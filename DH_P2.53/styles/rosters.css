@@ -1,49 +1,5 @@
 /* Rosters page styles (extracted from styles.css) */
 
-/* Rosters header active navigation: keep the translucent gradient and a visible
-   foreground even when border-area/text clipping is unsupported. Paint the label
-   and Font Awesome glyph themselves so the icon's drop-shadow layer cannot hide
-   text clipped on the parent button (especially in mobile WebKit). */
-body[data-page="rosters"] .nav-buttons-container .nav-button.active {
-  position: relative;
-  color: #74efff;
-  border: 1px solid #7297ffbb;
-  background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%) padding-box;
-}
-
-/* Mask only the border ring, preserving the transparent center and rounded
-   corners without depending on the newer background-clip: border-area value. */
-@supports ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
-  body[data-page="rosters"] .nav-buttons-container .nav-button.active {
-    border-color: transparent;
-  }
-
-  body[data-page="rosters"] .nav-buttons-container .nav-button.active::after {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    padding: 1px;
-    border-radius: inherit;
-    background: linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-}
-
-@supports ((background-clip: text) or (-webkit-background-clip: text)) {
-  body[data-page="rosters"] .nav-buttons-container .nav-button.active > .nav-label,
-  body[data-page="rosters"] .nav-buttons-container .nav-button.active > i::before {
-    background: linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-  }
-}
-
 /* Roster-only rules relocated from styles.css after a cross-page selector audit.
    Keep this extracted block before the later roster overrides so the existing cascade,
    responsive behavior, and component-specific refinements remain unchanged. */
