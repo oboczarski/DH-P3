@@ -286,7 +286,7 @@ body:where([data-page="matchups"]) { background:#050b13; }
      the main position bar its own full-width row. Desktop owns a separate layout. */
   :where(body[data-page="matchups"]) .toolbar:where([data-matchups-area="toolbar"]) {
     display:grid;
-    grid-template-columns: minmax(0,1.85fr) minmax(0,1fr);
+    grid-template-columns: minmax(0,2.05fr) minmax(0,1fr);
     grid-template-areas:
     "defense venue"
     "position position";
@@ -587,11 +587,11 @@ linear-gradient(90deg, #74efff 0%, #7297ff 19%, #d97dff 54%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
   :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) { display:flex; align-items:center; gap:8px; min-width:0; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .fieldLabel { color:var(--dim);font-size: 9px;font-weight:600;letter-spacing: 0;white-space:nowrap; }
-  :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) { grid-area:venue; width:117px; max-width:100%; justify-self:start; }
-  :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) > .teamPicker { flex:1; }
+  :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) {grid-area:venue;width: 110px;max-width:100%;justify-self:start;}
+  :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) > .teamPicker {flex: 1;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker { position:relative; min-width:0; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__btn {
-    width: 115%;
+    width: 106%;
     height:36px;
     display:flex;
     align-items:center;
