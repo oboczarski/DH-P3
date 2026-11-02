@@ -115,9 +115,11 @@ A Start/Sit launch copies the preview projection's computed conditional color.
 A Weekly launch without comparison peers keeps a neutral projection. These
 launch details stay fixed while the modal's defense/position/venue filters change.
 
-The modal's Actual FPA main values use the current defense-rank color. Expected
-FPA main values use the published season SOS color, matching the existing
-Start/Sit convention. Both per-game footers retain their muted CSS color;
+The modal's FPA / G chip shows the precise per-game average in the current
+defense-rank color. OPP AVG PPG shows the opponent per-game baseline in the
+published season SOS color, matching Start/Sit. Both labeled total footers retain
+their muted CSS color; the per-game unit is implied by the main labels. The
+comparison chip is labeled vs OPP AVG; the weekly legend uses OPP AVG;
 missing values/ranks stay neutral. The RANK footer uses
 Brutal (1–6), Tough (7–12), Moderate (13–16), Favorable (17–20), Great (21–26)
 or Prime (27–32) based on the displayed defense-strength rank. Missing ranks

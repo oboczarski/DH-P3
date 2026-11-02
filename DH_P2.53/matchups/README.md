@@ -114,7 +114,7 @@ with the same defense after the displayed number reverses. Source models and the
 independent Rosters matchup modal retain their original ranks.
 
 Every season per-game view derives actual/expected averages from the original
-FPFA totals and each defense's non-BYE game count. Summary footers, heatmap,
+FPFA totals and each defense's non-BYE game count. Summary main values, heatmap,
 stacked bars, dumbbells and FPA vs Expected share these precise analysis values.
 Home/away views retain their recorded-game calculations and supplied FPF baselines. This avoids the separately
 published average columns, which can already be rounded to whole numbers.
@@ -168,9 +168,11 @@ native browser glyphs sharp at desktop and mobile pixel densities. Their
 consume that panel's `--am-*` typography variables. amCharts still owns their
 positions, hover tooltips, keyboard focus, and defense selection.
 
-Actual FPA main summary values use the current defense-rank color. Expected
-FPA main values use the published season SOS color, matching Start/Sit. Both
-per-game footers retain their muted CSS color;
+FPA / G shows the precise per-game average in the current defense-rank color.
+OPP AVG PPG shows the opponent per-game baseline in the published season SOS
+color, matching Start/Sit. Both labeled total footers retain their muted CSS
+color; the per-game unit is implied by the main labels. The comparison chip is
+labeled vs OPP AVG, and the weekly chart legend calls its baseline OPP AVG;
 missing values or ranks stay neutral. The RANK footer describes the displayed
 rank as Brutal (1–6), Tough (7–12), Moderate (13–16), Favorable (17–20),
 Great (21–26) or Prime (27–32), with a dash when unavailable. Supplied defense,

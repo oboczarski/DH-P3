@@ -180,26 +180,26 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
     $("defenseRank").style.color = heatColor(stat);
     // Summary copy controls its own case; the percent unit is sized separately.
     const deltaValue = c.deltaPct !== null ? `${signed(c.deltaPct)}<span class="metricPercent">%</span>` : signed(c.delta, 2);
-    const baselineNote = c.expectedTotal !== null ? `${fmt(c.expectedAvg, 1)} per game` : analysis.summaryAvailable ? "Not supplied in FPFA" : "Opponent average unavailable";
     // SOS retains the positional season vRK and its low-rank/easy colors.
     // Defense-strength display conversion never reverses this schedule rank.
-    // CSS switches the mobile spans to one-decimal Actual FPA and shorter notes;
-    // desktop text and every underlying comparison retain their existing precision.
+    // Per-game averages lead these two chips, with labeled totals in their
+    // muted footers. Preserve the total's existing mobile/desktop precision;
+    // the labels already supply the per-game unit, so do not repeat it.
     const sosColor = heatColor({ rank: c.sosRank, pool: Data.TEAMS.length, rankOrder: "descending" });
     // Actual scoring follows the defense's difficulty color; expected scoring
     // follows the published SOS scale, matching the existing Start/Sit chips.
-    // Color only the main values; per-game footers use their muted CSS color.
+    // Color only the per-game main values; total footers keep their muted CSS color.
     // Missing values/ranks stay neutral, while a recorded zero stays colored.
-    const actualColor = Number.isFinite(stat.total) || Number.isFinite(stat.avg) ? heatColor(stat) : '#7b81a5';
-    const expectedColor = Number.isFinite(c.expectedTotal) || Number.isFinite(c.expectedAvg) ? sosColor : '#7b81a5';
+    const actualColor = Number.isFinite(stat.avg) ? heatColor(stat) : '#7b81a5';
+    const expectedColor = Number.isFinite(c.expectedAvg) ? sosColor : '#7b81a5';
     // Stable card IDs let each metric's labels, values and notes be styled
     // independently in the stylesheet's mobile and desktop sections.
     // Defense rank leads the summary in reading order at every breakpoint.
     $("metrics").innerHTML = `
       <div class="metric" id="rankMetric"><div class="metricLabel" title="Defense rank: 1 = best defense / fewest FPA per game">RANK</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub">${rankLabel(stat.rank)}</div></div>
-      <div class="metric" id="actualMetric"><div class="metricLabel">ACTUAL FPA</div><div class="metricValue" style="color:${actualColor}"><span class="metricDesktop">${fmt(stat.total)}</span><span class="metricMobile">${fmt(stat.total, 1)}</span></div><div class="metricSub">${fmt(stat.avg, 1)} per game</div></div>
-      <div class="metric" id="expectedMetric"><div class="metricLabel">EXPECTED FPA</div><div class="metricValue" style="color:${expectedColor}">${fmt(c.expectedTotal, 1)}</div><div class="metricSub">${baselineNote}</div></div>
-      <div class="metric" id="deltaMetric"><div class="metricLabel">vs EXPECTED</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
+      <div class="metric" id="actualMetric"><div class="metricLabel">FPA / G</div><div class="metricValue" style="color:${actualColor}">${fmt(stat.avg, 1)}</div><div class="metricSub"><span class="metricDesktop">${fmt(stat.total)} total</span><span class="metricMobile">${fmt(stat.total, 1)} total</span></div></div>
+      <div class="metric" id="expectedMetric"><div class="metricLabel">OPP AVG PPG</div><div class="metricValue" style="color:${expectedColor}">${fmt(c.expectedAvg, 1)}</div><div class="metricSub">${fmt(c.expectedTotal, 1)} total</div></div>
+      <div class="metric" id="deltaMetric"><div class="metricLabel">vs OPP AVG</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
       <div class="metric metric--sos" id="sosMetric" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub">${sosLabel(c.sosRank)}</div></div>`;
   }
   function width(id) {
@@ -429,7 +429,7 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
   function mount() {
     if (mountPromise) return mountPromise;
     mountPromise = (async () => {
-      const response = await fetch(new URL('./panel.html?v=DH3.56-matchup-week-summary', import.meta.url));
+      const response = await fetch(new URL('./panel.html?v=DH3.58-per-game-summary-chips', import.meta.url));
       if (!response.ok) throw new Error(`Matchup panel could not load (${response.status}).`);
       root.innerHTML = await response.text();
       // One Rosters-owned stylesheet contains independent MOBILE and DESKTOP

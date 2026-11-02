@@ -112,10 +112,11 @@ test('Rosters summary uses all six displayed-rank labels and distinct Actual/Exp
       : rank <= 20 ? 'Favorable' : rank <= 26 ? 'Great' : 'Prime';
     assert.match(html, new RegExp(`class="metricSub">${expected}</div>`));
     assert.doesNotMatch(html, /recorded game|\d+ games/);
-    assert.match(html, /22\.7 per game/); assert.match(html, /17\.6 per game/);
+    assert.match(html, />FPA \/ G<\/div>/); assert.match(html, />OPP AVG PPG<\/div>/);
+    assert.match(html, /158\.90 total/); assert.match(html, /122\.9 total/);
     const stat = defenseMetric(analysis.byTeam.get('BAL').metrics.QB.actual);
-    assert.ok(html.includes(`class="metricValue" style="color:${rankColor(stat)}"><span class="metricDesktop">158.90`));
-    assert.ok(html.includes(`class="metricValue" style="color:${rankColor({ rank: 1, pool: 32, rankOrder: 'descending' })}">122.9`));
+    assert.ok(html.includes(`class="metricValue" style="color:${rankColor(stat)}">22.7`));
+    assert.ok(html.includes(`class="metricValue" style="color:${rankColor({ rank: 1, pool: 32, rankOrder: 'descending' })}">17.6`));
   }
   Object.assign(source.summary.byTeam.get('BAL').metrics.QB, { rank: null, total: null, avg: null, expectedTotal: null, expectedAvg: null });
   const html = renderRostersProfile(RostersData.matchupAnalysis(source.model, source.summary, {}, source.offenses));

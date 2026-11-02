@@ -199,24 +199,24 @@
     $("defenseRank").title = `Defense rank vs. ${LABELS[state.pos]} · ${venueLabel()} · Rank 1 = best defense / fewest FPA per game`;
     // Summary copy controls its own case; the percent unit is sized separately.
     const deltaValue = c.deltaPct !== null ? `${signed(c.deltaPct)}<span class="metricPercent">%</span>` : signed(c.delta, 2);
-    const baselineNote = c.expectedTotal !== null ? `${fmt(c.expectedAvg, 1)} per game` : analysis.summaryAvailable ? "Not supplied in FPFA" : "Opponent average unavailable";
     // The SOS card keeps the positional season vRK and its low-rank/easy color
     // direction. Defense-rank reversal never applies to schedule or offense ranks.
-    // CSS switches the mobile spans to one-decimal Actual FPA and shorter notes;
-    // desktop text and every underlying comparison retain their existing precision.
+    // Per-game averages lead these two chips, with labeled totals in their
+    // muted footers. Preserve the total's existing mobile/desktop precision;
+    // the labels already supply the per-game unit, so do not repeat it.
     const sosColor = heatColor({ rank: c.sosRank, pool: Data.TEAMS.length, rankOrder: "descending" });
     // Actual scoring follows the defense's difficulty color; expected scoring
     // follows the published SOS scale, matching the existing Start/Sit chips.
-    // Color only the main values; per-game footers use their muted CSS color.
+    // Color only the per-game main values; total footers keep their muted CSS color.
     // Missing values/ranks stay neutral, while a recorded zero stays colored.
-    const actualColor = Number.isFinite(stat.total) || Number.isFinite(stat.avg) ? heatColor(stat) : '#7b81a5';
-    const expectedColor = Number.isFinite(c.expectedTotal) || Number.isFinite(c.expectedAvg) ? sosColor : '#7b81a5';
+    const actualColor = Number.isFinite(stat.avg) ? heatColor(stat) : '#7b81a5';
+    const expectedColor = Number.isFinite(c.expectedAvg) ? sosColor : '#7b81a5';
     // Defense rank leads the summary in reading order at every breakpoint.
     $("metrics").innerHTML = `
       <div class="metric"><div class="metricLabel" title="Defense rank: 1 = best defense / fewest FPA per game">RANK</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub">${rankLabel(stat.rank)}</div></div>
-      <div class="metric"><div class="metricLabel">ACTUAL FPA</div><div class="metricValue" style="color:${actualColor}"><span class="metricDesktop">${fmt(stat.total)}</span><span class="metricMobile">${fmt(stat.total, 1)}</span></div><div class="metricSub">${fmt(stat.avg, 1)} per game</div></div>
-      <div class="metric"><div class="metricLabel">EXPECTED FPA</div><div class="metricValue" style="color:${expectedColor}">${fmt(c.expectedTotal, 1)}</div><div class="metricSub">${baselineNote}</div></div>
-      <div class="metric"><div class="metricLabel">vs EXPECTED</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
+      <div class="metric"><div class="metricLabel">FPA / G</div><div class="metricValue" style="color:${actualColor}">${fmt(stat.avg, 1)}</div><div class="metricSub"><span class="metricDesktop">${fmt(stat.total)} total</span><span class="metricMobile">${fmt(stat.total, 1)} total</span></div></div>
+      <div class="metric"><div class="metricLabel">OPP AVG PPG</div><div class="metricValue" style="color:${expectedColor}">${fmt(c.expectedAvg, 1)}</div><div class="metricSub">${fmt(c.expectedTotal, 1)} total</div></div>
+      <div class="metric"><div class="metricLabel">vs OPP AVG</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
       <div class="metric metric--sos" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub">${sosLabel(c.sosRank)}</div></div>`;
   }
   // Page-owned labels describe the published season SOS rank without reversing

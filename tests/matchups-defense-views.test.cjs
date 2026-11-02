@@ -196,8 +196,8 @@ test('page summary uses every defense-rank label and the Actual/Expected rank co
       : rank <= 20 ? 'Favorable' : rank <= 26 ? 'Great' : 'Prime';
     assert.match(html, new RegExp(`class="metricSub">${label}</div>`));
     assert.doesNotMatch(html, /recorded game|\d+ games/);
-    assert.ok(html.includes(`class="metricValue" style="color:${View.rankColor({ rank, pool: 32, rankOrder: 'ascending' })}"><span class="metricDesktop">121.00`));
-    assert.ok(html.includes(`class="metricValue" style="color:${View.rankColor({ rank: 3, pool: 32, rankOrder: 'descending' })}">111.0`));
+    assert.ok(html.includes(`class="metricValue" style="color:${View.rankColor({ rank, pool: 32, rankOrder: 'ascending' })}">17.3`));
+    assert.ok(html.includes(`class="metricValue" style="color:${View.rankColor({ rank: 3, pool: 32, rankOrder: 'descending' })}">15.9`));
   }
   const html = renderPage(fixture([['BAL', { expectedTotal: null, expectedAvg: null,
     actual: { total: null, avg: null, rank: null } }]])).elements.get('metrics').innerHTML;
