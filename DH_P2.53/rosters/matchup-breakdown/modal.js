@@ -59,8 +59,8 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
   // Rosters owns this SOS copy independently. Label the supplied season vRK
   // directly, including venue filters; unavailable ranks have no difficulty.
   const sosLabel = rank => !Number.isInteger(rank) || rank < 1 || rank > 32 ? '—'
-    : rank <= 6 ? 'VERY EASY' : rank <= 12 ? 'EASY' : rank <= 16 ? 'FAVORABLE'
-    : rank <= 20 ? 'MODERATE' : rank <= 26 ? 'HARD' : 'VERY HARD';
+    : rank <= 6 ? 'Very Easy' : rank <= 12 ? 'Easy' : rank <= 16 ? 'Favorable'
+    : rank <= 20 ? 'Moderate' : rank <= 26 ? 'Hard' : 'Very Hard';
 
   function pickerLogo(team) {
     const image = `${assetUrl(team)}`;
