@@ -105,7 +105,8 @@
 // Refresh Rosters' independent player profile, headshot and positional SOS assets.
 // Refresh Rosters' grouped SOS periods, rank-based averages and portrait watermark.
 // Refresh portrait overflow boundaries, hidden loading artwork and colored SOS ordinals.
-const CACHE_NAME = 'DH3.54d-profile-art-ordinals';
+// Refresh identity-aligned vitals, proportionally extended portraits and desktop header layout.
+const CACHE_NAME = 'DH3.54e-profile-vitals-layout';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

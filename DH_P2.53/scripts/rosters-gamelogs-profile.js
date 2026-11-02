@@ -12,16 +12,30 @@
   let sosModule = null, revision = 0, historicalPending = null;
   const rankCache = new WeakMap();
 
-  // Clip only Rosters' portrait artwork to the modal panel's actual top edge.
-  // Account for the opening scale transform so the cutoff stays correct after
-  // the animation, font loading, player changes and responsive layout changes.
+  // Rosters' portrait fills the space left of the identity/vitals rows. Lower
+  // its bottom to the summary divider and add exactly that distance to its
+  // height, preserving its original top; scale the width/watermark in proportion.
+  // The short-landscape summary sits beside identity, so use the vitals' lower
+  // edge there. Divide out the opening transform to work in local CSS pixels.
   function syncPortraitClip() {
     if (modal.classList.contains('hidden') || !portrait.offsetHeight) return;
     const panel = modal.querySelector('#gamelogs-tab-pane');
     const portraitRect = portrait.getBoundingClientRect();
     const scale = portraitRect.height / portrait.offsetHeight || 1;
     const top = (panel.getBoundingClientRect().top - portraitRect.top) / scale;
+    const summary = find('#modal-summary-row').getBoundingClientRect();
+    const vitals = find('#modal-player-vitals').getBoundingClientRect();
+    const divider = summary.top >= portraitRect.bottom ? summary.top : vitals.bottom;
+    const style = getComputedStyle(portrait);
+    const baseBottom = parseFloat(style.getPropertyValue('--profile-headshot-bottom')) || 0;
+    const baseHeight = portrait.offsetHeight * parseFloat(style.getPropertyValue('--profile-headshot-base-height')) / 100;
+    const baseWidth = portrait.offsetWidth * parseFloat(style.getPropertyValue('--profile-headshot-base-width')) / 100;
+    const drop = Math.max(0, (divider - portraitRect.bottom) / scale + baseBottom);
+    const growth = baseHeight > 0 ? 1 + drop / baseHeight : 1;
     portrait.style.setProperty('--profile-art-clip-top', `${top}px`);
+    portrait.style.setProperty('--profile-headshot-drop', `${drop}px`);
+    portrait.style.setProperty('--profile-headshot-width-extra', `${baseWidth * (growth - 1)}px`);
+    portrait.style.setProperty('--profile-headshot-scale', String(growth));
   }
   const portraitLayout = new ResizeObserver(syncPortraitClip);
   [modal.querySelector('#gamelogs-tab-pane'), portrait, find('.gl-profile-intro')].forEach(node => portraitLayout.observe(node));
@@ -62,11 +76,14 @@
 
   function resetSchedule(player) {
     const pos = player?.pos || player?.position || state.players?.[player?.id]?.position || '';
-    // Keep SOS as the visible group heading; the selected year labels completed
-    // games and ROS labels the remaining schedule without repeating SOS twice.
-    find('[data-profile-sos-position]').textContent = 'SOS';
+    // Prefix SOS with the selected season's team and the player's position;
+    // the async result below confirms the same context used for both ranks.
+    const snapshot = state.currentGameLogsSeason === '2026' ? state.rosters2026GameLogs : state.rosters2025GameLogs;
+    const rawTeam = String(snapshot?.seasonStats?.[player?.id]?.team || player?.team || state.players?.[player?.id]?.team || 'FA').toUpperCase();
+    const team = ({ WSH: 'WAS', JAC: 'JAX', LA: 'LAR' })[rawTeam] || rawTeam;
+    find('[data-profile-sos-position]').textContent = [team, pos, 'SOS'].filter(Boolean).join(' ');
     find('[data-profile-sos-season]').textContent = `${state.currentGameLogsSeason}:`;
-    find('.gl-profile-schedule').setAttribute('aria-label', `${pos} strength of schedule; ${state.currentGameLogsSeason} so far and rest of season`.trim());
+    find('.gl-profile-schedule').setAttribute('aria-label', `${team} ${pos} strength of schedule; ${state.currentGameLogsSeason} so far and rest of season`.trim());
     profile.querySelectorAll('[data-profile-sos]').forEach(node => {
       node.textContent = '—';
       node.style.removeProperty('color');
@@ -103,6 +120,7 @@
       const team = module.canonicalSosTeam(source === state.rosters2026GameLogs
         ? source?.seasonStats?.[player.id]?.team || player.team
         : state.rosters2025GameLogs?.seasonStats?.[player.id]?.team || player.team);
+      find('[data-profile-sos-position]').textContent = [team, pos, 'SOS'].filter(Boolean).join(' ');
       for (const period of ['faced', 'remaining']) {
         const metric = ranked?.[period]?.[team];
         const node = find(`[data-profile-sos="${period}"]`);
@@ -217,6 +235,15 @@
       composeProfile(player);
     }
     await pending;
+    if (token === revision && (!Number.isFinite(args[3]) || args[3] === gameLogsModalRequestSeq) && !modal.classList.contains('hidden')) {
+      // Let Rosters' existing vitals decorator read HEIGHT/WEIGHT first so its
+      // conditional colors stay intact. Short labels apply only to this header.
+      find('#modal-player-vitals').querySelectorAll('.player-vitals__label').forEach(label => {
+        const short = { HEIGHT: 'HT', WEIGHT: 'WT' }[label.textContent];
+        if (short) { label.title = label.textContent === 'HEIGHT' ? 'Height' : 'Weight'; label.textContent = short; }
+      });
+      syncPortraitClip();
+    }
   };
   // Watchlist's existing handler owns persistence and its icon. Observe only
   // that button's state so accessible naming also follows add/remove clicks.
