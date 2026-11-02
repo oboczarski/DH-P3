@@ -2,14 +2,16 @@
 // (plus one from 14 games onward); WK tab availability never changes thresholds.
 // Stable option keys preserve the chosen tier as its numeric threshold changes.
 const WEEK_ONE_OPTIONS = Object.freeze({
-  RR: [26, 22, 17, 13, 11],
+  RR: [26, 22, 17, 12, 11],
   TGT: [6, 5, 4, 3],
   CAR: [10, 8, 5, 4, 2],
-  paATT: [20, 16, 10, 5],
+  paATT: [20, 15, 10, 5],
   DB: [26, 21, 16],
   "SNP%": [70, 60, 50, 40, 30],
 });
-const DEFAULT_OPTION_INDEX = Object.freeze({ RR: 3, TGT: 1, CAR: 2, paATT: 1, DB: 0, "SNP%": 0 });
+// DataHub's default volume gates are 15 attempts, 4 carries, or 12 routes per
+// qualifier week. Keep the existing non-default tiers and stable option keys.
+const DEFAULT_OPTION_INDEX = Object.freeze({ RR: 3, TGT: 1, CAR: 3, paATT: 1, DB: 0, "SNP%": 0 });
 
 // Season ranks use the position's default volume qualifier, independently of
 // the user's table filter or Show All setting. WR and TE rank separately.

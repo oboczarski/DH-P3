@@ -1,7 +1,7 @@
 import { is2026RankQualified } from "./datahub-stats-season.js";
 
-// DataHub Stats table ranks: use each position's default season-volume gate
-// or its high-scoring participation exception, independent of visible filters.
+// DataHub Stats table ranks: PPG needs three recorded games; other stats use
+// the position's volume gate or scoring exception, independent of visible filters.
 const QUALIFIER_2025 = Object.freeze({
   QB: ["paATT", 200],
   RB: ["CAR", 100],
@@ -16,6 +16,14 @@ function numericStat(value) {
   if (value == null || value === "" || value === "NA" || value === "#N/A") return null;
   const number = Number(String(value).replace(/,/g, "").replace(/%$/, ""));
   return Number.isFinite(number) ? number : null;
+}
+
+// DataHub table, modal, Compare and Career PPG eligibility depends only on
+// recorded season games, never position volume or the high-scoring exception.
+export function isStatsPpgRankQualified(row) {
+  const games = numericStat(row.GM_P) ?? numericStat(row.GP) ?? numericStat(row.G)
+    ?? numericStat(row.games_played) ?? numericStat(row.__meta?.gmPlayed);
+  return games !== null && games >= 3;
 }
 
 // DataHub Stats exception: use unrounded season FPTS divided by games played,
@@ -42,9 +50,11 @@ export function buildStatsPositionalRanks(rows, columns, season, weeksOfData = 1
   const stats = [...new Set(columns)].filter((column) => !IDENTITY_COLUMNS.has(column));
 
   for (const position of ["QB", "RB", "WR", "TE"]) {
-    const qualifiedRows = rows.filter((row) => row.POS === position && isStatsSeasonRankQualified(row, season, weeksOfData, elapsedWeeks));
+    const positionRows = rows.filter((row) => row.POS === position);
+    const qualifiedRows = positionRows.filter((row) => isStatsSeasonRankQualified(row, season, weeksOfData, elapsedWeeks));
     for (const stat of stats) {
-      const candidates = qualifiedRows
+      const pool = stat === "PPG" ? positionRows.filter(isStatsPpgRankQualified) : qualifiedRows;
+      const candidates = pool
         .map((row) => ({ row, value: numericStat(row[stat]) }))
         .filter(({ value }) => value !== null);
       const direction = LOWER_IS_BETTER_STATS.has(stat) ? 1 : -1;

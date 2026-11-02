@@ -3601,8 +3601,13 @@ function buildCalculatedRankCache(scoringSettings, leagueId, scoringHash) {
             ppgPosRank: formatRankValue(entry.ppgPosRank),
         };
     });
-    // Keep FPTS card ranks independent; card PPG shares the Game Logs modalPlayers pool.
+    // Rosters PPG always shares the Game Logs games-played denominator and
+    // three-game rank pool, including Start/Sit callers of the legacy cache.
+    // Keep FPTS cache behavior and other pages independent of this PPG change.
     const modalPlayers = pageType === 'rosters' ? buildRostersLeagueModalRankCache(entries) : null;
+    Object.entries(modalPlayers || {}).forEach(([id, ranks]) => {
+        Object.assign(cache[id], { ppg: ranks.ppg, ppgPosRank: ranks.ppgPosRank, ppgOverallRank: ranks.ppgOverallRank });
+    });
     return { leagueId, scoringHash, players: cache, modalPlayers };
 }
 function calculatePlayerStatsAndRanks(playerId) {
@@ -4821,12 +4826,11 @@ function createRankAnnotation(rank, { wrapInParens = true, ordinal = false, vari
     span.textContent = wrapInParens ? `(${displayText})` : displayText;
     return span;
 }
-// Rosters Game Logs and card PPG qualification: preserve the default volume
-// minimums and half-season / 20 PPR points-per-game exception. Stats/Ownership
-// pages and roster-card FPTS rank caches keep their existing rules.
+// Rosters Game Logs non-PPG ranks retain position volume minimums and the
+// half-season / 20 PPR exception. Other pages keep their existing rank rules.
 function isRostersGameLogsRankQualified(stats, position, season, elapsedWeeks, qualifierWeeks = elapsedWeeks) {
     const gates = season === '2026'
-        ? { QB: ['pass_att', 16 * qualifierWeeks], RB: ['rush_att', 5 * qualifierWeeks], WR: ['rr', 13 * qualifierWeeks], TE: ['rr', 13 * qualifierWeeks] }
+        ? { QB: ['pass_att', 15 * qualifierWeeks], RB: ['rush_att', 4 * qualifierWeeks], WR: ['rr', 12 * qualifierWeeks], TE: ['rr', 12 * qualifierWeeks] }
         : { QB: ['pass_att', 200], RB: ['rush_att', 100], WR: ['rr', 220], TE: ['rr', 220] };
     const gate = gates[position];
     if (!gate || !stats) return false;
@@ -4835,6 +4839,13 @@ function isRostersGameLogsRankQualified(stats, position, season, elapsedWeeks, q
     return (Number.isFinite(stats[gate[0]]) && stats[gate[0]] >= gate[1])
         || (Number.isFinite(games) && games > 0 && games >= Math.ceil(Math.max(1, elapsedWeeks) / 2)
             && Number.isFinite(points) && points / games >= 20);
+}
+
+// Rosters summary, cards and Career PPG ranks require three recorded games in
+// every position/year. Volume and high-scoring exceptions do not bypass this.
+function isRostersGameLogsPpgRankQualified(stats) {
+    const games = Number(stats?.games_played ?? stats?.GM_P ?? stats?.GP ?? stats?.G);
+    return Number.isFinite(games) && games >= 3;
 }
 
 // This cutoff also places the Rosters week divider; projection-only future
@@ -4854,7 +4865,7 @@ function buildRostersHistoricalModalRanks(seasonStats, elapsedWeeks) {
         const isFpts = ['fpts', 'fpts_ppr', 'fpt_ppr'].includes(stat);
         for (const position of ['QB', 'RB', 'WR', 'TE']) {
             const candidates = entries.filter(([id, stats]) => stats.pos === position && Number.isFinite(stats[stat])
-                && (isFpts || qualifiedIds.has(id)))
+                && (stat === 'ppg' ? isRostersGameLogsPpgRankQualified(stats) : isFpts || qualifiedIds.has(id)))
                 .sort((a, b) => lowerBetter.has(stat) ? a[1][stat] - b[1][stat] : b[1][stat] - a[1][stat]);
             let previous = null;
             let rank = 0;
@@ -4869,17 +4880,14 @@ function buildRostersHistoricalModalRanks(seasonStats, elapsedWeeks) {
     return ranks;
 }
 
-// Summary/footer PPG follows the modal qualifier pool. FPTS uses every
+// Summary/footer PPG needs three recorded games in every position. FPTS uses every
 // player with season or weekly data, including zero and negative totals.
 function buildRostersLeagueModalRankCache(entries) {
-    const elapsedWeeks = getRostersGameLogsElapsedWeeks();
-    const snapshot = state.currentGameLogsSeason === '2026' ? state.rosters2026GameLogs : state.rosters2025GameLogs;
-    const qualifierWeeks = snapshot?.rankQualifierWeeks || elapsedWeeks;
-    // Season games include zero/negative scoring appearances, unlike the
-    // legacy positive-points counter retained by the roster-card cache.
+    // Recorded season G is authoritative, including zero/negative scoring
+    // appearances. Fall back to the legacy counter only when G is unavailable.
     const modalEntries = entries.map((entry) => {
         const sourceGames = state.playerSeasonStats[entry.id]?.games_played;
-        const gamesPlayed = Math.max(entry.gamesPlayed, Number.isFinite(sourceGames) ? sourceGames : 0);
+        const gamesPlayed = Number.isFinite(sourceGames) ? sourceGames : entry.gamesPlayed;
         return { ...entry, gamesPlayed, ppg: gamesPlayed > 0 ? entry.totalPts / gamesPlayed : 0 };
     });
     const pool = modalEntries.filter((entry) => ['QB', 'RB', 'WR', 'TE'].includes(entry.pos)
@@ -4898,8 +4906,7 @@ function buildRostersLeagueModalRankCache(entries) {
             result[entry.id][rankKey] = rank;
         });
     };
-    const qualified = pool.filter((entry) => entry.gamesPlayed > 0 && isRostersGameLogsRankQualified(
-        state.playerSeasonStats[entry.id], entry.pos, state.currentGameLogsSeason, elapsedWeeks, qualifierWeeks));
+    const qualified = pool.filter((entry) => isRostersGameLogsPpgRankQualified({ games_played: entry.gamesPlayed }));
     assign(pool, 'totalPts', 'overallRank');
     assign(qualified, 'ppg', 'ppgOverallRank');
     for (const position of ['QB', 'RB', 'WR', 'TE']) {
@@ -6789,8 +6796,40 @@ function assignCareerFormatting(rows) {
     });
 }
 
+// Rosters Career PPG ranks use three games in every year, independently of the
+// other stat qualifiers. Rebuild both rank columns so short seasons cannot
+// retain archived ranks or leave gaps in the qualified players' rank numbers.
+function assignCareerPpgRanks(rows) {
+    const seasons = new Map();
+    rows.forEach((row) => {
+        row['PPG RK'] = '-';
+        row['PPG POS RK'] = '-';
+        if (!['QB', 'RB', 'WR', 'TE'].includes(row.POS) || !isRostersGameLogsPpgRankQualified(row)) return;
+        const points = getCareerNumber(row.FPT_PPR) ?? getCareerNumber(row.FPTS);
+        const games = getCareerNumber(row.G);
+        const value = points !== null && games > 0 ? points / games : getCareerNumber(row.PPG);
+        if (value === null) return;
+        const season = String(row.SZN).trim();
+        if (!seasons.has(season)) seasons.set(season, []);
+        seasons.get(season).push({ row, value });
+    });
+    const assign = (entries, positional = false) => {
+        const sorted = entries.slice().sort((a, b) => b.value - a.value);
+        let previous = null, rank = 0;
+        sorted.forEach(({ row, value }, index) => {
+            if (value !== previous) rank = index + 1;
+            previous = value;
+            row[positional ? 'PPG POS RK' : 'PPG RK'] = positional ? `${row.POS}·${rank}` : String(rank);
+        });
+    };
+    seasons.forEach((entries) => {
+        assign(entries);
+        for (const position of ['QB', 'RB', 'WR', 'TE']) assign(entries.filter(({ row }) => row.POS === position), true);
+    });
+}
+
 function buildCareerRows(historicalRows, season2025Rows, season2026Rows) {
-    // Rosters Career preserves historical totals/fantasy ranks, joins 2025
+    // Rosters Career preserves historical totals/FPTS ranks, joins 2025
     // advanced/qualification fields, and adapts this year's DH to the row contract.
     const advancedById = new Map(season2025Rows.map((row) => [String(row.SLPR_ID).trim(), row]));
     const rows = historicalRows.filter((row) => String(row.SZN).trim() !== '2026').map((source) => {
@@ -6820,10 +6859,9 @@ function buildCareerRows(historicalRows, season2025Rows, season2026Rows) {
             'FPTS RK': '-', 'FPTS POS RK': '-', 'PPG RK': '-', 'PPG POS RK': '-',
         };
     });
-    // Career fantasy ranks use unrounded DH points/rates and recorded games.
-    // Keep the DH FPTS positional rank; derive its absent overall and PPG ranks
-    // within this independent renderer rather than use the selected league/year.
-    for (const metric of ['FPTS', 'PPG']) {
+    // Rosters PPG is rebuilt below across all years. Preserve DH FPTS ranks
+    // and the original current-season fantasy-rank path for other app.js pages.
+    for (const metric of (pageType === 'rosters' ? ['FPTS'] : ['FPTS', 'PPG'])) {
         const valueForRow = (row) => {
             const points = getCareerNumber(row.FPT_PPR);
             const games = getCareerNumber(row.G);
@@ -6848,6 +6886,7 @@ function buildCareerRows(historicalRows, season2025Rows, season2026Rows) {
     const careerRows = [...rows, ...currentRows];
     // app.js is shared; only Rosters receives the requested Career annotations.
     if (pageType === 'rosters') {
+        assignCareerPpgRanks(careerRows);
         assignCareerPositionalRanks(careerRows);
         assignCareerFormatting(careerRows);
     }

@@ -106,7 +106,8 @@
 // Refresh Rosters' grouped SOS periods, rank-based averages and portrait watermark.
 // Refresh portrait overflow boundaries, hidden loading artwork and colored SOS ordinals.
 // Refresh identity-aligned vitals, proportionally extended portraits and desktop header layout.
-const CACHE_NAME = 'DH3.54e-profile-vitals-layoutv2';
+// Refresh Rosters/DataHub PPG's three-game rank pool and reduced 2026 volume gates.
+const CACHE_NAME = 'DH3.55-qualifier-ranks';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

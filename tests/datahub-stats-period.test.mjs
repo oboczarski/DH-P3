@@ -35,9 +35,9 @@ test('weekly rows retain only that week, identity, zero and unavailable cells wi
 });
 
 test('weekly ranks use one-week qualification and never inherit a different week or season pool', () => {
-  const ordinary = { POS: 'WR', RR: '13', recYDS: '70', G: '1', FPTS: '12' };
+  const ordinary = { POS: 'WR', RR: '12', recYDS: '70', G: '1', FPTS: '12' };
   const scorer = { POS: 'WR', RR: '10', recYDS: '80', G: '1', FPTS: '20' };
-  const lowVolume = { POS: 'WR', RR: '12', recYDS: '90', G: '1', FPTS: '19' };
+  const lowVolume = { POS: 'WR', RR: '11', recYDS: '90', G: '1', FPTS: '19' };
   const ranks = buildStatsPositionalRanks([ordinary, scorer, lowVolume], ['recYDS'], '2026', 1, 1);
   assert.equal(ranks.get(scorer).recYDS, 1);
   assert.equal(ranks.get(ordinary).recYDS, 2);

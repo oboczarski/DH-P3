@@ -71,7 +71,7 @@ test('qualifiers follow DH games played independently of weekly results or place
   assert.equal(make().weeksOfData, 2);
   weeklyRows[2][0].paATT = '12';
   assert.equal(make().weeksOfData, 2);
-  assert.equal(get2026QualifierOptions('RR', make().weeksOfData).find((option) => option.isDefault).threshold, 26);
+  assert.equal(get2026QualifierOptions('RR', make().weeksOfData).find((option) => option.isDefault).threshold, 24);
   seasonRows[0].GM_P = '3';
   assert.equal(make().weeksOfData, 3);
   assert.equal(has2026WeekResults({ FPT_PPR: '0', GM_P: '0', SNP: '0', PROJ: '20' }), false);

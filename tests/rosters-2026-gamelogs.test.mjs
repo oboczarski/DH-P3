@@ -40,6 +40,38 @@ function createLoader(tables, failures = {}, boot = false) {
 const season = 'SZN,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,GM_P,paATT\n2026,4984,Josh Allen,QB,BUF,35.66,1,30';
 const defense = 'TM,QBRK,RBRK,WRRK,TERK\nHOU,2,11,8,19\nDET,6,12,9,20';
 
+test('Rosters 2026 ranks split the three-game PPG pool from the reduced position-volume gates', async () => {
+  const rows = [], cases = [];
+  let id = 10000;
+  for (const [pos, header, stat, minimum] of [['QB', 'paATT', 'pass_att', 60], ['RB', 'CAR', 'rush_att', 16],
+    ['WR', 'RR', 'rr', 48], ['TE', 'RR', 'rr', 48]]) {
+    const ids = {};
+    for (const [label, games, volume, points] of [['boundary', 3, minimum, 30], ['below', 3, minimum - 1, 30],
+      ['low', 3, 0, 0], ['short', 2, minimum * 2, 100]]) {
+      ids[label] = String(id++);
+      const values = { paATT: 0, CAR: 0, RR: 0, [header]: volume };
+      rows.push(`2026,${ids[label]},Fixture,${pos},BUF,${points},${games},${values.paATT},${values.CAR},${values.RR}`);
+    }
+    cases.push({ ids, stat });
+  }
+  const window = createLoader({ DH: 'SZN,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,GM_P,paATT,CAR,RR\n' + rows.join('\n'), DRK: defense,
+    '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP\n' + [1, 2, 3, 4].map(week => `${week},10000,QB,BUF,1,1,20`).join('\n') });
+  const snapshot = await window.activateRosters2026GameLogs();
+  assert.equal(snapshot.rankQualifierWeeks, 4);
+  for (const { ids, stat } of cases) {
+    for (const ranks of [snapshot.seasonRanks, snapshot.cardSeasonRanks]) {
+      assert.equal(ranks[ids.boundary][stat], 2);
+      assert.equal(ranks[ids.below][stat], undefined);
+      assert.equal(ranks[ids.boundary].ppg, 1);
+      assert.equal(ranks[ids.below].ppg, ranks === snapshot.seasonRanks ? 1 : 2, 'preserve each existing tie convention');
+      assert.equal(ranks[ids.low].ppg, 3);
+      assert.equal(ranks[ids.short].ppg, undefined, 'two-game volume/high-scoring players stay out of PPG');
+    }
+    assert.equal(snapshot.seasonRanks[ids.low].fpts, 4, 'modal FPTS remains unrestricted');
+    assert.equal(snapshot.seasonRanks[ids.short].fpts, 1);
+  }
+});
+
 test('Rosters Overview comparison retains literal DH totals, rates and age without deriving missing fields', async () => {
   const window = createLoader({
     DH: season.replace('\n', ',TD(t),OPP,IMP/OPP,AGE\n') + ',0,31,0%,30.3',

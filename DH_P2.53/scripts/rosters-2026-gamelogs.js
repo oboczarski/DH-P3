@@ -132,9 +132,9 @@
         const headersByStat = {};
         Object.entries(STAT_MAP).forEach(([header, stat]) => { if (!headersByStat[stat]) headersByStat[stat] = header; });
         const weeks = Math.max(1, Math.min(18, Number(weeksOfData) || 1));
-        const qualifiers = { QB: ['paATT', 16 * weeks], RB: ['CAR', 5 * weeks], WR: ['RR', 13 * weeks], TE: ['RR', 13 * weeks] };
-        // All modal stats admit high-scoring players who played at least half
-        // the recorded season weeks. FPTS itself has no participation gate.
+        const qualifiers = { QB: ['paATT', 15 * weeks], RB: ['CAR', 4 * weeks], WR: ['RR', 12 * weeks], TE: ['RR', 12 * weeks] };
+        // Rosters' non-PPG modal stats retain the half-season scoring exception.
+        // PPG uses only GM_P >= 3, and modal FPTS has no participation gate.
         const qualified = rows.filter((row) => {
             const gate = qualifiers[row.POS];
             if (!gate) return false;
@@ -145,7 +145,8 @@
         });
         const parsedById = new Map(rows.map((row) => [String(row.SLPR_ID), parseStats(row)]));
         const rankValues = (valueForRow, stat) => {
-            const pool = modal && ['fpts', 'fpt_ppr', 'fpts_ppr'].includes(stat) ? rows : qualified;
+            const pool = stat === 'ppg' ? rows.filter((row) => numberValue(row.GM_P) >= 3)
+                : modal && ['fpts', 'fpt_ppr', 'fpts_ppr'].includes(stat) ? rows : qualified;
             ['QB', 'RB', 'WR', 'TE'].forEach((position) => {
                 const entries = pool.filter((row) => row.POS === position).map((row) => ({ id: String(row.SLPR_ID), value: valueForRow(row) }))
                     .filter((entry) => Number.isFinite(entry.value)).sort((a, b) => b.value - a.value);

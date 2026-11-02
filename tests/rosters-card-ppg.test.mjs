@@ -48,7 +48,8 @@ function card(context, id = 'one', pos = 'RB') {
 }
 
 function expectPpg(markup, display, color) {
-  assert.match(markup, new RegExp(`PPG:<span class="value player-ppg" style="color: ${color}">${display.replace('.', '\\.')}<\\/span>`));
+  const escapedDisplay = display.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  assert.match(markup, new RegExp(`PPG:<span class="value player-ppg" style="color: ${color}">${escapedDisplay}<\\/span>`));
   assert.doesNotMatch(markup, /ADP:|player-adp|999\.9/);
 }
 
@@ -61,11 +62,11 @@ test('all card modes share Game Logs PPG/colors, with hyphens for zero/no games 
     Object.assign(context.state, { currentRosterView: view, isCompareMode: preview, isStartSitMode: startSit });
     expectPpg(card(context), '6.0', '#51CBA5');
     assert.equal(context.getRostersGameLogsPlayerRanks('one').ppg, '6.0');
-    assert.equal(context.calculatePlayerStatsAndRanks('one').ppg, '18.0', 'legacy positive-only game count must not leak into PPG');
-    expectPpg(card(context, 'zero'), '-', '#51CBA5');
+    assert.equal(context.calculatePlayerStatsAndRanks('one').ppg, '6.0', 'Start/Sit and cards share the recorded-game PPG denominator');
+    expectPpg(card(context, 'zero'), '(—)', '#51CBA5');
     assert.equal(context.getRostersGameLogsPlayerRanks('zero').ppg, '0.0', 'card placeholder does not alter the Game Logs summary');
-    expectPpg(card(context, 'noGames'), '-', 'inherit');
-    expectPpg(card(context, 'noSeasonRow'), '-', 'inherit');
+    expectPpg(card(context, 'noGames'), '(—)', 'inherit');
+    expectPpg(card(context, 'noSeasonRow'), '(—)', 'inherit');
     expectPpg(card(context, 'negative'), '-1.0', '#51CBA5');
     expectPpg(card(context, 'unqualified'), '10.0', 'inherit');
   }
@@ -76,10 +77,36 @@ test('switching leagues recalculates PPG from the selected league, including unr
   context.state.matchupDataLoaded = false;
   expectPpg(card(context), '2.0', '#51CBA5');
   context.state.currentLeagueId = 'standard';
-  expectPpg(card(context), '-', '#51CBA5');
+  expectPpg(card(context), '(—)', '#51CBA5');
   assert.equal(context.state.calculatedRankCache.leagueId, 'standard');
   context.state.leagues[1].scoring_settings.rec = 0.5;
   expectPpg(card(context), '1.0', '#51CBA5');
+});
+
+test('PPG cards and Start/Sit caches rank three-game players even below volume, but never two-game scorers', () => {
+  const context = harness();
+  context.state.playerSeasonStats.one.rush_att = 0;
+  Object.assign(context.state.playerSeasonStats.unqualified, { games_played: 2, rush_att: 100, fpts_ppr: 100 });
+  const eligible = context.getRostersGameLogsPlayerRanks('one');
+  const short = context.getRostersGameLogsPlayerRanks('unqualified');
+  assert.equal(eligible.ppgPosRank, 1);
+  assert.equal(eligible.ppgOverallRank, 1);
+  assert.equal(short.ppgPosRank, 'NA');
+  assert.equal(short.ppgOverallRank, 'NA');
+  assert.equal(short.posRank, 2, 'FPTS still includes the two-game player');
+  assert.equal(context.calculatePlayerStatsAndRanks('unqualified').ppgPosRank, 'NA');
+  expectPpg(card(context), '6.0', '#51CBA5');
+  expectPpg(card(context, 'unqualified'), '5.0', 'inherit');
+});
+
+test('recorded G controls PPG qualification even when legacy scoring counts more positive appearances', () => {
+  const context = harness();
+  context.state.playerSeasonStats.one.games_played = 2;
+  for (const week of [1, 2, 3]) context.state.leagueMatchupStats[week].one = 10;
+  const ranks = context.getRostersGameLogsPlayerRanks('one');
+  assert.equal(ranks.ppg, '15.0');
+  assert.equal(ranks.ppgPosRank, 'NA');
+  assert.equal(context.calculatePlayerStatsAndRanks('one').ppgPosRank, 'NA');
 });
 
 test('card colors use the Game Logs WR thresholds and leave unqualified values neutral', () => {

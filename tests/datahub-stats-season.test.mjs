@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { get2026QualifierOptions as options, is2026RankQualified } from '../DH_P2.53/scripts/datahub-stats-season.js';
 
 test('season ranking pools use position defaults and exclude players below the boundary', () => {
-  for (const [pos, stat, minimum] of [['QB','paATT',16], ['RB','CAR',5], ['WR','RR',13], ['TE','RR',13]]) {
+  for (const [pos, stat, minimum] of [['QB','paATT',15], ['RB','CAR',4], ['WR','RR',12], ['TE','RR',12]]) {
     assert.equal(is2026RankQualified({ POS: pos, [stat]: minimum - 1, FPTS: 1000 }), false);
     assert.equal(is2026RankQualified({ POS: pos, [stat]: minimum }), true);
     assert.equal(is2026RankQualified({ POS: pos, [stat]: minimum }, 2), false);
@@ -14,10 +14,10 @@ test('season ranking pools use position defaults and exclude players below the b
 
 test('volume qualifiers scale every option and preserve the selected default through Week 18', () => {
   const expected = {
-    RR: { values: [26, 22, 17, 13, 11], defaultValue: 13 },
+    RR: { values: [26, 22, 17, 12, 11], defaultValue: 12 },
     TGT: { values: [6, 5, 4, 3], defaultValue: 5 },
-    CAR: { values: [10, 8, 5, 4, 2], defaultValue: 5 },
-    paATT: { values: [20, 16, 10, 5], defaultValue: 16 },
+    CAR: { values: [10, 8, 5, 4, 2], defaultValue: 4 },
+    paATT: { values: [20, 15, 10, 5], defaultValue: 15 },
     DB: { values: [26, 21, 16], defaultValue: 26 },
   };
   for (const [stat, { values, defaultValue }] of Object.entries(expected)) {
