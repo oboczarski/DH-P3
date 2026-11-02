@@ -642,7 +642,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   box-shadow: 0 4px 12px rgba(118, 109, 255, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   border: 1px solid transparent;
-  color: transparent;
+  color: #97b1c861;
   background: 
 linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), 
 linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, 
