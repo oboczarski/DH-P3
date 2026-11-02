@@ -1,6 +1,6 @@
 import { get2026QualifierOptions } from "./datahub-stats-season.js";
 import { getDataHubStatsPeriodOptions, getDataHubWeeklyColumns, getDataHubWeeklyColumnGroups, getDataHubWeeklyTableSourceRows } from "./datahub-stats-period.js";
-import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsPpgRankQualified, isStatsSeasonRankQualified } from "./datahub-stats-positional-ranks.js";
+import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSeasonRankQualified } from "./datahub-stats-positional-ranks.js";
 import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js";
 import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js";
@@ -7878,11 +7878,9 @@ function computeDataHubComparisonSeasonRankSets(players, qualifiedIds = null) {
 
   statKeys.forEach((statKey) => {
     // All FPTS aliases rank every numeric source value, including zero/negative
-    // totals. PPG needs three games; other stats retain the volume/exception pool.
+    // totals. Other modal stats use the default volume or scoring-exception pool.
     const isFpts = ["fpts", "fpts_ppr", "fpt_ppr"].includes(statKey);
-    const allItems = players.filter((player) => statKey === "ppg"
-      ? isStatsPpgRankQualified(player.seasonStats || {})
-      : isFpts || !qualifiedIds || qualifiedIds.has(player.id)).map((player) => ({
+    const allItems = players.filter((player) => isFpts || !qualifiedIds || qualifiedIds.has(player.id)).map((player) => ({
       playerId: player.id,
       pos: player.pos,
       value: toComparableNumber(player.seasonStats?.[statKey]),
@@ -12832,7 +12830,7 @@ function parseDataHubPosRankNumber(posRankText) {
 }
 
 // DataHub modal rank pools share the Stats exception in both seasons. FPTS
-// always uses the complete source; PPG has its independent three-game gate.
+// always uses the complete source; PPG and other stats retain qualification.
 function getDataHubGameLogsQualifiedIds(season, elapsedWeeks = getStatsElapsedWeeks(season)) {
   return new Set(getDataHubStatsRowsForSeason(season)
     .filter((row) => isStatsSeasonRankQualified(row, season, state.stats2026.weeksOfData, elapsedWeeks))
@@ -12842,7 +12840,7 @@ function getDataHubGameLogsQualifiedIds(season, elapsedWeeks = getStatsElapsedWe
 function buildDataHubModalRankCache(rows, season = "2025") {
   const players = rows.filter((row) => row.__meta?.playerId && ["QB", "RB", "WR", "TE"].includes(row.POS)).map((row) => ({
     id: row.__meta.playerId, pos: row.POS,
-    seasonStats: { fpts: row.__meta.fpts, ppg: row.__meta.ppg, games_played: row.__meta.gmPlayed },
+    seasonStats: { fpts: row.__meta.fpts, ppg: row.__meta.ppg },
   }));
   const ranks = computeDataHubComparisonSeasonRankSets(players, getDataHubGameLogsQualifiedIds(season));
   return Object.fromEntries(players.map((player) => [player.id, {
@@ -14236,39 +14234,8 @@ function assignDataHubCareerFormatting(rows) {
   });
 }
 
-// DataHub Career PPG needs three recorded games in every year. Recompute
-// positional/overall ranks together, preserving values, FPTS ranks and ties.
-function assignDataHubCareerPpgRanks(rows) {
-  const seasons = new Map();
-  rows.forEach((row) => {
-    row["PPG RK"] = "-";
-    row["PPG POS RK"] = "-";
-    if (!["QB", "RB", "WR", "TE"].includes(row.POS) || !isStatsPpgRankQualified(row)) return;
-    const points = getDataHubCareerNumber(row.FPT_PPR) ?? getDataHubCareerNumber(row.FPTS);
-    const games = getDataHubCareerNumber(row.G);
-    const value = points !== null && games > 0 ? points / games : getDataHubCareerNumber(row.PPG);
-    if (value === null) return;
-    const season = String(row.SZN).trim();
-    if (!seasons.has(season)) seasons.set(season, []);
-    seasons.get(season).push({ row, value });
-  });
-  const assign = (entries, positional = false) => {
-    const sorted = entries.slice().sort((a, b) => b.value - a.value);
-    let previous = null, rank = 0;
-    sorted.forEach(({ row, value }, index) => {
-      if (value !== previous) rank = index + 1;
-      previous = value;
-      row[positional ? "PPG POS RK" : "PPG RK"] = positional ? `${row.POS}·${rank}` : String(rank);
-    });
-  };
-  seasons.forEach((entries) => {
-    assign(entries);
-    for (const position of ["QB", "RB", "WR", "TE"]) assign(entries.filter(({ row }) => row.POS === position), true);
-  });
-}
-
 function buildDataHubCareerRows(historicalRows, season2025Rows, season2026Rows) {
-  // Career keeps historical totals/FPTS ranks. The 2025 advanced and rank
+  // Career keeps historical totals/fantasy ranks. The 2025 advanced and rank
   // qualification fields join from SZN; 2026 stays backed by its own DH rows.
   const advancedById = new Map(season2025Rows.map((row) => [String(row.SLPR_ID).trim(), row]));
   const rows = historicalRows.filter((row) => String(row.SZN).trim() !== "2026").map((source) => {
@@ -14298,25 +14265,32 @@ function buildDataHubCareerRows(historicalRows, season2025Rows, season2026Rows) 
       "FPTS RK": "-", "FPTS POS RK": "-", "PPG RK": "-", "PPG POS RK": "-",
     };
   });
-  // FPTS retains its DH positional rank and recorded-game pool. PPG below
-  // uses the separate three-game rule across both current and archived years.
-  const assignFptsRanks = (pool, positional = false) => {
-    const entries = pool.map((row) => ({ row, value: getDataHubCareerNumber(row.FPT_PPR) }))
-      .filter(({ row, value }) => value !== null && getDataHubCareerNumber(row.G) > 0)
-      .sort((a, b) => b.value - a.value);
-    let previous = null, rank = 0;
-    entries.forEach(({ row, value }, index) => {
-      if (value !== previous) rank = index + 1;
-      previous = value;
-      const sourceRank = getDataHubCareerNumber(row.PRK_PPR);
-      row[positional ? "FPTS POS RK" : "FPTS RK"] = positional
-        ? `${row.POS}·${sourceRank > 0 ? sourceRank : rank}` : String(rank);
-    });
-  };
-  assignFptsRanks(currentRows);
-  for (const position of ["QB", "RB", "WR", "TE"]) assignFptsRanks(currentRows.filter((row) => row.POS === position), true);
+  // New Career fantasy ranks use unrounded DH points/rates. Preserve the
+  // sheet's FPTS positional rank and compute the missing overall/PPG ranks
+  // across players with recorded games, including real zero-point seasons.
+  for (const metric of ["FPTS", "PPG"]) {
+    const valueForRow = (row) => {
+      const points = getDataHubCareerNumber(row.FPT_PPR);
+      const games = getDataHubCareerNumber(row.G);
+      return points !== null && games > 0 ? (metric === "FPTS" ? points : points / games) : null;
+    };
+    const assignRanks = (pool, positional = false) => {
+      const entries = pool.map((row) => ({ row, value: valueForRow(row) }))
+        .filter((entry) => entry.value !== null).sort((a, b) => b.value - a.value);
+      let previous = null;
+      let rank = 0;
+      entries.forEach(({ row, value }, index) => {
+        if (value !== previous) rank = index + 1;
+        previous = value;
+        const sourceRank = metric === "FPTS" ? getDataHubCareerNumber(row.PRK_PPR) : null;
+        row[positional ? `${metric} POS RK` : `${metric} RK`] = positional
+          ? `${row.POS}·${sourceRank > 0 ? sourceRank : rank}` : String(rank);
+      });
+    };
+    assignRanks(currentRows);
+    for (const position of ["QB", "RB", "WR", "TE"]) assignRanks(currentRows.filter((row) => row.POS === position), true);
+  }
   const careerRows = [...rows, ...currentRows];
-  assignDataHubCareerPpgRanks(careerRows);
   assignDataHubCareerPositionalRanks(careerRows);
   assignDataHubCareerFormatting(careerRows);
   return parseDataHubCareerStatsRows(careerRows);
@@ -15032,7 +15006,10 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
   const buildWeekDescriptor = (week, statsForWeek) => ({
     render(td) {
       const opponent = String(statsForWeek?.opponent || "").trim().toUpperCase();
-      const opponentRank = Number.isFinite(statsForWeek?.opponent_rank) ? Math.round(statsForWeek.opponent_rank) : null;
+      // DataHub's Weekly opponent tag displays defense strength, matching
+      // Rosters/Matchups. Convert only the label; retain the source rank and
+      // leave BYE/missing/invalid ranks unavailable in either season.
+      const opponentRank = opponent === "BYE" ? null : getDataHubOpponentDefenseRank(statsForWeek?.opponent_rank);
       const opponentRankColor = getDataHubOpponentRankColor(opponentRank);
       const weekTag = document.createElement("div");
       weekTag.className = "gamelog-week-tag";
@@ -15065,6 +15042,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
 
             const rankSpan = document.createElement("span");
             rankSpan.className = "gamelog-week-tag-rank";
+            rankSpan.title = "Defense rank: 1 = best defense / fewest fantasy points allowed; 32 = most allowed";
             if (opponentRankColor) {
               rankSpan.style.color = opponentRankColor;
             }
@@ -16617,12 +16595,22 @@ function buildDataHubStatsKeyMarkup() {
   `;
 }
 
+// DataHub Game Logs only: published matchup ranks run in the opposite direction
+// to defense strength. Keep raw CSV/DRK rows intact and never round an invalid
+// rank into a valid one; player performance ranks use their existing helpers.
+function getDataHubOpponentDefenseRank(rank) {
+  return Number.isInteger(rank) && rank >= 1 && rank <= 32 ? 33 - rank : null;
+}
+
+// Reverse the opponent tag's color bands with its displayed defense rank:
+// low ranks are tough matchups (pink), high ranks favorable (mint). Both the
+// opponent text and rank use this scale, preserving each defense's difficulty.
 function getDataHubOpponentRankColor(rank) {
-  if (!Number.isFinite(rank)) return null;
-  if (rank <= 8) return "#82d8bee0";
-  if (rank <= 16) return "#73b9e7e0";
-  if (rank <= 24) return "#c093ebe0";
-  if (rank <= 32) return "#c456b1e0";
+  if (!Number.isInteger(rank) || rank < 1 || rank > 32) return null;
+  if (rank <= 8) return "#c456b1e0";
+  if (rank <= 16) return "#c093ebe0";
+  if (rank <= 24) return "#73b9e7e0";
+  if (rank <= 32) return "#82d8bee0";
   return null;
 }
 
@@ -17010,30 +16998,18 @@ function updateDataHubConsistencyHud(data) {
       ? `${Math.round(data.ceilingRank)}<span class="ceiling-rank-suffix">${getDataHubOrdinalSuffix(Math.round(data.ceilingRank))}</span>`
       : "NA";
   }
-  const consistencyCaptionEl = consistencyContainer.querySelector("[data-consistency-circle-caption]");
-  if (consistencyCaptionEl) consistencyCaptionEl.textContent = "CSTY RATE";
-  const ceilingCaptionEl = consistencyContainer.querySelector("[data-ceiling-circle-caption]");
-  if (ceilingCaptionEl) ceilingCaptionEl.textContent = "CL POS RANK";
-  const consistencyRing = consistencyContainer.querySelector(".progress-circle--consistency .progress-ring-fill");
-  const ceilingRing = consistencyContainer.querySelector(".progress-circle--ceiling .progress-ring-fill--ceiling");
   applyDataHubRankStyling({
     rank: data?.consistencyRank,
     metricValueEl: consistencyRankEl,
     metricSubEl: null,
     circleValueEl: consistencyCircleValue,
   });
-  if (consistencyRing) {
-    consistencyRing.setAttribute("stroke", getDataHubRankAccentColor(data?.consistencyRank));
-  }
   applyDataHubRankStyling({
     rank: data?.ceilingRank,
     metricValueEl: ceilingValueEl,
     metricSubEl: null,
     circleValueEl: ceilingCircleValue,
   });
-  if (ceilingRing) {
-    ceilingRing.setAttribute("stroke", getDataHubRankAccentColor(data?.ceilingRank));
-  }
   const cstyCountEl = consistencyContainer.querySelector("[data-insight-cstycount]");
   if (cstyCountEl) {
     const made = Number.isFinite(data?.solidHighCount) ? data.solidHighCount : null;
@@ -17689,19 +17665,30 @@ function renderDataHubConsistencyPoints(data) {
 }
 
 function hydrateDataHubConsistencyProgressCircles(data) {
-  const consistencyCircle = document.querySelector(".progress-circle--consistency .progress-ring-fill");
+  // DataHub's research-style dials share one progress value across the arc,
+  // inner echo and endpoint. Keep the existing rate/rank normalization and
+  // semantic rank colors; zero and unavailable values render an empty track.
+  const consistencyCircle = consistencyContainer?.querySelector(".progress-circle--consistency");
   const pctValue = data && Number.isFinite(data.consistencyPct)
     ? Math.max(0, Math.min(100, data.consistencyPct)) / 100
     : 0;
   if (consistencyCircle) {
-    consistencyCircle.style.setProperty("--progress", pctValue.toFixed(3));
+    consistencyCircle.style.setProperty("--progress", String(pctValue));
+    consistencyCircle.style.setProperty("--dial-accent", getDataHubRankAccentColor(data?.consistencyRank));
+    consistencyCircle.dataset.hasProgress = String(pctValue > 0);
+    consistencyCircle.setAttribute("aria-label", `Season consistency rate: ${formatDataHubHudPercentage(data?.consistencyPct)}`);
   }
-  const ceilingCircle = document.querySelector(".progress-circle--ceiling .progress-ring-fill--ceiling");
+  const ceilingCircle = consistencyContainer?.querySelector(".progress-circle--ceiling");
   if (ceilingCircle) {
     const rankMax = Math.max(2, data?.ceilingRankMax || 24);
     const rank = Number.isFinite(data?.ceilingRank) ? data.ceilingRank : rankMax;
     const normalized = Math.max(0, Math.min(1, (rankMax - rank) / (rankMax - 1)));
-    ceilingCircle.style.setProperty("--progress", normalized.toFixed(3));
+    ceilingCircle.style.setProperty("--progress", String(normalized));
+    ceilingCircle.style.setProperty("--dial-accent", getDataHubRankAccentColor(data?.ceilingRank));
+    ceilingCircle.dataset.hasProgress = String(normalized > 0);
+    ceilingCircle.setAttribute("aria-label", Number.isFinite(data?.ceilingRank)
+      ? `Ceiling positional rank: ${Math.round(data.ceilingRank)} of ${rankMax}`
+      : "Ceiling positional rank: no data");
   }
 }
 
