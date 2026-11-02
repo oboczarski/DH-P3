@@ -108,7 +108,8 @@
 // Refresh identity-aligned vitals, proportionally extended portraits and desktop header layout.
 // Refresh Rosters/DataHub PPG's three-game rank pool and reduced 2026 volume gates.
 // Refresh matchup week/projection headers, ordered SOS summaries and mobile picker/chart fixes.
-const CACHE_NAME = 'DH3.56-matchup-week-summary';
+// Refresh Matchups' repaired desktop Defense label CSS and remove its empty mobile rule.
+const CACHE_NAME = 'DH3.56a-matchups-css-syntax';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
