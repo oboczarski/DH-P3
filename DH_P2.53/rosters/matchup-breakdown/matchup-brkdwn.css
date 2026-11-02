@@ -422,6 +422,11 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 
 /* Selected player subtitle */
 #breakdownPlayer {color:var(--muted);font-size: 12px;font-weight: 300;}
+/* Main matchup header only: keep the launch week lighter and the numeric
+   projection's Start/Sit color separate from its opponent text. */
+#breakdownWeek { font-size:.8em; font-weight:350; white-space:nowrap; }
+#breakdownPlayer .breakdownProjectionMatchup { display:inline-block; }
+#breakdownProjection { font-weight:500; }
 
 /* Defense subtitle */
 #defenseSubtitle { color:var(--muted); font-size:9px; }
@@ -1002,6 +1007,11 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 
 /* Selected player subtitle */
 #breakdownPlayer { font-size:10px; color:var(--muted); }
+/* Desktop main header owns the same lighter week suffix and projection group
+   independently of the mobile styles and expanded-player dialog. */
+#breakdownWeek { font-size:.8em; font-weight:350; white-space:nowrap; }
+#breakdownPlayer .breakdownProjectionMatchup { display:inline-block; }
+#breakdownProjection { font-weight:500; }
 
 /* Defense subtitle */
 #defenseSubtitle { font-size:10px; color:var(--muted); }
@@ -1056,6 +1066,10 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 :where(#deltaMetric) .is-tough { color:var(--pink); }
 @media (max-width:1100px) {
 .metricStrip > .metric:where(#deltaMetric) { grid-column:span 2; }
+}
+@media (max-width:1100px) {
+/* With RANK first, vs EXPECTED shares the second row equally with SOS. */
+.metricStrip > .metric:where(#deltaMetric):nth-child(n+4) { grid-column:span 3; }
 }
 @media (max-width:1100px) {
 .metric:where(#deltaMetric) { padding:6px; }

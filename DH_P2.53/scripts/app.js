@@ -2654,14 +2654,26 @@ function getRostersMatchupController() {
     if (pageType !== 'rosters') return Promise.reject(new Error('Matchup Breakdown belongs to Rosters.'));
     if (!rostersMatchupsModulePromise) {
         // Start/Sit and Weekly opponent tags share this Rosters-owned panel.
-        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.53f-rosters-matchup-header')
+        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.56-matchup-week-summary')
             .then(({ createMatchupBreakdown }) => {
-                rostersMatchups = createMatchupBreakdown({ onDataChange: () => {
-                    // Late matchup readiness updates selected previews without
-                    // changing their projection snapshots or selected players.
-                    rostersMatchupsLoadFailed = rostersMatchups?.status === 'error';
-                    if (state.isStartSitMode) renderTradeBlock();
-                } });
+                rostersMatchups = createMatchupBreakdown({
+                    // The matchup header uses the clicked log's week or the active
+                    // Start/Sit week. Reuse Rosters projections and the preview's
+                    // conditional color without importing its CSS into the shadow root.
+                    getPlayerContext: (selection, trigger) => {
+                        const week = selection.week ?? getCurrentNflWeekNumber();
+                        const projection = getPlayerProjectionForWeek(selection.id, week);
+                        const previewValue = trigger?.closest('.ss-preview-player')?.querySelector('.ss-preview-projection strong');
+                        return { week, projection: projection.value, projectionDisplay: projection.display,
+                            projectionColor: previewValue ? getComputedStyle(previewValue).color : null };
+                    },
+                    onDataChange: () => {
+                        // Late matchup readiness updates selected previews without
+                        // changing their projection snapshots or selected players.
+                        rostersMatchupsLoadFailed = rostersMatchups?.status === 'error';
+                        if (state.isStartSitMode) renderTradeBlock();
+                    }
+                });
                 return rostersMatchups;
             }).catch(error => { rostersMatchupsModulePromise = null; throw error; });
     }

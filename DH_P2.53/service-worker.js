@@ -107,7 +107,8 @@
 // Refresh portrait overflow boundaries, hidden loading artwork and colored SOS ordinals.
 // Refresh identity-aligned vitals, proportionally extended portraits and desktop header layout.
 // Refresh Rosters/DataHub PPG's three-game rank pool and reduced 2026 volume gates.
-const CACHE_NAME = 'DH3.55-qualifier-ranks';
+// Refresh matchup week/projection headers, ordered SOS summaries and mobile picker/chart fixes.
+const CACHE_NAME = 'DH3.56-matchup-week-summary';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

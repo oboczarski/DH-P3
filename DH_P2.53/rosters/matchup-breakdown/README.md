@@ -69,8 +69,8 @@ one point and expanded results affect only the modal. BYE or unknown opponents
 have no defense panel and keep the action disabled.
 
 At phone widths (620px and below), all five summary cards occupy one row. Actual
-FPA displays one decimal, recorded-game text shortens to `N games`, and the SOS
-guide shortens to `1 → 32`. CSS switches these presentation spans without
+FPA displays one decimal and recorded-game text shortens to `N games`.
+CSS switches these presentation spans without
 changing desktop precision or any scoring calculation. The main modal's top
 defense/venue dropdowns are hidden on phones and their space is removed; its
 expanded-player controls and all desktop filters retain their existing behavior.
@@ -100,5 +100,15 @@ scaling with width. The desktop track retains its original gutters, and opponent
 chips continue to use the same horizontal slots as the chart's week ticks.
 
 The defense heading reuses the RANK metric's exact conditional color as
-position/venue filters change; SOS stays unchanged. The selected-player subtitle
-is ordered as `Position · Player name · Opponent`.
+position/venue filters change; SOS stays unchanged. RANK leads the summary cards.
+The SOS footer labels the published rank as VERY EASY (1–6), EASY (7–12),
+FAVORABLE (13–16), MODERATE (17–20), HARD (21–26) or VERY HARD (27–32).
+Missing ranks display a dash, at both mobile and desktop widths.
+
+The main heading adds a lighter `(Week N)` suffix from the clicked Weekly tag
+or current Start/Sit week. The selected-player subtitle is ordered as
+`Position · Player name · Proj. 16.5 @ BUF`. Rosters supplies the indicated week's
+projection from its existing source; zero and literal status text are retained.
+A Start/Sit launch copies the preview projection's computed conditional color.
+A Weekly launch without comparison peers keeps a neutral projection. These
+launch details stay fixed while the modal's defense/position/venue filters change.

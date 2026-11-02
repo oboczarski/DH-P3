@@ -345,7 +345,9 @@ linear-gradient(90deg, #74efff 17%, #7297ff 42%, #d97dff 70%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker.is-open .teamPicker__btn {}
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__left {display:flex;align-items:center;gap: 10px;min-width:0;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__code {font-size:15px;font-weight: 700;}
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__chev { opacity:.75; font-size:12px; }
+  /* Mobile picker chevrons need their own visible color because the button's
+     gradient text treatment makes its inherited text color transparent. */
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__chev { color:#b7c9f5; flex:none; opacity:.85; font-size:12px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamLogoStack { display:inline-grid; place-items:center; vertical-align:middle; line-height:0; flex:none; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamLogo { width:19px; height:19px; object-fit:contain; border-radius:4px; display:block; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamLogoStack__glow {grid-area:1 / 1;z-index:0;filter: none;}
@@ -632,7 +634,9 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__btn:hover { border-color:rgba(255,255,255,.2); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker.is-open .teamPicker__btn { border-color:rgba(0,191,255,.55); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__left { display:flex; align-items:center; gap:9px; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__chev { opacity:.75; font-size:12px; }
+  /* Mobile picker chevrons need their own visible color because the button's
+     gradient text treatment makes its inherited text color transparent. */
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__chev { color:#b7c9f5; flex:none; opacity:.85; font-size:12px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__panel { position:fixed; inset:auto; margin:0; z-index:120; width:min(560px,calc(100vw - 28px)); max-height:calc(100dvh - 16px); overflow:auto;
     padding:10px; border-radius:18px; border:1px solid rgba(255,255,255,.14); color:rgba(255,255,255,.92);
     background:rgba(8,8,18,.92); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 16px 48px rgba(0,0,0,.5);
@@ -972,6 +976,9 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
 
 /* WEEKLY — MOBILE only. */
 @media (max-width:620px) {
+  /* Weekly plot only: a measured y-axis gutter saves horizontal space while
+     retaining enough room for its labels and aligned opponent chips. */
+  :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) #weeklyChart { --weekly-axis-inset:18px; --weekly-label-gap:4px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) h3 { margin:0; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) h3 { font-size:12px; font-weight:550; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) button { font:inherit; color:inherit; min-width:0; }
@@ -1076,6 +1083,9 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
 
 /* WEEKLY — DESKTOP only. */
 @media (width > 620px) {
+  /* Weekly plot only: a measured y-axis gutter saves horizontal space while
+     retaining enough room for its labels and aligned opponent chips. */
+  :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) #weeklyChart { --weekly-axis-inset:22px; --weekly-label-gap:5px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) h3 { margin:0; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) h3 { font-size:12px; font-weight:550; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="weekly"]) button { font:inherit; color:inherit; min-width:0; }

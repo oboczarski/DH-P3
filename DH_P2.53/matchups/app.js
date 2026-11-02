@@ -191,12 +191,20 @@
     // CSS switches the mobile spans to one-decimal Actual FPA and shorter notes;
     // desktop text and every underlying comparison retain their existing precision.
     const sosColor = heatColor({ rank: c.sosRank, pool: Data.TEAMS.length, rankOrder: "descending" });
+    // Defense rank leads the summary in reading order at every breakpoint.
     $("metrics").innerHTML = `
+      <div class="metric"><div class="metricLabel" title="Defense rank: 1 = best defense / fewest FPA per game">RANK</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub"><span class="metricDesktop">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</span><span class="metricMobile">${stat.games} game${stat.games === 1 ? "" : "s"}</span></div></div>
       <div class="metric"><div class="metricLabel">ACTUAL FPA</div><div class="metricValue"><span class="metricDesktop">${fmt(stat.total)}</span><span class="metricMobile">${fmt(stat.total, 1)}</span></div><div class="metricSub">${fmt(stat.avg, 1)} per game</div></div>
       <div class="metric"><div class="metricLabel">EXPECTED FPA</div><div class="metricValue">${fmt(c.expectedTotal, 1)}</div><div class="metricSub">${baselineNote}</div></div>
       <div class="metric"><div class="metricLabel">vs EXPECTED</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
-      <div class="metric"><div class="metricLabel" title="Defense rank: 1 = best defense / fewest FPA per game">RANK</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub"><span class="metricDesktop">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</span><span class="metricMobile">${stat.games} game${stat.games === 1 ? "" : "s"}</span></div></div>
-      <div class="metric metric--sos" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub"><span class="metricDesktop">1 easy · 32 tough</span><span class="metricMobile">1 → 32</span></div></div>`;
+      <div class="metric metric--sos" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub">${sosLabel(c.sosRank)}</div></div>`;
+  }
+  // Page-owned labels describe the published season SOS rank without reversing
+  // or recomputing it under venue filters. Missing ranks stay unavailable.
+  function sosLabel(rank) {
+    if (!Number.isInteger(rank) || rank < 1 || rank > 32) return '—';
+    return rank <= 6 ? 'VERY EASY' : rank <= 12 ? 'EASY' : rank <= 16 ? 'FAVORABLE'
+      : rank <= 20 ? 'MODERATE' : rank <= 26 ? 'HARD' : 'VERY HARD';
   }
   function width(id) {
     const element = $(id), style = getComputedStyle(element);
@@ -224,7 +232,17 @@
     // labels/tooltips while the visible W# is shown only on the chart axis.
     const timeline = $("weeklyTimelineContent");
     timeline.style.setProperty("--weekly-week-count", Math.max(1, entries.length));
-    const W = width("weeklyChart"), H = 196, left = 31, right = W - 9, top = 22, bottom = H - 19;
+    // Fit the weekly y-axis gutter to its actual tick text. The page's own
+    // responsive CSS sets minimum insets; chips reuse these exact plot bounds.
+    const chartStyle = getComputedStyle($("weeklyChart"));
+    const setting = (name, fallback) => Number.parseFloat(chartStyle.getPropertyValue(name)) || fallback;
+    const bounds = scale(entries.flatMap(entry => [entry.actual, entry.expected]));
+    const axisLabelGap = setting('--weekly-label-gap', 4);
+    const measure = document.createElement('canvas').getContext('2d');
+    measure.font = `9px ${chartStyle.fontFamily}`;
+    const widestTick = Math.max(...bounds.ticks.map(value => measure.measureText(tick(value, bounds)).width));
+    const left = Math.max(setting('--weekly-axis-inset', 18), Math.ceil(widestTick) + axisLabelGap + 1);
+    const W = width("weeklyChart"), H = 196, right = W - 9, top = 22, bottom = H - 19;
     // Percentage insets mirror the SVG viewBox even at fractional CSS widths.
     // Zero grid gap keeps each chip center at the bar/week slot's exact center.
     timeline.style.setProperty("--weekly-plot-left", `${left / W * 100}%`);
@@ -235,11 +253,10 @@
       return `<div class="weekMatchup" role="group" aria-label="${label}" title="${label}"><span class="weekOpponentStack"><span class="weekOpponent">${esc(opponent)}</span>${logo(entry.offense)}</span></div>`;
     }).join("");
     if (!entries.some(entry => entry.actual !== null)) { $("weeklyChart").innerHTML = empty("No recorded games", "Choose another defense venue or position."); return; }
-    const bounds = scale(entries.flatMap(entry => [entry.actual, entry.expected]));
     const y = value => bottom - (value - bounds.low) / (bounds.high - bounds.low) * (bottom - top);
     const slot = (right - left) / entries.length, x = index => left + slot * (index + .5), barWidth = Math.min(49, slot * .4);
     let content = `<defs><linearGradient id="weekly-bar" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${COLORS[state.pos]}" stop-opacity=".83"/><stop offset="1" stop-color="${COLORS[state.pos]}" stop-opacity=".24"/></linearGradient><linearGradient id="weekly-expected-line" gradientUnits="userSpaceOnUse" x1="${left}" y1="0" x2="${right}" y2="0"><stop stop-color="#8af7ff" stop-opacity=".71"/><stop offset="1" stop-color="#e3b3ff" stop-opacity=".66"/></linearGradient></defs>`;
-    content += bounds.ticks.map(n => `<line class="${n === 0 ? "zeroLine" : "gridLine"}" x1="${left}" x2="${right}" y1="${y(n)}" y2="${y(n)}"/><text x="${left - 6}" y="${y(n) + 3}" text-anchor="end">${tick(n, bounds)}</text>`).join("");
+    content += bounds.ticks.map(n => `<line class="${n === 0 ? "zeroLine" : "gridLine"}" x1="${left}" x2="${right}" y1="${y(n)}" y2="${y(n)}"/><text x="${left - axisLabelGap}" y="${y(n) + 3}" text-anchor="end">${tick(n, bounds)}</text>`).join("");
     let segment = [];
     const finish = () => {
       if (segment.length > 1) content += `<polyline class="expectedLine" points="${segment.join(" ")}"/>`;

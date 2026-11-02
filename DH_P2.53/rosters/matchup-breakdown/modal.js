@@ -4,7 +4,7 @@ import Data from './model.js?v=DH3.50-byes-rosters-data';
 import { createMatchupStore, resolveMatchupSelection } from './data.js?v=DH3.52r-rosters-defense-ranks';
 import { defenseMetric, rankColor as heatColor, ordinalRank } from './rank-view.js?v=DH3.53f-rosters-matchup-header';
 
-export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
+export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerContext = selection => selection } = {}) {
   if (document.body?.dataset.page !== 'rosters') throw new Error('Matchup Breakdown belongs to Rosters.');
   const store = createMatchupStore();
   const host = document.createElement('div');
@@ -56,6 +56,11 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
   const comparison = team => analysis.byTeam.get(team || state.team).metrics[state.pos];
   const direction = value => value > 0 ? "is-easy" : value < 0 ? "is-tough" : "";
   const empty = (title, detail) => `<div class="emptyState"><strong>${esc(title)}</strong>${esc(detail)}</div>`;
+  // Rosters owns this SOS copy independently. Label the supplied season vRK
+  // directly, including venue filters; unavailable ranks have no difficulty.
+  const sosLabel = rank => !Number.isInteger(rank) || rank < 1 || rank > 32 ? '—'
+    : rank <= 6 ? 'VERY EASY' : rank <= 12 ? 'EASY' : rank <= 16 ? 'FAVORABLE'
+    : rank <= 20 ? 'MODERATE' : rank <= 26 ? 'HARD' : 'VERY HARD';
 
   function pickerLogo(team) {
     const image = `${assetUrl(team)}`;
@@ -169,12 +174,13 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
     const sosColor = heatColor({ rank: c.sosRank, pool: Data.TEAMS.length, rankOrder: "descending" });
     // Stable card IDs let each metric's labels, values and notes be styled
     // independently in the stylesheet's mobile and desktop sections.
+    // Defense rank leads the summary in reading order at every breakpoint.
     $("metrics").innerHTML = `
+      <div class="metric" id="rankMetric"><div class="metricLabel" title="Defense rank: 1 = best defense / fewest FPA per game">RANK</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub"><span class="metricDesktop">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</span><span class="metricMobile">${stat.games} game${stat.games === 1 ? "" : "s"}</span></div></div>
       <div class="metric" id="actualMetric"><div class="metricLabel">ACTUAL FPA</div><div class="metricValue"><span class="metricDesktop">${fmt(stat.total)}</span><span class="metricMobile">${fmt(stat.total, 1)}</span></div><div class="metricSub">${fmt(stat.avg, 1)} per game</div></div>
       <div class="metric" id="expectedMetric"><div class="metricLabel">EXPECTED FPA</div><div class="metricValue">${fmt(c.expectedTotal, 1)}</div><div class="metricSub">${baselineNote}</div></div>
       <div class="metric" id="deltaMetric"><div class="metricLabel">vs EXPECTED</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
-      <div class="metric" id="rankMetric"><div class="metricLabel" title="Defense rank: 1 = best defense / fewest FPA per game">RANK</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub"><span class="metricDesktop">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</span><span class="metricMobile">${stat.games} game${stat.games === 1 ? "" : "s"}</span></div></div>
-      <div class="metric metric--sos" id="sosMetric" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub"><span class="metricDesktop">1 easy · 32 tough</span><span class="metricMobile">1 → 32</span></div></div>`;
+      <div class="metric metric--sos" id="sosMetric" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub">${sosLabel(c.sosRank)}</div></div>`;
   }
   function width(id) {
     const element = $(id), style = getComputedStyle(element);
@@ -403,14 +409,14 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
   function mount() {
     if (mountPromise) return mountPromise;
     mountPromise = (async () => {
-      const response = await fetch(new URL('./panel.html?v=DH3.53f-rosters-matchup-header', import.meta.url));
+      const response = await fetch(new URL('./panel.html?v=DH3.56-matchup-week-summary', import.meta.url));
       if (!response.ok) throw new Error(`Matchup panel could not load (${response.status}).`);
       root.innerHTML = await response.text();
       // One Rosters-owned stylesheet contains independent MOBILE and DESKTOP
       // sections, with separate selectors for each modal area in both sections.
       const stylesheet = document.createElement('link');
       stylesheet.rel = 'stylesheet';
-      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.53f-rosters-matchup-header', import.meta.url).href;
+      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.56-matchup-week-summary', import.meta.url).href;
       const styled = new Promise((resolve, reject) => {
         stylesheet.onload = resolve;
         stylesheet.onerror = () => reject(new Error('Matchup panel styling could not load.'));
@@ -494,9 +500,21 @@ export function createMatchupBreakdown({ onDataChange = () => {} } = {}) {
     state.team = resolved.team; state.pos = resolved.pos; state.venue = 'all';
     state.query = ''; state.hideZero = true; state.playerSort = { key: 'week', direction: 'desc', activeKey: null, step: 0 };
     triggerPlayerId = trigger?.hasAttribute('data-start-sit-matchup-id') ? String(selection.id) : null;
-    // The selected player's subtitle leads with their base position; manual
-    // defense/position filters remain separate from this player identity.
-    $('breakdownPlayer').textContent = `${resolved.pos} · ${selection.label} · ${selection.matchup.opponent}`;
+    // Keep the clicked week/opponent/projection together as launch context.
+    // Defense filters below never replace this identity. Numeric zero survives;
+    // missing projections and literal status text remain neutral.
+    const context = getPlayerContext(selection, trigger);
+    const week = Number(context.week), hasWeek = Number.isInteger(week) && week >= 1 && week <= 18;
+    $('breakdownWeek').textContent = hasWeek ? `(Week ${week})` : '';
+    $('breakdownWeek').hidden = !hasWeek;
+    const projection = context.projection;
+    const numericProjection = typeof projection === 'number' && Number.isFinite(projection);
+    const projectionDisplay = numericProjection ? fmt(projection, 1)
+      : /^(?:NA|N\/A)?$/i.test(String(context.projectionDisplay ?? '').trim()) ? '—' : context.projectionDisplay;
+    $('breakdownPlayer').innerHTML = `${esc(resolved.pos)} · ${esc(selection.label)} · <span class="breakdownProjectionMatchup">Proj. <strong id="breakdownProjection">${esc(projectionDisplay)}</strong> ${esc(selection.matchup.opponent)}</span>`;
+    // Reuse Start/Sit's exact rendered color; a weekly log without comparison
+    // peers inherits the subtitle's neutral color.
+    if (numericProjection && context.projectionColor) $('breakdownProjection').style.color = context.projectionColor;
     const dialog = $('breakdownDialog');
     if (!dialog.open) {
       scrollState = { html: document.documentElement.style.overflow, body: document.body.style.overflow };

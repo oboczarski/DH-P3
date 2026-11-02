@@ -131,6 +131,14 @@ track when the week count needs more room. Each chip retains its week in its
 accessible label and native tooltip. Timeline and chip styles remain separate
 in the mobile and desktop `WEEKLY` blocks.
 
+The weekly y-axis gutter fits the rendered tick labels, with independent mobile
+and desktop minimums, and passes its measured inset to the opponent-chip grid.
+Mobile Defense/Venue chevrons have an explicit visible color rather than
+inheriting their buttons' transparent gradient-text color. RANK leads the
+summary chips; the SOS footer describes the supplied rank as VERY EASY (1–6),
+EASY (7–12), FAVORABLE (13–16), MODERATE (17–20), HARD (21–26) or VERY HARD
+(27–32), with a dash for an unavailable rank. Venue filters retain season SOS.
+
 Dumbbells compare and sort by actual FPA per game against expected FPA per game.
 Their markers, labels, bounds, differences, tooltips and selected-defense readout
 all use the existing analysis averages, preserving FPFA's supplied all-games

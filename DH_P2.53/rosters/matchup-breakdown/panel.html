@@ -9,7 +9,9 @@
     <symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></symbol>
   </svg>
 <dialog class="matchupDialog" id="breakdownDialog" aria-labelledby="breakdownTitle">
-  <div class="dialogHeader" id="breakdownHeader"><div><h2 id="breakdownTitle">Matchup Breakdown</h2><p class="breakdown-player-subtitle" id="breakdownPlayer"></p></div><button type="button" class="iconButton" id="breakdownClose" data-close-breakdown aria-label="Close matchup breakdown"><svg class="icon"><use href="#icon-close"/></svg></button></div>
+  <!-- The launch context supplies the opponent's week and Rosters-owned PROJ;
+       the lighter week suffix stays separate from the main heading. -->
+  <div class="dialogHeader" id="breakdownHeader"><div><h2 id="breakdownTitle">Matchup Breakdown <span id="breakdownWeek" hidden></span></h2><p class="breakdown-player-subtitle" id="breakdownPlayer"></p></div><button type="button" class="iconButton" id="breakdownClose" data-close-breakdown aria-label="Close matchup breakdown"><svg class="icon"><use href="#icon-close"/></svg></button></div>
   <div class="dialogBody" id="breakdownBody">
     <div id="loadStatus" class="smallMuted" role="status">Preparing matchup data…</div>
     <div class="loadError" id="loadError" role="alert" hidden></div>

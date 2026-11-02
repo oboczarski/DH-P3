@@ -399,7 +399,9 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
       trigger.title = label;
       trigger.append(...tag.childNodes);
       const selection = { id: player.id, label: player.name || player.full_name || `${position} player`,
-        basePos: position, matchup: { opponent } };
+        // Carry the clicked log week into the matchup header, including when
+        // viewing a historical season or a future projection.
+        week: Number(week.match(/\d+/)?.[0]), basePos: position, matchup: { opponent } };
       trigger.addEventListener('click', () => rostersOpenWeeklyMatchup(selection, trigger));
       tag.replaceWith(trigger);
     });
