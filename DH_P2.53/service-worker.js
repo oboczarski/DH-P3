@@ -111,7 +111,8 @@
 // Refresh Matchups' repaired desktop Defense label CSS and remove its empty mobile rule.
 // Refresh precise matchup averages, conditional FPA chip colors and defense-rank labels.
 // Refresh neutral Actual/Expected FPA footers while retaining colored main values.
-const CACHE_NAME = 'DH3.57a-neutral-fpa-footers2';
+// Refresh Rosters' active navigation gradient and directly painted icon/label.
+const CACHE_NAME = 'DH3.57b-rosters-active-nav';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
