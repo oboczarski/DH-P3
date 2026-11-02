@@ -304,7 +304,7 @@ body:where([data-page="matchups"]) { background:#050b13; }
     box-shadow:0 8px 28px rgba(2,5,17,.22),inset 0 4px 18px rgba(255,255,255,.035);
     backdrop-filter:blur(7px) saturate(140%); -webkit-backdrop-filter:blur(7px) saturate(140%); }
   :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="toolbar"])::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:linear-gradient(135deg,rgba(215,225,255,.065),transparent 30%); }
-  :where(body[data-page="matchups"]) .toolbar:where([data-matchups-area="toolbar"]) { display:flex; align-items:center; gap:14px; padding:8px 12px; margin-bottom:10px; }
+  :where(body[data-page="matchups"]) .toolbar:where([data-matchups-area="toolbar"]) {display:flex;align-items:center;gap: 114px;padding:8px 12px;margin-bottom:10px;}
   @media (max-width: 1100px) {
   :where(body[data-page="matchups"]) .toolbar:where([data-matchups-area="toolbar"]) { gap:9px; }
   }
@@ -403,7 +403,13 @@ linear-gradient(90deg, #74efff 17%, #7297ff 42%, #d97dff 70%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) button:focus-visible,
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
   :where(body[data-page="matchups"]) .defensePicker:where([data-matchups-area="toolbar-defense"]) { display:flex; align-items:center; gap:8px; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .fieldLabel { color:var(--dim);font-size: 9px;font-weight:600;letter-spacing: 0;white-space:nowrap; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .fieldLabel {color:var(--dim);font-size: 12px;font-weight: 450;letter-spacing: 0;white-space:nowrap;border
+Shorthand property for setting border width, style, and color.
+
+Widely available across major browsers (Baseline since January 2018)
+Learn more
+
+Don’t show: 1px solid transparent;color: transparent;background: linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;}
   :where(body[data-page="matchups"]) .defensePicker:where([data-matchups-area="toolbar-defense"]) { flex: 0 1 204px; }
   :where(body[data-page="matchups"]) .defensePicker:where([data-matchups-area="toolbar-defense"]) > .teamPicker { flex:1; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker { position:relative; min-width:0; }
@@ -658,7 +664,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) button:focus-visible,
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
   :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) { display:flex; align-items:center; gap:8px; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .fieldLabel { color:var(--dim);font-size: 9px;font-weight:600;letter-spacing: 0;white-space:nowrap; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .fieldLabel {font-size: 10px;font-weight: 450;letter-spacing: 0;white-space: nowrap;color: transparent;background: linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;}
   :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) { flex:0 0 216px; }
   :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) > .teamPicker { flex:1; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker { position:relative; min-width:0; }
