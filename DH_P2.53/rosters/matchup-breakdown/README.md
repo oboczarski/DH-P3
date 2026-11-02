@@ -34,8 +34,10 @@ Unused FPA rows with all columns blank except formula-generated `VS_TM` are
 ignored; populated rows still require the original result validation.
 
 Only DH's existing `scripts/nfl-2026-sheets.js` workbook URL configuration is
-shared. Published FPFA totals/averages/ranks remain the season-to-date authority;
-FPA records supply weekly actual scores/player results, and FPF offense averages
+shared. FPFA totals and ranks remain the season-to-date authority; parsed source
+averages stay intact. Analysis divides actual/expected totals by non-BYE games
+for precise per-game values, rounding only when rendering. FPA records supply
+weekly actual scores/player results, and FPF offense averages
 supply weekly/venue expected scoring. `rank-view.js` independently copies the
 Matchups presentation helpers: displayed defense ranks reverse published FPFA
 matchup ranks (`33 - rank`), so 1 is the strongest defense/fewest FPA per game.
@@ -51,8 +53,8 @@ The preview keeps the opponent's positional defense rank inline to the right of
 the projected value. Its separate info strip
 is headed by the opponent abbreviation and player's base position (e.g. `DEN vs. RB:`).
 It shows SOS Rk., FPA/G, Expected/G and vs Expected, in that order. FPA/G and
-Expected/G use the published averages; vs Expected shows the panel's unrounded
-total point difference divided by recorded games, keeping source rounding intact.
+Expected/G use the precise totals/game averages; vs Expected shows the panel's
+original total point difference divided by recorded games.
 The preview's borderless chips have three internal dividers. FPA/G uses the existing
 matchup rank palette and Expected/G uses that palette with the published SOS rank;
 missing averages or ranks stay neutral. The Start/Sit footer explains
@@ -112,3 +114,10 @@ projection from its existing source; zero and literal status text are retained.
 A Start/Sit launch copies the preview projection's computed conditional color.
 A Weekly launch without comparison peers keeps a neutral projection. These
 launch details stay fixed while the modal's defense/position/venue filters change.
+
+The modal's Actual FPA values and per-game footer use the current defense-rank
+color. Expected FPA uses the published season SOS color, matching the existing
+Start/Sit convention; missing values/ranks stay neutral. The RANK footer uses
+Brutal (1–6), Tough (7–12), Moderate (13–16), Favorable (17–20), Great (21–26)
+or Prime (27–32) based on the displayed defense-strength rank. Missing ranks
+show a dash. Neither the published ranks nor the SOS footer are recomputed.

@@ -1,7 +1,7 @@
 // Rosters-owned defense panel: isolate its renderer, responsive chart geometry,
 // tooltips, filters and player expansion in an isolated modal, with no Matchups imports.
-import Data from './model.js?v=DH3.50-byes-rosters-data';
-import { createMatchupStore, resolveMatchupSelection } from './data.js?v=DH3.52r-rosters-defense-ranks';
+import Data from './model.js?v=DH3.57-matchup-average-precision';
+import { createMatchupStore, resolveMatchupSelection } from './data.js?v=DH3.57-matchup-average-precision';
 import { defenseMetric, rankColor as heatColor, ordinalRank } from './rank-view.js?v=DH3.53f-rosters-matchup-header';
 
 export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerContext = selection => selection } = {}) {
@@ -48,7 +48,13 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
   const images = [];
 
   const esc = value => String(value ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
-  const fmt = (value, digits = 2) => value !== null && Number.isFinite(value) ? value.toFixed(digits) : "—";
+  const fmt = (value, digits = 2) => {
+    if (!Number.isFinite(value)) return "—";
+    // Round to tenths only at display time. Correct binary half-tenth drift
+    // (such as 90.1 / 2) consistently for positive and negative averages.
+    const rounded = digits === 1 ? Math.sign(value) * Math.round((Math.abs(value) + 1e-9) * 10) / 10 : value;
+    return rounded.toFixed(digits);
+  };
   const signed = (value, digits = 1) => value === null ? "—" : `${value > 0 ? "+" : ""}${fmt(Math.abs(value) < 1e-9 ? 0 : value, digits)}`;
   const logo = team => team ? `<img src="${assetUrl(team)}" alt="" width="24" height="24">` : "";
   const venueLabel = () => state.venue === "home" ? "Defense at home" : state.venue === "away" ? "Defense away" : "All games";
@@ -151,6 +157,14 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
     renderProfile(); renderWeekly(); renderPlayers();
     $('analysis').setAttribute('aria-busy', 'false');
   }
+  // These labels describe the displayed defense-strength rank (1 toughest,
+  // 32 easiest), independently of the season SOS labels and source rank order.
+  function rankLabel(rank) {
+    if (!Number.isInteger(rank) || rank < 1 || rank > 32) return '—';
+    return rank <= 6 ? 'Brutal' : rank <= 12 ? 'Tough' : rank <= 16 ? 'Moderate'
+      : rank <= 20 ? 'Favorable' : rank <= 26 ? 'Great' : 'Prime';
+  }
+
   function renderProfile() {
     const c = comparison(), stat = defenseMetric(c.actual);
     $("defenseLogo").innerHTML = logo(state.team);
@@ -172,13 +186,18 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
     // CSS switches the mobile spans to one-decimal Actual FPA and shorter notes;
     // desktop text and every underlying comparison retain their existing precision.
     const sosColor = heatColor({ rank: c.sosRank, pool: Data.TEAMS.length, rankOrder: "descending" });
+    // Actual scoring follows the defense's difficulty color; expected scoring
+    // follows the published SOS scale, matching the existing Start/Sit chips.
+    // Missing values/ranks stay neutral, while a recorded zero stays colored.
+    const actualColor = Number.isFinite(stat.total) || Number.isFinite(stat.avg) ? heatColor(stat) : '#7b81a5';
+    const expectedColor = Number.isFinite(c.expectedTotal) || Number.isFinite(c.expectedAvg) ? sosColor : '#7b81a5';
     // Stable card IDs let each metric's labels, values and notes be styled
     // independently in the stylesheet's mobile and desktop sections.
     // Defense rank leads the summary in reading order at every breakpoint.
     $("metrics").innerHTML = `
-      <div class="metric" id="rankMetric"><div class="metricLabel" title="Defense rank: 1 = best defense / fewest FPA per game">RANK</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub"><span class="metricDesktop">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</span><span class="metricMobile">${stat.games} game${stat.games === 1 ? "" : "s"}</span></div></div>
-      <div class="metric" id="actualMetric"><div class="metricLabel">ACTUAL FPA</div><div class="metricValue"><span class="metricDesktop">${fmt(stat.total)}</span><span class="metricMobile">${fmt(stat.total, 1)}</span></div><div class="metricSub">${fmt(stat.avg, 1)} per game</div></div>
-      <div class="metric" id="expectedMetric"><div class="metricLabel">EXPECTED FPA</div><div class="metricValue">${fmt(c.expectedTotal, 1)}</div><div class="metricSub">${baselineNote}</div></div>
+      <div class="metric" id="rankMetric"><div class="metricLabel" title="Defense rank: 1 = best defense / fewest FPA per game">RANK</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub">${rankLabel(stat.rank)}</div></div>
+      <div class="metric" id="actualMetric"><div class="metricLabel">ACTUAL FPA</div><div class="metricValue" style="color:${actualColor}"><span class="metricDesktop">${fmt(stat.total)}</span><span class="metricMobile">${fmt(stat.total, 1)}</span></div><div class="metricSub" style="color:${actualColor}">${fmt(stat.avg, 1)} per game</div></div>
+      <div class="metric" id="expectedMetric"><div class="metricLabel">EXPECTED FPA</div><div class="metricValue" style="color:${expectedColor}">${fmt(c.expectedTotal, 1)}</div><div class="metricSub" style="color:${expectedColor}">${baselineNote}</div></div>
       <div class="metric" id="deltaMetric"><div class="metricLabel">vs EXPECTED</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
       <div class="metric metric--sos" id="sosMetric" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub">${sosLabel(c.sosRank)}</div></div>`;
   }

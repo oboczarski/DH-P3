@@ -114,7 +114,7 @@ test('Start/Sit prepares updated sources with bye weeks, later games and unused 
   assert.equal(metric.games, 3);
   assert.deepEqual(metric.entries.map(game => game.week), [1, 2, 6]);
   assert.equal(metric.actual.total, 90.1);
-  assert.equal(metric.actual.avg, 45);
+  assert.equal(metric.actual.avg, 90.1 / metric.games);
   assert.equal(metric.sosRank, 1);
   assert.equal(metric.deltaPerGame, 9.9 / 3);
 });
@@ -133,7 +133,8 @@ test('preview reverses the defensive rank while SOS and panel scoring comparison
   assert.equal(metric.delta, 9.9);
   assert.equal(metric.deltaPerGame, 4.95);
   assert.equal(metric.deltaPct, store.analysis().byTeam.get('BAL').metrics.QB.deltaPct);
-  assert.notEqual(metric.deltaPerGame, metric.actual.avg - metric.expectedAvg);
+  assert.ok(Math.abs(metric.deltaPerGame - (metric.actual.avg - metric.expectedAvg)) < 1e-10,
+    'precise per-game averages agree with the original total difference');
   const below = store.preview({ pos: 'WR', matchup: { opponent: '@ ARI' } });
   assert.equal(below.deltaPerGame, -2.5);
   assert.ok(below.deltaPct < 0);

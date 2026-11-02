@@ -13,7 +13,13 @@
   ];
   let current = null, snapshot = null, observer = null, styleObserver = null, styleTimer = null;
   let stackSort = "ALL";
-  const fmt = (n, digits = 1) => Number.isFinite(n) ? n.toFixed(digits) : "—";
+  const fmt = (n, digits = 1) => {
+    if (!Number.isFinite(n)) return "—";
+    // Round to tenths only at display time. Correct binary half-tenth drift
+    // (such as 90.1 / 2) consistently for positive and negative averages.
+    const rounded = digits === 1 ? Math.sign(n) * Math.round((Math.abs(n) + 1e-9) * 10) / 10 : n;
+    return rounded.toFixed(digits);
+  };
   const signedPoints = n => Number.isFinite(n) ? `${n > 0 ? "+" : ""}${fmt(Math.abs(n) < 1e-9 ? 0 : n, 1)}` : "—";
   const color = value => am5.color(value);
   const teamMarkup = team => `<span class="labTeam"><img src="assets/NFL-Tags_webp/${team.toLowerCase()}.webp" alt=""><strong>${team}</strong></span>`;
@@ -106,7 +112,7 @@
   function cellTooltip(row) {
     // Chart cells use the same display-only defense-rank conversion as the
     // summary and heatmap; offense ranks in the game tooltips stay source-owned.
-    return `[bold]${row.team} · ${row.pos}[/]\n${fmt(row.avg, 2)} FPA/game · defense rank ${row.rank ?? "—"} of ${row.pool}\nRank 1 = best defense / fewest FPA per game\nExpected FPA: ${fmt(row.expectedAvg, 2)} /game\n${row.games} recorded games\nSelect to explore this defense and position`;
+    return `[bold]${row.team} · ${row.pos}[/]\n${fmt(row.avg, 1)} FPA/game · defense rank ${row.rank ?? "—"} of ${row.pool}\nRank 1 = best defense / fewest FPA per game\nExpected FPA: ${fmt(row.expectedAvg, 1)} /game\n${row.games} recorded games\nSelect to explore this defense and position`;
   }
   function scoringBreakdown(definition) {
     const scene = makeScene(definition), root = scene.root, palette = am5.ColorSet.new(root, {});
@@ -268,7 +274,7 @@
   }
 
   function dumbbellTooltip(row) {
-    return `[bold]${row.team} · ${row.pos}[/]\nActual FPA: ${fmt(row.actualAvg, 2)} points/game\nExpected FPA: ${fmt(row.expectedAvg, 2)} points/game\nActual − expected: ${signedPoints(row.deltaAvg)} points/game\n${row.games} recorded games · select to explore`;
+    return `[bold]${row.team} · ${row.pos}[/]\nActual FPA: ${fmt(row.actualAvg, 1)} points/game\nExpected FPA: ${fmt(row.expectedAvg, 1)} points/game\nActual − expected: ${signedPoints(row.deltaAvg)} points/game\n${row.games} recorded games · select to explore`;
   }
 
   function gameMarker(scene, row, stroke, text) {
@@ -349,9 +355,9 @@
   function readouts() {
     if (!snapshot || !current) return;
     const selectedCells = snapshot.cells.filter(row => row.team === current.team);
-    $("compositionReadout").innerHTML = teamMarkup(current.team) + selectedCells.map(row => `<span class="labValue">${row.pos} <strong>${fmt(row.avg, 2)}</strong><span>/game · rank #${row.rank ?? "—"}</span></span>`).join("");
+    $("compositionReadout").innerHTML = teamMarkup(current.team) + selectedCells.map(row => `<span class="labValue">${row.pos} <strong>${fmt(row.avg, 1)}</strong><span>/game · rank #${row.rank ?? "—"}</span></span>`).join("");
     const pair = snapshot.dumbbell.find(row => row.team === current.team);
-    $("dumbbellReadout").innerHTML = teamMarkup(current.team) + (pair ? `<span>Actual <strong>${fmt(pair.actualAvg, 2)}</strong>/game</span><span>Expected <strong>${fmt(pair.expectedAvg, 2)}</strong>/game</span><span>Difference <strong>${signedPoints(pair.deltaAvg)}</strong> points/game</span><span>${pair.games} games · ${current.pos}</span>` : '<span class="labUnavailable">Expected FPA is unavailable for this scope.</span>');
+    $("dumbbellReadout").innerHTML = teamMarkup(current.team) + (pair ? `<span>Actual <strong>${fmt(pair.actualAvg, 1)}</strong>/game</span><span>Expected <strong>${fmt(pair.expectedAvg, 1)}</strong>/game</span><span>Difference <strong>${signedPoints(pair.deltaAvg)}</strong> points/game</span><span>${pair.games} games · ${current.pos}</span>` : '<span class="labUnavailable">Expected FPA is unavailable for this scope.</span>');
     const games = snapshot.polar.filter(row => row.team === current.team);
     $("polarReadout").innerHTML = teamMarkup(current.team) + games.map(row => `<span>W${row.week} <strong>${fmt(row.actual, 2)}</strong> <span>${row.venue === "home" ? "vs" : "@"} ${row.offense || "—"}</span></span>`).join("") + `<span>${snapshot.polar.length} total game dots</span>`;
   }

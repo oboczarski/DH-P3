@@ -72,7 +72,7 @@ test('the live source boundary preserves parser headers, scores and each view\'s
   const season = Data.matchupAnalysis(model, published, {}, offenses);
   const qb = season.byTeam.get('BAL').metrics.QB;
   assert.equal(qb.actual.total, 90.1);
-  assert.equal(qb.actual.avg, 30);
+  assert.equal(qb.actual.avg, 90.1 / qb.games);
   assert.equal(qb.actualRank, 7);
   assert.equal(qb.expectedTotal, 80.2);
   assert.equal(qb.expectedRank, 9);
@@ -84,8 +84,8 @@ test('the live source boundary preserves parser headers, scores and each view\'s
   assert.equal(away.byTeam.get('BAL').metrics.QB.expectedTotal, 11.1);
   assert.ok(Data.summaryDifferences(model, published).length > 0);
   const charts = Lab.build(season, 'QB');
-  assert.equal(charts.dumbbell.find(row => row.team === 'BAL').actualAvg, 30);
-  assert.equal(charts.dumbbell.find(row => row.team === 'BAL').expectedAvg, 26.7);
+  assert.equal(charts.dumbbell.find(row => row.team === 'BAL').actualAvg, 90.1 / qb.games);
+  assert.equal(charts.dumbbell.find(row => row.team === 'BAL').expectedAvg, 80.2 / qb.games);
   assert.equal(charts.cells.find(row => row.team === 'BAL' && row.pos === 'QB').rank, 26);
   assert.equal(charts.polar.find(row => row.team === 'BAL').actual, 10.25);
 });
@@ -170,8 +170,9 @@ test('a fresh Week 5 update extends games, published summaries and charts across
   assert.equal(qb.entries.find(entry => entry.week === 5).expected, 16.1);
   const week = Data.matchupAnalysis(model, published, { from: 5, to: 5 }, offenses);
   assert.equal(week.byTeam.get('BAL').metrics.QB.actual.total, 15.25);
-  // The chart retains the separately supplied average when totals change.
-  assert.equal(Lab.build(season, 'QB').dumbbell.find(row => row.team === 'BAL').actualAvg, 30);
+  // The parser retains the supplied average, while charts use precise totals/game.
+  assert.equal(published.byTeam.get('BAL').metrics.QB.avg, 30);
+  assert.equal(Lab.build(season, 'QB').dumbbell.find(row => row.team === 'BAL').actualAvg, 110.1 / qb.games);
 });
 
 test('SOS preserves each published ascending positional vRK across venue and week filters', () => {
@@ -240,7 +241,7 @@ test('FPFA discovers later weeks and skips BYE without adding games or changing 
         }
         const qb = analysis.byTeam.get('BAL').metrics.QB;
         assert.equal(qb.actual.total, 90.1);
-        assert.equal(qb.actual.avg, 30);
+        assert.equal(qb.actual.avg, 90.1 / qb.games);
         assert.equal(qb.sosRank, 9);
         assert.equal(Lab.build(analysis, 'QB').dumbbell.find(row => row.team === 'BAL').games, 3);
       }

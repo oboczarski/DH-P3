@@ -1,7 +1,7 @@
 // Rosters owns this loader and its prepared state. Only DH's existing workbook
 // URL configuration is shared; no code or assets are read from the Matchups page.
 import { get2026SheetCsvUrl } from '../../scripts/nfl-2026-sheets.js';
-import Data from './model.js?v=DH3.50-byes-rosters-data';
+import Data from './model.js?v=DH3.57-matchup-average-precision';
 import { defenseMetric } from './rank-view.js?v=DH3.52r-rosters-defense-ranks';
 
 const SOURCES = Object.freeze([
@@ -73,9 +73,9 @@ export function createMatchupStore({ fetchImpl = globalThis.fetch } = {}) {
       // Both Start/Sit rank locations and the breakdown header show defense
       // strength. Keep the cached analysis/source ranks untouched, including SOS.
       const actual = defenseMetric(metric.actual);
-      // Percent is the exact defense-panel comparison. Divide its unrounded
-      // total point difference by recorded games to express the same difference
-      // per game; subtracting published rounded averages would change it.
+      // Percent is the exact defense-panel comparison. Divide its original
+      // total difference by recorded games; the precise analysis averages agree
+      // without subtracting values already rounded for display.
       return { ...resolved, ...metric, actual, actualRank: actual.rank,
         deltaPerGame: metric.delta !== null && metric.games > 0 ? metric.delta / metric.games : null,
       };

@@ -293,8 +293,9 @@ const Data = (() => {
     );
   }
 
-  // FPFA publishes season-to-date matchup summaries. Every one of its six
-  // positional fields is authoritative, including rounded averages and ranks.
+  // Preserve FPFA's published fields exactly when parsing. Its formatted CSV
+  // average columns can be whole numbers; analysis derives precise per-game
+  // values from the unchanged totals and BYE-aware game counts below.
   function readFPFA(text, { name = "FPFA.csv" } = {}) {
     const positions = [...POSITIONS, "ALL"];
     const columns = ["TM", ...positions.flatMap(pos => [pos, `${pos}X`, `${pos}RK`, `${pos}VS`, `${pos}VX`, `${pos}VRK`])];
@@ -356,6 +357,15 @@ const Data = (() => {
     return { name, rawCSV: text, headers: parsed.headers, rows, byTeam };
   }
 
+  // Matchup views share one precise season average for summaries, heatmap,
+  // stacked bars and dumbbells. Round only when rendering; zero/negative totals
+  // are real values, BYEs never add games, and missing totals keep a supplied
+  // average only when this team has recorded games. Raw source rows stay intact.
+  function perGameAverage(total, games, suppliedAverage = null) {
+    if (!Number.isInteger(games) || games <= 0) return null;
+    return Number.isFinite(total) ? total / games : suppliedAverage;
+  }
+
   function matchupAnalysis(model, summary, scope = {}, offenses = null) {
     const positions = [...POSITIONS, "ALL"], weekly = summarize(model, scope);
     const period = summary.weeks.length ? summary.weeks : model.weeks;
@@ -370,7 +380,8 @@ const Data = (() => {
       return { team, games: summaryAvailable ? games : recorded?.games || 0,
         metrics: Object.fromEntries(positions.map(pos => {
           const supplied = source?.metrics[pos];
-          return [pos, summaryAvailable ? { total: supplied?.total ?? null, avg: supplied?.avg ?? null,
+          return [pos, summaryAvailable ? { total: supplied?.total ?? null,
+            avg: perGameAverage(supplied?.total, games, supplied?.avg ?? null),
             rank: supplied?.rank ?? null, pool: 0, games, rankOrder: "descending" } :
             { ...(recorded?.metrics[pos] ?? emptyMetric()) }];
         })) };
@@ -393,7 +404,8 @@ const Data = (() => {
         const baselineComplete = eligible.length > 0 && eligible.every(entry => entry.expected !== null);
         const expectedTotal = summaryAvailable ? supplied?.expectedTotal ?? null : baselineComplete ?
           eligible.reduce((sum, entry) => sum + Math.round(entry.expected * 100), 0) / 100 : null;
-        const expectedAvg = summaryAvailable ? supplied?.expectedAvg ?? null : expectedTotal === null ? null : expectedTotal / eligible.length;
+        const expectedAvg = summaryAvailable ? perGameAverage(expectedTotal, stat.games, supplied?.expectedAvg ?? null)
+          : expectedTotal === null ? null : expectedTotal / eligible.length;
         const complete = stat.total !== null && expectedTotal !== null;
         const delta = complete ? (Math.round(stat.total * 100) - Math.round(expectedTotal * 100)) / 100 : null;
         // SOS describes the season opponents already faced at this position.

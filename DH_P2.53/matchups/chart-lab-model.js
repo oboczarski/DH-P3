@@ -58,17 +58,17 @@
       return { team, pos: position, avg: stat.avg, rank: stat.rank, pool: stat.pool, games: stat.games,
         rankOrder: stat.rankOrder, expectedAvg: c.expectedAvg };
     }));
-    // ALL labels retain the supplied average; independently rounded positional
-    // averages can sum 0.1 differently. ALL is never a fifth stacked segment.
-    // Keep zero values and the original positional averages without inventing bar area.
+    // Analysis supplies full-precision total/game averages for every position.
+    // ALL uses its own total/game average rather than summing rounded labels;
+    // it is never a fifth stacked segment. Keep zero values as real bar data.
     const breakdown = teams.map(team => ({
       ...cells.find(row => row.team === team && row.pos === "ALL"),
       ...Object.fromEntries(cells.filter(row => row.team === team).map(row => [row.pos, row.avg])),
     }));
     const dumbbell = teams.flatMap(team => {
       const c = analysis.byTeam.get(team).metrics[pos];
-      // Dumbbells compare the existing per-game averages directly. FPFA owns
-      // all-games averages; venue averages already come from the scoped analysis.
+      // Both endpoints use the precise analysis averages. Season averages are
+      // derived from published totals/games; venue averages use scoped games.
       if (!Number.isFinite(c.actual.avg) || !Number.isFinite(c.expectedAvg)) return [];
       const deltaAvg = c.actual.avg - c.expectedAvg;
       return [{ team, pos, expectedOnLeft: c.expectedAvg <= c.actual.avg,

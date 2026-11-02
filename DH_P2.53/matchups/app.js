@@ -37,7 +37,13 @@
   const tooltips = new Map();
 
   const esc = value => String(value ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
-  const fmt = (value, digits = 2) => value !== null && Number.isFinite(value) ? value.toFixed(digits) : "—";
+  const fmt = (value, digits = 2) => {
+    if (!Number.isFinite(value)) return "—";
+    // Round to tenths only at display time. Correct binary half-tenth drift
+    // (such as 90.1 / 2) consistently for positive and negative averages.
+    const rounded = digits === 1 ? Math.sign(value) * Math.round((Math.abs(value) + 1e-9) * 10) / 10 : value;
+    return rounded.toFixed(digits);
+  };
   const signed = (value, digits = 1) => value === null ? "—" : `${value > 0 ? "+" : ""}${fmt(Math.abs(value) < 1e-9 ? 0 : value, digits)}`;
   const logo = team => team ? `<img src="assets/NFL-Tags_webp/${team.toLowerCase()}.webp" alt="" width="24" height="24">` : "";
   const venueLabel = () => state.venue === "home" ? "Defense at home" : state.venue === "away" ? "Defense away" : "All games";
@@ -173,6 +179,14 @@
       divisions: DIVISIONS, positionColor: COLORS[state.pos], select: choose, heatColor };
     window.FPAChartLab?.update(window.FPAChartContext);
   }
+  // These labels describe the displayed defense-strength rank (1 toughest,
+  // 32 easiest), independently of the season SOS labels and source rank order.
+  function rankLabel(rank) {
+    if (!Number.isInteger(rank) || rank < 1 || rank > 32) return '—';
+    return rank <= 6 ? 'Brutal' : rank <= 12 ? 'Tough' : rank <= 16 ? 'Moderate'
+      : rank <= 20 ? 'Favorable' : rank <= 26 ? 'Great' : 'Prime';
+  }
+
   function renderProfile() {
     const c = comparison(), stat = View.defenseMetric(c.actual);
     $("defenseLogo").innerHTML = logo(state.team);
@@ -191,11 +205,16 @@
     // CSS switches the mobile spans to one-decimal Actual FPA and shorter notes;
     // desktop text and every underlying comparison retain their existing precision.
     const sosColor = heatColor({ rank: c.sosRank, pool: Data.TEAMS.length, rankOrder: "descending" });
+    // Actual scoring follows the defense's difficulty color; expected scoring
+    // follows the published SOS scale, matching the existing Start/Sit chips.
+    // Missing values/ranks stay neutral, while a recorded zero stays colored.
+    const actualColor = Number.isFinite(stat.total) || Number.isFinite(stat.avg) ? heatColor(stat) : '#7b81a5';
+    const expectedColor = Number.isFinite(c.expectedTotal) || Number.isFinite(c.expectedAvg) ? sosColor : '#7b81a5';
     // Defense rank leads the summary in reading order at every breakpoint.
     $("metrics").innerHTML = `
-      <div class="metric"><div class="metricLabel" title="Defense rank: 1 = best defense / fewest FPA per game">RANK</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub"><span class="metricDesktop">${stat.games} recorded game${stat.games === 1 ? "" : "s"}</span><span class="metricMobile">${stat.games} game${stat.games === 1 ? "" : "s"}</span></div></div>
-      <div class="metric"><div class="metricLabel">ACTUAL FPA</div><div class="metricValue"><span class="metricDesktop">${fmt(stat.total)}</span><span class="metricMobile">${fmt(stat.total, 1)}</span></div><div class="metricSub">${fmt(stat.avg, 1)} per game</div></div>
-      <div class="metric"><div class="metricLabel">EXPECTED FPA</div><div class="metricValue">${fmt(c.expectedTotal, 1)}</div><div class="metricSub">${baselineNote}</div></div>
+      <div class="metric"><div class="metricLabel" title="Defense rank: 1 = best defense / fewest FPA per game">RANK</div><div class="metricValue" style="color:${heatColor(stat)}">${stat.rank ?? "—"}${stat.rank === null ? "" : `<small>/ ${stat.pool}</small>`}</div><div class="metricSub">${rankLabel(stat.rank)}</div></div>
+      <div class="metric"><div class="metricLabel">ACTUAL FPA</div><div class="metricValue" style="color:${actualColor}"><span class="metricDesktop">${fmt(stat.total)}</span><span class="metricMobile">${fmt(stat.total, 1)}</span></div><div class="metricSub" style="color:${actualColor}">${fmt(stat.avg, 1)} per game</div></div>
+      <div class="metric"><div class="metricLabel">EXPECTED FPA</div><div class="metricValue" style="color:${expectedColor}">${fmt(c.expectedTotal, 1)}</div><div class="metricSub" style="color:${expectedColor}">${baselineNote}</div></div>
       <div class="metric"><div class="metricLabel">vs EXPECTED</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
       <div class="metric metric--sos" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub">${sosLabel(c.sosRank)}</div></div>`;
   }
@@ -374,7 +393,7 @@
     const head = POSITIONS.map(pos => `<th scope="col" data-pos="${pos}" aria-sort="${state.heatSort.pos === pos ? state.heatSort.direction === "desc" ? "descending" : "ascending" : "none"}"><button type="button" data-heat-sort="${pos}" aria-label="Sort defenses by ${pos} FPA per game">${pos}${state.heatSort.pos === pos ? `<span class="sortArrow">${state.heatSort.direction === "desc" ? "↓" : "↑"}</span>` : ""}</button></th>`).join("");
     const body = sorted.map(row => `<tr class="${row.team === state.team ? "selectedTeam" : ""}"><td><button type="button" class="heatTeamButton" data-team="${row.team}" aria-label="Explore ${esc(Data.TEAM_NAMES[row.team])}">${logo(row.team)}${row.team}</button></td>${POSITIONS.map(pos => {
       const stat = View.defenseMetric(row.metrics[pos]);
-      return `<td><button type="button" class="heatCell" data-team="${row.team}" data-cell-position="${pos}" style="--heat-color:${heatColor(stat)}" aria-pressed="${row.team === state.team && state.pos === pos}" aria-label="${row.team} ${pos}: ${fmt(stat.avg)} FPA per game, defense rank ${stat.rank ?? "unavailable"} of ${stat.pool} (1 = best), ${stat.games} games"${stat.avg === null ? " disabled" : ""}>${fmt(stat.avg, 1)}${stat.rank === null ? "" : `<sup>#${stat.rank}</sup>`}</button></td>`;
+      return `<td><button type="button" class="heatCell" data-team="${row.team}" data-cell-position="${pos}" style="--heat-color:${heatColor(stat)}" aria-pressed="${row.team === state.team && state.pos === pos}" aria-label="${row.team} ${pos}: ${fmt(stat.avg, 1)} FPA per game, defense rank ${stat.rank ?? "unavailable"} of ${stat.pool} (1 = best), ${stat.games} games"${stat.avg === null ? " disabled" : ""}>${fmt(stat.avg, 1)}${stat.rank === null ? "" : `<sup>#${stat.rank}</sup>`}</button></td>`;
     }).join("")}</tr>`).join("");
     $("heatTable").innerHTML = `<caption class="srOnly">2026 FPA per game and defense ranks, ${venueLabel()}</caption><thead><tr><th scope="col">DEF</th>${head}</tr></thead><tbody>${body}</tbody>`;
   }
@@ -545,7 +564,7 @@
       $("sourceNotes").textContent = `Live 2026-Wkly sheets: FPA (formerly FPAv2), FPFA and FPF. ${model.audit.excludedRows} rows without an opposing defense are excluded. ` +
         (differences.length ? "FPFA season totals and FPAv2 weekly totals differ beyond rounding for " + [...new Set(differences.map(row => row.team))].join(", ") + ". Each view preserves its source. " : "") +
         (repeatedExpectations ? "FPFA supplies identical RB and WR expected totals, averages, and ranks for every team; these are retained as provided. " : "") +
-        "FPFA values stay intact; displayed season defense rank = 33 minus the published matchup rank. SOS and FPF offense ranks retain their supplied direction. The scatter divides actual and expected totals by games played and displays one decimal; the other average-based panels retain their published averages. Rounded positional averages may sum differently from the supplied ALL average.";
+        "FPFA totals and ranks stay intact; displayed season defense rank = 33 minus the published matchup rank. SOS and FPF offense ranks retain their supplied direction. All season per-game views divide actual and expected totals by games played and display one decimal, excluding BYEs. ALL uses its own total rather than adding rounded positional labels.";
       render();
     } catch (error) {
       $("loadError").textContent = `Matchup data could not load: ${error.message}`; $("loadError").hidden = false;

@@ -189,6 +189,22 @@ test('page scatter, footer, summary, heatmap and tooltips use per-game values an
   assert.match(elements.get('heatTable').innerHTML, /--heat-color:#ffb2d8/);
 });
 
+test('page summary uses every defense-rank label and the Actual/Expected rank colors', () => {
+  for (let rank = 1; rank <= 32; rank++) {
+    const html = renderPage(fixture([['BAL', { actual: { rank: 33 - rank } }]])).elements.get('metrics').innerHTML;
+    const label = rank <= 6 ? 'Brutal' : rank <= 12 ? 'Tough' : rank <= 16 ? 'Moderate'
+      : rank <= 20 ? 'Favorable' : rank <= 26 ? 'Great' : 'Prime';
+    assert.match(html, new RegExp(`class="metricSub">${label}</div>`));
+    assert.doesNotMatch(html, /recorded game|\d+ games/);
+    assert.ok(html.includes(`class="metricValue" style="color:${View.rankColor({ rank, pool: 32, rankOrder: 'ascending' })}"><span class="metricDesktop">121.00`));
+    assert.ok(html.includes(`class="metricValue" style="color:${View.rankColor({ rank: 3, pool: 32, rankOrder: 'descending' })}">111.0`));
+  }
+  const html = renderPage(fixture([['BAL', { expectedTotal: null, expectedAvg: null,
+    actual: { total: null, avg: null, rank: null } }]])).elements.get('metrics').innerHTML;
+  assert.equal((html.match(/class="metricValue" style="color:#7b81a5"/g) || []).length, 3);
+  assert.match(html, /class="metricSub">—<\/div>/);
+});
+
 test('Ranks view uses the same defense rank with the matching baseline direction and colors', () => {
   const { elements, tips } = renderPage(fixture([['BAL']]), 'rank');
   const chart = elements.get('comparisonChart').innerHTML;
@@ -212,7 +228,7 @@ test('home/away scatter rendering uses averages and the same defense ranks as th
     assert.match(elements.get('comparisonDetail').innerHTML, /-2\.0 pts\/game/);
     const ranked = renderPage(analysis, 'rank', venue).elements;
     assert.match(ranked.get('comparisonChart').innerHTML, /Explore BAL: expected 2, defense rank 2/);
-    assert.match(ranked.get('heatTable').innerHTML, /BAL QB: 18\.00 FPA per game, defense rank 2 of 2/);
+    assert.match(ranked.get('heatTable').innerHTML, /BAL QB: 18\.0 FPA per game, defense rank 2 of 2/);
     assert.equal(ranked.get('defenseRank').textContent, '2nd vs.');
   }
 });

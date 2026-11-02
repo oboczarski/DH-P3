@@ -19,7 +19,7 @@ The `/matchups` route redirects to `/matchups/` so relative files resolve.
 | Original input | 2026-Wkly tab | Preserved ownership |
 | --- | --- | --- |
 | FPF.csv | FPF | Offense totals, published averages and ranks; weekly expected values and opponent context |
-| FPFA.csv | FPFA | Published defense actual/expected totals, averages and ranks for season views |
+| FPFA.csv | FPFA | Published actual/expected totals and ranks; precise season averages derived from totals/games |
 | FPAv2.csv | FPA | Individual player results, weekly games and defense venue selections |
 
 The existing parsers validate the complete source set before initializing any
@@ -41,7 +41,7 @@ An inaccessible sheet or invalid schema appears in the existing load-error panel
 FPFA discovers every `wN` opponent column dynamically. A `BYE` cell (case
 insensitive), blank, or another supported no-opponent marker is omitted from
 the team's opponents and games played; the week column remains part of the
-source period. Published totals, averages and ranks stay unchanged. Later
+source period. Parsed totals, averages and ranks stay unchanged; analysis derives precise per-game values from totals and the non-BYE game count. Later
 opponents after a bye are parsed normally, and unrecognized team codes still
 produce a validation error.
 
@@ -113,8 +113,10 @@ readouts and the scatter all use that same display conversion. Rank colors stay
 with the same defense after the displayed number reverses. Source models and the
 independent Rosters matchup modal retain their original ranks.
 
-FPA vs Expected divides its original actual/expected totals by each defense's
-games played, in both season and home/away views. This avoids the separately
+Every season per-game view derives actual/expected averages from the original
+FPFA totals and each defense's non-BYE game count. Summary footers, heatmap,
+stacked bars, dumbbells and FPA vs Expected share these precise analysis values.
+Home/away views retain their recorded-game calculations and supplied FPF baselines. This avoids the separately
 published average columns, which can already be rounded to whole numbers.
 It keeps full precision for plotting and displays one decimal in tooltips,
 differences and readouts, without counting BYEs as games. Each axis fits its
@@ -141,8 +143,8 @@ EASY (7–12), FAVORABLE (13–16), MODERATE (17–20), HARD (21–26) or VERY H
 
 Dumbbells compare and sort by actual FPA per game against expected FPA per game.
 Their markers, labels, bounds, differences, tooltips and selected-defense readout
-all use the existing analysis averages, preserving FPFA's supplied all-games
-averages and the existing venue-scoped averages. The legend contains Expected
+all use the precise analysis averages, derived from FPFA totals/games for the
+season and the existing recorded-game calculations under venue filters. The legend contains Expected
 and Actual. In `chart-lab.css`, `DUMBBELL — DESKTOP` owns `--am-x-grid-color` and
 `--am-x-grid-opacity` for vertical gridlines only; opacity defaults to `0.025`.
 Mobile retains its existing gridline treatment. Game Spokes is desktop-only:
@@ -165,3 +167,10 @@ native browser glyphs sharp at desktop and mobile pixel densities. Their
 `.compositionDataLabel` rules are composition-only at both breakpoints and
 consume that panel's `--am-*` typography variables. amCharts still owns their
 positions, hover tooltips, keyboard focus, and defense selection.
+
+Actual FPA summary values and per-game footers use the current defense-rank
+color. Expected FPA uses the published season SOS color, matching Start/Sit;
+missing values or ranks stay neutral. The RANK footer describes the displayed
+rank as Brutal (1–6), Tough (7–12), Moderate (13–16), Favorable (17–20),
+Great (21–26) or Prime (27–32), with a dash when unavailable. Supplied defense,
+SOS and offense ranks are never recomputed from the more precise averages.
