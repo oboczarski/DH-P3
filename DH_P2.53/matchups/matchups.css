@@ -335,13 +335,11 @@ body:where([data-page="matchups"]) { background:#050b13; }
     color:rgba(255,255,255,.92);
     font-weight:900;
     letter-spacing:.04em;
-    background:radial-gradient(180px 70px at 20% 20%,rgba(0,191,255,.14),transparent 60%),linear-gradient(135deg,rgba(255,255,255,.06),rgba(0,0,0,.16));
     border: 1px solid transparent;
     color: transparent;
-    background: 
-linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), 
+    background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), 
 linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, 
-linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
+linear-gradient(90deg, #74efff 17%, #7297ff 42%, #d97dff 70%) text;
     }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker__btn:hover { border-color:rgba(255,255,255,.2); }
   :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-defense"]) .teamPicker.is-open .teamPicker__btn {}
