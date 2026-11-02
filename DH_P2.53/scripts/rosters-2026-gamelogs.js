@@ -330,8 +330,8 @@
                 // Regular roster badges need the team's bye even for IR/rookie
                 // players who have no DH season row or recorded weekly result.
                 scheduleByTeam: Object.fromEntries(schedule),
-                // Header SOS reads the existing DRK positional allowances.
-                // Preserve its published numbers/ranks; no new source is loaded.
+                // Header SOS averages the existing DRK positional rank columns
+                // (QBRK/RBRK/WRRK/TERK). Preserve raw cells; no new feed is loaded.
                 defenseByTeam: Object.fromEntries(defense),
                 latestRecordedWeek, rankQualifierWeeks: Math.max(1, weeksOfData), weekErrors, projectionWeeks };
             applyRosters2026Projections(snapshot);

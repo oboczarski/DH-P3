@@ -1,6 +1,7 @@
-// Rosters profile SOS only. Rank each team's average opponent positional FPA
-// per game, with 1 = easiest and 32 = toughest. These are schedule ranks, not
-// inversions/replacements of DRK defense ranks or published FPFA SOS ranks.
+// Rosters profile SOS only. For 2026, average the published DRK defensive ranks
+// against the selected position, then compare all 32 schedules (1 = easiest).
+// Raw DRK ranks already run from easiest (1) to toughest (32); never mutate
+// them or reuse the reversed defense-display ranks / published FPFA SOS ranks.
 export const SOS_TEAMS = Object.freeze('ARI ATL BAL BUF CAR CHI CIN CLE DAL DEN DET GB HOU IND JAX KC LAC LAR LV MIA MIN NE NO NYG NYJ PHI PIT SEA SF TB TEN WAS'.split(' '));
 const POSITIONS = ['QB', 'RB', 'WR', 'TE'];
 export const canonicalSosTeam = value => {
@@ -17,13 +18,15 @@ const opponentTeam = value => {
   return SOS_TEAMS.includes(team) ? team : null;
 };
 
-export function rankPositionSchedules(source, position) {
+export function rankPositionSchedules(source, position, basis = 'rank') {
   const pos = String(position ?? '').toUpperCase();
   const cutoff = source?.latestRecordedWeek;
-  if (!POSITIONS.includes(pos) || !Number.isInteger(cutoff) || cutoff < 0 || cutoff > 18) return null;
+  if (!POSITIONS.includes(pos) || !['rank', 'allowance'].includes(basis) || !Number.isInteger(cutoff) || cutoff < 0 || cutoff > 18) return null;
   const schedules = Object.fromEntries(Object.entries(source.scheduleByTeam || {}).map(([team, row]) => [canonicalSosTeam(team), row]));
   const defenses = Object.fromEntries(Object.entries(source.defenseByTeam || {}).map(([team, row]) => [canonicalSosTeam(team), row]));
-  const result = { cutoff, faced: {}, remaining: {} };
+  // The historical CSV archive retains its original allowance-based method;
+  // 2026 explicitly uses QBRK/RBRK/WRRK/TERK, never QB/RB/WR/TE FPA values.
+  const result = { cutoff, basis, faced: {}, remaining: {} };
   for (const period of ['faced', 'remaining']) {
     const start = period === 'faced' ? 1 : cutoff + 1;
     const end = period === 'faced' ? cutoff : 18;
@@ -34,16 +37,17 @@ export function rankPositionSchedules(source, position) {
         const cell = schedules[team]?.[week];
         if (/^BYE$/i.test(String(cell ?? '').trim())) continue;
         const opponent = opponentTeam(cell);
-        const value = opponent ? numeric(defenses[opponent]?.[pos]) : null;
+        const raw = opponent ? numeric(defenses[opponent]?.[basis === 'rank' ? `${pos}RK` : pos]) : null;
+        const value = basis === 'rank' && (!Number.isInteger(raw) || raw < 1 || raw > 32) ? null : raw;
         if (value === null) missing = true;
         else values.push(value);
       }
       return { team, games: values.length, average: !missing && values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null };
     });
     // A /32 comparison requires complete schedules for all 32 teams. Missing
-    // opponents/allowances are unavailable, never zero or a smaller rank pool.
+    // opponents/defensive values are unavailable, never zero or a smaller pool.
     const complete = scores.every(score => score.average !== null);
-    scores.sort((a, b) => b.average - a.average);
+    scores.sort((a, b) => basis === 'rank' ? a.average - b.average : b.average - a.average);
     let previous = null, rank = 0;
     scores.forEach((score, index) => {
       if (previous === null || Math.abs(score.average - previous) > 1e-10) rank = index + 1;

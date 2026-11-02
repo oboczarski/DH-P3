@@ -28,7 +28,7 @@
   <!-- Rosters Game Logs owns its complete responsive theme; it loads last to replace the older shared modal rules. -->
   <link rel="stylesheet" href="../styles/rosters-gamelogs.css?v=DH3.53c-rosters-gamelog-matchups" />
   <!-- Player profile styles apply only above the Rosters Game Logs navigation. -->
-  <link rel="stylesheet" href="../styles/rosters-gamelogs-profile.css?v=DH3.54b-compact-profile" />
+  <link rel="stylesheet" href="../styles/rosters-gamelogs-profile.css?v=DH3.54c-profile-sos-ranks" />
   <!-- Start/Sit owns a separate mobile-first dashboard theme and desktop layer. -->
   <link rel="stylesheet" href="../styles/rosters-start-sit.css?v=DH3.51g-start-sit-drilldowns" />
   <!-- Cloudflare Web Analytics: tracks visits for the current Dynasty Hub Cloudflare property; kept deferred so it does not block app rendering. -->
@@ -359,6 +359,9 @@
       <section class="gl-profile" aria-label="Player overview">
         <div class="gl-profile-intro">
           <div class="gl-profile-portrait" data-profile-portrait>
+            <!-- Rosters portrait: the decorative team watermark sits behind the
+                 headshot and stays hidden for unknown/free-agent teams. -->
+            <img class="gl-profile-watermark" data-profile-watermark alt="" aria-hidden="true" width="96" height="96" decoding="async" hidden />
             <span class="gl-profile-monogram" data-profile-monogram aria-hidden="true">DH</span>
             <img class="gl-profile-headshot" data-profile-headshot alt="" width="160" height="160" decoding="async" hidden />
           </div>
@@ -383,12 +386,14 @@
           </div>
         </div>
         <div class="gl-profile-schedule" aria-label="Position-specific strength of schedule" aria-live="polite">
+          <!-- One SOS heading groups the selected season's completed schedule
+               and ROS (rest of season); the year follows the season switcher. -->
           <span class="gl-profile-schedule-position" data-profile-sos-position>SOS</span>
-          <div class="gl-profile-sos-metric"><span>SOS so far</span><strong data-profile-sos="faced">—</strong><span class="gl-profile-sos-denominator">/32</span></div>
-          <div class="gl-profile-sos-metric"><span>Remaining SOS</span><strong data-profile-sos="remaining">—</strong><span class="gl-profile-sos-denominator">/32</span></div>
+          <div class="gl-profile-sos-metric"><span data-profile-sos-season>2026</span><strong data-profile-sos="faced">—</strong><span class="gl-profile-sos-denominator">/32</span></div>
+          <div class="gl-profile-sos-metric"><span title="Rest of season">ROS</span><strong data-profile-sos="remaining">—</strong><span class="gl-profile-sos-denominator">/32</span></div>
           <details class="gl-profile-sos-help">
             <summary aria-label="How strength of schedule is calculated"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7h.01"></path></svg></summary>
-            <p data-profile-sos-help>1 = easiest · 32 = toughest. Position-specific opponent fantasy points allowed per game, averaged across each team's schedule and ranked across all 32 teams. BYEs are excluded.</p>
+            <p data-profile-sos-help>1 = easiest · 32 = toughest. Opponent defensive ranks against the player's position are averaged across each team's schedule, then compared across all 32 teams. ROS means rest of season. BYEs are excluded.</p>
           </details>
         </div>
       </section>
@@ -726,11 +731,11 @@
   <!-- Rosters data stays in the existing loader; local presentation supplies modal icons, help, and view styling. -->
   <!-- Start/Sit and Weekly opponent tags lazily open the Rosters-owned Matchup Breakdown. -->
   <script defer="True" src="../scripts/app.js?v=DH3.53f-rosters-matchup-header"></script>
-  <script defer="True" src="../scripts/rosters-2026-gamelogs.js?v=DH3.54-player-profile"></script>
+  <script defer="True" src="../scripts/rosters-2026-gamelogs.js?v=DH3.54c-profile-sos-ranks"></script>
   <script defer src="../scripts/rosters-gamelogs-controls.js?v=DH3.53-rosters-gamelogs"></script>
   <script defer src="../scripts/rosters-gamelogs-consistency.js?v=DH3.53-rosters-gamelogs"></script>
   <script defer src="../scripts/rosters-gamelogs.js?v=DH3.53c-rosters-gamelog-matchups"></script>
-  <script defer src="../scripts/rosters-gamelogs-profile.js?v=DH3.54b-compact-profile"></script>
+  <script defer src="../scripts/rosters-gamelogs-profile.js?v=DH3.54c-profile-sos-ranks"></script>
   <script defer src="../scripts/rosters-start-sit.js?v=DH3.52r-rosters-defense-ranks"></script>
 </body>
 </html>

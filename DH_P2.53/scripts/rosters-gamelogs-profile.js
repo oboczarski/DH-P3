@@ -19,6 +19,15 @@
     const teamKey = ({ WSH: 'WAS', JAC: 'JAX', LA: 'LAR' })[team] || team;
     const color = TEAM_COLORS[teamKey] || '#64748b';
     profile.style.setProperty('--profile-team', color);
+    // Rosters header only: reuse the local SVG as a faded portrait backdrop.
+    // Replace it per player so delayed image events cannot reveal an old team.
+    const watermark = find('[data-profile-watermark]').cloneNode(false);
+    watermark.hidden = true;
+    watermark.removeAttribute('src');
+    watermark.addEventListener('load', () => { if (watermark.isConnected) watermark.hidden = false; });
+    watermark.addEventListener('error', () => { if (watermark.isConnected) watermark.hidden = true; });
+    find('[data-profile-watermark]').replaceWith(watermark);
+    if (Object.hasOwn(TEAM_COLORS, teamKey) && teamKey !== 'FA') watermark.src = `../assets/NFL_logos_svg/${teamKey.toLowerCase()}.svg`;
     profile.dataset.playerId = String(player?.id || '');
     find('#modal-player-name').textContent = name;
     find('[data-profile-season]').textContent = `${state.currentGameLogsSeason} season`;
@@ -39,7 +48,11 @@
 
   function resetSchedule(player) {
     const pos = player?.pos || player?.position || state.players?.[player?.id]?.position || '';
-    find('[data-profile-sos-position]').textContent = `${pos} SOS`.trim();
+    // Keep SOS as the visible group heading; the selected year labels completed
+    // games and ROS labels the remaining schedule without repeating SOS twice.
+    find('[data-profile-sos-position]').textContent = 'SOS';
+    find('[data-profile-sos-season]').textContent = state.currentGameLogsSeason;
+    find('.gl-profile-schedule').setAttribute('aria-label', `${pos} strength of schedule; ${state.currentGameLogsSeason} so far and rest of season`.trim());
     profile.querySelectorAll('[data-profile-sos]').forEach(node => {
       node.textContent = '—';
       node.parentElement.removeAttribute('data-difficulty');
@@ -67,32 +80,37 @@
     try {
       // Load this small local helper only when a profile needs it; failures
       // stay within schedule context rather than affecting modal readiness.
-      const module = await (sosModule ||= import('./rosters-gamelogs-sos.js?v=DH3.54-player-profile').catch(error => { sosModule = null; throw error; }));
+      const module = await (sosModule ||= import('./rosters-gamelogs-sos.js?v=DH3.54c-profile-sos-ranks').catch(error => { sosModule = null; throw error; }));
       const source = season === '2026' ? state.rosters2026GameLogs : await historicalSource(module);
       if (token !== revision || modal.classList.contains('hidden') || season !== state.currentGameLogsSeason) return;
       let positions = source && rankCache.get(source);
       if (!positions && source) { positions = {}; rankCache.set(source, positions); }
-      const ranked = positions ? (positions[pos] ||= module.rankPositionSchedules(source, pos)) : null;
+      const ranked = positions ? (positions[pos] ||= module.rankPositionSchedules(source, pos, season === '2026' ? 'rank' : 'allowance')) : null;
       const team = module.canonicalSosTeam(source === state.rosters2026GameLogs
         ? source?.seasonStats?.[player.id]?.team || player.team
         : state.rosters2025GameLogs?.seasonStats?.[player.id]?.team || player.team);
-      find('[data-profile-sos-position]').textContent = `${pos} SOS`;
       for (const period of ['faced', 'remaining']) {
         const metric = ranked?.[period]?.[team];
         const node = find(`[data-profile-sos="${period}"]`);
         node.textContent = metric?.rank ?? '—';
         if (metric?.rank) node.parentElement.dataset.difficulty = metric.rank <= 10 ? 'easy' : metric.rank >= 23 ? 'tough' : 'neutral';
         const range = period === 'faced' ? `Weeks 1–${ranked?.cutoff || 0}` : `Weeks ${(ranked?.cutoff ?? 0) + 1}–18`;
+        const average = ranked?.basis === 'rank'
+          ? `Average opponent defensive rank vs ${pos}: ${metric?.average?.toFixed(2)} (1 easiest, 32 toughest).`
+          : `${pos} opponents allow ${metric?.average?.toFixed(2)} fantasy points per game on average.`;
         node.parentElement.title = metric?.rank
-          ? `${range} · ${metric.games} games · ${pos} opponents allow ${metric.average.toFixed(2)} fantasy points per game on average. Rank ${metric.rank} of 32; 1 easiest, 32 toughest.`
+          ? `${range} · ${metric.games} games · ${average} Schedule rank ${metric.rank} of 32; 1 easiest, 32 toughest.`
           : period === 'remaining' && ranked?.cutoff === 18 ? 'Season complete — no remaining games.' : 'SOS unavailable — complete positional defense and schedule data is required.';
       }
       const range = ranked?.cutoff === 18 ? 'Season complete; no remaining games.'
         : ranked?.cutoff ? `So far: Weeks 1–${ranked.cutoff}. Remaining: Weeks ${ranked.cutoff + 1}–18.` : 'No completed weeks yet.';
-      find('[data-profile-sos-help]').textContent = `1 = easiest · 32 = toughest. ${pos} fantasy points allowed per game are averaged across each team's opponents, then ranked across all 32 schedules. ${range} BYEs are excluded; repeat opponents count once per scheduled game. Uses ${season === '2026' ? 'season-to-date positional defensive performance and the latest recorded results' : 'the selected season’s recorded results'}. A dash means no games or incomplete data.`;
+      const method = season === '2026'
+        ? `Defensive ranks against ${pos} are averaged across the opponents each team has faced, then ranked against the corresponding averages for all 32 NFL teams. ROS uses the same method for remaining opponents.`
+        : `${pos} fantasy points allowed per game are averaged across each team's opponents, then ranked across all 32 schedules.`;
+      find('[data-profile-sos-help]').textContent = `1 = easiest · 32 = toughest. ${method} ${season} = schedule so far; ROS = rest of season. ${range} BYEs are excluded; repeat opponents count once per scheduled game. The cutoff is the latest recorded results week, regardless of the player's availability; future projections do not count. Tied averages share a rank. A dash means no games or incomplete data.`;
     } catch (error) {
       if (token !== revision) return;
-      find('[data-profile-sos-help]').textContent = 'SOS is unavailable right now. Reopen this player to retry. Rankings compare positional opponent fantasy points allowed per game across all 32 schedules; 1 is easiest, 32 toughest.';
+      find('[data-profile-sos-help]').textContent = 'SOS is unavailable right now. Reopen this player to retry. Rankings compare position-specific opponent defensive averages across all 32 schedules; 1 is easiest, 32 toughest. ROS means rest of season.';
       profile.querySelectorAll('[data-profile-sos]').forEach(node => { node.parentElement.title = 'Schedule data could not load.'; });
       console.warn('Rosters player profile SOS unavailable.', error);
     }

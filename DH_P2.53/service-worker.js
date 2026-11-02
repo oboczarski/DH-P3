@@ -103,7 +103,8 @@
 // Refresh matching defense-rank colors and position-first subtitles.
 // Remove the quality badge while retaining the colored rank and player subtitle order.
 // Refresh Rosters' independent player profile, headshot and positional SOS assets.
-const CACHE_NAME = 'DH3.54b-compact-profile';
+// Refresh Rosters' grouped SOS periods, rank-based averages and portrait watermark.
+const CACHE_NAME = 'DH3.54c-profile-sos-ranks';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
