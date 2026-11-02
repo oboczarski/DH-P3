@@ -3121,7 +3121,7 @@ body[data-page="rosters"] #bottom-menu-panel {
     background: rgba(66, 194, 255, 0.03);
     border: 1px solid transparent;
     color: transparent;
-    background: linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, 
+    background: linear-gradient(90deg, #74efff8b 0%, #7297ff8b 52%, #d97dff8b 100%) border-area, 
 linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   }
 
