@@ -253,7 +253,7 @@ body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric { display: fle
 /* SOS values use the existing easy-to-tough rank palette from app.js. The
    superscript shares its number's color; unavailable ranks remain neutral. */
 body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric strong {color: #b0bed5;font-size: 12px;font-weight: 550;font-variant-numeric: tabular-nums;}
-body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric sup {position: relative;top: -.35em;margin-left: 1px;color: inherit;font-size: .65em;font-weight: 500;line-height: 0;vertical-align: baseline;}
+body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric sup {position: relative;top: 0;margin-left: 0px;color: inherit;font-size: 0.75em;font-weight: 500;line-height: 0;vertical-align: baseline;}
 body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help summary { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 5px; color: #7c8aa3; list-style: none; cursor: pointer; }
 body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help summary::-webkit-details-marker { display: none; }
 body[data-page="rosters"] #game-logs-modal .gl-profile-sos-help svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
