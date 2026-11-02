@@ -115,9 +115,10 @@ A Start/Sit launch copies the preview projection's computed conditional color.
 A Weekly launch without comparison peers keeps a neutral projection. These
 launch details stay fixed while the modal's defense/position/venue filters change.
 
-The modal's Actual FPA values and per-game footer use the current defense-rank
-color. Expected FPA uses the published season SOS color, matching the existing
-Start/Sit convention; missing values/ranks stay neutral. The RANK footer uses
+The modal's Actual FPA main values use the current defense-rank color. Expected
+FPA main values use the published season SOS color, matching the existing
+Start/Sit convention. Both per-game footers retain their muted CSS color;
+missing values/ranks stay neutral. The RANK footer uses
 Brutal (1–6), Tough (7–12), Moderate (13–16), Favorable (17–20), Great (21–26)
 or Prime (27–32) based on the displayed defense-strength rank. Missing ranks
 show a dash. Neither the published ranks nor the SOS footer are recomputed.

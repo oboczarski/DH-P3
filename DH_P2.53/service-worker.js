@@ -110,7 +110,8 @@
 // Refresh matchup week/projection headers, ordered SOS summaries and mobile picker/chart fixes.
 // Refresh Matchups' repaired desktop Defense label CSS and remove its empty mobile rule.
 // Refresh precise matchup averages, conditional FPA chip colors and defense-rank labels.
-const CACHE_NAME = 'DH3.57-matchup-average-precision';
+// Refresh neutral Actual/Expected FPA footers while retaining colored main values.
+const CACHE_NAME = 'DH3.57a-neutral-fpa-footers';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

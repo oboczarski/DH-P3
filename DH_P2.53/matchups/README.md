@@ -168,8 +168,9 @@ native browser glyphs sharp at desktop and mobile pixel densities. Their
 consume that panel's `--am-*` typography variables. amCharts still owns their
 positions, hover tooltips, keyboard focus, and defense selection.
 
-Actual FPA summary values and per-game footers use the current defense-rank
-color. Expected FPA uses the published season SOS color, matching Start/Sit;
+Actual FPA main summary values use the current defense-rank color. Expected
+FPA main values use the published season SOS color, matching Start/Sit. Both
+per-game footers retain their muted CSS color;
 missing values or ranks stay neutral. The RANK footer describes the displayed
 rank as Brutal (1–6), Tough (7–12), Moderate (13–16), Favorable (17–20),
 Great (21–26) or Prime (27–32), with a dash when unavailable. Supplied defense,
