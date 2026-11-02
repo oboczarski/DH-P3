@@ -203,8 +203,8 @@
   // or recomputing it under venue filters. Missing ranks stay unavailable.
   function sosLabel(rank) {
     if (!Number.isInteger(rank) || rank < 1 || rank > 32) return '—';
-    return rank <= 6 ? 'Very Easy' : rank <= 12 ? 'Easy' : rank <= 16 ? 'Favorable'
-      : rank <= 20 ? 'Moderate' : rank <= 26 ? 'Hard' : 'Very Hard';
+    return rank <= 6 ? 'Very Easy' : rank <= 12 ? 'Easy' : rank <= 16 ? 'Average'
+      : rank <= 20 ? 'Average' : rank <= 26 ? 'Hard' : 'Very Hard';
   }
   function width(id) {
     const element = $(id), style = getComputedStyle(element);
