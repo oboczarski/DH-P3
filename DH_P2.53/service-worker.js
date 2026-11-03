@@ -113,7 +113,8 @@
 // Refresh neutral Actual/Expected FPA footers while retaining colored main values.
 // Refresh per-game summary values, muted total footers and OPP AVG weekly legends.
 // Refresh Rosters Weekly chip spacing while preserving its existing height.
-const CACHE_NAME = 'DH3.58a-week-chip-spacing';
+// Refresh Rosters' shared player profile and body-only Ownership tab.
+const CACHE_NAME = 'DH3.58b-shared-ownership-profile';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

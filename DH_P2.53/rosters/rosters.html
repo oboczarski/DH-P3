@@ -26,7 +26,7 @@
   <!-- Ownership modal styles (needed for watchlist → ownership flow) -->
   <link rel="stylesheet" href="../styles/ownership.css?v=DH3.1t-vi10" />
   <!-- Rosters Game Logs owns its complete responsive theme; it loads last to replace the older shared modal rules. -->
-  <link rel="stylesheet" href="../styles/rosters-gamelogs.css?v=DH3.58a-week-chip-spacing" />
+  <link rel="stylesheet" href="../styles/rosters-gamelogs.css?v=DH3.58b-shared-ownership-profile" />
   <!-- Player profile styles apply only above the Rosters Game Logs navigation. -->
   <link rel="stylesheet" href="../styles/rosters-gamelogs-profile.css?v=DH3.54e-profile-vitals-layout" />
   <!-- Start/Sit owns a separate mobile-first dashboard theme and desktop layer. -->
@@ -442,6 +442,11 @@
         </div>
       </div>
     </div>
+    <!-- Rosters Ownership swaps only the lower content. The live player profile,
+         including its season/scoring summary chips and actions, stays mounted. -->
+    <section id="gamelogs-ownership-pane" class="ownership-modal-content hidden" role="region" aria-label="Player ownership">
+      <div class="ownership-modal-body" id="glOwnershipBody" tabindex="0" aria-label="League ownership list"></div>
+    </section>
     <div id="modal-body" class="modal-body">
       <!-- Game logs will be rendered here -->
     </div>
@@ -567,21 +572,6 @@
         </div>
     </div>
   </div><!-- end #gamelogs-tab-pane -->
-
-  <!-- === Ownership pane (hidden by default, shown when Ownership tab is selected) === -->
-  <!-- Fully replaces the Game Logs modal content block with identical ownership styling -->
-  <div id="gamelogs-ownership-pane" class="modal-content glass-panel ownership-modal-content hidden gamelogs-tab-pane" role="dialog" aria-modal="true" aria-labelledby="glOwnershipPlayerName">
-    <button class="modal-close-btn ownership-modal-close" type="button" aria-label="Close player ownership details">&times;</button>
-    <div class="ownership-modal-header" id="glOwnershipHeader">
-      <div class="modal-header-left-container" id="glOwnershipLeft"></div>
-      <h3 id="glOwnershipPlayerName">Player Ownership Details</h3>
-      <div id="glOwnershipPlayerVitals"></div>
-      <div id="glOwnershipSummaryRow">
-        <div id="glOwnershipSummaryChips"></div>
-      </div>
-    </div>
-    <div class="ownership-modal-body" id="glOwnershipBody"></div>
-  </div>
 
   <!-- Rosters owns its team view; Back restores the existing player pane and selected view. -->
   <section id="gamelogs-team-pane" class="modal-content glass-panel team-modal-pane hidden" role="dialog" aria-modal="true" aria-labelledby="team-modal-title">
@@ -731,11 +721,11 @@
   <!-- Rosters data stays in the existing loader; local presentation supplies modal icons, help, and view styling. -->
   <!-- Start/Sit and Weekly opponent tags lazily open the Rosters-owned Matchup Breakdown. -->
   <!-- Rosters rank rules: refresh the three-game PPG pool and 2026 volume gates together. -->
-  <script defer="True" src="../scripts/app.js?v=DH3.58-per-game-summary-chips"></script>
+  <script defer="True" src="../scripts/app.js?v=DH3.58b-shared-ownership-profile"></script>
   <script defer="True" src="../scripts/rosters-2026-gamelogs.js?v=DH3.55-qualifier-ranks"></script>
   <script defer src="../scripts/rosters-gamelogs-controls.js?v=DH3.53-rosters-gamelogs"></script>
   <script defer src="../scripts/rosters-gamelogs-consistency.js?v=DH3.53-rosters-gamelogs"></script>
-  <script defer src="../scripts/rosters-gamelogs.js?v=DH3.56-matchup-week-summary"></script>
+  <script defer src="../scripts/rosters-gamelogs.js?v=DH3.58b-shared-ownership-profile"></script>
   <script defer src="../scripts/rosters-gamelogs-profile.js?v=DH3.54e-profile-vitals-layout"></script>
   <script defer src="../scripts/rosters-start-sit.js?v=DH3.52r-rosters-defense-ranks"></script>
 </body>

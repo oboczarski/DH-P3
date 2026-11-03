@@ -11619,80 +11619,85 @@ function closeOwnershipPlayerModal() {
 }
 
 // === Inline Ownership rendering for Game Logs modal tab ===
-// Renders ownership header + league list into the #gamelogs-ownership-pane sub-containers.
-// This mirrors openOwnershipPlayerModal but writes to the inline pane, not the standalone modal.
+// Rosters keeps its live Game Logs profile and renders only the league list.
+// Other pages retain their existing inline Ownership header and summary renderer.
 function renderOwnershipInGameLogsPane(playerId) {
     const pane = document.getElementById('gamelogs-ownership-pane');
     if (!pane || !playerId) return;
 
-    const nameEl = document.getElementById('glOwnershipPlayerName');
-    const leftEl = document.getElementById('glOwnershipLeft');
-    const vitalsEl = document.getElementById('glOwnershipPlayerVitals');
-    const chipsEl = document.getElementById('glOwnershipSummaryChips');
     const bodyEl = document.getElementById('glOwnershipBody');
 
-    // Render header summary (reuse existing data helper)
-    const summary = getOwnershipModalPlayerSummary(playerId);
-    if (!summary) {
-        if (bodyEl) bodyEl.innerHTML = '<div class="ownership-modal-empty">Player data unavailable.</div>';
-        return;
-    }
+    // Rosters must not replace season/scoring-aware summary values with the
+    // separate Ownership summary, or rebuild the profile when this tab opens.
+    if (pageType !== 'rosters') {
+        const nameEl = document.getElementById('glOwnershipPlayerName');
+        const leftEl = document.getElementById('glOwnershipLeft');
+        const vitalsEl = document.getElementById('glOwnershipPlayerVitals');
+        const chipsEl = document.getElementById('glOwnershipSummaryChips');
 
-    if (nameEl) nameEl.textContent = summary.fullName;
-
-    // Left tags: POS + team logo
-    if (leftEl) {
-        const teamKey = summary.team;
-        const logoKeyMap = { WSH: 'was', WAS: 'was', JAC: 'jax', LA: 'lar' };
-        const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
-        leftEl.innerHTML = `
-            <div class="player-tag modal-pos-tag ${summary.pos}" data-pos="${summary.pos}">${summary.pos}</div>
-            <div class="player-tag modal-team-logo-chip" data-team="${teamKey}">
-                ${teamKey !== 'FA' ? `<img class="team-logo glow" src="../assets/NFL_logos_svg/${normalizedKey}.svg" alt="${teamKey}" width="24" height="24" loading="eager">` : '<span>FA</span>'}
-            </div>
-        `;
-    }
-
-    // Vitals row
-    if (vitalsEl) {
-        vitalsEl.innerHTML = '';
-        if (typeof createPlayerVitalsElement === 'function' && typeof getPlayerVitals === 'function') {
-            vitalsEl.appendChild(createPlayerVitalsElement(getPlayerVitals(playerId), { variant: 'modal', pos: summary.pos }));
+        // Render header summary (reuse existing data helper)
+        const summary = getOwnershipModalPlayerSummary(playerId);
+        if (!summary) {
+            if (bodyEl) bodyEl.innerHTML = '<div class="ownership-modal-empty">Player data unavailable.</div>';
+            return;
         }
-    }
 
-    // Summary chips: FPTS, PPG, KTC
-    if (chipsEl) {
-        const fptsColor = getConditionalColorByRank(summary.posRank, summary.pos);
-        const ppgColor = getConditionalColorByRank(summary.ppgPosRank, summary.pos);
-        const ktcColor = getKtcColor(summary.ktc);
+        if (nameEl) nameEl.textContent = summary.fullName;
 
-        chipsEl.innerHTML = `
-            <div class="gamelogs-summary-chip ownership-summary-chip">
-                <h4><span class="chip-header-value" style="color:${fptsColor}">${Number.isFinite(summary.fpts) ? summary.fpts.toFixed(1) : '—'}</span><span class="chip-unit"> FPTS</span></h4>
-                <div class="chip-values">
-                    <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${summary.pos}">${summary.pos}·</span><span style="color:${fptsColor}">${Number.isFinite(summary.posRank) ? summary.posRank : '—'}</span></span>
-                    <span class="chip-separator">•</span>
-                    <span style="color:${getRankColor(summary.overallRank)}">${Number.isFinite(summary.overallRank) ? `#${summary.overallRank}` : '—'}</span>
+        // Left tags: POS + team logo
+        if (leftEl) {
+            const teamKey = summary.team;
+            const logoKeyMap = { WSH: 'was', WAS: 'was', JAC: 'jax', LA: 'lar' };
+            const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
+            leftEl.innerHTML = `
+                <div class="player-tag modal-pos-tag ${summary.pos}" data-pos="${summary.pos}">${summary.pos}</div>
+                <div class="player-tag modal-team-logo-chip" data-team="${teamKey}">
+                    ${teamKey !== 'FA' ? `<img class="team-logo glow" src="../assets/NFL_logos_svg/${normalizedKey}.svg" alt="${teamKey}" width="24" height="24" loading="eager">` : '<span>FA</span>'}
                 </div>
-            </div>
-            <div class="gamelogs-summary-chip ownership-summary-chip">
-                <h4><span class="chip-header-value" style="color:${ppgColor}">${Number.isFinite(summary.ppg) ? summary.ppg.toFixed(1) : '—'}</span><span class="chip-unit"> PPG</span></h4>
-                <div class="chip-values">
-                    <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${summary.pos}">${summary.pos}·</span><span style="color:${ppgColor}">${Number.isFinite(summary.ppgPosRank) ? summary.ppgPosRank : '—'}</span></span>
-                    <span class="chip-separator">•</span>
-                    <span style="color:${getRankColor(summary.ppgOverallRank)}">${Number.isFinite(summary.ppgOverallRank) ? `#${summary.ppgOverallRank}` : '—'}</span>
+            `;
+        }
+
+        // Vitals row
+        if (vitalsEl) {
+            vitalsEl.innerHTML = '';
+            if (typeof createPlayerVitalsElement === 'function' && typeof getPlayerVitals === 'function') {
+                vitalsEl.appendChild(createPlayerVitalsElement(getPlayerVitals(playerId), { variant: 'modal', pos: summary.pos }));
+            }
+        }
+
+        // Summary chips: FPTS, PPG, KTC
+        if (chipsEl) {
+            const fptsColor = getConditionalColorByRank(summary.posRank, summary.pos);
+            const ppgColor = getConditionalColorByRank(summary.ppgPosRank, summary.pos);
+            const ktcColor = getKtcColor(summary.ktc);
+
+            chipsEl.innerHTML = `
+                <div class="gamelogs-summary-chip ownership-summary-chip">
+                    <h4><span class="chip-header-value" style="color:${fptsColor}">${Number.isFinite(summary.fpts) ? summary.fpts.toFixed(1) : '—'}</span><span class="chip-unit"> FPTS</span></h4>
+                    <div class="chip-values">
+                        <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${summary.pos}">${summary.pos}·</span><span style="color:${fptsColor}">${Number.isFinite(summary.posRank) ? summary.posRank : '—'}</span></span>
+                        <span class="chip-separator">•</span>
+                        <span style="color:${getRankColor(summary.overallRank)}">${Number.isFinite(summary.overallRank) ? `#${summary.overallRank}` : '—'}</span>
+                    </div>
                 </div>
-            </div>
-            <div class="gamelogs-summary-chip ownership-summary-chip">
-                <h4><span class="chip-header-value" style="color:${ktcColor}">${Number.isFinite(summary.ktc) ? Math.round(summary.ktc) : '—'}</span><span class="chip-unit"> KTC</span></h4>
-                <div class="chip-values">
-                    <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${summary.pos}">${summary.pos}·</span><span style="color:${getConditionalColorByRank(summary.ktcPosRank, summary.pos)}">${Number.isFinite(summary.ktcPosRank) ? summary.ktcPosRank : '—'}</span></span>
-                    <span class="chip-separator">•</span>
-                    <span style="color:${getRankColor(summary.ktcOverallRank)}">${Number.isFinite(summary.ktcOverallRank) ? `#${summary.ktcOverallRank}` : '—'}</span>
+                <div class="gamelogs-summary-chip ownership-summary-chip">
+                    <h4><span class="chip-header-value" style="color:${ppgColor}">${Number.isFinite(summary.ppg) ? summary.ppg.toFixed(1) : '—'}</span><span class="chip-unit"> PPG</span></h4>
+                    <div class="chip-values">
+                        <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${summary.pos}">${summary.pos}·</span><span style="color:${ppgColor}">${Number.isFinite(summary.ppgPosRank) ? summary.ppgPosRank : '—'}</span></span>
+                        <span class="chip-separator">•</span>
+                        <span style="color:${getRankColor(summary.ppgOverallRank)}">${Number.isFinite(summary.ppgOverallRank) ? `#${summary.ppgOverallRank}` : '—'}</span>
+                    </div>
                 </div>
-            </div>
-        `;
+                <div class="gamelogs-summary-chip ownership-summary-chip">
+                    <h4><span class="chip-header-value" style="color:${ktcColor}">${Number.isFinite(summary.ktc) ? Math.round(summary.ktc) : '—'}</span><span class="chip-unit"> KTC</span></h4>
+                    <div class="chip-values">
+                        <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${summary.pos}">${summary.pos}·</span><span style="color:${getConditionalColorByRank(summary.ktcPosRank, summary.pos)}">${Number.isFinite(summary.ktcPosRank) ? summary.ktcPosRank : '—'}</span></span>
+                        <span class="chip-separator">•</span>
+                        <span style="color:${getRankColor(summary.ktcOverallRank)}">${Number.isFinite(summary.ktcOverallRank) ? `#${summary.ktcOverallRank}` : '—'}</span>
+                    </div>
+                </div>
+            `;
+        }
     }
 
     // League owner list
@@ -11779,10 +11784,19 @@ function switchGameLogsModalTab(tabKey) {
         btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
     });
 
+    // Rosters owns one shell/header for both tabs. Only its lower content is
+    // switched by the scoped state styles; other pages keep their separate panes.
+    const sharedProfile = pageType === 'rosters';
+    if (sharedProfile) {
+        gameLogsModal.classList.toggle('is-ownership-view', tabKey === 'ownership');
+        closeGameLogsSeasonMenu();
+    }
+
     if (tabKey === 'ownership') {
-        // Hide game-logs pane, show ownership pane
-        glPane.classList.add('hidden');
+        glPane.classList.toggle('hidden', !sharedProfile);
         owPane.classList.remove('hidden');
+        // Closing/reopening a player invalidates this tab's pending load too.
+        const requestSeq = gameLogsModalRequestSeq;
 
         // Render ownership content for the currently open player
         const pid = state.currentGameLogsPlayer?.id || null;
@@ -11805,12 +11819,14 @@ function switchGameLogsModalTab(tabKey) {
                 loadOwnershipContextForUser()
                     .then(() => {
                         const activePid = state.currentGameLogsPlayer?.id || null;
-                        if (activePid !== pid || owPane.classList.contains('hidden')) return;
+                        if (requestSeq !== gameLogsModalRequestSeq || gameLogsModal.classList.contains('hidden')
+                            || activePid !== pid || owPane.classList.contains('hidden')) return;
                         renderOwnershipInGameLogsPane(pid);
                     })
                     .catch(() => {
                         const activePid = state.currentGameLogsPlayer?.id || null;
-                        if (!bodyEl || activePid !== pid || owPane.classList.contains('hidden')) return;
+                        if (!bodyEl || requestSeq !== gameLogsModalRequestSeq || gameLogsModal.classList.contains('hidden')
+                            || activePid !== pid || owPane.classList.contains('hidden')) return;
                         bodyEl.innerHTML = '<div class="ownership-modal-empty">Unable to load ownership data right now.</div>';
                     });
             }

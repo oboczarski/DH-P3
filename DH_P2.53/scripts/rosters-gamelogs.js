@@ -447,7 +447,8 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
     const navigation = resolveGameLogsNavigation(state.currentGameLogsView);
     const topView = navigation.content === 'key' ? state.currentGameLogsKeyPeriod || 'gl' : navigation.topView;
     const team = modal.classList.contains('is-team-view');
-    const ownership = modal.querySelector('#gamelogs-tab-pane').classList.contains('hidden');
+    // Ownership now shares the player shell; its lower pane owns tab visibility.
+    const ownership = !modal.querySelector('#gamelogs-ownership-pane').classList.contains('hidden');
     dock.classList.toggle('hidden', ownership && !team);
     syncYearControl();
     topButtons.forEach(button => {
@@ -559,7 +560,7 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
     consistency.closeMenu();
     const result = originalSwitchTab(tab);
     syncRostersGameLogsNavigation();
-    if (!modal.querySelector('#gamelogs-tab-pane').classList.contains('hidden')) window.setGameLogsModalView(state.currentGameLogsView);
+    if (modal.querySelector('#gamelogs-ownership-pane').classList.contains('hidden')) window.setGameLogsModalView(state.currentGameLogsView);
     return result;
   };
 
@@ -634,17 +635,8 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
       value.style.color = color;
     });
   }
-  const originalOwnershipRender = window.renderOwnershipInGameLogsPane;
-  window.renderOwnershipInGameLogsPane = function(playerId) {
-    const result = originalOwnershipRender(playerId);
-    decorateVitals(modal.querySelector('#glOwnershipPlayerVitals'), getOwnershipModalPlayerSummary(playerId)?.pos);
-    // Keep Ownership's vitals capsule aligned with its three summary chips,
-    // matching the Player Data header at either responsive size.
-    const vitals = modal.querySelector('#glOwnershipPlayerVitals .player-vitals--modal');
-    const width = modal.querySelector('#glOwnershipSummaryChips')?.offsetWidth;
-    if (vitals && width > 0) vitals.style.width = `${width}px`;
-    return result;
-  };
+  // Ownership reuses the mounted Player Data profile, so it needs no second
+  // vitals/summary decoration pass; the normal Game Logs renderer owns them.
 
   // Rosters Performance mirrors the same-position comparison stat order,
   // with its own renderer/formatting. Shared Stats-page radars stay unchanged.

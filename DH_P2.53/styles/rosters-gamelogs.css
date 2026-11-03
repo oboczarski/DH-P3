@@ -7063,6 +7063,78 @@ body[data-page="rosters"] #game-logs-modal.is-team-view .team-modal-pane {
   body[data-page="rosters"] #game-logs-modal #radar-chart-container .radar-chart-content { min-height: 250px; }
 }
 
+/* Rosters Ownership is a lower content region in the existing player card.
+   Remove the old standalone-pane geometry, including its mobile !important
+   width/padding, without changing the live profile or either summary source. */
+body[data-page="rosters"] #game-logs-modal #gamelogs-tab-pane > #gamelogs-ownership-pane {
+  position: relative;
+  z-index: auto;
+  flex: 0 1 var(--gamelogs-body-height, 415px);
+  width: 100% !important;
+  max-width: none;
+  min-width: 0;
+  height: var(--gamelogs-body-height, 415px);
+  max-height: var(--gamelogs-body-height, 415px);
+  min-height: 0;
+  margin: 0;
+  padding: 0 !important;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  opacity: 1;
+  transition: none;
+  overflow: hidden;
+}
+
+body[data-page="rosters"] #game-logs-modal #gamelogs-tab-pane > #gamelogs-ownership-pane::before,
+body[data-page="rosters"] #game-logs-modal #gamelogs-tab-pane > #gamelogs-ownership-pane::after {
+  content: none;
+}
+
+/* Keep data panels mounted so returning restores the selected view and scroll.
+   Scope visibility to Ownership so delayed Game Logs renders cannot expose a
+   table/chart under the ownership list or hide the shared player profile. */
+body[data-page="rosters"] #game-logs-modal.is-ownership-view #modal-header .gamelogs-nav-row,
+body[data-page="rosters"] #game-logs-modal.is-ownership-view #modal-body,
+body[data-page="rosters"] #game-logs-modal.is-ownership-view #gamelogs-tab-pane > :is(#stats-key-container, #radar-chart-container, #consistency-container) {
+  display: none !important;
+}
+
+/* A shrinking flex body keeps the profile and close action visible on phones.
+   Only the ownership list scrolls; long league/owner names wrap inside the card. */
+body[data-page="rosters"] #game-logs-modal #gamelogs-tab-pane #glOwnershipBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.55rem 0.15rem 0.25rem;
+}
+
+body[data-page="rosters"] #game-logs-modal #glOwnershipBody .ownership-league-row {
+  align-items: start;
+  gap: 0.5rem;
+}
+
+body[data-page="rosters"] #game-logs-modal #glOwnershipBody .ownership-league-meta {
+  flex: 1 1 55%;
+}
+
+body[data-page="rosters"] #game-logs-modal #glOwnershipBody :is(.ownership-league-name, .ownership-league-owner) {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="rosters"] #game-logs-modal #glOwnershipBody .ownership-league-owner {
+  flex: 0 1 45%;
+}
+
 /* Short landscape windows retain every header metric in two columns, leaving
    a usable, scrollable body above the dock instead of collapsing the chart. */
 @media (min-width: 681px) and (max-height: 540px) {
