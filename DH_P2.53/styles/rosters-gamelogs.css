@@ -7103,7 +7103,7 @@ body[data-page="rosters"] #game-logs-modal.is-ownership-view #gamelogs-tab-pane 
 }
 
 /* A shrinking flex body keeps the profile and close action visible on phones.
-   Only the ownership list scrolls; long league/owner names wrap inside the card. */
+   Only the ownership list scrolls beneath the shared player header. */
 body[data-page="rosters"] #game-logs-modal #gamelogs-tab-pane #glOwnershipBody {
   flex: 1 1 auto;
   min-height: 0;
@@ -7115,24 +7115,36 @@ body[data-page="rosters"] #game-logs-modal #gamelogs-tab-pane #glOwnershipBody {
   padding: 0.55rem 0.15rem 0.25rem;
 }
 
+/* Ownership rows stay on one line, including the abbreviation/name pair.
+   Long names truncate inside their columns instead of increasing row height. */
 body[data-page="rosters"] #game-logs-modal #glOwnershipBody .ownership-league-row {
-  align-items: start;
+  align-items: center;
+  flex-wrap: nowrap;
   gap: 0.5rem;
 }
 
 body[data-page="rosters"] #game-logs-modal #glOwnershipBody .ownership-league-meta {
-  flex: 1 1 55%;
+  flex: 1 1 0;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+body[data-page="rosters"] #game-logs-modal #glOwnershipBody .ownership-league-abbr {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 body[data-page="rosters"] #game-logs-modal #glOwnershipBody :is(.ownership-league-name, .ownership-league-owner) {
   min-width: 0;
   max-width: 100%;
-  white-space: normal;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 body[data-page="rosters"] #game-logs-modal #glOwnershipBody .ownership-league-owner {
-  flex: 0 1 45%;
+  flex: 0 1 auto;
+  max-width: 45%;
 }
 
 /* Short landscape windows retain every header metric in two columns, leaving
