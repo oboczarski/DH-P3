@@ -7147,9 +7147,9 @@ body[data-page="rosters"] #game-logs-modal #glOwnershipBody .ownership-league-ow
   max-width: 45%;
 }
 
-/* Short landscape windows retain every header metric in two columns, leaving
+/* Short tablet landscape retains every header metric in two columns, leaving
    a usable, scrollable body above the dock instead of collapsing the chart. */
-@media (min-width: 681px) and (max-height: 540px) {
+@media (min-width: 681px) and (max-width: 868px) and (max-height: 540px) {
   body[data-page="rosters"] #game-logs-modal #modal-header {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -7172,4 +7172,88 @@ body[data-page="rosters"] #game-logs-modal #glOwnershipBody .ownership-league-ow
   body[data-page="rosters"] #game-logs-modal #modal-summary-row { grid-area: 1 / 2 / 3 / 3; margin: 0; }
   body[data-page="rosters"] #game-logs-modal #modal-summary-chips { width: 100%; gap: 8px; }
   body[data-page="rosters"] #game-logs-modal .gamelogs-nav-row { grid-area: 3 / 1 / 4 / 3; margin: 0; }
+}
+
+/* Desktop player/Ownership tabs share one bounded card, like the mobile
+   layout. Reserve room for tabs and the largest detached navigation dock;
+   the flex body shrinks and scrolls instead of pushing the header offscreen.
+   Team/Matchup dialogs keep their independent sizing and mobile is unchanged. */
+@media (min-width: 869px) {
+  body[data-page="rosters"] #game-logs-modal {
+    --gamelogs-desktop-width: min(760px, calc(100vw - 64px));
+    padding-block: 16px;
+  }
+  body[data-page="rosters"] #game-logs-modal:not(.hidden) #gamelogs-tab-pane {
+    --gamelogs-body-height: clamp(180px, calc(100dvh - 430px), 420px);
+    width: var(--gamelogs-desktop-width);
+    max-height: calc(100dvh - 208px);
+    padding: 16px 20px 14px;
+  }
+  body[data-page="rosters"] #game-logs-modal #modal-header {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+  body[data-page="rosters"] #game-logs-modal #modal-header .gamelogs-nav-row {
+    --rosters-gamelogs-nav-control-height: 32px;
+    width: 100%;
+    margin: 8px auto 12px;
+    gap: 12px !important;
+  }
+  body[data-page="rosters"] #game-logs-modal .gamelogs-season-toggle {
+    width: 82px;
+    min-width: 82px;
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+    transform: none;
+    font-size: 13px;
+  }
+  body[data-page="rosters"] #game-logs-modal .gamelogs-view-switcher {
+    width: 348px !important;
+    height: var(--rosters-gamelogs-nav-control-height) !important;
+    padding: 2px;
+  }
+  body[data-page="rosters"] #game-logs-modal .gamelogs-view-option {
+    flex: 1 1 0;
+    width: auto !important;
+    min-width: 0;
+    height: 100%;
+    padding: 0 12px;
+    font-size: 12px;
+    line-height: 1;
+    letter-spacing: 0.02em;
+  }
+  body[data-page="rosters"] #game-logs-modal .gamelogs-dock {
+    width: min(620px, var(--gamelogs-desktop-width));
+    margin-top: 10px;
+  }
+  body[data-page="rosters"] #game-logs-modal .gamelogs-nav-button {
+    min-height: 52px;
+    gap: 3px;
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  body[data-page="rosters"] #game-logs-modal .gamelogs-nav-button .rosters-modal-icon { width: 24px; height: 24px; }
+  body[data-page="rosters"] #game-logs-modal :is(.gamelogs-performance-control, .gamelogs-stat-control) { width: min(100%, 440px); }
+}
+
+/* The desktop hierarchy stays stacked on shorter laptop windows as well.
+   Compact controls free body space while both tabs use the same size budget. */
+@media (min-width: 869px) and (max-height: 640px) {
+  body[data-page="rosters"] #game-logs-modal { padding-block: 8px; }
+  body[data-page="rosters"] #game-logs-modal:not(.hidden) #gamelogs-tab-pane {
+    --gamelogs-body-height: clamp(140px, calc(100dvh - 350px), 290px);
+    max-height: calc(100dvh - 164px);
+    padding: 10px 16px;
+  }
+  body[data-page="rosters"] #game-logs-modal #modal-header .gamelogs-nav-row {
+    --rosters-gamelogs-nav-control-height: 28px;
+    margin: 6px auto 8px;
+  }
+  body[data-page="rosters"] #game-logs-modal .gamelogs-dock { margin-top: 6px; }
+  body[data-page="rosters"] #game-logs-modal .gamelogs-nav-button { min-height: 44px; padding-block: 4px; }
+  body[data-page="rosters"] #game-logs-modal .gamelogs-nav-button .rosters-modal-icon { width: 22px; height: 22px; }
+  body[data-page="rosters"] #game-logs-modal .gamelogs-context-row { min-height: 32px; margin-bottom: 4px; }
+  body[data-page="rosters"] #game-logs-modal .gamelogs-context-action { min-height: 30px; padding-block: 5px; }
 }

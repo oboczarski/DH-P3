@@ -282,8 +282,8 @@ body[data-page="rosters"] #game-logs-modal .gl-profile :is(button, summary):focu
   body[data-page="rosters"] #game-logs-modal .gl-profile :is(.gl-profile-team:enabled:hover, .gl-profile-sos-help summary:hover) { color: #d0daed; }
 }
 
-@media (min-width: 681px) {
-  /* Desktop keeps vitals across the full right-hand span. Summary cards and
+@media (min-width: 681px) and (max-width: 868px) {
+  /* Tablets keep vitals across the full right-hand span. Summary cards and
      SOS share the existing lower band so this layout adds no header row. */
   body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile { --profile-portrait-width: 76px; --profile-identity-gap: 10px; grid-template-areas: 'intro intro' 'vitals vitals' 'stats schedule'; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 4px 12px; }
   body[data-page="rosters"] #game-logs-modal .gl-profile-intro { grid-template-columns: var(--profile-portrait-width) minmax(0, 1fr) 64px; min-height: 50px; }
@@ -315,10 +315,10 @@ body[data-page="rosters"] #game-logs-modal .gl-profile :is(button, summary):focu
   body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric { padding-inline: 8px; }
 }
 
-/* Short landscape keeps cards/SOS to the right of identity, then lets vitals
+/* Short tablet landscape keeps cards/SOS to the right of identity, then lets vitals
    span the entire remaining width below. Compact card typography preserves
    the existing header budget and leaves every metric and action available. */
-@media (min-width: 681px) and (max-height: 540px) {
+@media (min-width: 681px) and (max-width: 868px) and (max-height: 540px) {
   body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile { --profile-portrait-width: 54px; --profile-identity-gap: 7px; grid-template-areas: 'intro stats' 'intro schedule' 'vitals vitals'; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 2px 12px; }
   body[data-page="rosters"] #game-logs-modal .gl-profile-intro { align-self: start; min-height: 46px; }
   body[data-page="rosters"] #game-logs-modal .gl-profile-portrait { height: 36px; }
@@ -330,4 +330,72 @@ body[data-page="rosters"] #game-logs-modal .gl-profile :is(button, summary):focu
   body[data-page="rosters"] #game-logs-modal .gl-profile-stat-value { font-size: 15px; }
   body[data-page="rosters"] #game-logs-modal .gl-profile-stat-ranks { margin-top: 1px; padding-top: 1px; font-size: 9px; line-height: 1; }
   body[data-page="rosters"] #game-logs-modal .gl-profile-schedule { font-size: 9px; padding-top: 0; border-top: 0; }
+}
+
+/* Desktop follows the phone's reading order in the shared player header:
+   identity/vitals, three equal summary cards, then a centered SOS row. Keep
+   this separate from the tablet grids and leave mobile dimensions untouched. */
+@media (min-width: 869px) {
+  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile {
+    --profile-portrait-width: 80px;
+    --profile-identity-gap: 24px;
+    grid-template-areas: 'intro' 'vitals' 'stats' 'schedule';
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-intro {
+    grid-template-columns: var(--profile-portrait-width) minmax(0, 1fr) 76px;
+    min-height: 56px;
+  }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-portrait { height: 56px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-actions {
+    align-self: start;
+    gap: 8px;
+    transform: none;
+  }
+  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-player-name { font-size: 24px !important; }
+  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .gl-profile-vitals-list {
+    justify-content: flex-start !important;
+    gap: 20px !important;
+  }
+  body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__label { font-size: 10px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__value { font-size: 12px; letter-spacing: 0; word-spacing: normal; }
+  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-summary-row { padding: 8px 0 2px; }
+  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-summary-chips {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    gap: 10px !important;
+  }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-stat { padding: 8px 10px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-stat-value { font-size: 20px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-stat-ranks { margin-top: 4px; padding-top: 4px; font-size: 12px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-schedule { min-height: 26px; font-size: 12px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-schedule-position { font-size: 12px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric strong { font-size: 13px; }
+  body[data-page="rosters"] #game-logs-modal > .gamelogs-modal-tabs .gamelogs-modal-tab {
+    min-height: 34px;
+    padding: 7px 28px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* Short desktop windows retain the same stacked header. Reduce spacing and
+   portrait size rather than reintroducing a second, conflicting header grid. */
+@media (min-width: 869px) and (max-height: 640px) {
+  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile {
+    --profile-portrait-width: 64px;
+    --profile-identity-gap: 20px;
+    gap: 2px;
+  }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-intro { min-height: 40px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-portrait { height: 40px; }
+  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-player-name { font-size: 20px !important; }
+  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-summary-row { padding-top: 5px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-stat { padding: 4px 8px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-stat-value { font-size: 16px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-stat-unit { font-size: 12px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-stat-ranks { margin-top: 2px; padding-top: 3px; font-size: 11px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-schedule { min-height: 22px; font-size: 11px; }
+  body[data-page="rosters"] #game-logs-modal > .gamelogs-modal-tabs .gamelogs-modal-tab { min-height: 30px; padding-block: 5px !important; }
 }

@@ -116,7 +116,8 @@
 // Refresh Rosters' shared player profile and body-only Ownership tab.
 // Refresh Rosters' uncropped team watermark behind the shared player headshot.
 // Refresh single-line Rosters Ownership rows and truncated long names.
-const CACHE_NAME = 'DH3.58d-ownership-nowrap';
+// Refresh Rosters' stacked desktop player profile and viewport-sized modal.
+const CACHE_NAME = 'DH3.59-desktop-modal-layout';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
