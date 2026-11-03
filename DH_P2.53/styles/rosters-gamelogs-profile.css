@@ -248,12 +248,12 @@ body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__value {co
    Original value nodes preserve every number and conditional rank color. */
 body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-summary-row {grid-area: stats;display: block !important;margin: 0 !important;padding: 6px 0 1px;border-top: 1px solid #a0afce1c;}
 body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-summary-chips {display: grid !important;grid-template-columns: repeat(3, minmax(0, 1fr));gap: 7px !important;margin: 0 4px;}
-body[data-page="rosters"] #game-logs-modal .gl-profile-stat {min-width: 0;padding: 4px 4px;text-align: center;border: 1px solid #aab2;border-radius: 10px;background: linear-gradient(rgb(48 56 73 / 42%), rgb(36 42 53 / 12%));}
+body[data-page="rosters"] #game-logs-modal .gl-profile-stat {min-width: 0;padding: 5px 4px;text-align: center;border: 1px solid #aab2;border-radius: 10px;background: linear-gradient(rgb(78 87 106 / 42%), rgb(36 42 53 / 12%));}
 body[data-page="rosters"] #game-logs-modal .gl-profile-stat + .gl-profile-stat {}
-body[data-page="rosters"] #game-logs-modal .gl-profile-stat-main {display: flex;align-items: baseline;justify-content: center;gap: 5px;margin: 0;padding: 0;font-size: inherit;font-weight: 400;line-height: 1;letter-spacing: 0;}
-body[data-page="rosters"] #game-logs-modal .gl-profile-stat-unit {color: #8493b0;font-size: 14.5px;font-weight: 400;letter-spacing: 0px;}
-body[data-page="rosters"] #game-logs-modal .gl-profile-stat-value {font-size: 15.5px;font-weight: 400;line-height: 1;font-variant-numeric: normal;}
-body[data-page="rosters"] #game-logs-modal .gl-profile-stat-ranks {display: flex;align-items: baseline;justify-content: center;gap: 4px;margin-top: 2px;font-size: 13px;font-weight: 400;line-height: 1.1;white-space: nowrap;border-top: 1px solid #9eacc510;padding-top: 3px;}
+body[data-page="rosters"] #game-logs-modal .gl-profile-stat-main {display: flex;align-items: baseline;justify-content: center;gap: 7px;margin: 0;padding: 0;font-size: inherit;font-weight: 400;line-height: 1;letter-spacing: 0;}
+body[data-page="rosters"] #game-logs-modal .gl-profile-stat-unit {color: #8493b0;font-size: 13.5px;font-weight: 400;letter-spacing: 0px;}
+body[data-page="rosters"] #game-logs-modal .gl-profile-stat-value {font-size: 14.5px;font-weight: 500;line-height: 1;font-variant-numeric: normal;}
+body[data-page="rosters"] #game-logs-modal .gl-profile-stat-ranks {display: flex;align-items: baseline;justify-content: center;gap: 4px;margin-top: 2px;font-size: 11.5px;font-weight: 400;line-height: 1.1;white-space: nowrap;border-top: 1px solid #9eacc510;padding-top: 3px;}
 body[data-page="rosters"] #game-logs-modal .gl-profile-stat-ranks .pos-rank-container { letter-spacing: 0; }
 body[data-page="rosters"] #game-logs-modal .gl-profile .chip-pos-rank-label {margin: 0;font-size: 1em;font-weight: 400 !important;}
 body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .chip-separator { margin: 0 !important; color: #5c6882; font-size: 8px; }
@@ -261,7 +261,7 @@ body[data-page="rosters"] #game-logs-modal .gl-profile-rank-label {color: #6e7c9
 
 /* One compact SOS group: the main label stays left of two separately divided
    periods. Insets and dividers provide hierarchy without increasing row height. */
-body[data-page="rosters"] #game-logs-modal .gl-profile-schedule {grid-area: schedule;display: flex;align-items: center;justify-content: center;gap: 0;min-width: 0;min-height: 20px;color: #8794ac;font-size: 11px;line-height: 1;}
+body[data-page="rosters"] #game-logs-modal .gl-profile-schedule {grid-area: schedule;display: flex;align-items: center;justify-content: center;gap: 0;min-width: 0;min-height: 23px;color: #8794ac;font-size: 11px;line-height: 1;}
 body[data-page="rosters"] #game-logs-modal .gl-profile-schedule-position {flex: 0 0 auto;padding-right: 10px;color: #b0bed5;font-size: 13px;font-weight: 500;letter-spacing: 0;}
 body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric { display: flex; align-items: baseline; gap: 5px; padding: 0 10px; border-left: 1px solid #9eacc52e; white-space: nowrap; }
 /* SOS values use the existing easy-to-tough rank palette from app.js. The
