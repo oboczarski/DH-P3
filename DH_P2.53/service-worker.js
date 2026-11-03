@@ -114,7 +114,8 @@
 // Refresh per-game summary values, muted total footers and OPP AVG weekly legends.
 // Refresh Rosters Weekly chip spacing while preserving its existing height.
 // Refresh Rosters' shared player profile and body-only Ownership tab.
-const CACHE_NAME = 'DH3.58b-shared-ownership-profile';
+// Refresh Rosters' uncropped team watermark behind the shared player headshot.
+const CACHE_NAME = 'DH3.58c-profile-watermark-fit';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

@@ -97,8 +97,12 @@ body[data-page="rosters"] #game-logs-modal .gl-profile-watermark {
   left: 0%;
   bottom: -35%;
   width: 110%;
+  max-width: none;
   height: 155%;
-  object-fit: cover;
+  /* Rosters profile watermark: fit the complete logo inside its image box
+     without cropping either side or inheriting the global image-width cap.
+     The portrait keeps its existing shared top/bottom clipping boundary. */
+  object-fit: contain;
   opacity: 0.06;
   filter: grayscale(1) contrast(1.5);
   pointer-events: none;
