@@ -16346,8 +16346,8 @@ body[data-page="datahub"] #game-logs-modal .team-position-empty { margin: 0; pad
   }
   body[data-page="datahub"] #game-logs-modal .team-modal-pane .modal-close-btn { top: 5px !important; right: 6px !important; }
   body[data-page="datahub"] #game-logs-modal .team-modal-toolbar { padding-right: 31px; }
-  body[data-page="datahub"] #game-logs-modal .team-modal-back { padding: 3px 5px; gap: 4px; font-size: 9px; }
-  body[data-page="datahub"] #game-logs-modal .team-modal-season { font-size: 8px; letter-spacing: .03em; }
+  body[data-page="datahub"] #game-logs-modal .team-modal-back {padding: 4px 5px;gap: 4px;font-size: 12px;}
+  body[data-page="datahub"] #game-logs-modal .team-modal-season {font-size: 11px;letter-spacing: .03em;margin-right: 10px;}
   body[data-page="datahub"] #game-logs-modal .team-modal-header { gap: 7px; padding: 4px 0 5px; }
   body[data-page="datahub"] #game-logs-modal .team-modal-logo { width: 28px; height: 28px; }
   body[data-page="datahub"] #game-logs-modal .team-modal-heading h3 { font-size: 17px; }
@@ -16802,16 +16802,17 @@ body[data-page="datahub"] #game-logs-modal.is-team-view .team-modal-pane {
 
 /* DataHub Consistency HUD only: adapt the Rookie ADP / NFL Draft hit-rate
    dials' tick rim, gradient arc, endpoint and recessed core to this compact
-   layout. Progress and rank accents come from DataHub's existing calculations;
+   layout. Progress comes from DataHub's existing rate/rank calculations;
    every layer stays local to this modal, without importing research styles. */
 body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-circle {
   --dial-size: 78px;
   --dial-inset: 3px;
   --dial-width: 4px;
   --dial-core-gap: 4px;
-  --dial-accent: #a68dff;
-  --dial-start: color-mix(in srgb, var(--dial-accent) 62%, #fff);
-  --dial-end: color-mix(in srgb, var(--dial-accent) 78%, #635bff);
+  --dial-accent: #a8b3cb;
+  --dial-start: #cbd5e1;
+  --dial-mid: #a8b3cb;
+  --dial-end: #8291ac;
   --arc-end: calc(var(--progress, 0) * 1turn);
   --arc-mid: calc(var(--progress, 0) * 0.5turn);
   isolation: isolate;
@@ -16825,9 +16826,15 @@ body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-circle {
   filter: drop-shadow(0 7px 13px color-mix(in srgb, var(--dial-accent) 14%, transparent));
 }
 
-body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-circle--ceiling {
-  --dial-accent: #00ddfa;
-}
+/* Exact NFL Draft research stops, reversed by progress rather than by card
+   order: high rates / strong ranks are green, and low results are pink. */
+body[data-page="datahub"] #game-logs-modal .consistency-hud [data-dial-tone="green"] { --dial-accent: #55e58f; --dial-start: #8fffc0; --dial-mid: #55e58f; --dial-end: #00d9b0; }
+body[data-page="datahub"] #game-logs-modal .consistency-hud [data-dial-tone="teal"] { --dial-accent: #00dcca; --dial-start: #50e8ff; --dial-mid: #00dcca; --dial-end: #27ef9f; }
+body[data-page="datahub"] #game-logs-modal .consistency-hud [data-dial-tone="cyan"] { --dial-accent: #00a9ff; --dial-start: #69a9ff; --dial-mid: #009fff; --dial-end: #00d7f2; }
+body[data-page="datahub"] #game-logs-modal .consistency-hud [data-dial-tone="blue"] { --dial-accent: #4d79ff; --dial-start: #a68dff; --dial-mid: #6870ff; --dial-end: #16a9ff; }
+body[data-page="datahub"] #game-logs-modal .consistency-hud [data-dial-tone="violet"] { --dial-accent: #8b6cff; --dial-start: #d09bff; --dial-mid: #8b6cff; --dial-end: #5f79ff; }
+body[data-page="datahub"] #game-logs-modal .consistency-hud [data-dial-tone="magenta"] { --dial-accent: #d747ff; --dial-start: #ef83ff; --dial-mid: #d747ff; --dial-end: #986cff; }
+body[data-page="datahub"] #game-logs-modal .consistency-hud [data-dial-tone="pink"] { --dial-accent: #ff0aa5; --dial-start: #ff82d7; --dial-mid: #ff0aa5; --dial-end: #bc3dff; }
 
 body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-circle::before {
   content: "";
@@ -16856,7 +16863,7 @@ body[data-page="datahub"] #game-logs-modal .consistency-hud :is(.progress-dial-a
   position: absolute;
   inset: var(--dial-inset);
   border-radius: 50%;
-  background: conic-gradient(from 0deg, var(--dial-start) 0deg, var(--dial-accent) var(--arc-mid), var(--dial-end) var(--arc-end), transparent var(--arc-end) 1turn);
+  background: conic-gradient(from 0deg, var(--dial-start) 0deg, var(--dial-mid) var(--arc-mid), var(--dial-end) var(--arc-end), transparent var(--arc-end) 1turn);
   pointer-events: none;
 }
 
@@ -16952,6 +16959,7 @@ body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-circle-inn
 }
 
 body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-value {
+  color: var(--dial-accent);
   font-size: 0.94rem;
   font-weight: 700;
   line-height: 1;

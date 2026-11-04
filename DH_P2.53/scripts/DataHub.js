@@ -17004,13 +17004,11 @@ function updateDataHubConsistencyHud(data) {
     rank: data?.consistencyRank,
     metricValueEl: consistencyRankEl,
     metricSubEl: null,
-    circleValueEl: consistencyCircleValue,
   });
   applyDataHubRankStyling({
     rank: data?.ceilingRank,
     metricValueEl: ceilingValueEl,
     metricSubEl: null,
-    circleValueEl: ceilingCircleValue,
   });
   const cstyCountEl = consistencyContainer.querySelector("[data-insight-cstycount]");
   if (cstyCountEl) {
@@ -17666,18 +17664,27 @@ function renderDataHubConsistencyPoints(data) {
   renderDataHubConsistencyAverage(pointsLayer, data);
 }
 
+function styleDataHubConsistencyDial(circle, progress, hasValue) {
+  if (!circle) return;
+  // DataHub HUD only: seven equal progress bands reverse the NFL Draft
+  // research palette (low pink through blue to high green). A real zero uses
+  // the low palette; missing values retain a neutral track and text instead.
+  const tones = ["pink", "magenta", "violet", "blue", "cyan", "teal", "green"];
+  circle.style.setProperty("--progress", String(progress));
+  circle.dataset.hasProgress = String(hasValue && progress > 0);
+  circle.dataset.dialTone = hasValue ? tones[Math.min(tones.length - 1, Math.floor(progress * tones.length))] : "neutral";
+}
+
 function hydrateDataHubConsistencyProgressCircles(data) {
-  // DataHub's research-style dials share one progress value across the arc,
-  // inner echo and endpoint. Keep the existing rate/rank normalization and
-  // semantic rank colors; zero and unavailable values render an empty track.
+  // The rate uses its actual percentage; ceiling keeps its positional-rank
+  // normalization so rank 1 receives the strongest (green) palette. The same
+  // progress drives the arc, inner echo and endpoint without changing data.
   const consistencyCircle = consistencyContainer?.querySelector(".progress-circle--consistency");
   const pctValue = data && Number.isFinite(data.consistencyPct)
     ? Math.max(0, Math.min(100, data.consistencyPct)) / 100
     : 0;
   if (consistencyCircle) {
-    consistencyCircle.style.setProperty("--progress", String(pctValue));
-    consistencyCircle.style.setProperty("--dial-accent", getDataHubRankAccentColor(data?.consistencyRank));
-    consistencyCircle.dataset.hasProgress = String(pctValue > 0);
+    styleDataHubConsistencyDial(consistencyCircle, pctValue, Number.isFinite(data?.consistencyPct));
     consistencyCircle.setAttribute("aria-label", `Season consistency rate: ${formatDataHubHudPercentage(data?.consistencyPct)}`);
   }
   const ceilingCircle = consistencyContainer?.querySelector(".progress-circle--ceiling");
@@ -17685,9 +17692,7 @@ function hydrateDataHubConsistencyProgressCircles(data) {
     const rankMax = Math.max(2, data?.ceilingRankMax || 24);
     const rank = Number.isFinite(data?.ceilingRank) ? data.ceilingRank : rankMax;
     const normalized = Math.max(0, Math.min(1, (rankMax - rank) / (rankMax - 1)));
-    ceilingCircle.style.setProperty("--progress", String(normalized));
-    ceilingCircle.style.setProperty("--dial-accent", getDataHubRankAccentColor(data?.ceilingRank));
-    ceilingCircle.dataset.hasProgress = String(normalized > 0);
+    styleDataHubConsistencyDial(ceilingCircle, normalized, Number.isFinite(data?.ceilingRank));
     ceilingCircle.setAttribute("aria-label", Number.isFinite(data?.ceilingRank)
       ? `Ceiling positional rank: ${Math.round(data.ceilingRank)} of ${rankMax}`
       : "Ceiling positional rank: no data");
