@@ -344,8 +344,9 @@
           return { value, ...(missed ? { symbolSize: 0 } : {}),
             // Put the higher value above and the lower below, including ties.
             // Both series keep every label, even when their paths cross.
+            // Unplayed-week designations use plain text in the player's color.
             label: { position: value > other || (value === other && side === 0) ? 'top' : 'bottom',
-              ...(missed ? { color: p.main, backgroundColor: '#192334', borderRadius: 3, padding: [2, 3] } : {}) } };
+              ...(missed ? { color: p.main } : {}) } };
         });
         return { name: player.name, type: 'line', data: points, connectNulls: true, smooth: false, showSymbol: true, showAllSymbol: true, symbol: side === 0 ? 'circle' : 'diamond', symbolSize: 6, clip: true,
           lineStyle: { width: 2.5, opacity: hasGames ? 1 : 0, color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: p.mid }, { offset: .4, color: p.main }, { offset: .72, color: p.light }, { offset: 1, color: p.main }]), shadowColor: `rgba(${p.rgb},0.3)`, shadowBlur: 7 },

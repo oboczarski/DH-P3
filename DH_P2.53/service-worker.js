@@ -122,7 +122,8 @@
 // Keep the Rosters profile team chevron visible after its record on phones.
 // Refresh Rosters' narrower desktop Game Logs card and larger content scale.
 // Refresh continuous comparison trajectories and always-visible scoring/status labels.
-const CACHE_NAME = 'DH3.61a-comparison-trajectory-labels';
+// Refresh unplayed-week designations as plain text without label backgrounds.
+const CACHE_NAME = 'DH3.61b-trajectory-status-text';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
