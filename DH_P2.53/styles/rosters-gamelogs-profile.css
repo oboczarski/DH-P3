@@ -163,8 +163,8 @@ body[data-page="rosters"] #game-logs-modal .gl-profile-byline {
   align-items: center;
   /* Rosters identity: let the longer record/matchup byline wrap on phones
      while keeping the team action and the watchlist/close controls usable. */
-  flex-wrap: wrap;
-  gap: 3px 8px;
+  flex-wrap: nowrap;
+  gap: 3px 16px;
   margin-top: 2px;
 }
 body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .gl-profile-affiliation-content { position: static !important; display: flex !important; align-items: center !important; gap: 7px !important; }
@@ -186,11 +186,12 @@ body[data-page="rosters"] #game-logs-modal .gl-profile-team {
   line-height: 1;
   cursor: pointer;
   font-weight: 600;
+  text-wrap-mode: nowrap;
 }
 body[data-page="rosters"] #game-logs-modal .gl-profile-team:disabled { cursor: default; }
 body[data-page="rosters"] #game-logs-modal .gl-profile-team-logo {width: 18px;height: 18px;object-fit: contain;}
 body[data-page="rosters"] #game-logs-modal .gl-profile-team-arrow { width: 9px; height: 9px; fill: none; stroke: #7988a4; stroke-width: 1.6; }
-body[data-page="rosters"] #game-logs-modal .gl-profile-season {padding-left: 8px;border-left: 1px solid #9eacc52e;color: #77849d;font-size: 12px;}
+body[data-page="rosters"] #game-logs-modal .gl-profile-season {padding-left: 8px;border-left: 1px solid #9eacc52e;color: #77849d;font-size: 12px;text-wrap-mode: nowrap;}
 body[data-page="rosters"] #game-logs-modal .gl-profile-matchup-rank { white-space: nowrap; }
 
 body[data-page="rosters"] #game-logs-modal .gl-profile-actions {display: flex;align-items: center;justify-content: end;gap: 14px;transform: translate(5px, -10px);}
