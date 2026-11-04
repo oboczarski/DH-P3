@@ -3452,7 +3452,7 @@ body[data-page="rosters"] #game-logs-modal .ownership-modal-content .ownership-m
 
   body[data-page="rosters"] :where(#game-logs-modal) .weekly-point-label__value {
     order: 1;
-    font-size: 0.5rem;
+    font-size: 0.48rem;
     font-weight: 700;
     border-radius: 4px;
     padding: 0;
@@ -3460,7 +3460,7 @@ body[data-page="rosters"] #game-logs-modal .ownership-modal-content .ownership-m
 
   body[data-page="rosters"] :where(#game-logs-modal) .weekly-point-label__suffix {
     order: 0;
-    font-size: 0.34rem;
+    font-size: 0.4rem;
     font-weight: 600;
     letter-spacing: 0.01em;
     text-transform: none;
@@ -6996,7 +6996,7 @@ body[data-page="rosters"] #game-logs-modal .weekly-point-label__rank {
 /* Ranked chips use the primary value typography at every breakpoint. Keep
    their position prefix slightly smaller so the rank number leads visually. */
 body[data-page="rosters"] #game-logs-modal .weekly-point-label__position {
-  font-size: 0.85em;
+  font-size: 1em;
 }
 
 /* AVG sits directly on its dotted reference; JS shifts the label vertically
