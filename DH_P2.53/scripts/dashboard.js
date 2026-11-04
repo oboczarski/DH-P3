@@ -1095,8 +1095,8 @@ function drawScatterChart(containerId, data) {
     tooltip.remove();
     document.removeEventListener('touchstart', dismissTooltip);
   };
-  // Home scatter names stay beside their points. Intersecting pairs get small,
-  // opposite vertical bumps, capped at 4px on mobile and 6px on desktop.
+  // Home scatter names stay beside their points. Small, opposite bumps check
+  // neighboring free space too, within the same 4px mobile / 6px desktop caps.
   const labelDx = isMobile ? -2 : 3;
   const labelDy = isMobile ? 2 : 1;
   const labels = g.selectAll('.scatter-label')
@@ -1113,11 +1113,18 @@ function drawScatterChart(containerId, data) {
 
   const textBoxes = labels.nodes().map(node => {
     const box = node.getBBox();
+    const anchor = node.getAttribute('text-anchor');
+    const alternateX = anchor === 'start' ? box.x - box.width : box.x + box.width;
     return { x: box.x, y: box.y, width: box.width, height: box.height,
+      anchor, alternateX: alternateX >= 0 && alternateX + box.width <= innerWidth ? alternateX : undefined,
       baseline: Number(node.getAttribute('y')) };
   });
   const labelLayout = dashboardLayout.arrangeScatterLabels(textBoxes, innerHeight, 1, isMobile ? 4 : 6);
-  labels.attr('y', (d, i) => textBoxes[i].baseline + labelLayout[i].top - textBoxes[i].y);
+  // Keep the text attached to the same point when its usual side is blocked;
+  // offer the open side before pushing either name into another neighbor.
+  labels.attr('text-anchor', (d, i) => labelLayout[i].x === textBoxes[i].x ? textBoxes[i].anchor
+    : textBoxes[i].anchor === 'start' ? 'end' : 'start')
+    .attr('y', (d, i) => textBoxes[i].baseline + labelLayout[i].top - textBoxes[i].y);
 
   if (isMobile) {
     labels.on('click touchstart', function(event,d){
@@ -1312,7 +1319,7 @@ async function initializeDashboard() {
     setDashboardBootPhase(0, 'Connecting to the 2026 season');
     [dashboardData, dashboardLayout] = await Promise.all([
       import('./dashboard-data.js?v=DH3.61g-dashboard-boot-labels'),
-      import('./dashboard-scatter-layout.js?v=DH3.61h-scatter-gentle-labels')
+      import('./dashboard-scatter-layout.js?v=DH3.61j-scatter-neighbor-clearance')
     ]);
     players = await dashboardData.loadDashboardPlayers();
     setDashboardBootPhase(1, 'Finding the league leaders');
