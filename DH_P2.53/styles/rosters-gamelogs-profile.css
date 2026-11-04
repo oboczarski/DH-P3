@@ -94,7 +94,7 @@ body[data-page="rosters"] #game-logs-modal .gl-profile-portrait {
 body[data-page="rosters"] #game-logs-modal .gl-profile-watermark {
   position: absolute;
   z-index: 0;
-  left: 0%;
+  left: -8%;
   bottom: -35%;
   width: 110%;
   max-width: none;
