@@ -123,7 +123,8 @@
 // Refresh Rosters' narrower desktop Game Logs card and larger content scale.
 // Refresh continuous comparison trajectories and always-visible scoring/status labels.
 // Refresh unplayed-week designations as plain text without label backgrounds.
-const CACHE_NAME = 'DH3.61b-trajectory-status-text';
+// Refresh the Scoring Comparison title and faded, desaturated unplayed labels.
+const CACHE_NAME = 'DH3.61c-scoring-comparison-muted-status';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

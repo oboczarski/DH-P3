@@ -6,8 +6,8 @@
   if (document.body.dataset.page !== 'rosters') return;
 
   const PALETTES = [
-    { main: '#76e8ef', light: '#d0fcff', mid: '#389ed7', deep: '#235777', rgb: '102,224,239' },
-    { main: '#be9bff', light: '#f0dfff', mid: '#8c66e0', deep: '#513888', rgb: '184,147,250' },
+    { main: '#76e8ef', light: '#d0fcff', mid: '#389ed7', deep: '#235777', muted: '#a2b7bb', rgb: '102,224,239' },
+    { main: '#be9bff', light: '#f0dfff', mid: '#8c66e0', deep: '#513888', muted: '#b2a8bf', rgb: '184,147,250' },
   ];
   const OVERVIEW = [
     { id: 'info', label: 'PLAYER INFO', stats: ['overall_rank', 'player_name', 'position', 'team', 'age'] },
@@ -263,7 +263,7 @@
       <div class="ss-dashboard-scroll"><div class="ss-comparison-pickers"><label class="ss-side-0"><span>A</span><select aria-label="First comparison player" data-ss-pick="0">${selectedOptions(0)}</select>${icon('down')}</label><button class="ss-swap ss-icon-button" type="button" data-ss-swap aria-label="Swap compared players">${icon('swap')}</button><label class="ss-side-1"><span>B</span><select aria-label="Second comparison player" data-ss-pick="1">${selectedOptions(1)}</select>${icon('down')}</label></div>
       <div class="ss-hero"><div class="ss-hero-orbit" aria-hidden="true"></div>${pair.map((player, side) => playerHero(player, side, model.week)).join('')}<span class="ss-hero-vs" aria-hidden="true">VS</span></div>
       <div class="ss-projection-insight">${icon('pulse')}<span>${number(pair[0].projection) !== null && number(pair[1].projection) !== null ? Math.abs(pair[0].projection - pair[1].projection) < .05 ? 'Level projections for this week' : `<b class="ss-side-${pair[0].projection > pair[1].projection ? 0 : 1}">${escape(shortName(pair[pair[0].projection > pair[1].projection ? 0 : 1]))}</b> projects <strong>${fmt(Math.abs(pair[0].projection - pair[1].projection))}</strong> points higher` : 'Compare season production while projections are unavailable'}</span><span class="ss-micro-label">WK ${model.week || '—'} OUTLOOK</span></div>
-      <div class="ss-analytics-grid"><section class="ss-panel ss-timeline"><header class="ss-panel-header"><div>${icon('chart')}<h3>Scoring trajectory</h3></div><div class="ss-chart-toggle" role="group" aria-label="Scoring chart view"><button type="button" data-ss-chart="weekly" aria-pressed="${chartMode === 'weekly'}">Weekly</button><button type="button" data-ss-chart="cumulative" aria-pressed="${chartMode === 'cumulative'}">Cumulative</button></div></header><div class="ss-chart-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i></i>${escape(shortName(player))}</span>`).join('')}<span>LEAGUE PTS</span></div><div class="ss-timeline-viewport" tabindex="0" role="region" aria-label="Scoring trajectory; scroll horizontally for more weeks"><div class="ss-timeline-chart" role="img" aria-label="${chartMode === 'weekly' ? 'Weekly' : 'Cumulative'} fantasy points for ${escape(pair.map(player => player.name).join(' and '))}"></div></div><div class="ss-chart-caption"><span>Recorded games only</span><span>Unplayed weeks show status</span></div>${weeklyTable(pair)}</section>
+      <div class="ss-analytics-grid"><section class="ss-panel ss-timeline"><header class="ss-panel-header"><div>${icon('chart')}<h3>Scoring Comparison</h3></div><div class="ss-chart-toggle" role="group" aria-label="Scoring chart view"><button type="button" data-ss-chart="weekly" aria-pressed="${chartMode === 'weekly'}">Weekly</button><button type="button" data-ss-chart="cumulative" aria-pressed="${chartMode === 'cumulative'}">Cumulative</button></div></header><div class="ss-chart-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i></i>${escape(shortName(player))}</span>`).join('')}<span>LEAGUE PTS</span></div><div class="ss-timeline-viewport" tabindex="0" role="region" aria-label="Scoring Comparison; scroll horizontally for more weeks"><div class="ss-timeline-chart" role="img" aria-label="${chartMode === 'weekly' ? 'Weekly' : 'Cumulative'} fantasy points for ${escape(pair.map(player => player.name).join(' and '))}"></div></div><div class="ss-chart-caption"><span>Recorded games only</span><span>Unplayed weeks show status</span></div>${weeklyTable(pair)}</section>
       <section class="ss-panel ss-reliability"><header class="ss-panel-header"><div>${icon('shield')}<h3>Consistency & ceiling</h3></div><span class="ss-micro-label">PPR BASELINE</span></header><div class="ss-consistency-rings">${pair.map(ring).join('')}</div><p class="ss-panel-note">CSTY% and CL · published season values</p></section>${production(pair)}</div>
       <div class="ss-detail-heading"><div><span class="ss-eyebrow">THE COMPLETE PICTURE</span><h2>Every stat. Both players.</h2></div><span class="ss-detail-badge">${metricCount}<small>METRICS</small></span></div><div class="ss-stat-contract"><span>${same ? `${escape(pair[0].pos)} · Game Logs season stats` : 'Mixed positions · Data Hub Overview'}</span><span>Bar length = magnitude · scale per metric</span></div>
       <nav class="ss-chapters" aria-label="Stat sections">${sections.map(section => `<button type="button" data-ss-section="${section.id}">${escape(section.label.toLowerCase())}</button>`).join('')}</nav><div class="ss-stat-grid">${statSections(pair)}</div>
@@ -283,7 +283,7 @@
     }) };
   }
 
-  // Scoring trajectory only: bridge missed weeks like the Consistency chart,
+  // Scoring comparison only: bridge missed weeks like the Consistency chart,
   // interpolating between recorded games and extending the nearest endpoint.
   // These are drawing coordinates only: totals, tooltips and the weekly table
   // continue to use seriesFor's nulls, and missed weeks never get scoring dots.
@@ -344,9 +344,10 @@
           return { value, ...(missed ? { symbolSize: 0 } : {}),
             // Put the higher value above and the lower below, including ties.
             // Both series keep every label, even when their paths cross.
-            // Unplayed-week designations use plain text in the player's color.
+            // Unplayed-week designations use desaturated player hues at reduced
+            // opacity so their plain text is quieter than recorded score labels.
             label: { position: value > other || (value === other && side === 0) ? 'top' : 'bottom',
-              ...(missed ? { color: p.main } : {}) } };
+              ...(missed ? { color: p.muted, opacity: 0.65 } : {}) } };
         });
         return { name: player.name, type: 'line', data: points, connectNulls: true, smooth: false, showSymbol: true, showAllSymbol: true, symbol: side === 0 ? 'circle' : 'diamond', symbolSize: 6, clip: true,
           lineStyle: { width: 2.5, opacity: hasGames ? 1 : 0, color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: p.mid }, { offset: .4, color: p.main }, { offset: .72, color: p.light }, { offset: 1, color: p.main }]), shadowColor: `rgba(${p.rgb},0.3)`, shadowBlur: 7 },
