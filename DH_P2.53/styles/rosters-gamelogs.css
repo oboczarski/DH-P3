@@ -2991,11 +2991,11 @@ body[data-page="rosters"] :where(#game-logs-modal) .metric-value {
 }
 
 body[data-page="rosters"] :where(#game-logs-modal) .consistency-hud .hud-insights {
-  width: 100%;
+  width: 104%;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.3rem;
+  gap: 0.25rem;
 }
 
 body[data-page="rosters"] :where(#game-logs-modal) .consistency-hud .hud-insight.summary-chip {
@@ -3801,6 +3801,7 @@ body[data-page="rosters"] :where(#game-logs-modal) .hud-insight-value .hud-insig
   color: rgba(160, 166, 181, 0.72);
   font-weight: 400;
   text-shadow: none;
+  font-size: 0.54rem;
 }
 
 body[data-page="rosters"] :where(#game-logs-modal) .hud-insight-value .csty-made {
@@ -7468,12 +7469,12 @@ body[data-page="rosters"] #game-logs-modal .consistency-hud {
   line-height: normal;
   font-weight: 400;
 }
-body[data-page="rosters"] #game-logs-modal .consistency-hud .hud-segment { min-width: 0; gap: 4px; }
+body[data-page="rosters"] #game-logs-modal .consistency-hud .hud-segment {min-width: 0;gap: 4px;}
 body[data-page="rosters"] #game-logs-modal .consistency-hud .hud-context { margin-top: 0.2rem; font-size: 0.62rem; letter-spacing: normal; }
 body[data-page="rosters"] #game-logs-modal .consistency-hud .hud-metrics { gap: 3.75rem; margin: 0; }
 body[data-page="rosters"] #game-logs-modal .consistency-hud .metric-label { font-size: 0.54rem; letter-spacing: 0.13em; }
 body[data-page="rosters"] #game-logs-modal .consistency-hud .metric-value { font-size: 1rem; }
-body[data-page="rosters"] #game-logs-modal .consistency-hud .hud-insight-label { font-size: 0.58rem; letter-spacing: 0.03em; }
+body[data-page="rosters"] #game-logs-modal .consistency-hud .hud-insight-label {font-size: 0.58rem;letter-spacing: 0em;}
 body[data-page="rosters"] #game-logs-modal .consistency-hud .hud-insight-value { font-size: 0.8rem; margin-top: 0; }
 body[data-page="rosters"] #game-logs-modal #consistency-container .hud-eyebrow {
   font-family: "Product Sans", "Google Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -7484,17 +7485,17 @@ body[data-page="rosters"] #game-logs-modal #consistency-container .hud-eyebrow {
 
 @media (max-width: 680px) {
   body[data-page="rosters"] #game-logs-modal .consistency-hud { gap: 0.2rem; padding: 0.05rem 0.35rem 0.04rem; }
-  body[data-page="rosters"] #game-logs-modal .consistency-hud .hud-context { margin-top: 0; font-size: 0.54rem; }
+  body[data-page="rosters"] #game-logs-modal .consistency-hud .hud-context {margin-top: 0;font-size: 0.6rem;}
   body[data-page="rosters"] #game-logs-modal .consistency-hud .hud-metrics { gap: 1.9rem; margin: 0.12rem 0 0.14rem; }
   body[data-page="rosters"] #game-logs-modal .consistency-hud .metric-label { font-size: 0.4rem; letter-spacing: 0.11em; }
-  body[data-page="rosters"] #game-logs-modal .consistency-hud .metric-value { font-size: 0.8rem; }
-  body[data-page="rosters"] #game-logs-modal .consistency-hud .hud-insight-label { font-size: 0.4rem; }
+  body[data-page="rosters"] #game-logs-modal .consistency-hud .metric-value {font-size: 0.9rem;}
+  body[data-page="rosters"] #game-logs-modal .consistency-hud .hud-insight-label {font-size: 0.5rem;font-weight: 700;}
   body[data-page="rosters"] #game-logs-modal .consistency-hud .hud-insight-value { font-size: 0.6rem; }
   body[data-page="rosters"] #game-logs-modal #consistency-container .hud-eyebrow { font-size: 0.6rem; letter-spacing: 0.07em; }
 }
 
 @media (max-width: 640px) {
   body[data-page="rosters"] #game-logs-modal .consistency-hud { padding: 0.3rem 0.5rem 0.15rem; }
-  body[data-page="rosters"] #game-logs-modal .consistency-hud .metric-label { font-size: 0.5rem; letter-spacing: 0.05em; }
-  body[data-page="rosters"] #game-logs-modal .consistency-hud .hud-insight-value { font-size: 0.5rem; margin-top: -2px; }
+  body[data-page="rosters"] #game-logs-modal .consistency-hud .metric-label {font-size: 0.55rem;letter-spacing: 0.02em;word-spacing: 0.1em;}
+  body[data-page="rosters"] #game-logs-modal .consistency-hud .hud-insight-value {font-size: 0.6rem;margin-top: -2px;}
 }
