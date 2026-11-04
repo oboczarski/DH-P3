@@ -128,7 +128,8 @@
 // Refresh the home dashboard's live DH adapter, removed card legend and fitted scatter.
 // Restore its rounded scatter bounds and apply DataHub qualification to every summary card.
 // Refresh the home orbital boot screen, measured label layout and tighter scatter gutter.
-const CACHE_NAME = 'DH3.61g-dashboard-boot-labels';
+// Refresh the home scatter's small, opposite label nudges and removed connectors.
+const CACHE_NAME = 'DH3.61h-scatter-gentle-labels';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

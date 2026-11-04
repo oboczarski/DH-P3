@@ -11,41 +11,44 @@ test('scatter names retain surnames, compound surnames and suffixes after the fi
   ]) assert.equal(formatScatterName(name), expected);
 });
 
-function expectSeparated(layout, height, gap = 2) {
-  for (const label of layout) {
-    assert.ok(label.top >= 0 && label.top + label.height <= height, 'label stays within plot');
-    for (const other of layout) {
-      if (label.index >= other.index) continue;
-      const overlapX = label.x < other.x + other.width + gap && label.x + label.width + gap > other.x;
-      if (overlapX) assert.ok(label.top + label.height + gap <= other.top || other.top + other.height + gap <= label.top,
-        `labels ${label.index}/${other.index} overlap`);
-    }
-  }
-}
-
-test('measured scatter names move vertically without changing their horizontal coordinates or source order', () => {
+test('a colliding pair moves by equal, opposite small amounts', () => {
   const boxes = [
     { x: 20, y: 40, width: 80, height: 10 },
-    { x: 25, y: 43, width: 90, height: 10 },
-    { x: 30, y: 46, width: 75, height: 10 },
+    { x: 25, y: 47, width: 90, height: 10 },
     { x: 180, y: 43, width: 40, height: 10 }
   ];
   const result = arrangeScatterLabels(boxes, 140);
-  expectSeparated(result, 140);
+  assert.equal(result[0].top, 38);
+  assert.equal(result[1].top, 49);
+  assert.equal(result[2].top, 43, 'isolated name stays put');
   assert.deepEqual(result.map(label => label.x), boxes.map(box => box.x));
-  assert.equal(result[3].top, boxes[3].y, 'isolated label stays in its natural position');
-  assert.ok(result.some((label, i) => label.top !== boxes[i].y));
-  assert.deepEqual(arrangeScatterLabels(boxes, 140), result, 'layout remains deterministic');
-  assert.equal(boxes[1].y, 43, 'measured source bounds are preserved');
+  assert.deepEqual(arrangeScatterLabels(boxes, 140), result);
+  assert.equal(boxes[0].y, 40, 'source boxes stay unchanged');
 });
 
-test('a crowded cluster near the lower plot edge stacks upward without clipping', () => {
-  const boxes = Array.from({ length: 8 }, (_, i) => ({ x: 10 + i, y: 180 + i, width: 70, height: 10 }));
-  expectSeparated(arrangeScatterLabels(boxes, 200), 200);
+test('dense clusters cannot accumulate more than the small per-label nudge limit', () => {
+  const boxes = Array.from({ length: 8 }, (_, i) => ({ x: 10 + i, y: 80 + i, width: 70, height: 10 }));
+  for (const limit of [4, 6]) {
+    const result = arrangeScatterLabels(boxes, 200, 1, limit);
+    result.forEach((label, i) => assert.ok(Math.abs(label.top - boxes[i].y) <= limit));
+  }
 });
 
-test('top-edge clusters stay inside, and existing well-separated names retain their placement', () => {
-  expectSeparated(arrangeScatterLabels(Array.from({ length: 6 }, () => ({ x: 10, y: 0, width: 70, height: 10 })), 150), 150);
-  const separated = [{ x: 10, y: 10, width: 60, height: 10 }, { x: 15, y: 40, width: 70, height: 10 }];
-  assert.deepEqual(arrangeScatterLabels(separated, 100).map(label => label.top), [10, 40]);
+test('only originally intersecting names move, without propagating a shift to nearby labels', () => {
+  const boxes = [
+    { x: 10, y: 40, width: 70, height: 10 },
+    { x: 10, y: 47, width: 70, height: 10 },
+    { x: 10, y: 58, width: 70, height: 10 },
+    { x: 100, y: 40, width: 70, height: 10 }
+  ];
+  const result = arrangeScatterLabels(boxes, 140);
+  assert.equal(result[2].top, 58);
+  assert.equal(result[3].top, 40);
+});
+
+test('equal-height pairs split consistently, while plot edges limit both nudges equally', () => {
+  const boxes = [{ x: 10, y: 40, width: 70, height: 10 }, { x: 10, y: 40, width: 70, height: 10 }];
+  assert.deepEqual(arrangeScatterLabels(boxes, 100, 1, 4).map(label => label.top), [36, 44]);
+  const edge = [{ x: 10, y: 1, width: 70, height: 10 }, { x: 10, y: 2, width: 70, height: 10 }];
+  assert.deepEqual(arrangeScatterLabels(edge, 100).map(label => label.top), [0, 3]);
 });

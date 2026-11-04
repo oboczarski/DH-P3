@@ -1095,8 +1095,8 @@ function drawScatterChart(containerId, data) {
     tooltip.remove();
     document.removeEventListener('touchstart', dismissTooltip);
   };
-  // Home scatter names start beside their points; measured text bounds below
-  // resolve vertical collisions independently of the existing dot separation.
+  // Home scatter names stay beside their points. Intersecting pairs get small,
+  // opposite vertical bumps, capped at 4px on mobile and 6px on desktop.
   const labelDx = isMobile ? -2 : 3;
   const labelDy = isMobile ? 2 : 1;
   const labels = g.selectAll('.scatter-label')
@@ -1116,20 +1116,8 @@ function drawScatterChart(containerId, data) {
     return { x: box.x, y: box.y, width: box.width, height: box.height,
       baseline: Number(node.getAttribute('y')) };
   });
-  const labelLayout = dashboardLayout.arrangeScatterLabels(textBoxes, innerHeight, isMobile ? 2 : 3);
+  const labelLayout = dashboardLayout.arrangeScatterLabels(textBoxes, innerHeight, 1, isMobile ? 4 : 6);
   labels.attr('y', (d, i) => textBoxes[i].baseline + labelLayout[i].top - textBoxes[i].y);
-
-  // Subtle position-colored leaders keep moved names associated with their
-  // original dot. Draw behind points/text, and omit lines for untouched labels.
-  const leaders = g.insert('g', '.scatter-dot').attr('class', 'scatter-label-leaders').attr('aria-hidden', 'true');
-  leaders.selectAll('line').data(data.map((player, i) => ({ player, i }))
-    .filter(({ i }) => Math.abs(labelLayout[i].top - textBoxes[i].y) > 3))
-    .enter().append('line')
-    .attr('x1', ({ i }) => dotPositions[i].cx)
-    .attr('y1', ({ i }) => dotPositions[i].cy)
-    .attr('x2', ({ i }) => clamp(dotPositions[i].cx, textBoxes[i].x, textBoxes[i].x + textBoxes[i].width))
-    .attr('y2', ({ i }) => clamp(dotPositions[i].cy, labelLayout[i].top, labelLayout[i].top + textBoxes[i].height))
-    .attr('stroke', ({ player }) => glowColors[player.position.toLowerCase()].color);
 
   if (isMobile) {
     labels.on('click touchstart', function(event,d){
@@ -1324,7 +1312,7 @@ async function initializeDashboard() {
     setDashboardBootPhase(0, 'Connecting to the 2026 season');
     [dashboardData, dashboardLayout] = await Promise.all([
       import('./dashboard-data.js?v=DH3.61g-dashboard-boot-labels'),
-      import('./dashboard-scatter-layout.js?v=DH3.61g-dashboard-boot-labels')
+      import('./dashboard-scatter-layout.js?v=DH3.61h-scatter-gentle-labels')
     ]);
     players = await dashboardData.loadDashboardPlayers();
     setDashboardBootPhase(1, 'Finding the league leaders');

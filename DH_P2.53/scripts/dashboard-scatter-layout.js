@@ -6,32 +6,30 @@ export function formatScatterName(name = '') {
   return `${parts[0][0]}. ${parts.slice(1).join(' ')}`;
 }
 
-// Home scatter labels move vertically only. Measured SVG text boxes determine
-// which names share horizontal space; point coordinates and stat values stay fixed.
-export function arrangeScatterLabels(boxes, plotHeight, gap = 2) {
-  const overlapsX = (a, b) => a.x < b.x + b.width + gap && a.x + a.width + gap > b.x;
-  const ordered = boxes.map((box, index) => ({ ...box, index,
-    top: Math.max(0, Math.min(box.y, plotHeight - box.height))
-  })).sort((a, b) => a.y - b.y || a.index - b.index);
-
-  // Pack overlapping names in their original top-to-bottom order, then work
-  // upward from the lower edge so a dense cluster cannot spill below the plot.
-  ordered.forEach((label, index) => {
-    for (let previous = 0; previous < index; previous += 1) {
-      const above = ordered[previous];
-      if (overlapsX(label, above)) label.top = Math.max(label.top, above.top + above.height + gap);
-    }
-  });
-  for (let index = ordered.length - 1; index >= 0; index -= 1) {
-    const label = ordered[index];
-    label.top = Math.min(label.top, plotHeight - label.height);
-    for (let next = index + 1; next < ordered.length; next += 1) {
-      const below = ordered[next];
-      if (overlapsX(label, below)) label.top = Math.min(label.top, below.top - label.height - gap);
+// Home scatter: an intersecting pair gets equal, opposite vertical nudges.
+// Compare original boxes once so a nudge cannot start a chain of label moves.
+export function arrangeScatterLabels(boxes, plotHeight, gap = 1, maxNudge = 6) {
+  const offsets = boxes.map(() => 0);
+  for (let i = 0; i < boxes.length; i += 1) {
+    for (let j = i + 1; j < boxes.length; j += 1) {
+      const a = boxes[i], b = boxes[j];
+      const overlapsX = a.x < b.x + b.width && a.x + a.width > b.x;
+      const overlapsY = a.y < b.y + b.height && a.y + a.height > b.y;
+      if (!overlapsX || !overlapsY) continue;
+      const aAbove = a.y + a.height / 2 <= b.y + b.height / 2;
+      const upper = aAbove ? a : b, lower = aAbove ? b : a;
+      const overlap = upper.y + upper.height + gap - lower.y;
+      const nudge = Math.max(0, Math.min(overlap / 2, maxNudge,
+        upper.y, plotHeight - lower.y - lower.height));
+      offsets[i] += aAbove ? -nudge : nudge;
+      offsets[j] += aAbove ? nudge : -nudge;
     }
   }
 
-  // Return positions in source order, keeping isolated names at their natural
-  // location and allowing the renderer to connect only displaced labels.
-  return ordered.sort((a, b) => a.index - b.index).map(label => ({ ...label, top: Math.max(0, label.top) }));
+  // Limit the total movement too: a crowded cluster stays close to its points
+  // even when a name intersects several neighbors. Isolated names stay put.
+  return boxes.map((box, index) => ({ ...box, index,
+    top: Math.max(0, Math.min(plotHeight - box.height,
+      box.y + Math.max(-maxNudge, Math.min(maxNudge, offsets[index]))))
+  }));
 }

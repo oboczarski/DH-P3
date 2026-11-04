@@ -1922,13 +1922,6 @@ body[data-page="welcome"] .username-area::before {
   text-shadow: 0 0px 4px #000, 0 0px 3px #000, 0 0px 3px #000, 0 0px 3px #000;
 }
 
-/* Home scatter connectors are decorative and never intercept point interactions. */
-body[data-page="welcome"] .scatter-label-leaders {
-  pointer-events: none;
-  stroke-width: 0.8px;
-  stroke-opacity: 0.5;
-}
-
 .scatter-dot {
   transition: all 0.3s ease;
   cursor: pointer;
