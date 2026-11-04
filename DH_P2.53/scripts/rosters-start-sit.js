@@ -5,9 +5,12 @@
   'use strict';
   if (document.body.dataset.page !== 'rosters') return;
 
+  // Start/Sit's SVG progress rings and canvas scoring charts use explicit
+  // colors. Keep player two aligned with the blue .ss-side-1 CSS theme,
+  // including a desaturated blue for its faded unplayed-week designations.
   const PALETTES = [
     { main: '#76e8ef', light: '#d0fcff', mid: '#389ed7', deep: '#235777', muted: '#a2b7bb', rgb: '102,224,239' },
-    { main: '#be9bff', light: '#f0dfff', mid: '#8c66e0', deep: '#513888', muted: '#b2a8bf', rgb: '184,147,250' },
+    { main: '#9bc5ff', light: '#dfe3ff', mid: '#5493fa', deep: '#517fb2', muted: '#a5b1c1', rgb: '84,147,250' },
   ];
   const OVERVIEW = [
     { id: 'info', label: 'PLAYER INFO', stats: ['overall_rank', 'player_name', 'position', 'team', 'age'] },
