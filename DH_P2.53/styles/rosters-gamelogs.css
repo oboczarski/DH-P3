@@ -4199,11 +4199,10 @@ body[data-page="rosters"] #game-logs-modal {
 }
 
 body[data-page="rosters"] #game-logs-modal .modal-overlay {
-  background:
-    radial-gradient(circle at 18% 14%, rgba(91, 127, 255, 0.28), transparent 33%),
+  background: radial-gradient(circle at 18% 14%, rgba(91, 127, 255, 0.28), transparent 33%),
     radial-gradient(circle at 82% 18%, rgba(115, 244, 255, 0.14), transparent 28%),
     radial-gradient(circle at 50% 100%, rgba(219, 109, 255, 0.18), transparent 34%),
-    linear-gradient(180deg, rgba(4, 8, 15, 0.76), rgba(2, 5, 11, 0.94));
+    linear-gradient(180deg, rgba(4, 8, 15, 1), rgba(2, 5, 11, 1));
   backdrop-filter: blur(16px) saturate(140%) brightness(0.78);
   -webkit-backdrop-filter: blur(16px) saturate(140%) brightness(0.78);
 }
