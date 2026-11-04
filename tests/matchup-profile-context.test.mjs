@@ -65,8 +65,8 @@ for (const path of ['matchups/app.js', 'rosters/matchup-breakdown/modal.js']) {
     const source = read(path);
     const data = { selectResults: () => [
       { week: 9, player: 'Home Player', playerTeam: 'BUF', pos: 'QB', vs: 'vs WAS', playerVenue: 'home', defenseVenue: 'away', cents: 1200, pts: 12 },
-      { week: 8, player: 'Away Player', playerTeam: 'BUF', pos: 'QB', vs: '@ WAS', playerVenue: 'away', defenseVenue: 'home', cents: 1400, pts: 14 },
-    ], TEAM_NAMES: { BUF: 'Buffalo Bills' } };
+      { week: 8, player: 'Away Player', playerTeam: 'CIN', pos: 'QB', vs: '@ WAS', playerVenue: 'away', defenseVenue: 'home', cents: 1400, pts: 14 },
+    ], TEAM_NAMES: { BUF: 'Buffalo Bills', CIN: 'Cincinnati Bengals' } };
     const table = vm.createContext({ Data: data, state: { pos: 'QB', team: 'WAS',
       playerSort: { key: 'vs', direction: 'asc' } }, model: {},
       esc: value => value, logo: () => '', fmt: value => value.toFixed(1),
@@ -77,8 +77,10 @@ for (const path of ['matchups/app.js', 'rosters/matchup-breakdown/modal.js']) {
     const html = table.playersTable(rows);
     assert.match(html, />TM(?:<|\$)/);
     assert.match(html, />Location</);
-    assert.match(html, /class="playerOpponent">Home</);
-    assert.match(html, /class="playerOpponent">Away</);
+    assert.match(html, /class="playerOpponent">Home \(BUF\)</);
+    assert.match(html, /class="playerOpponent">Away \(CIN\)</);
+    assert.equal(table.playerLocation({ playerVenue: 'home', playerTeam: null }), 'Home');
+    assert.equal(table.playerLocation({ playerVenue: null, playerTeam: 'BUF' }), '—');
     assert.doesNotMatch(html, />Player VS<|>Offense<|>vs WAS<|>@ WAS</);
     table.state.playerSort.direction = 'desc';
     assert.equal(table.selectedPlayers()[0].player, 'Home Player');

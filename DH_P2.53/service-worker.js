@@ -118,7 +118,8 @@
 // Refresh single-line Rosters Ownership rows and truncated long names.
 // Refresh Rosters' stacked desktop player profile and viewport-sized modal.
 // Refresh always-visible matchup team columns and Rosters' upcoming-game/record profile.
-const CACHE_NAME = 'DH3.60-matchup-profile';
+// Refresh Players Faced location labels with each player's team abbreviation.
+const CACHE_NAME = 'DH3.60a-player-location-team';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
