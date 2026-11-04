@@ -78,7 +78,10 @@ export function build2026SourceData({ seasonRows, weeklyRows = {}, projectionRow
       };
     });
   }
-  return { rawRows, weeklyRows: resolvedWeeks, weeksWithResults, weeksOfData: get2026WeeksOfData(seasonRows) };
+  // The DataHub profile needs all 32 schedules for positional SOS. Expose the
+  // already-read maps separately; raw ranks and completed CSV rows stay intact.
+  return { rawRows, weeklyRows: resolvedWeeks, weeksWithResults, weeksOfData: get2026WeeksOfData(seasonRows),
+    scheduleByTeam: Object.fromEntries(schedule), defenseByTeam: Object.fromEntries(defense) };
 }
 
 // Keep DH loading independent of every modal-only source. A malformed weekly CSV,

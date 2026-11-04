@@ -1,9 +1,10 @@
+import { createDataHubGameLogsProfile, historicalSosSource } from "./datahub-gamelogs-profile.js?v=DH3.62-datahub-gamelogs-parity";
 import { get2026QualifierOptions } from "./datahub-stats-season.js";
 import { getDataHubStatsPeriodOptions, getDataHubWeeklyColumns, getDataHubWeeklyColumnGroups, getDataHubWeeklyTableSourceRows } from "./datahub-stats-period.js";
 import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSeasonRankQualified } from "./datahub-stats-positional-ranks.js";
 import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js";
-import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js?v=DH3.61i-team-yards-per-game";
+import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js?v=DH3.62-datahub-gamelogs-parity";
 import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames, isConsistencyProductionStat, getConsistencyAverageLabelCenter } from "./datahub-gamelogs-controls.js?v=DH3.53-rosters-gamelogs";
 
 // ---------------------------------------------------------------------------
@@ -12989,6 +12990,29 @@ function dataHubTeamPlayers(team) {
 let dataHubTeamTrigger = null;
 let dataHubTeamStatsPromise = null;
 let dataHubTeamViewRevision = 0;
+// DataHub owns the Rosters-style profile. All data comes from this page's
+// existing snapshots; the only extra request is current NFL week metadata.
+const dataHubGameLogsProfile = createDataHubGameLogsProfile({
+  modal: gameLogsModal, state, teamNames: dataHubTeamNames,
+  loadTeamStats: ensureDataHub2026TeamStatsLoaded, loadNflWeek: loadDataHubProfileNflWeek,
+  getOpponentDefenseRank: value => getDataHubOpponentDefenseRank(Number(value)),
+  getOpponentRankColor: (rank, direction) => getDataHubOpponentRankColor(direction === 'descending' ? 33 - rank : rank),
+  ordinalSuffix: rank => `${rank}${getDataHubOrdinalSuffix(rank)}`,
+});
+let dataHubProfileNflWeekPromise = null;
+function loadDataHubProfileNflWeek() {
+  return dataHubProfileNflWeekPromise ||= fetchDataHubJson(`${DATAHUB_SLEEper_API_BASE}/state/nfl`)
+    .then(info => String(info?.season) === '2026' && info?.season_type === 'regular'
+      && Number.isInteger(Number(info.week)) && Number(info.week) >= 1 && Number(info.week) <= 18 ? Number(info.week) : null)
+    .catch(() => { dataHubProfileNflWeekPromise = null; return null; });
+}
+// Profile records and the Team pane share a lazy, retryable TM_STAT read.
+function ensureDataHub2026TeamStatsLoaded() {
+  return dataHubTeamStatsPromise ||= load2026TeamStats({ parseCsv })
+    .then(teams => ({ teams, ranks: build2026TeamRanks(teams) }))
+    .catch(error => { dataHubTeamStatsPromise = null; throw error; });
+}
+
 function dataHubResetTeamView({ restoreFocus = false } = {}) {
   // Invalidate pending TM_STAT updates when leaving or closing the team pane.
   dataHubTeamViewRevision += 1;
@@ -13006,13 +13030,12 @@ async function dataHubUpdateTeamSummary(team, season, revision) {
   // can update only the same open team/season; failures remain retryable.
   if (season !== '2026') return;
   const summary = gameLogsModal.querySelector('.team-modal-summary');
+  const status = summary.querySelector('.team-modal-summary-status');
+  status.textContent = 'Loading team metrics…';
+  status.hidden = false;
   summary.setAttribute('aria-busy', 'true');
   try {
-    dataHubTeamStatsPromise ||= load2026TeamStats({ parseCsv }).then(teams => ({ teams, ranks: build2026TeamRanks(teams) })).catch(error => {
-      dataHubTeamStatsPromise = null;
-      throw error;
-    });
-    const { teams, ranks } = await dataHubTeamStatsPromise;
+    const { teams, ranks } = await ensureDataHub2026TeamStatsLoaded();
     if (revision !== dataHubTeamViewRevision || !gameLogsModal.classList.contains('is-team-view')) return;
     summary.querySelectorAll('[data-team-summary-stat]').forEach(node => {
       const key = node.dataset.teamSummaryStat;
@@ -13025,8 +13048,13 @@ async function dataHubUpdateTeamSummary(team, season, revision) {
       node.parentElement.querySelector('.team-modal-metric-rank').textContent = value != null && rank ? `(${rank})` : '';
     });
     summary.title = teams[team] ? '2026 team play rates and yards per game · TM_STAT' : 'Team stats unavailable in TM_STAT';
+    status.textContent = teams[team] ? '' : 'Team metrics unavailable.';
+    status.hidden = Boolean(teams[team]);
   } catch (error) {
-    if (revision === dataHubTeamViewRevision) summary.title = 'Team stats unavailable. Reopen the team view to retry.';
+    if (revision === dataHubTeamViewRevision) {
+      summary.title = 'Team stats unavailable. Reopen the team view to retry.';
+      status.textContent = 'Team metrics unavailable. Reopen to retry.';
+    }
     console.warn('Unable to load team summary.', error);
   } finally {
     summary.removeAttribute('aria-busy');
@@ -13099,7 +13127,7 @@ function dataHubOpenTeamView(trigger) {
   pane.querySelector('.team-modal-season').textContent = `${state.currentModalSeason} SEASON · PPR`;
   // Keep the requested team metrics in the existing subtitle. The 2026-only
   // source leaves historical values blank instead of displaying another season.
-  pane.querySelector('.team-modal-header').innerHTML = `<img class="team-modal-logo" src="${getDataHubTeamLogoSrc(team)}" alt="${team}" width="48" height="48"><div class="team-modal-heading"><h3 id="team-modal-title">${dataHubEscapeHtml(dataHubTeamNames[team])}</h3><p class="team-modal-summary" title="${state.currentModalSeason === '2026' ? '2026 team play rates and yards per game · TM_STAT' : 'TM_STAT team stats are available for 2026'}"><span class="team-modal-player-count">${players.length} players</span>${TEAM_SUMMARY_FIELDS.map(key => `<span class="team-modal-metric">${({ 'paYds/G': 'PaYPG', 'ruYds/G': 'RuYPG' })[key] || key} <strong data-team-summary-stat="${key}">—</strong> <span class="team-modal-metric-rank" data-team-summary-rank="${key}"></span></span>`).join('')}</p></div>`;
+  pane.querySelector('.team-modal-header').innerHTML = `<img class="team-modal-logo" src="${getDataHubTeamLogoSrc(team)}" alt="${team}" width="48" height="48"><div class="team-modal-heading"><h3 id="team-modal-title">${dataHubEscapeHtml(dataHubTeamNames[team])}</h3><p class="team-modal-summary" title="${state.currentModalSeason === '2026' ? '2026 team play rates and yards per game · TM_STAT' : 'TM_STAT team stats are available for 2026'}"><span class="team-modal-player-count">${players.length} players</span>${TEAM_SUMMARY_FIELDS.map(key => `<span class="team-modal-metric">${({ 'paYds/G': 'PaYPG', 'ruYds/G': 'RuYPG' })[key] || key}: <strong data-team-summary-stat="${key}">—</strong> <span class="team-modal-metric-rank" data-team-summary-rank="${key}"></span></span>`).join('')}<span class="team-modal-summary-status" role="status" aria-live="polite" hidden></span></p></div>`;
   const groupNames = { QB: 'Quarterbacks', RB: 'Running backs', WR: 'Wide receivers', TE: 'Tight ends' };
   const body = pane.querySelector('.team-modal-body');
   // DataHub team view stacks full-width QB/RB/WR/TE sections in a fixed order.
@@ -13417,6 +13445,7 @@ function openDataHubModal(season = state.statsSeason) {
 function closeDataHubModal() {
   dataHubResetTeamView();
   dataHubGameLogsRequestSeq += 1;
+  dataHubGameLogsProfile.invalidate();
   if (!gameLogsModal) {
     return;
   }
@@ -13483,6 +13512,7 @@ function isDataHubOwnershipOnlyModal() {
 }
 
 function openDataHubOwnershipOnlyModal() {
+  dataHubGameLogsProfile.invalidate();
   if (!gameLogsModal) {
     return;
   }
@@ -13537,7 +13567,7 @@ function syncDataHubGameLogsNavigation() {
   const navigation = resolveGameLogsNavigation(state.currentGameLogsView);
   const topView = navigation.content === "key" ? state.currentGameLogsKeyPeriod : navigation.topView;
   const isTeamView = gameLogsModal?.classList.contains("is-team-view");
-  const isOwnershipView = document.querySelector("#gamelogs-tab-pane")?.classList.contains("hidden");
+  const isOwnershipView = gameLogsModal?.classList.contains("is-ownership-view");
   gameLogsDock?.classList.toggle("hidden", Boolean(isOwnershipView));
   syncDataHubGameLogsSeasonToggleState(topView);
   gameLogsViewButtons.forEach((button) => {
@@ -13580,8 +13610,26 @@ function switchDataHubModalTab(tabKey) {
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-selected", isActive ? "true" : "false");
   });
+  // Veterans keep one live profile above both lower views. Direct rookie
+  // Ownership launches retain their original standalone header and skip logs.
+  const ownershipOnly = isDataHubOwnershipOnlyModal();
+  gameLogsModal.classList.toggle("is-ownership-view", resolvedTabKey === "ownership");
+  if (ownershipOnly) {
+    gameLogsModal.insertBefore(ownershipPane, gameLogsModal.querySelector("#gamelogs-team-pane"));
+    ownershipPane.setAttribute("role", "dialog");
+    ownershipPane.setAttribute("aria-modal", "true");
+    ownershipPane.setAttribute("aria-labelledby", "glOwnershipPlayerName");
+    ownershipPane.removeAttribute("aria-label");
+  } else {
+    if (ownershipPane.parentElement !== gameLogsPane) gameLogsPane.appendChild(ownershipPane);
+    ownershipPane.setAttribute("role", "region");
+    ownershipPane.setAttribute("aria-label", "Player ownership");
+    ownershipPane.removeAttribute("aria-modal");
+    ownershipPane.removeAttribute("aria-labelledby");
+    gameLogsPane.classList.remove("hidden");
+  }
   if (resolvedTabKey === "ownership") {
-    gameLogsPane.classList.add("hidden");
+    gameLogsPane.classList.toggle("hidden", ownershipOnly);
     ownershipPane.classList.remove("hidden");
     const playerId = String(state.currentGameLogsPlayer?.id || "").trim();
     if (playerId) {
@@ -13693,6 +13741,7 @@ async function openDataHubGameLogs(row, triggerButton = null, { season = state.s
   state.currentGameLogsPlayer = loadingPlayer;
   prepareDataHubModalForLoading(loadingPlayer);
   openDataHubModal(season);
+  dataHubGameLogsProfile.begin(loadingPlayer);
   state.currentGameLogsView = view;
   showDataHubLoadingPanel();
 
@@ -13820,7 +13869,7 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
   if (!state.seasonDataPromises[season]) {
     state.seasonDataPromises[season] = (async () => {
       await Promise.all([fetchDataHubSleeperPlayers(), ensureDataHubSupplementalData(), bootstrapDataHubUserContext()]);
-      let seasonStats, seasonRanks, weeklyStats;
+      let seasonStats, seasonRanks, weeklyStats, profileSource;
       if (season === "2026") {
         const source = await ensureDataHub2026Data();
         // Weekly CSV/DRK/schedule are modal-only dependencies. Reuse the DH snapshot so
@@ -13833,6 +13882,9 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
           scheduleUrl: new URL("../data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv", window.location.href),
         });
         source.weeklyRows = weeklySource.weeklyRows;
+        // Profile SOS retains the complete raw DRK/schedule maps from this same
+        // read. Defense display reversal never changes these underlying ranks.
+        profileSource = { scheduleByTeam: weeklySource.scheduleByTeam, defenseByTeam: weeklySource.defenseByTeam };
         if (Object.keys(weeklySource.weekErrors).length) {
           console.warn("DataHub skipped unavailable or invalid 2026 weeks:", weeklySource.weekErrors);
         }
@@ -13844,6 +13896,8 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
           fetchDataHubText(new URL(DATAHUB_COMPARISON_SEASON_RANKS_URL, window.location.href)),
           ...Array.from({ length: DATAHUB_MAX_WEEKS }, (_, index) => fetchDataHubText(new URL(`../data/NFL-2025_Stats/WeeklyStats/WK${index + 1}.csv`, window.location.href), { allowFailure: true })),
         ]);
+        // Historical SOS reuses the archive already fetched for these logs.
+        profileSource = historicalSosSource(weekTexts.map((text, index) => ({ week: index + 1, rows: parseCsv(text) })));
         seasonStats = parseDataHubSeasonStatsRows(parseCsv(seasonText));
         seasonRanks = parseDataHubSeasonRanksRows(parseCsv(rankText));
         weeklyStats = Object.fromEntries(weekTexts.map((text, index) => [index + 1, parseDataHubWeeklyStatsRows(parseCsv(text))]));
@@ -13861,7 +13915,8 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
       }));
       seasonRanks = computeDataHubComparisonSeasonRankSets(rankPlayers,
         getDataHubGameLogsQualifiedIds(season, latestRecordedWeek || getStatsElapsedWeeks(season))).positional;
-      const snapshot = { season, seasonStats, seasonRanks, weeklyStats, latestRecordedWeek };
+      profileSource = { ...profileSource, latestRecordedWeek };
+      const snapshot = { season, seasonStats, seasonRanks, weeklyStats, latestRecordedWeek, profileSource };
       state.seasonDataCache[season] = snapshot;
       rebuildStatsPositionalRanks();
       if (state.activePageView === "stats") refreshGrid();
@@ -14862,15 +14917,8 @@ function renderDataHubModalHeader(player, playerRanks) {
         </div>
       </div>
     `;
-    // DataHub Game Logs header parity:
-    // match the shared Rosters/Stats modal by sizing the vitals capsule to the
-    // rendered summary-chip row width after the chips exist in the DOM.
-    const playerVitalsElement = modalPlayerVitals?.querySelector(".player-vitals--modal");
-    const summaryChipsWidth = modalSummaryChips.offsetWidth;
-    if (playerVitalsElement && summaryChipsWidth > 0) {
-      playerVitalsElement.style.width = `${summaryChipsWidth}px`;
-    }
   }
+  dataHubGameLogsProfile.compose(player);
 }
 
 // DataHub modal parity:
@@ -15165,6 +15213,10 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
   const columnSizes = tableColumns.map((column) => Number.isFinite(column.size) ? column.size : DEFAULT_COLUMN_WIDTH);
   const totalColumns = tableColumns.length;
   const totalTableWidth = columnSizes.reduce((sum, size) => sum + size, 0);
+  // Enlarge only this modal's desktop columns with its text; mobile keeps the
+  // original widths. Include the wider week chip once in the full table width.
+  const scaledWidth = (size, week = false) => `calc(${size}px * var(--gamelogs-weekly-scale, 1)${week ? ' + var(--gamelogs-weekly-week-inset, 0px)' : ''})`;
+  const tableWidth = scaledWidth(totalTableWidth, true);
 
   const headerWrap = document.createElement("div");
   headerWrap.className = "game-logs-table-header";
@@ -15182,9 +15234,9 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
     // Weekly Game Logs use internal stat keys for unambiguous header help.
     setDataHubStatTooltip(th, column.id);
     const width = columnSizes[index] || DEFAULT_COLUMN_WIDTH;
-    th.style.width = `${width}px`;
-    th.style.minWidth = `${width}px`;
-    th.style.maxWidth = `${width}px`;
+    th.style.width = scaledWidth(width, index === 0);
+    th.style.minWidth = scaledWidth(width, index === 0);
+    th.style.maxWidth = scaledWidth(width, index === 0);
     headerRow.appendChild(th);
   });
   headerThead.appendChild(headerRow);
@@ -15214,9 +15266,9 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
         descriptor.render(td);
       }
       const width = columnSizes[columnIndex] || DEFAULT_COLUMN_WIDTH;
-      td.style.width = `${width}px`;
-      td.style.minWidth = `${width}px`;
-      td.style.maxWidth = `${width}px`;
+      td.style.width = scaledWidth(width, columnIndex === 0);
+      td.style.minWidth = scaledWidth(width, columnIndex === 0);
+      td.style.maxWidth = scaledWidth(width, columnIndex === 0);
       tr.appendChild(td);
     });
     bodyTbody.appendChild(tr);
@@ -15256,9 +15308,9 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
     // Season footer labels use the same help as their weekly columns.
     setDataHubStatTooltip(th, column.id === "week" ? "SZN" : column.id);
     const width = columnSizes[index] || DEFAULT_COLUMN_WIDTH;
-    th.style.width = `${width}px`;
-    th.style.minWidth = `${width}px`;
-    th.style.maxWidth = `${width}px`;
+    th.style.width = scaledWidth(width, index === 0);
+    th.style.minWidth = scaledWidth(width, index === 0);
+    th.style.maxWidth = scaledWidth(width, index === 0);
     footerHeaderRow.appendChild(th);
   });
   footerTfoot.appendChild(footerHeaderRow);
@@ -15270,17 +15322,17 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
     ? Math.round(seasonTotals.games_played)
     : gameLogsWithData.length;
   totalTh.innerHTML = `<span class="season-label">${state.currentModalSeason}</span><br><span class="gp-label">(GP: ${gamesPlayed})</span>`;
-  totalTh.style.width = `${columnSizes[0] || DEFAULT_COLUMN_WIDTH}px`;
-  totalTh.style.minWidth = `${columnSizes[0] || DEFAULT_COLUMN_WIDTH}px`;
-  totalTh.style.maxWidth = `${columnSizes[0] || DEFAULT_COLUMN_WIDTH}px`;
+  totalTh.style.width = scaledWidth(columnSizes[0] || DEFAULT_COLUMN_WIDTH, true);
+  totalTh.style.minWidth = scaledWidth(columnSizes[0] || DEFAULT_COLUMN_WIDTH, true);
+  totalTh.style.maxWidth = scaledWidth(columnSizes[0] || DEFAULT_COLUMN_WIDTH, true);
   footerRow.appendChild(totalTh);
 
   tableColumns.slice(1).forEach((column, index) => {
     const td = document.createElement("td");
     const width = columnSizes[index + 1] || DEFAULT_COLUMN_WIDTH;
-    td.style.width = `${width}px`;
-    td.style.minWidth = `${width}px`;
-    td.style.maxWidth = `${width}px`;
+    td.style.width = scaledWidth(width);
+    td.style.minWidth = scaledWidth(width);
+    td.style.maxWidth = scaledWidth(width);
     if (column.meta?.cellClass) {
       column.meta.cellClass.split(" ").forEach((className) => {
         if (className) td.classList.add(className);
@@ -15346,7 +15398,6 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
   footerWrap.appendChild(footerTable);
 
   if (Number.isFinite(totalTableWidth) && totalTableWidth > 0) {
-    const tableWidth = `${totalTableWidth}px`;
     headerTable.style.width = tableWidth;
     headerTable.style.minWidth = tableWidth;
     bodyTable.style.width = tableWidth;
@@ -15362,7 +15413,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
   // DataHub Weekly: the flex column must span the same full width as all
   // three tables. Otherwise its vertically scrolling body clips later stats
   // while the overflow-visible header/footer continue scrolling into view.
-  hContent.style.width = `${totalTableWidth}px`;
+  hContent.style.width = tableWidth;
   hContent.appendChild(headerWrap);
   hContent.appendChild(bodyWrap);
   hContent.appendChild(footerWrap);
@@ -16281,7 +16332,8 @@ const dataHubPlayerRadarLabelPlugin = {
     // the 13-axis rank suffixes from touching the outside stat/value groups.
     const compact = chart.width < 320;
     const mobile = window.matchMedia("(max-width: 640px)").matches;
-    const fontSize = compact ? (mobile ? 10 : 9) : chart.width < 420 ? 11 : 12;
+    const desktop = window.matchMedia("(min-width: 869px)").matches;
+    const fontSize = desktop ? (compact ? 11 : 13) : compact ? (mobile ? 10 : 9) : chart.width < 420 ? 11 : 12;
     ctx.save();
     ctx.font = `${fontSize}px "Product Sans", "Google Sans", sans-serif`;
     ctx.textBaseline = "middle";
@@ -16293,7 +16345,7 @@ const dataHubPlayerRadarLabelPlugin = {
       // center when several stats have unavailable or low positional ranks.
       // The enlarged mobile plot places ranks just inside their points so
       // centered outside labels retain a clear gap from the rank suffixes.
-      const offset = mobile ? -18 : sin < -0.3 ? 8 : (sin > 0.3 && Math.abs(cos) > 0.3 ? 13 : 15);
+      const offset = desktop ? -20 : mobile ? -18 : sin < -0.3 ? 8 : (sin > 0.3 && Math.abs(cos) > 0.3 ? 13 : 15);
       const rankRadius = Math.max(compact ? 34 : 40, scale.getDistanceFromCenterForValue(value) + offset);
       const radius = compact ? Math.min(scale.drawingArea * 0.95, rankRadius) : rankRadius;
       const x = scale.xCenter + cos * radius, y = scale.yCenter + sin * radius;
@@ -16327,8 +16379,9 @@ const dataHubPlayerRadarAxisLabelsPlugin = {
     const narrow = chart.width < 420;
     const compact = chart.width < 320;
     const mobile = window.matchMedia("(max-width: 640px)").matches;
-    const labelSize = mobile ? (compact ? 11 : 12) : compact ? 10 : narrow ? 11 : 12;
-    const valueSize = mobile ? (compact ? 10 : 11) : compact ? 9 : narrow ? 10 : 11;
+    const desktop = window.matchMedia("(min-width: 869px)").matches;
+    const labelSize = desktop ? (narrow ? 13 : 14) : mobile ? (compact ? 11 : 12) : compact ? 10 : narrow ? 11 : 12;
+    const valueSize = desktop ? (narrow ? 12 : 13) : mobile ? (compact ? 10 : 11) : compact ? 9 : narrow ? 10 : 11;
     const labelFont = `500 ${labelSize}px "Product Sans", "Google Sans", sans-serif`;
     const noteFont = `300 ${labelSize * 0.85}px "Product Sans", "Google Sans", sans-serif`;
     ctx.save();
@@ -16340,11 +16393,11 @@ const dataHubPlayerRadarAxisLabelsPlugin = {
       // the same text needs
       // only half its width outside the ring, leaving room for a larger plot.
       // Desktop retains its outward alignment and existing offsets.
-      const labelOffset = mobile ? (compact ? 8 : 10) : narrow ? 12 : 16;
+      const labelOffset = desktop ? 12 : mobile ? (compact ? 8 : 10) : narrow ? 12 : 16;
       const radius = scale.drawingArea + labelOffset
         + ((sin < 0 ? 2 : -3) + (compact ? 4 : 0)) * Math.pow(Math.abs(sin), 4);
       const x = scale.xCenter + cos * radius, y = scale.yCenter + sin * radius;
-      const align = mobile ? "center" : cos > 0.18 ? "left" : cos < -0.18 ? "right" : "center";
+      const align = mobile || desktop ? "center" : cos > 0.18 ? "left" : cos < -0.18 ? "right" : "center";
       const statKey = dataset.statKeys[index];
       ctx.font = labelFont;
       ctx.textAlign = align;
@@ -16399,7 +16452,12 @@ function renderDataHubRadarChart(playerId, position) {
   const ctx = canvas.getContext("2d");
   // Reserve room for both outside text lines at every canvas width. Chart.js
   // recalculates its radius on resize; label placement uses actual chart size.
-  const radarLayoutPadding = { top: 34, bottom: 36, left: 76, right: 76 };
+  // DataHub desktop Performance matches its larger modal text. Center labels
+  // and keep ranks inside the plot so they fit the narrower card on resize.
+  const desktopRadar = window.matchMedia("(min-width: 869px)").matches;
+  const radarLayoutPadding = desktopRadar
+    ? { top: 40, bottom: 44, left: 62, right: 62 }
+    : { top: 34, bottom: 36, left: 76, right: 76 };
   const scaleMax = 100;
 
   dataHubRadarChartInstance = new window.Chart(ctx, {
@@ -16427,11 +16485,12 @@ function renderDataHubRadarChart(playerId, position) {
     options: {
       responsive: true,
       // Mobile Performance reserves only half the centered label width on
-      // each side, enlarging the plot and text. Resize keeps phone rotation
-      // fitted; the desktop padding and plot dimensions remain unchanged.
+      // each side, enlarging the plot and text. Resize keeps both the phone
+      // and the larger desktop label groups fitted inside their canvas.
       onResize(chart, size) {
         const mobile = window.matchMedia("(max-width: 640px)").matches;
-        const sidePadding = mobile ? (size.width < 320 ? 42 : 46) : size.width < 320 ? 66 : 76;
+        const desktop = window.matchMedia("(min-width: 869px)").matches;
+        const sidePadding = desktop ? 62 : mobile ? (size.width < 320 ? 42 : 46) : size.width < 320 ? 66 : 76;
         chart.options.layout.padding.left = sidePadding;
         chart.options.layout.padding.right = sidePadding;
       },

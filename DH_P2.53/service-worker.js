@@ -132,7 +132,8 @@
 // Refresh Rosters/DataHub team-pane passing/rushing yards per game and ranks.
 // Refresh neighbor-aware home scatter nudges while preserving the small movement caps.
 // Refresh the reversed research gradients and matching, independently owned Consistency HUDs.
-const CACHE_NAME = 'DH3.61k-consistency-hud-palettes';
+// Refresh DataHub's independently owned Game Logs profile, shared Ownership header and desktop density.
+const CACHE_NAME = 'DH3.62-datahub-gamelogs-parity';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -155,6 +156,8 @@ const CORE_ASSET_PATHS = [
   '/styles/styles.css',
   '/styles/stats.css',
   '/styles/DataHub.css',
+  '/styles/datahub-gamelogs-profile.css',
+  '/styles/datahub-gamelogs-desktop.css',
   '/styles/dashboard.css',
   '/styles/rosters.css',
   // Rosters Game Logs owns its modal styling without loading DataHub.css.
@@ -179,6 +182,8 @@ const CORE_ASSET_PATHS = [
   '/scripts/DataHub.js',
   // DataHub's modal navigation/rank helpers ship with its standalone shell.
   '/scripts/datahub-gamelogs-controls.js',
+  '/scripts/datahub-gamelogs-profile.js',
+  '/scripts/datahub-gamelogs-sos.js',
   '/scripts/datahub-stats-positional-ranks.js',
   // DataHub imports its page key and table header glossary during startup.
   '/scripts/datahub-stats-help.js',

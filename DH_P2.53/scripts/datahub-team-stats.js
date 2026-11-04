@@ -26,6 +26,12 @@ export function build2026TeamStats(rows) {
       const value = raw ? Number(raw.replace(/[,%]/g, '')) : NaN;
       return [key, Number.isFinite(value) && value >= 0 ? value : null];
     }));
+    // The DataHub player-profile label shows the literal W-L record separately
+    // from ranked metrics. Missing/invalid records remain absent; ties survive.
+    if ('W-L' in row) {
+      const record = String(row['W-L'] ?? '').trim();
+      teams[team].record = /^\d+\s*-\s*\d+(?:\s*-\s*\d+)?$/.test(record) ? record.replace(/\s/g, '') : null;
+    }
   }
   return teams;
 }

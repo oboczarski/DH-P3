@@ -1,0 +1,188 @@
+/* DataHub Game Logs desktop density. Loaded after the profile theme so one
+   desktop layer owns the narrower card and readable content in every view.
+   All rules stay inside this modal and the established desktop breakpoint. */
+@media (min-width: 869px) {
+  body[data-page="datahub"] #game-logs-modal {
+    --gamelogs-desktop-width: min(660px, calc(100vw - 48px));
+    --gamelogs-weekly-scale: 1.25;
+    --gamelogs-weekly-week-inset: 8px;
+    font-size: 16px;
+    padding-block: 12px;
+  }
+  body[data-page="datahub"] #game-logs-modal:not(.hidden) #gamelogs-tab-pane {
+    --gamelogs-body-height: clamp(240px, calc(100dvh - 470px), 440px);
+    max-height: calc(100dvh - 210px);
+    padding: 14px 18px;
+  }
+
+  /* Keep the phone's stacked profile with larger text and usable actions.
+     The affiliation and upcoming matchup can take separate lines when a
+     record or player name needs room; summary cards retain equal columns. */
+  body[data-page="datahub"] #game-logs-modal #modal-header .gl-profile {
+    --profile-portrait-width: 76px;
+    --profile-identity-gap: 24px;
+    gap: 4px;
+  }
+  body[data-page="datahub"] #game-logs-modal .gl-profile-intro {
+    grid-template-columns: var(--profile-portrait-width) minmax(0, 1fr) 34px;
+    min-height: 56px;
+  }
+  body[data-page="datahub"] #game-logs-modal .gl-profile-portrait { height: 56px; }
+  body[data-page="datahub"] #game-logs-modal #modal-header .gl-profile #modal-player-name { font-size: 26px !important; }
+  body[data-page="datahub"] #game-logs-modal .gl-profile-byline { flex-wrap: wrap; gap: 5px 12px; margin-top: 5px; }
+  body[data-page="datahub"] #game-logs-modal .gl-profile-position { font-size: 16px; }
+  body[data-page="datahub"] #game-logs-modal :is(.gl-profile-team, .gl-profile-season) { font-size: 14px; }
+  body[data-page="datahub"] #game-logs-modal .gl-profile-team-logo { width: 21px; height: 21px; }
+  body[data-page="datahub"] #game-logs-modal .gl-profile-actions { gap: 8px; }
+  body[data-page="datahub"] #game-logs-modal #modal-header .gl-profile-actions .modal-close-btn {
+    flex-basis: 34px;
+    width: 34px !important;
+    height: 34px !important;
+    min-height: 34px;
+    font-size: 19px;
+    transform: none !important;
+  }
+  body[data-page="datahub"] #game-logs-modal #modal-header .gl-profile-actions .modal-close-btn { font-size: 27px !important; }
+  body[data-page="datahub"] #game-logs-modal #modal-header .gl-profile .gl-profile-vitals-list {
+    justify-content: space-between !important;
+    gap: 10px !important;
+  }
+  body[data-page="datahub"] #game-logs-modal .gl-profile .player-vitals__label { font-size: 11px; }
+  body[data-page="datahub"] #game-logs-modal .gl-profile .player-vitals__value { font-size: 13px; }
+  body[data-page="datahub"] #game-logs-modal .gl-profile-stat { padding: 8px 6px; }
+  body[data-page="datahub"] #game-logs-modal .gl-profile-stat-unit { font-size: 15px; }
+  body[data-page="datahub"] #game-logs-modal .gl-profile-stat-value { font-size: 22px; }
+  body[data-page="datahub"] #game-logs-modal .gl-profile-stat-ranks { font-size: 14px; }
+  body[data-page="datahub"] #game-logs-modal .gl-profile-schedule { min-height: 30px; font-size: 14px; }
+  body[data-page="datahub"] #game-logs-modal .gl-profile-schedule-position { font-size: 14px; }
+  body[data-page="datahub"] #game-logs-modal .gl-profile-schedule-logo { width: 19px; height: 19px; }
+  body[data-page="datahub"] #game-logs-modal .gl-profile-sos-metric strong { font-size: 15px; }
+  body[data-page="datahub"] #game-logs-modal .gl-profile-sos-help summary { width: 26px; height: 26px; }
+  body[data-page="datahub"] #game-logs-modal .gl-profile-sos-help svg { width: 15px; height: 15px; }
+  body[data-page="datahub"] #game-logs-modal .gl-profile-sos-help p { font-size: 13px; line-height: 1.5; }
+
+  /* Size the tab bar, period controls and detached dock as one control set.
+     Keep the dock inside the card's width and its popup menus scrollable. */
+  body[data-page="datahub"] #game-logs-modal > .gamelogs-modal-tabs .gamelogs-modal-tab { min-height: 38px; padding: 8px 28px !important; font-size: 15px !important; }
+  body[data-page="datahub"] #game-logs-modal #modal-header .gamelogs-nav-row { --datahub-gamelogs-nav-control-height: 36px; margin: 6px auto 10px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-season-toggle { width: 88px; min-width: 88px; font-size: 15px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-view-switcher { width: 348px !important; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-view-option { font-size: 14px; letter-spacing: 0; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-season-option { font-size: 15px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-season-option-year { font-size: inherit; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-dock { width: min(580px, var(--gamelogs-desktop-width)); margin-top: 8px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-nav-button { min-height: 60px; gap: 4px; font-size: 14px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-nav-button .datahub-modal-icon { width: 28px; height: 28px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-context-caption { font-size: 13px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-stat-mode { font-size: 11px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-stat-picker { flex-basis: 200px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-context-action { min-height: 38px; font-size: 14px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-stat-option { min-height: 40px; font-size: 14px; }
+
+  /* Weekly header/body/totals share the JS adapter's scaled column widths.
+     Larger values and opponent tags scroll horizontally together, with the
+     existing compact line gap retained inside each two-line week chip. */
+  body[data-page="datahub"] #game-logs-modal #modal-body .game-logs-table { font-size: 14px; }
+  body[data-page="datahub"] #game-logs-modal #modal-body .game-logs-table :is(th, td) { padding: 5px 4px; }
+  body[data-page="datahub"] #game-logs-modal #modal-body .game-logs-table th { font-size: 12px; }
+  body[data-page="datahub"] #game-logs-modal #modal-body .game-logs-table tfoot tr { font-size: 14px; }
+  body[data-page="datahub"] #game-logs-modal #modal-body .game-logs-table td.proj-cell { font-size: 12px; }
+  body[data-page="datahub"] #game-logs-modal #modal-body .game-logs-table td.week-cell { padding: 3px 2px; }
+  body[data-page="datahub"] #game-logs-modal .gamelog-week-tag { --week-tag-w: 70px; min-height: 32px; max-height: 32px; }
+  body[data-page="datahub"] #game-logs-modal .gamelog-week-tag-number { font-size: 12px; }
+  body[data-page="datahub"] #game-logs-modal :is(.gamelog-week-tag-opponent, .gamelog-week-tag-opponent-text, .gamelog-week-tag-rank, .gamelog-week-tag-separator) { font-size: 10px; }
+  body[data-page="datahub"] #game-logs-modal .modal-table-footer-label .season-label { font-size: 14px; }
+  body[data-page="datahub"] #game-logs-modal .modal-table-footer-label .gp-label { font-size: 11px; }
+  body[data-page="datahub"] #game-logs-modal .game-logs-table-footer .stat-rank-annotation { font-size: 11px; }
+  body[data-page="datahub"] #game-logs-modal .stat-rank-variant-gamelogs-footer sup.stat-rank-suffix-gamelogs-footer { font-size: 0.72em !important; }
+
+  /* Season bars get real columns for labels and values. Remove the legacy
+     negative bar margins so bigger ranks and numbers fit the narrower card. */
+  body[data-page="datahub"] #game-logs-modal .game-logs-szn-view { width: 100%; padding: 6px 8px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-szn-title { font-size: 16px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-szn-title-games { font-size: 13px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-szn-section-header { font-size: 14px; padding: 7px 10px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-szn-row { --szn-value-col: 100px; grid-template-columns: 92px minmax(0, 1fr) var(--szn-value-col); gap: 12px; min-height: 34px; padding: 5px 8px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-szn-label { font-size: 14px; letter-spacing: 0; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-szn-bar { width: 100%; height: 12px; margin: 0; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-szn-bar-rank { width: 34px; font-size: 14px; margin-left: 0; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-szn-value { font-size: 15px; }
+  body[data-page="datahub"] #game-logs-modal .gamelogs-szn-value.has-rank-annotation { margin-left: 0; }
+  body[data-page="datahub"] #game-logs-modal .stat-rank-variant-szn sup.stat-rank-suffix-szn { font-size: 0.72em !important; }
+
+  /* Career uses its existing width variables and shared row-height token so
+     frozen seasons and scrolling stats stay aligned at the larger type size. */
+  body[data-page="datahub"] #game-logs-modal .game-logs-career-view {
+    --career-season-col-width: 64px;
+    --career-team-col-width: 52px;
+    --career-games-col-width: 44px;
+    --career-stat-col-width: 54px;
+    --career-fantasy-value-col-width: 64px;
+    --career-fantasy-pos-rank-col-width: 60px;
+    --career-fantasy-ovr-rank-col-width: 50px;
+    --career-rate-col-width: 66px;
+    --career-wide-stat-col-width: 80px;
+    --career-team-logo-size: 30px;
+  }
+  body[data-page="datahub"] #game-logs-modal .career-stats-table-container { --career-body-row-height: 40px; }
+  body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-table { font-size: 13px; }
+  body[data-page="datahub"] #game-logs-modal #modal-body :is(.career-stats-group-header, .career-stats-header) { font-size: 12px; height: 34px; }
+  body[data-page="datahub"] #game-logs-modal :is(.career-stats-cell--fantasy-value, .career-stats-fantasy-rank, .career-stats-fantasy-pos-rank) { font-size: 13px; }
+  body[data-page="datahub"] #game-logs-modal .career-stats-fantasy-chip { height: 28px; }
+  body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-position-metric { grid-template-rows: 16px 12px; height: 28px; font-size: 13px; line-height: 16px; }
+  body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-position-metric__value { font-size: 13px; line-height: 16px; }
+  body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-position-metric__annotation { font-size: 12px; line-height: 12px; }
+  body[data-page="datahub"] #game-logs-modal #modal-body :is(.career-stats-position-metric__position, .career-stats-position-metric__rank) { font-size: 0.85em; }
+
+  /* Performance keeps its own canvas renderer; CSS gives the larger labels
+     a 420px plot surface that can scroll within short content areas. */
+  body[data-page="datahub"] #game-logs-modal #radar-chart-container .radar-chart-content { min-height: 420px; height: 420px; }
+  body[data-page="datahub"] #game-logs-modal #player-radar-canvas { height: 420px !important; max-height: none; padding: 0; }
+  body[data-page="datahub"] #game-logs-modal .stats-key-panel h4 { font-size: 15px; }
+  body[data-page="datahub"] #game-logs-modal .consistency-hud { gap: 10px; grid-template-columns: 104px minmax(0, 1fr) 104px; }
+  body[data-page="datahub"] #game-logs-modal .progress-circle { width: 100px; height: 100px; }
+  body[data-page="datahub"] #game-logs-modal .progress-ring { width: 100%; height: 100%; }
+  body[data-page="datahub"] #game-logs-modal .progress-value { font-size: 22px; }
+  body[data-page="datahub"] #game-logs-modal :is(.progress-label, .progress-caption, .hud-context, .metric-label, .hud-insight-label, .hud-eyebrow) { font-size: 11px; letter-spacing: 0; }
+  body[data-page="datahub"] #game-logs-modal :is(.metric-value, .hud-insight-value) { font-size: 16px; }
+  body[data-page="datahub"] #game-logs-modal .hud-metrics { gap: 20px; }
+  body[data-page="datahub"] #game-logs-modal .weekly-chart-box { min-height: 260px; }
+  body[data-page="datahub"] #game-logs-modal .weekly-zone-summary { gap: 6px; }
+  body[data-page="datahub"] #game-logs-modal .zone-chip { padding: 5px 7px; gap: 3px; }
+  body[data-page="datahub"] #game-logs-modal :is(.zone-chip-label, .zone-chip-threshold) { font-size: 10px; }
+  body[data-page="datahub"] #game-logs-modal .zone-chip-value { font-size: 12px; }
+  body[data-page="datahub"] #game-logs-modal .weekly-point-label__value { font-size: 13px; }
+  body[data-page="datahub"] #game-logs-modal :is(.weekly-point-label__suffix, .weekly-point-label__rank, .weekly-skip-label, .weekly-average__label) { font-size: 10px; }
+  body[data-page="datahub"] #game-logs-modal .weekly-chart-x-axis { font-size: 12px; }
+
+  /* Ownership retains single-line rows; Key stays a vertical list so larger
+     abbreviations and descriptions have room without colliding in columns. */
+  body[data-page="datahub"] #game-logs-modal #glOwnershipBody :is(.ownership-league-abbr, .ownership-league-name, .ownership-league-owner) { font-size: 14px; }
+  body[data-page="datahub"] #game-logs-modal #glOwnershipBody .ownership-league-row { min-height: 46px; padding: 10px 12px; }
+  body[data-page="datahub"] #game-logs-modal :is(.gl-exposure-label, .gl-exposure-context, .ownership-modal-section-subtitle) { font-size: 12px; }
+  body[data-page="datahub"] #game-logs-modal .ownership-modal-section-title { font-size: 16px; }
+  body[data-page="datahub"] #game-logs-modal .gl-exposure-values :is(.ownership-exposure-count, .ownership-exposure-pct) { font-size: 34px; }
+  body[data-page="datahub"] #game-logs-modal .stats-key-section-body { grid-template-columns: minmax(0, 1fr); gap: 5px; }
+  body[data-page="datahub"] #game-logs-modal .stats-key-section-header { font-size: 13px; }
+  body[data-page="datahub"] #game-logs-modal .stats-key-abbr { flex-basis: 96px; min-width: 96px; width: 96px; font-size: 13px; }
+  body[data-page="datahub"] #game-logs-modal .stats-key-desc { font-size: 14px; line-height: 1.45; }
+  body[data-page="datahub"] #game-logs-modal :is(.no-logs, .no-data-message, .career-stats-empty, .ownership-modal-empty, .ownership-modal-warning, .game-logs-loading-message) { font-size: 14px; }
+
+  /* Team remains a separate pane within this modal, with the same desktop
+     width and readable card text; its existing grouped navigation is retained. */
+  body[data-page="datahub"] #game-logs-modal.is-team-view .team-modal-pane { width: var(--gamelogs-desktop-width); }
+  body[data-page="datahub"] #game-logs-modal :is(.team-modal-back, .team-modal-season) { font-size: 12px; }
+  body[data-page="datahub"] #game-logs-modal .team-player-name { font-size: 14px; }
+  body[data-page="datahub"] #game-logs-modal .team-player-stat-label { font-size: 11px; }
+  body[data-page="datahub"] #game-logs-modal .team-player-stat-value { font-size: 14px; }
+}
+
+/* Preserve legibility on short desktop windows. Let the complete modal stack
+   scroll from its top, while inner tables/charts retain their own scroll areas;
+   never shrink the type back to the old small desktop sizes to make it fit. */
+@media (min-width: 869px) and (max-height: 680px) {
+  body[data-page="datahub"] #game-logs-modal { justify-content: flex-start; overflow-y: auto; }
+  body[data-page="datahub"] #game-logs-modal .modal-overlay { position: fixed; }
+  body[data-page="datahub"] #game-logs-modal > .gamelogs-modal-tabs { flex-shrink: 0; }
+  body[data-page="datahub"] #game-logs-modal:not(.hidden) #gamelogs-tab-pane { --gamelogs-body-height: min(360px, 55dvh); flex: 0 0 auto; max-height: none; }
+}

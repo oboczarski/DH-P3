@@ -24,7 +24,10 @@
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23060d16'/%3E%3Cpath d='M19 20.5h17.5c5.8 0 9.5 3.2 9.5 8.4 0 3.7-1.9 6.3-5.2 7.3 4.1.8 6.7 4 6.7 8.4 0 5.8-4 9.4-10.6 9.4H19V20.5Zm8.2 13.2h7c2.5 0 3.9-1.2 3.9-3.3 0-2.2-1.5-3.3-4.3-3.3h-6.7v6.6Zm0 13.9h7.8c2.9 0 4.5-1.3 4.5-3.7 0-2.4-1.7-3.7-4.8-3.7h-7.5v7.4Z' fill='%23dff5ff'/%3E%3C/svg%3E"
     />
     <!-- DataHub shell assets: keep the reference bundle intact and only repoint files for the DH-P3 page/script/style layout. -->
-    <link rel="stylesheet" href="../styles/DataHub.css?v=DH3.61k-consistency-hud-palettes" />
+    <link rel="stylesheet" href="../styles/DataHub.css?v=DH3.62-datahub-gamelogs-parity" />
+    <!-- DataHub owns its profile/Ownership layout and desktop Game Logs density. -->
+    <link rel="stylesheet" href="../styles/datahub-gamelogs-profile.css?v=DH3.62-datahub-gamelogs-parity" />
+    <link rel="stylesheet" href="../styles/datahub-gamelogs-desktop.css?v=DH3.62-datahub-gamelogs-parity" media="(min-width: 869px)" />
   </head>
   <body data-page="datahub">
     <!-- Decorative background layers for the standalone reference shell. -->
@@ -1247,13 +1250,47 @@
       </div>
 
       <div id="gamelogs-tab-pane" class="modal-content glass-panel gamelogs-tab-pane">
-        <button class="modal-close-btn" type="button" aria-label="Close modal">&times;</button>
         <div id="modal-header">
-          <h3 id="modal-player-name">Player Game Logs</h3>
-          <div id="modal-player-vitals"></div>
-          <div id="modal-summary-row">
-            <div id="modal-summary-chips"></div>
-          </div>
+          <!-- Compact DataHub header: vitals align with identity across the remaining
+               panel width; the portrait fills the space down to the summary divider. -->
+          <section class="gl-profile" aria-label="Player overview">
+            <div class="gl-profile-intro">
+              <div class="gl-profile-portrait" data-profile-portrait>
+                <!-- DataHub portrait: the decorative team watermark sits behind the
+                     headshot and stays hidden for unknown/free-agent teams. -->
+                <img class="gl-profile-watermark" data-profile-watermark alt="" aria-hidden="true" width="96" height="96" decoding="async" hidden />
+                <span class="gl-profile-monogram" data-profile-monogram aria-hidden="true">DH</span>
+                <img class="gl-profile-headshot" data-profile-headshot alt="" width="160" height="160" decoding="async" hidden />
+              </div>
+              <div class="gl-profile-identity">
+                <h3 id="modal-player-name">Player Game Logs</h3>
+                <div class="gl-profile-byline">
+                  <div class="gl-profile-affiliation" data-profile-affiliation></div>
+                  <span class="gl-profile-season" data-profile-season>Upcoming matchup —</span>
+                </div>
+              </div>
+              <div class="gl-profile-actions">
+                <button type="button" class="modal-close-btn" aria-label="Close Game Logs">&times;</button>
+              </div>
+            </div>
+            <div id="modal-player-vitals"></div>
+            <div id="modal-summary-row">
+              <div id="modal-summary-chips" aria-label="Player scoring and dynasty value">
+                <!-- Existing values and ranks are rendered by the Game Logs loader. -->
+              </div>
+            </div>
+            <div class="gl-profile-schedule" aria-label="Position-specific strength of schedule" aria-live="polite">
+              <!-- One SOS heading groups the selected season's completed schedule
+                   and ROS (rest of season); the year follows the season switcher. -->
+              <span class="gl-profile-schedule-position" data-profile-sos-position>SOS</span>
+              <div class="gl-profile-sos-metric"><span data-profile-sos-season>2026:</span><strong data-profile-sos="faced">—</strong></div>
+              <div class="gl-profile-sos-metric"><span title="Rest of season">ROS:</span><strong data-profile-sos="remaining">—</strong></div>
+              <details class="gl-profile-sos-help">
+                <summary aria-label="How strength of schedule is calculated"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7h.01"></path></svg></summary>
+                <p data-profile-sos-help>1 = easiest · 32 = toughest. Opponent defensive ranks against the player's position are averaged across each team's schedule, then compared across all 32 teams. ROS means rest of season. BYEs are excluded.</p>
+              </details>
+            </div>
+          </section>
           <div class="gamelogs-nav-row" aria-label="Game logs navigation">
             <div class="gamelogs-season-controls" role="group" aria-label="Season">
               <!-- DataHub Game Logs modal season controls:
@@ -1592,6 +1629,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
     <!-- Refresh Game Logs team-header per-game yardage values and NFL ranks. -->
-    <script type="module" src="../scripts/DataHub.js?v=DH3.61k-consistency-hud-palettes"></script>
+    <script type="module" src="../scripts/DataHub.js?v=DH3.62-datahub-gamelogs-parity"></script>
   </body>
 </html>

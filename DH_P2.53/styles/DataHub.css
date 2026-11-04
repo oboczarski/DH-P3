@@ -16999,3 +16999,12 @@ body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-label {
   body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-value { font-size: 0.82rem; }
   body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-label { font-size: 0.34rem; }
 }
+
+/* DataHub Team summary: loading/errors accompany the same four colon-ended
+   TM_STAT labels; status text never replaces or fabricates their stat values. */
+body[data-page="datahub"] #game-logs-modal .team-modal-summary-status { flex-basis: 100%; color: #a8c9f2; font-size: .9em; }
+body[data-page="datahub"] #game-logs-modal .team-modal-summary-status[hidden] { display: none; }
+
+/* DataHub Weekly: center the two week/opponent lines together within the
+   fixed-height chip, matching Rosters while leaving the tags noninteractive. */
+body[data-page="datahub"] #game-logs-modal .gamelog-week-tag { align-content: center; grid-auto-rows: max-content; }
