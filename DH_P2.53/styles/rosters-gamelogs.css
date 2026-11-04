@@ -3593,7 +3593,7 @@ body[data-page="rosters"] :where(#game-logs-modal) .weekly-chart-x-axis > span.a
 
 @media (max-width: 680px) {
   body[data-page="rosters"] #game-logs-modal .modal-content {
-    padding: 0.65rem 0.65rem 0.25rem !important;
+    padding: 0.65rem 0.85rem 0.25rem !important;
   }
 
   body[data-page="rosters"] #game-logs-modal .modal-close-btn {
