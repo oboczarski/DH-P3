@@ -120,7 +120,8 @@
 // Refresh always-visible matchup team columns and Rosters' upcoming-game/record profile.
 // Refresh Players Faced location labels with each player's team abbreviation.
 // Keep the Rosters profile team chevron visible after its record on phones.
-const CACHE_NAME = 'DH3.60b-team-chevron';
+// Refresh Rosters' narrower desktop Game Logs card and larger content scale.
+const CACHE_NAME = 'DH3.61-desktop-gamelogs-density';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -148,6 +149,7 @@ const CORE_ASSET_PATHS = [
   // Rosters Game Logs owns its modal styling without loading DataHub.css.
   '/styles/rosters-gamelogs.css',
   '/styles/rosters-gamelogs-profile.css',
+  '/styles/rosters-gamelogs-desktop.css',
   // Scoped Google Sans Flex assets keep the rest of the modal typography intact.
   '/assets/fonts/google-sans-flex/latin.woff2',
   '/assets/fonts/google-sans-flex/latin-ext.woff2',

@@ -356,17 +356,22 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
     const isExpandedReceivingTable = keys.includes('tgt_10_plus');
     const sizes = keys.map(key => key === 'first_down_rec_rate' && isExpandedReceivingTable
       ? 44 : ROSTERS_GAMELOG_COLUMN_WIDTHS[key] || 54);
-    const total = `${sizes.reduce((sum, size) => sum + size, 0)}px`;
+    // Rosters desktop enlarges weekly type and columns together. CSS owns the
+    // scale (mobile defaults to 1), so resizing preserves header/body/footer
+    // alignment without fetching data again or changing any comparison table.
+    // Include the wider week chip's padding once in the table total as well.
+    const scaledWidth = (size, includesWeek = false) => `calc(${size}px * var(--gamelogs-weekly-scale, 1)${includesWeek ? ' + var(--gamelogs-weekly-week-inset, 0px)' : ''})`;
+    const total = scaledWidth(sizes.reduce((sum, size) => sum + size, 0), true);
     // The body must span the same full scroll width as its header/totals.
     modal.querySelector('.game-logs-hscroll-content').style.width = total;
     modal.querySelectorAll('.game-logs-table').forEach(table => {
       table.style.width = total;
       table.style.minWidth = total;
-      table.querySelectorAll('colgroup col').forEach((col, index) => { col.style.width = `${sizes[index]}px`; });
+      table.querySelectorAll('colgroup col').forEach((col, index) => { col.style.width = scaledWidth(sizes[index], index === 0); });
       table.querySelectorAll('tr').forEach(row => {
         if (row.children.length !== headers.length) return;
         [...row.children].forEach((cell, index) => {
-          const width = `${sizes[index]}px`;
+          const width = scaledWidth(sizes[index], index === 0);
           Object.assign(cell.style, { width, minWidth: width, maxWidth: width });
           if (cell.tagName === 'TH') setStatHelp(cell, keys[index]);
         });
@@ -689,7 +694,8 @@ const rostersPlayerRadarLabelPlugin = {
     // the 13-axis rank suffixes from touching the outside stat/value groups.
     const compact = chart.width < 320;
     const mobile = window.matchMedia("(max-width: 640px)").matches;
-    const fontSize = compact ? (mobile ? 10 : 9) : chart.width < 420 ? 11 : 12;
+    const desktop = window.matchMedia("(min-width: 869px)").matches;
+    const fontSize = desktop ? (compact ? 11 : 13) : compact ? (mobile ? 10 : 9) : chart.width < 420 ? 11 : 12;
     ctx.save();
     ctx.font = `${fontSize}px "Product Sans", "Google Sans", sans-serif`;
     ctx.textBaseline = "middle";
@@ -701,7 +707,9 @@ const rostersPlayerRadarLabelPlugin = {
       // center when several stats have unavailable or low positional ranks.
       // The enlarged mobile plot places ranks just inside their points so
       // centered outside labels retain a clear gap from the rank suffixes.
-      const offset = mobile ? -18 : sin < -0.3 ? 8 : (sin > 0.3 && Math.abs(cos) > 0.3 ? 13 : 15);
+      // Desktop uses the mobile-style centered outer labels below; keep its
+      // larger rank text inside the plot so the two text groups stay separate.
+      const offset = desktop ? -20 : mobile ? -18 : sin < -0.3 ? 8 : (sin > 0.3 && Math.abs(cos) > 0.3 ? 13 : 15);
       const rankRadius = Math.max(compact ? 34 : 40, scale.getDistanceFromCenterForValue(value) + offset);
       const radius = compact ? Math.min(scale.drawingArea * 0.95, rankRadius) : rankRadius;
       const x = scale.xCenter + cos * radius, y = scale.yCenter + sin * radius;
@@ -735,8 +743,9 @@ const rostersPlayerRadarAxisLabelsPlugin = {
     const narrow = chart.width < 420;
     const compact = chart.width < 320;
     const mobile = window.matchMedia("(max-width: 640px)").matches;
-    const labelSize = mobile ? (compact ? 11 : 12) : compact ? 10 : narrow ? 11 : 12;
-    const valueSize = mobile ? (compact ? 10 : 11) : compact ? 9 : narrow ? 10 : 11;
+    const desktop = window.matchMedia("(min-width: 869px)").matches;
+    const labelSize = desktop ? (narrow ? 13 : 14) : mobile ? (compact ? 11 : 12) : compact ? 10 : narrow ? 11 : 12;
+    const valueSize = desktop ? (narrow ? 12 : 13) : mobile ? (compact ? 10 : 11) : compact ? 9 : narrow ? 10 : 11;
     const labelFont = `500 ${labelSize}px "Product Sans", "Google Sans", sans-serif`;
     const noteFont = `300 ${labelSize * 0.85}px "Product Sans", "Google Sans", sans-serif`;
     ctx.save();
@@ -747,12 +756,13 @@ const rostersPlayerRadarAxisLabelsPlugin = {
       // value's second line. Center mobile label/value pairs on each axis:
       // the same text needs
       // only half its width outside the ring, leaving room for a larger plot.
-      // Desktop retains its outward alignment and existing offsets.
-      const labelOffset = mobile ? (compact ? 8 : 10) : narrow ? 12 : 16;
+      // Desktop also centers its larger label/value groups. Combined with the
+      // responsive padding, this uses the available card width for the plot.
+      const labelOffset = desktop ? 12 : mobile ? (compact ? 8 : 10) : narrow ? 12 : 16;
       const radius = scale.drawingArea + labelOffset
         + ((sin < 0 ? 2 : -3) + (compact ? 4 : 0)) * Math.pow(Math.abs(sin), 4);
       const x = scale.xCenter + cos * radius, y = scale.yCenter + sin * radius;
-      const align = mobile ? "center" : cos > 0.18 ? "left" : cos < -0.18 ? "right" : "center";
+      const align = mobile || desktop ? "center" : cos > 0.18 ? "left" : cos < -0.18 ? "right" : "center";
       const statKey = dataset.statKeys[index];
       ctx.font = labelFont;
       ctx.textAlign = align;
@@ -810,7 +820,10 @@ window.renderPlayerRadarChart = function(playerId, position) {
   const ctx = canvas.getContext("2d");
   // Reserve room for both outside text lines at every canvas width. Chart.js
   // recalculates its radius on resize; label placement uses actual chart size.
-  const radarLayoutPadding = { top: 34, bottom: 36, left: 76, right: 76 };
+  const desktopRadar = window.matchMedia("(min-width: 869px)").matches;
+  const radarLayoutPadding = desktopRadar
+    ? { top: 40, bottom: 44, left: 62, right: 62 }
+    : { top: 34, bottom: 36, left: 76, right: 76 };
   const scaleMax = 100;
 
   container._chartInstance = new window.Chart(ctx, {
@@ -837,14 +850,17 @@ window.renderPlayerRadarChart = function(playerId, position) {
     },
     options: {
       responsive: true,
-      // Mobile Performance reserves only half the centered label width on
-      // each side, enlarging the plot and text. Resize keeps phone rotation
-      // fitted; the desktop padding and plot dimensions remain unchanged.
+      // Reserve half the centered label width on phones and desktop. Re-read
+      // the breakpoint on resize so the larger desktop labels and the phone
+      // layout each retain their own padding without rebuilding the chart.
       onResize(chart, size) {
         const mobile = window.matchMedia("(max-width: 640px)").matches;
-        const sidePadding = mobile ? (size.width < 320 ? 42 : 46) : size.width < 320 ? 66 : 76;
+        const desktop = window.matchMedia("(min-width: 869px)").matches;
+        const sidePadding = desktop ? (size.width < 420 ? 54 : 62) : mobile ? (size.width < 320 ? 42 : 46) : size.width < 320 ? 66 : 76;
         chart.options.layout.padding.left = sidePadding;
         chart.options.layout.padding.right = sidePadding;
+        chart.options.layout.padding.top = desktop ? 40 : 34;
+        chart.options.layout.padding.bottom = desktop ? 44 : 36;
       },
       maintainAspectRatio: false,
       events: [],
