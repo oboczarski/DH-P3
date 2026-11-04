@@ -672,30 +672,16 @@ function updateRostersConsistencyHud(data) {
       ? `${Math.round(data.ceilingRank)}<span class="ceiling-rank-suffix">${getRostersOrdinalSuffix(Math.round(data.ceilingRank))}</span>`
       : "NA";
   }
-  const consistencyCaptionEl = consistencyContainer.querySelector("[data-consistency-circle-caption]");
-  if (consistencyCaptionEl) consistencyCaptionEl.textContent = "CSTY RATE";
-  const ceilingCaptionEl = consistencyContainer.querySelector("[data-ceiling-circle-caption]");
-  if (ceilingCaptionEl) ceilingCaptionEl.textContent = "CL POS RANK";
-  const consistencyRing = consistencyContainer.querySelector(".progress-circle--consistency .progress-ring-fill");
-  const ceilingRing = consistencyContainer.querySelector(".progress-circle--ceiling .progress-ring-fill--ceiling");
   applyRostersRankStyling({
     rank: data?.consistencyRank,
     metricValueEl: consistencyRankEl,
     metricSubEl: null,
-    circleValueEl: consistencyCircleValue,
   });
-  if (consistencyRing) {
-    consistencyRing.setAttribute("stroke", getRostersRankAccentColor(data?.consistencyRank));
-  }
   applyRostersRankStyling({
     rank: data?.ceilingRank,
     metricValueEl: ceilingValueEl,
     metricSubEl: null,
-    circleValueEl: ceilingCircleValue,
   });
-  if (ceilingRing) {
-    ceilingRing.setAttribute("stroke", getRostersRankAccentColor(data?.ceilingRank));
-  }
   const cstyCountEl = consistencyContainer.querySelector("[data-insight-cstycount]");
   if (cstyCountEl) {
     const made = Number.isFinite(data?.solidHighCount) ? data.solidHighCount : null;
@@ -1350,22 +1336,41 @@ function renderRostersConsistencyPoints(data) {
   renderRostersConsistencyAverage(pointsLayer, data);
 }
 
+function styleRostersConsistencyDial(circle, progress, hasValue) {
+  if (!circle) return;
+  // Rosters HUD only: seven equal progress bands reverse the NFL Draft
+  // research palette (low pink through blue to high green). A real zero uses
+  // the low palette; missing values retain a neutral track and text instead.
+  const tones = ["pink", "magenta", "violet", "blue", "cyan", "teal", "green"];
+  circle.style.setProperty("--progress", String(progress));
+  circle.dataset.hasProgress = String(hasValue && progress > 0);
+  circle.dataset.dialTone = hasValue ? tones[Math.min(tones.length - 1, Math.floor(progress * tones.length))] : "neutral";
+}
+
 function hydrateRostersConsistencyProgressCircles(data) {
-  const consistencyCircle = document.querySelector(".progress-circle--consistency .progress-ring-fill");
+  // The rate uses its actual percentage; ceiling keeps its positional-rank
+  // normalization so rank 1 receives the strongest (green) palette. The same
+  // progress drives the arc, inner echo and endpoint without changing data.
+  const consistencyCircle = consistencyContainer?.querySelector(".progress-circle--consistency");
   const pctValue = data && Number.isFinite(data.consistencyPct)
     ? Math.max(0, Math.min(100, data.consistencyPct)) / 100
     : 0;
   if (consistencyCircle) {
-    consistencyCircle.style.setProperty("--progress", pctValue.toFixed(3));
+    styleRostersConsistencyDial(consistencyCircle, pctValue, Number.isFinite(data?.consistencyPct));
+    consistencyCircle.setAttribute("aria-label", `Season consistency rate: ${formatRostersHudPercentage(data?.consistencyPct)}`);
   }
-  const ceilingCircle = document.querySelector(".progress-circle--ceiling .progress-ring-fill--ceiling");
+  const ceilingCircle = consistencyContainer?.querySelector(".progress-circle--ceiling");
   if (ceilingCircle) {
     const rankMax = Math.max(2, data?.ceilingRankMax || 24);
     const rank = Number.isFinite(data?.ceilingRank) ? data.ceilingRank : rankMax;
     const normalized = Math.max(0, Math.min(1, (rankMax - rank) / (rankMax - 1)));
-    ceilingCircle.style.setProperty("--progress", normalized.toFixed(3));
+    styleRostersConsistencyDial(ceilingCircle, normalized, Number.isFinite(data?.ceilingRank));
+    ceilingCircle.setAttribute("aria-label", Number.isFinite(data?.ceilingRank)
+      ? `Ceiling positional rank: ${Math.round(data.ceilingRank)} of ${rankMax}`
+      : "Ceiling positional rank: no data");
   }
 }
+
 
 // Rosters HUD, chips and curve segments share the selected metric's zones.
 // Rank charts pass rank-space thresholds; FPTS retains scoring thresholds.

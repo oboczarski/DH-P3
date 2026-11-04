@@ -26,7 +26,7 @@
   <!-- Ownership modal styles (needed for watchlist → ownership flow) -->
   <link rel="stylesheet" href="../styles/ownership.css?v=DH3.1t-vi10" />
   <!-- Rosters Game Logs owns its complete responsive theme; it loads last to replace the older shared modal rules. -->
-  <link rel="stylesheet" href="../styles/rosters-gamelogs.css?v=DH3.59-desktop-modal-layout" />
+  <link rel="stylesheet" href="../styles/rosters-gamelogs.css?v=DH3.61k-consistency-hud-palettes" />
   <!-- Player profile styles apply only above the Rosters Game Logs navigation. -->
   <link rel="stylesheet" href="../styles/rosters-gamelogs-profile.css?v=DH3.60b-team-chevron" />
   <!-- Desktop Game Logs owns its content scale independently of comparison modals. -->
@@ -470,93 +470,75 @@
           </div>
           <!-- Top integrated HUD band -->
           <header class="consistency-hud">
-            <!-- Left: Consistency progress circle -->
-            <div class="hud-segment hud-segment--left">
-              <div class="progress-circle progress-circle--consistency" aria-label="Season Consistency Rate">
-                <svg viewBox="0 0 120 120" class="progress-ring">
-                  <defs>
-                    <linearGradient id="consistencyGradient" gradientUnits="userSpaceOnUse" x1="60" y1="14" x2="60" y2="106">
-                      <stop offset="0%" stop-color="#5300ff" />
-                      <stop offset="35%" stop-color="#5300ff" />
-                      <stop offset="65%" stop-color="#6900ff" />
-                      <stop offset="75%" stop-color="#7300ff" />
-                      <stop offset="90%" stop-color="#7B00ED" />
-                      <stop offset="100%" stop-color="#7B00EDCC" />
-                    </linearGradient>
-                  </defs>
-                  <circle class="progress-ring-track" cx="60" cy="60" r="46" />
-                  <circle class="progress-ring-fill" cx="60" cy="60" r="46" stroke="url(#consistencyGradient)" style="--progress: 0.667;" />
-                </svg>
-                <div class="progress-circle-inner">
-                  <div class="progress-value" data-consistency-circle-value>66.7%</div>
-                  <div class="progress-label">Consistency Rate</div>
-                  <div class="progress-caption" data-consistency-circle-caption>2025 CSTY RATE</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Center: Key stats -->
-            <div class="hud-segment hud-segment--center">
-              <div class="hud-player">
-                <div class="hud-context">
-                  <span data-week-range>Weeks 1–9</span>
-                  <span class="hud-context-divider">•</span>
-                  <span data-weeks-charted>9 weeks charted</span>
-                </div>
-              </div>
-              <div class="hud-metrics">
-                <div class="metric-block">
-                  <div class="metric-label">CSTY% POS RK</div>
-                  <div class="metric-primary metric-primary--single">
-                    <span class="metric-value metric-value--rank" data-consistency-rank>#11</span>
-                  </div>
-                </div>
-                <div class="metric-block">
-                  <div class="metric-label">Ceiling</div>
-                  <div class="metric-primary metric-primary--single">
-                    <span class="metric-value" data-ceiling-value>28.8</span>
+              <div class="hud-segment hud-segment--left">
+                <!-- Rosters HUD dials borrow the research hit-rate circles' layered
+                     arcs, tick marks and recessed cores. The page-local renderer
+                     supplies progress/palette colors; no research assets are loaded. -->
+                <div class="progress-circle progress-circle--consistency" role="img" aria-label="Season consistency rate: no data" data-has-progress="false">
+                  <span class="progress-dial-glow" aria-hidden="true"></span>
+                  <span class="progress-dial-arc" aria-hidden="true"></span>
+                  <span class="progress-dial-echo" aria-hidden="true"></span>
+                  <span class="progress-dial-origin" aria-hidden="true"></span>
+                  <span class="progress-dial-cap" aria-hidden="true"></span>
+                  <div class="progress-circle-inner" aria-hidden="true">
+                    <div class="progress-value" data-consistency-circle-value>—</div>
+                    <div class="progress-label">Consistency<br />Rate</div>
                   </div>
                 </div>
               </div>
-              <div class="hud-insights">
-	                <div class="summary-chip hud-insight">
-	                  <div class="hud-insight-label">CSTY Count</div>
-	                  <div class="hud-insight-value" data-insight-cstycount>10/11</div>
-	                </div>
-	                <div class="summary-chip hud-insight">
-	                  <div class="hud-insight-label">Big Game %</div>
-	                  <div class="hud-insight-value" data-insight-best>—</div>
-	                </div>
-	                <div class="summary-chip hud-insight">
-	                  <div class="hud-insight-label">Last 5 Avg</div>
-	                  <div class="hud-insight-value" data-insight-last5>24.1 fpts</div>
-	                </div>
-	              </div>
-            </div>
 
-            <!-- Right: Ceiling positional ranking circle -->
-            <div class="hud-segment hud-segment--right">
-              <div class="progress-circle progress-circle--ceiling" aria-label="Ceiling Positional Rank">
-                <svg viewBox="0 0 120 120" class="progress-ring">
-                  <defs>
-                    <linearGradient id="ceilingGradient" gradientUnits="userSpaceOnUse" x1="60" y1="14" x2="60" y2="106">
-                        <stop offset="0%" stop-color="#00b2fe" />
-                        <stop offset="40%" stop-color="#00b2fe" />
-                        <stop offset="65%" stop-color="#4faafe" />
-                        <stop offset="100%" stop-color="#4faafecc" />
-                    </linearGradient>
-                  </defs>
-                  <circle class="progress-ring-track" cx="60" cy="60" r="46" />
-                  <circle class="progress-ring-fill progress-ring-fill--ceiling" cx="60" cy="60" r="46" stroke="url(#ceilingGradient)" style="--progress: 0.842;" />
-                </svg>
-                <div class="progress-circle-inner">
-                  <div class="progress-value" data-ceiling-circle-rank>4<span class="ceiling-rank-suffix">th</span></div>
-                  <div class="progress-label">Ceiling<br> Rank</div>
-                  <div class="progress-caption" data-ceiling-circle-caption>2025 CL POS RANK</div>
+              <div class="hud-segment hud-segment--center">
+                <div class="hud-player">
+                  <div class="hud-context">
+                    <span data-week-range>Weeks 1–9</span>
+                    <span class="hud-context-divider">•</span>
+                    <span data-weeks-charted>9 weeks charted</span>
+                  </div>
+                </div>
+                <div class="hud-metrics">
+                  <div class="metric-block">
+                    <div class="metric-label">CSTY% POS RK</div>
+                    <div class="metric-primary metric-primary--single">
+                      <span class="metric-value metric-value--rank" data-consistency-rank>#11</span>
+                    </div>
+                  </div>
+                  <div class="metric-block">
+                    <div class="metric-label">Ceiling</div>
+                    <div class="metric-primary metric-primary--single">
+                      <span class="metric-value" data-ceiling-value>28.8</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="hud-insights">
+                  <div class="summary-chip hud-insight">
+                    <div class="hud-insight-label">CSTY Count</div>
+                    <div class="hud-insight-value" data-insight-cstycount>10/11</div>
+                  </div>
+                  <div class="summary-chip hud-insight">
+                    <div class="hud-insight-label">Big Game %</div>
+                    <div class="hud-insight-value" data-insight-best>—</div>
+                  </div>
+                  <div class="summary-chip hud-insight">
+                    <div class="hud-insight-label">Last 5 Avg</div>
+                    <div class="hud-insight-value" data-insight-last5>24.1 fpts</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </header>
+
+              <div class="hud-segment hud-segment--right">
+                <div class="progress-circle progress-circle--ceiling" role="img" aria-label="Ceiling positional rank: no data" data-has-progress="false">
+                  <span class="progress-dial-glow" aria-hidden="true"></span>
+                  <span class="progress-dial-arc" aria-hidden="true"></span>
+                  <span class="progress-dial-echo" aria-hidden="true"></span>
+                  <span class="progress-dial-origin" aria-hidden="true"></span>
+                  <span class="progress-dial-cap" aria-hidden="true"></span>
+                  <div class="progress-circle-inner" aria-hidden="true">
+                    <div class="progress-value" data-ceiling-circle-rank>—</div>
+                    <div class="progress-label">Ceiling<br />Rank</div>
+                  </div>
+                </div>
+              </div>
+            </header>
 
           <!-- Chart container -->
           <section class="consistency-chart-shell">
@@ -726,7 +708,7 @@
   <script defer="True" src="../scripts/app.js?v=DH3.60a-player-location-team"></script>
   <script defer="True" src="../scripts/rosters-2026-gamelogs.js?v=DH3.55-qualifier-ranks"></script>
   <script defer src="../scripts/rosters-gamelogs-controls.js?v=DH3.53-rosters-gamelogs"></script>
-  <script defer src="../scripts/rosters-gamelogs-consistency.js?v=DH3.53-rosters-gamelogs"></script>
+  <script defer src="../scripts/rosters-gamelogs-consistency.js?v=DH3.61k-consistency-hud-palettes"></script>
   <script defer src="../scripts/rosters-gamelogs.js?v=DH3.61i-team-yards-per-game"></script>
   <script defer src="../scripts/rosters-gamelogs-profile.js?v=DH3.60-matchup-profile"></script>
   <script defer src="../scripts/rosters-start-sit.js?v=DH3.61d-comparison-player-two-blue"></script>

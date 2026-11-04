@@ -131,7 +131,8 @@
 // Refresh the home scatter's small, opposite label nudges and removed connectors.
 // Refresh Rosters/DataHub team-pane passing/rushing yards per game and ranks.
 // Refresh neighbor-aware home scatter nudges while preserving the small movement caps.
-const CACHE_NAME = 'DH3.61j-scatter-neighbor-clearance';
+// Refresh the reversed research gradients and matching, independently owned Consistency HUDs.
+const CACHE_NAME = 'DH3.61k-consistency-hud-palettes';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
