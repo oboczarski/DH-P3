@@ -161,8 +161,10 @@ body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-play
 body[data-page="rosters"] #game-logs-modal .gl-profile-byline {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
-  gap: 0 8px;
+  /* Rosters identity: let the longer record/matchup byline wrap on phones
+     while keeping the team action and the watchlist/close controls usable. */
+  flex-wrap: wrap;
+  gap: 3px 8px;
   margin-top: 2px;
 }
 body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .gl-profile-affiliation-content { position: static !important; display: flex !important; align-items: center !important; gap: 7px !important; }
@@ -188,7 +190,8 @@ body[data-page="rosters"] #game-logs-modal .gl-profile-team {
 body[data-page="rosters"] #game-logs-modal .gl-profile-team:disabled { cursor: default; }
 body[data-page="rosters"] #game-logs-modal .gl-profile-team-logo {width: 18px;height: 18px;object-fit: contain;}
 body[data-page="rosters"] #game-logs-modal .gl-profile-team-arrow { width: 9px; height: 9px; fill: none; stroke: #7988a4; stroke-width: 1.6; }
-body[data-page="rosters"] #game-logs-modal .gl-profile-season {padding-left: 8px;border-left: 1px solid #9eacc52e;color: #77849d;font-size: 12px;text-wrap-mode: nowrap;}
+body[data-page="rosters"] #game-logs-modal .gl-profile-season {padding-left: 8px;border-left: 1px solid #9eacc52e;color: #77849d;font-size: 12px;}
+body[data-page="rosters"] #game-logs-modal .gl-profile-matchup-rank { white-space: nowrap; }
 
 body[data-page="rosters"] #game-logs-modal .gl-profile-actions {display: flex;align-items: center;justify-content: end;gap: 14px;transform: translate(5px, -10px);}
 body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile-actions :is(#watchlist-modal-toggle, .modal-close-btn) {
@@ -267,6 +270,11 @@ body[data-page="rosters"] #game-logs-modal .gl-profile-rank-label {color: #6e7c9
    periods. Insets and dividers provide hierarchy without increasing row height. */
 body[data-page="rosters"] #game-logs-modal .gl-profile-schedule {grid-area: schedule;display: flex;align-items: center;justify-content: center;gap: 0;min-width: 0;min-height: 23px;color: #8794ac;font-size: 11px;line-height: 1;}
 body[data-page="rosters"] #game-logs-modal .gl-profile-schedule-position {flex: 0 0 auto;padding-right: 10px;color: #b0bed5;font-size: 13px;font-weight: 500;letter-spacing: 0;}
+/* SOS's team logo precedes its abbreviation; the position retains the same
+   conditional colors as the identity row without inheriting its larger font. */
+body[data-page="rosters"] #game-logs-modal .gl-profile-schedule-position { display: inline-flex; align-items: center; gap: 3px; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-schedule-logo { width: 16px; height: 16px; object-fit: contain; flex: 0 0 auto; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-schedule-position .gl-profile-position { font: inherit; letter-spacing: inherit; }
 body[data-page="rosters"] #game-logs-modal .gl-profile-sos-metric { display: flex; align-items: baseline; gap: 5px; padding: 0 10px; border-left: 1px solid #9eacc52e; white-space: nowrap; }
 /* SOS values use the existing easy-to-tough rank palette from app.js. The
    superscript shares its number's color; unavailable ranks remain neutral. */
@@ -299,8 +307,8 @@ body[data-page="rosters"] #game-logs-modal .gl-profile :is(button, summary):focu
 }
 
 @media (max-width: 359px) {
-  /* Narrow phones retain the original portrait footprint so the season stays
-     beside the team and the watermark adds no extra header line. */
+  /* Narrow phones retain the original portrait footprint; the matchup can
+     wrap below the team without hiding any identity text or actions. */
   body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile { --profile-portrait-width: 40px; --profile-identity-gap: 6px; }
   body[data-page="rosters"] #game-logs-modal .gl-profile-intro { min-height: 40px; }
   body[data-page="rosters"] #game-logs-modal .gl-profile-portrait { --profile-headshot-base-width: 100%; height: 40px; }

@@ -25,6 +25,12 @@ export function build2026TeamStats(rows) {
       const value = raw ? Number(raw.replace(/[,%]/g, '')) : NaN;
       return [key, Number.isFinite(value) && value >= 0 ? value : null];
     }));
+    // Rosters' player-profile team label reads the literal W-L record. Keep
+    // it separate from numeric/ranked metrics, including optional tie counts.
+    if ('W-L' in row) {
+      const record = String(row['W-L'] ?? '').trim();
+      teams[team].record = /^\d+\s*-\s*\d+(?:\s*-\s*\d+)?$/.test(record) ? record.replace(/\s/g, '') : null;
+    }
   }
   return teams;
 }

@@ -371,8 +371,11 @@ table:where(#playerTable) { width:100%; border-collapse:separate; border-spacing
 :where(#playerTable) .emptyState strong { display:block; color:#bdc1d8; font-size:12px; margin-bottom:4px; font-weight:500; }
 :where(#playerTable) .emptyState button { margin-top:7px; padding:4px 7px; border:1px solid var(--border); background:#aabbff10; border-radius:6px; font-size:10px; }
 .playerTable:where(#playerTable) th { padding:3px 5px; font-size:9px; }
+/* Rosters Players Faced retains TM at every width, including expanded rows.
+   Let player names wrap on narrow phones instead of removing the team. */
+.playerTable:where(#playerTable, #expandedTable) .offenseColumn { display:table-cell; }
 @media (max-width:400px) {
-.playerTable:where(#playerTable) .offenseColumn { display:none; }
+.playerTable:where(#playerTable) td:nth-child(2) { white-space:normal; overflow-wrap:anywhere; }
 }
 @media (max-width:400px) {
 :where(#playerTable) .playerName { font-size:9px; }
@@ -410,9 +413,6 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 :where(#expandedTable) .emptyState strong { display:block; color:#bdc1d8; font-size:12px; margin-bottom:4px; font-weight:500; }
 :where(#expandedTable) .emptyState button { margin-top:7px; padding:4px 7px; border:1px solid var(--border); background:#aabbff10; border-radius:6px; font-size:10px; }
 .playerTable:where(#expandedTable) th { padding:3px 5px; font-size:9px; }
-@media (max-width:400px) {
-.playerTable:where(#expandedTable) .offenseColumn { display:none; }
-}
 @media (max-width:400px) {
 :where(#expandedTable) .playerName { font-size:9px; }
 }

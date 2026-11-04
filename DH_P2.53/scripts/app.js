@@ -2654,7 +2654,7 @@ function getRostersMatchupController() {
     if (pageType !== 'rosters') return Promise.reject(new Error('Matchup Breakdown belongs to Rosters.'));
     if (!rostersMatchupsModulePromise) {
         // Start/Sit and Weekly opponent tags share this Rosters-owned panel.
-        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.58-per-game-summary-chips')
+        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.60-matchup-profile')
             .then(({ createMatchupBreakdown }) => {
                 rostersMatchups = createMatchupBreakdown({
                     // The matchup header uses the clicked log's week or the active

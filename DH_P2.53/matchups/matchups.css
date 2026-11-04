@@ -1261,8 +1261,10 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td:last-child { width:46px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerFilters { gap:7px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerFooter { font-size:8px; }
+  /* Players Faced keeps TM visible on phones; names may wrap to make room. */
+  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable .offenseColumn { display:table-cell; }
   @media (max-width: 400px) {
-  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable .offenseColumn { display:none; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td:nth-child(2) { white-space:normal; overflow-wrap:anywhere; }
   }
   @media (max-width: 400px) {
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerName { font-size:9px; }

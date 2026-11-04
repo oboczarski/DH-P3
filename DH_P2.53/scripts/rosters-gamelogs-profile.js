@@ -11,6 +11,93 @@
   const headshot = find('[data-profile-headshot]');
   let sosModule = null, revision = 0, historicalPending = null;
   const rankCache = new WeakMap();
+  const profileTeam = team => {
+    const key = String(team || 'FA').trim().toUpperCase();
+    return ({ WSH: 'WAS', JAC: 'JAX', LA: 'LAR' })[key] || key;
+  };
+
+  function profileContext(player) {
+    const snapshot = state.currentGameLogsSeason === '2026' ? state.rosters2026GameLogs : state.rosters2025GameLogs;
+    return {
+      team: profileTeam(snapshot?.seasonStats?.[player?.id]?.team || player?.team || state.players?.[player?.id]?.team),
+      pos: String(player?.pos || player?.position || state.players?.[player?.id]?.position || '').toUpperCase()
+    };
+  }
+
+  // The current-season profile uses the upcoming NFL week, with the recorded
+  // CSV cutoff + 1 as a fallback. BYEs stay on that week rather than skipping
+  // to a later game. Read only schedule/DRK; projections never advance it.
+  function upcomingProfileMatchup(source, team, pos, currentWeek) {
+    const cutoff = source?.latestRecordedWeek;
+    if (!Number.isInteger(cutoff) || cutoff < 0 || cutoff > 18) return null;
+    if (cutoff === 18) return { complete: true };
+    const week = Number.isInteger(currentWeek) && currentWeek > cutoff && currentWeek <= 18 ? currentWeek : cutoff + 1;
+    const opponent = String(source.scheduleByTeam?.[team]?.[week] || '').trim();
+    if (/^BYE$/i.test(opponent)) return { week, opponent: 'BYE', rank: null };
+    const match = /^(vs\.?|@)\s*([A-Z]{2,3})$/i.exec(opponent);
+    if (!match) return { week, opponent: '—', rank: null };
+    const opponentTeam = profileTeam(match[2]);
+    const rank = getOpponentDefenseRank(source.defenseByTeam?.[opponentTeam]?.[`${pos}RK`]);
+    return { week, opponent: `${match[1] === '@' ? '@' : 'vs'} ${opponentTeam}`, rank };
+  }
+
+  function renderUpcomingMatchup(player) {
+    const node = find('[data-profile-season]');
+    node.removeAttribute('title');
+    // Historical views keep their season label and never borrow a 2026 game.
+    if (state.currentGameLogsSeason !== '2026') {
+      node.textContent = `${state.currentGameLogsSeason} season`;
+      return;
+    }
+    const { team, pos } = profileContext(player);
+    const matchup = upcomingProfileMatchup(state.rosters2026GameLogs, team, pos, getCurrentNflWeekNumber());
+    node.textContent = !matchup ? 'Upcoming matchup —' : matchup.complete ? 'Season complete' : `WK·${matchup.week} ${matchup.opponent}`;
+    if (!matchup || matchup.complete || ['BYE', '—'].includes(matchup.opponent)) return;
+    const rank = document.createElement('span');
+    rank.className = 'gl-profile-matchup-rank';
+    rank.textContent = matchup.rank == null ? '(—)' : `(${ordinalSuffix(matchup.rank)})`;
+    // Match the Weekly opponent tags: 1 is strongest, 32 weakest. Only the
+    // displayed rank is reversed; the source DRK and SOS directions stay intact.
+    if (matchup.rank != null) rank.style.color = getOpponentRankColor(matchup.rank);
+    rank.title = matchup.rank == null ? `Defense rank vs ${pos} unavailable`
+      : `Defense vs ${pos}: ${matchup.rank} of 32 · 1 strongest, 32 weakest`;
+    node.append(' ', rank);
+  }
+
+  function renderScheduleHeading(team, pos) {
+    // The SOS prefix keeps its own logo and reuses the profile's exact position
+    // palette. Text nodes keep unknown/free-agent teams safe and logo-free.
+    const heading = find('[data-profile-sos-position]');
+    const position = document.createElement('span');
+    position.className = 'gl-profile-position';
+    position.dataset.pos = pos;
+    position.textContent = pos;
+    heading.replaceChildren();
+    if (team !== 'FA' && Object.hasOwn(TEAM_COLORS, team)) {
+      const image = document.createElement('img');
+      image.className = 'gl-profile-schedule-logo';
+      image.src = `../assets/NFL_logos_svg/${team.toLowerCase()}.svg`;
+      image.alt = '';
+      image.width = image.height = 16;
+      heading.append(image);
+    }
+    heading.append(document.createTextNode(`${team} `), position, document.createTextNode(' SOS'));
+  }
+
+  async function renderTeamRecord(label, team, token) {
+    const season = state.currentGameLogsSeason;
+    if (season !== '2026' || team === 'FA' || !Object.hasOwn(TEAM_COLORS, team)) return;
+    try {
+      const { teams } = await window.ensureRosters2026TeamStatsLoaded();
+      // Switching player/season or closing while TM_STAT loads must not add a
+      // previous team's record to the next header. Missing records stay absent.
+      if (token !== revision || season !== state.currentGameLogsSeason || !label.isConnected || modal.classList.contains('hidden')) return;
+      const record = teams[team]?.record;
+      label.textContent = record ? `${team} (${record})` : team;
+    } catch (error) {
+      console.warn('Rosters player profile team record unavailable.', error);
+    }
+  }
 
   // Rosters' portrait fills the space left of the identity/vitals rows. Lower
   // its bottom to the summary divider and add exactly that distance to its
@@ -58,7 +145,7 @@
     if (Object.hasOwn(TEAM_COLORS, teamKey) && teamKey !== 'FA') watermark.src = `../assets/NFL_logos_svg/${teamKey.toLowerCase()}.svg`;
     profile.dataset.playerId = String(player?.id || '');
     find('#modal-player-name').textContent = name;
-    find('[data-profile-season]').textContent = `${state.currentGameLogsSeason} season`;
+    renderUpcomingMatchup(player);
     find('[data-profile-monogram]').textContent = name.split(/\s+/).filter(Boolean).map(word => word[0]).slice(0, 2).join('');
     // Replace the image element per player so a late load/error from an old
     // portrait cannot reveal or hide the next player's headshot. Initials stay
@@ -75,13 +162,10 @@
   }
 
   function resetSchedule(player) {
-    const pos = player?.pos || player?.position || state.players?.[player?.id]?.position || '';
     // Prefix SOS with the selected season's team and the player's position;
     // the async result below confirms the same context used for both ranks.
-    const snapshot = state.currentGameLogsSeason === '2026' ? state.rosters2026GameLogs : state.rosters2025GameLogs;
-    const rawTeam = String(snapshot?.seasonStats?.[player?.id]?.team || player?.team || state.players?.[player?.id]?.team || 'FA').toUpperCase();
-    const team = ({ WSH: 'WAS', JAC: 'JAX', LA: 'LAR' })[rawTeam] || rawTeam;
-    find('[data-profile-sos-position]').textContent = [team, pos, 'SOS'].filter(Boolean).join(' ');
+    const { team, pos } = profileContext(player);
+    renderScheduleHeading(team, pos);
     find('[data-profile-sos-season]').textContent = `${state.currentGameLogsSeason}:`;
     find('.gl-profile-schedule').setAttribute('aria-label', `${team} ${pos} strength of schedule; ${state.currentGameLogsSeason} so far and rest of season`.trim());
     profile.querySelectorAll('[data-profile-sos]').forEach(node => {
@@ -120,7 +204,7 @@
       const team = module.canonicalSosTeam(source === state.rosters2026GameLogs
         ? source?.seasonStats?.[player.id]?.team || player.team
         : state.rosters2025GameLogs?.seasonStats?.[player.id]?.team || player.team);
-      find('[data-profile-sos-position]').textContent = [team, pos, 'SOS'].filter(Boolean).join(' ');
+      renderScheduleHeading(team, pos);
       for (const period of ['faced', 'remaining']) {
         const metric = ranked?.[period]?.[team];
         const node = find(`[data-profile-sos="${period}"]`);
@@ -156,7 +240,7 @@
   }
 
   function composeProfile(player) {
-    find('[data-profile-season]').textContent = `${state.currentGameLogsSeason} season`;
+    renderUpcomingMatchup(player);
     resetSchedule(player);
     const affiliation = find('[data-profile-affiliation]');
     const tags = modal.querySelector('#modal-header .modal-header-left-container');
@@ -178,6 +262,7 @@
         label.className = 'gl-profile-team-name';
         label.textContent = teamButton.dataset.team || 'FA';
         teamButton.replaceChildren(...(logo ? [logo, label] : [label]));
+        void renderTeamRecord(label, profileTeam(teamButton.dataset.team), revision);
         if (!teamButton.disabled) teamButton.insertAdjacentHTML('beforeend', '<svg class="gl-profile-team-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg>');
       }
     }

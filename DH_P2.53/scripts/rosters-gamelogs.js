@@ -1128,6 +1128,21 @@ let rostersTeamTrigger = null;
 const rostersTeamSummaryFields = ['Pa%', 'Ru%', 'paYds', 'ruYds'];
 let rostersTeamStatsPromise = null;
 let rostersTeamViewRevision = 0;
+// Rosters' profile record and team directory share one lazy TM_STAT request.
+// Failed reads remain retryable; neither consumer blocks Game Logs rendering.
+function ensureRosters2026TeamStatsLoaded() {
+  return rostersTeamStatsPromise ||= import('./rosters-team-stats.js?v=DH3.60-matchup-profile').then(async ({ load2026TeamStats, build2026TeamRanks, get2026TeamStatColor }) => {
+    const teams = await load2026TeamStats({ parseCsv: text => {
+      const { headers, rows } = parseCsv(text);
+      return rows.map(values => Object.fromEntries(headers.map((header, index) => [header.replace(/^\uFEFF/, '').trim(), values[index] ?? ''])));
+    } });
+    return { teams, ranks: build2026TeamRanks(teams), get2026TeamStatColor };
+  }).catch(error => {
+    rostersTeamStatsPromise = null;
+    throw error;
+  });
+}
+window.ensureRosters2026TeamStatsLoaded = ensureRosters2026TeamStatsLoaded;
 function rostersResetTeamView({ restoreFocus = false } = {}) {
   // Closing or leaving Rosters' team pane invalidates any pending sheet update.
   rostersTeamViewRevision += 1;
@@ -1151,17 +1166,7 @@ async function rostersUpdateTeamSummary(team, season, revision) {
   status.hidden = false;
   summary.setAttribute('aria-busy', 'true');
   try {
-    rostersTeamStatsPromise ||= import('./rosters-team-stats.js').then(async ({ load2026TeamStats, build2026TeamRanks, get2026TeamStatColor }) => {
-      const teams = await load2026TeamStats({ parseCsv: text => {
-        const { headers, rows } = parseCsv(text);
-        return rows.map(values => Object.fromEntries(headers.map((header, index) => [header.replace(/^\uFEFF/, '').trim(), values[index] ?? ''])));
-      } });
-      return { teams, ranks: build2026TeamRanks(teams), get2026TeamStatColor };
-    }).catch(error => {
-      rostersTeamStatsPromise = null;
-      throw error;
-    });
-    const { teams, ranks, get2026TeamStatColor } = await rostersTeamStatsPromise;
+    const { teams, ranks, get2026TeamStatColor } = await ensureRosters2026TeamStatsLoaded();
     if (revision !== rostersTeamViewRevision || !modal.classList.contains('is-team-view')) return;
     summary.querySelectorAll('[data-team-summary-stat]').forEach(node => {
       const key = node.dataset.teamSummaryStat, value = teams[team]?.[key], rank = ranks[team]?.[key];
