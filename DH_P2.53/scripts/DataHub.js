@@ -3,7 +3,7 @@ import { getDataHubStatsPeriodOptions, getDataHubWeeklyColumns, getDataHubWeekly
 import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSeasonRankQualified } from "./datahub-stats-positional-ranks.js";
 import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js";
-import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js";
+import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js?v=DH3.61i-team-yards-per-game";
 import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames, isConsistencyProductionStat, getConsistencyAverageLabelCenter } from "./datahub-gamelogs-controls.js?v=DH3.53-rosters-gamelogs";
 
 // ---------------------------------------------------------------------------
@@ -13017,12 +13017,14 @@ async function dataHubUpdateTeamSummary(team, season, revision) {
     summary.querySelectorAll('[data-team-summary-stat]').forEach(node => {
       const key = node.dataset.teamSummaryStat;
       const value = teams[team]?.[key];
-      node.textContent = value == null ? '—' : key.endsWith('%') ? `${value.toFixed(1)}%` : Math.round(value).toLocaleString('en-US');
+      // Team-header yards/game retain the sheet's decimal precision; ranks
+      // and their colors use the same per-game field rather than season totals.
+      node.textContent = value == null ? '—' : key.endsWith('%') ? `${value.toFixed(1)}%` : value.toFixed(1);
       const rank = ranks[team]?.[key];
       node.style.color = get2026TeamStatColor(key, value == null ? null : rank);
       node.parentElement.querySelector('.team-modal-metric-rank').textContent = value != null && rank ? `(${rank})` : '';
     });
-    summary.title = teams[team] ? '2026 team season totals · TM_STAT' : 'Team stats unavailable in TM_STAT';
+    summary.title = teams[team] ? '2026 team play rates and yards per game · TM_STAT' : 'Team stats unavailable in TM_STAT';
   } catch (error) {
     if (revision === dataHubTeamViewRevision) summary.title = 'Team stats unavailable. Reopen the team view to retry.';
     console.warn('Unable to load team summary.', error);
@@ -13097,7 +13099,7 @@ function dataHubOpenTeamView(trigger) {
   pane.querySelector('.team-modal-season').textContent = `${state.currentModalSeason} SEASON · PPR`;
   // Keep the requested team metrics in the existing subtitle. The 2026-only
   // source leaves historical values blank instead of displaying another season.
-  pane.querySelector('.team-modal-header').innerHTML = `<img class="team-modal-logo" src="${getDataHubTeamLogoSrc(team)}" alt="${team}" width="48" height="48"><div class="team-modal-heading"><h3 id="team-modal-title">${dataHubEscapeHtml(dataHubTeamNames[team])}</h3><p class="team-modal-summary" title="${state.currentModalSeason === '2026' ? '2026 team season totals · TM_STAT' : 'TM_STAT team stats are available for 2026'}"><span class="team-modal-player-count">${players.length} players</span>${TEAM_SUMMARY_FIELDS.map(key => `<span class="team-modal-metric">${({ paYds: 'PaYds', ruYds: 'RuYds' })[key] || key} <strong data-team-summary-stat="${key}">—</strong> <span class="team-modal-metric-rank" data-team-summary-rank="${key}"></span></span>`).join('')}</p></div>`;
+  pane.querySelector('.team-modal-header').innerHTML = `<img class="team-modal-logo" src="${getDataHubTeamLogoSrc(team)}" alt="${team}" width="48" height="48"><div class="team-modal-heading"><h3 id="team-modal-title">${dataHubEscapeHtml(dataHubTeamNames[team])}</h3><p class="team-modal-summary" title="${state.currentModalSeason === '2026' ? '2026 team play rates and yards per game · TM_STAT' : 'TM_STAT team stats are available for 2026'}"><span class="team-modal-player-count">${players.length} players</span>${TEAM_SUMMARY_FIELDS.map(key => `<span class="team-modal-metric">${({ 'paYds/G': 'PaYPG', 'ruYds/G': 'RuYPG' })[key] || key} <strong data-team-summary-stat="${key}">—</strong> <span class="team-modal-metric-rank" data-team-summary-rank="${key}"></span></span>`).join('')}</p></div>`;
   const groupNames = { QB: 'Quarterbacks', RB: 'Running backs', WR: 'Wide receivers', TE: 'Tight ends' };
   const body = pane.querySelector('.team-modal-body');
   // DataHub team view stacks full-width QB/RB/WR/TE sections in a fixed order.

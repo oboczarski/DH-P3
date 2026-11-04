@@ -1,9 +1,11 @@
 // Rosters team-modal summary only. TM_STAT is a 2026 workbook tab without a
-// season column; never reuse these team totals for a historical player season.
+// season column; never reuse these team metrics for a historical player season.
 // This page owns its loader/rank model and shares only the workbook URL config.
 import { get2026SheetCsvUrl } from './nfl-2026-sheets.js';
 
-export const TEAM_SUMMARY_FIELDS = Object.freeze(['Pa%', 'Ru%', 'paYds', 'ruYds']);
+// The Game Logs team header reads published yards/game directly; these same
+// keys drive its NFL ranks and colors, so total-yard standings cannot leak in.
+export const TEAM_SUMMARY_FIELDS = Object.freeze(['Pa%', 'Ru%', 'paYds/G', 'ruYds/G']);
 const NFL_TEAMS = new Set('ARI ATL BAL BUF CAR CHI CIN CLE DAL DEN DET GB HOU IND JAX KC LAC LAR LV MIA MIN NE NO NYG NYJ PHI PIT SEA SF TB TEN WAS'.split(' '));
 
 export function build2026TeamStats(rows) {
@@ -19,7 +21,7 @@ export function build2026TeamStats(rows) {
     if (!NFL_TEAMS.has(team)) continue;
     if (teams[team]) throw new Error(`2026 TM_STAT has duplicate ${team} rows.`);
     teams[team] = Object.fromEntries(TEAM_SUMMARY_FIELDS.map(key => {
-      // The sheet supplies percentage points with a % suffix, and total yards.
+      // The sheet supplies percentage points with a % suffix, and yards/game.
       // Keep blanks unavailable, preserve real zeros, and never substitute DH sums.
       const raw = String(row[key] ?? '').trim();
       const value = raw ? Number(raw.replace(/[,%]/g, '')) : NaN;
@@ -38,6 +40,7 @@ export function build2026TeamStats(rows) {
 export function build2026TeamRanks(teams) {
   // Team-modal ranks use the entire NFL feed, independent of player filters.
   // Higher values rank first for each metric; ties use competition ranks (1,1,3).
+  // Compare the source yards/game decimals before any display formatting.
   const ranks = {};
   for (const key of TEAM_SUMMARY_FIELDS) {
     const pool = Object.entries(teams).filter(([team, stats]) => NFL_TEAMS.has(team) && Number.isFinite(stats[key]))
@@ -58,7 +61,7 @@ export function get2026TeamStatColor(key, rank) {
   if (!Number.isInteger(rank) || rank < 1 || rank > 32) return '';
   const colors = key === 'Pa%' || key === 'Ru%'
     ? ['#b178ff', '#78d3ff', '#78baff', '#e678ff']
-    : key === 'paYds' || key === 'ruYds'
+    : key === 'paYds/G' || key === 'ruYds/G'
       ? ['#79ffd6eb', '#5aa7ff', '#957CFF', '#FF6FE1'] : null;
   return colors?.[Math.floor((rank - 1) / 8)] || '';
 }

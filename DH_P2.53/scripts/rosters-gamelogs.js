@@ -1141,13 +1141,14 @@ function rostersTeamPlayers(team) {
 // TEAM DIRECTORY MODEL END
 
 let rostersTeamTrigger = null;
-const rostersTeamSummaryFields = ['Pa%', 'Ru%', 'paYds', 'ruYds'];
+// Rosters' team header uses the exact TM_STAT per-game keys for values/ranks.
+const rostersTeamSummaryFields = ['Pa%', 'Ru%', 'paYds/G', 'ruYds/G'];
 let rostersTeamStatsPromise = null;
 let rostersTeamViewRevision = 0;
 // Rosters' profile record and team directory share one lazy TM_STAT request.
 // Failed reads remain retryable; neither consumer blocks Game Logs rendering.
 function ensureRosters2026TeamStatsLoaded() {
-  return rostersTeamStatsPromise ||= import('./rosters-team-stats.js?v=DH3.60-matchup-profile').then(async ({ load2026TeamStats, build2026TeamRanks, get2026TeamStatColor }) => {
+  return rostersTeamStatsPromise ||= import('./rosters-team-stats.js?v=DH3.61i-team-yards-per-game').then(async ({ load2026TeamStats, build2026TeamRanks, get2026TeamStatColor }) => {
     const teams = await load2026TeamStats({ parseCsv: text => {
       const { headers, rows } = parseCsv(text);
       return rows.map(values => Object.fromEntries(headers.map((header, index) => [header.replace(/^\uFEFF/, '').trim(), values[index] ?? ''])));
@@ -1186,11 +1187,13 @@ async function rostersUpdateTeamSummary(team, season, revision) {
     if (revision !== rostersTeamViewRevision || !modal.classList.contains('is-team-view')) return;
     summary.querySelectorAll('[data-team-summary-stat]').forEach(node => {
       const key = node.dataset.teamSummaryStat, value = teams[team]?.[key], rank = ranks[team]?.[key];
-      node.textContent = value == null ? '—' : key.endsWith('%') ? `${value.toFixed(1)}%` : Math.round(value).toLocaleString('en-US');
+      // Team-header yards/game retain the sheet's decimal precision; ranks
+      // and their colors use the same per-game field rather than season totals.
+      node.textContent = value == null ? '—' : key.endsWith('%') ? `${value.toFixed(1)}%` : value.toFixed(1);
       node.style.color = get2026TeamStatColor(key, value == null ? null : rank);
       node.parentElement.querySelector('.team-modal-metric-rank').textContent = value != null && rank ? `(${rank})` : '';
     });
-    summary.title = teams[team] ? '2026 team season totals · TM_STAT' : 'Team stats unavailable in TM_STAT';
+    summary.title = teams[team] ? '2026 team play rates and yards per game · TM_STAT' : 'Team stats unavailable in TM_STAT';
     status.textContent = teams[team] ? '' : 'Team metrics unavailable.';
     status.hidden = Boolean(teams[team]);
   } catch (error) {
@@ -1271,7 +1274,7 @@ function rostersOpenTeamView(trigger) {
   pane.querySelector('.team-modal-season').textContent = `${state.currentGameLogsSeason} SEASON · PPR`;
   // Team summary captions include a colon before their value at every width;
   // the live status is separate from the values so loading never resembles zero.
-  pane.querySelector('.team-modal-header').innerHTML = `<img class="team-modal-logo" src="${`../assets/NFL_logos_svg/${({ WAS: 'was' })[team] || team.toLowerCase()}.svg`}" alt="${team}" width="48" height="48"><div class="team-modal-heading"><h3 id="team-modal-title">${escapeHtml(rostersTeamNames[team])}</h3><p class="team-modal-summary" title="${state.currentGameLogsSeason === '2026' ? '2026 team season totals · TM_STAT' : 'TM_STAT team stats are available for 2026'}"><span class="team-modal-player-count">${players.length} players</span>${rostersTeamSummaryFields.map(key => `<span class="team-modal-metric">${({ paYds: 'PaYds', ruYds: 'RuYds' })[key] || key}: <strong data-team-summary-stat="${key}">—</strong> <span class="team-modal-metric-rank" data-team-summary-rank="${key}"></span></span>`).join('')}<span class="team-modal-summary-status" role="status" aria-live="polite" hidden></span></p></div>`;
+  pane.querySelector('.team-modal-header').innerHTML = `<img class="team-modal-logo" src="${`../assets/NFL_logos_svg/${({ WAS: 'was' })[team] || team.toLowerCase()}.svg`}" alt="${team}" width="48" height="48"><div class="team-modal-heading"><h3 id="team-modal-title">${escapeHtml(rostersTeamNames[team])}</h3><p class="team-modal-summary" title="${state.currentGameLogsSeason === '2026' ? '2026 team play rates and yards per game · TM_STAT' : 'TM_STAT team stats are available for 2026'}"><span class="team-modal-player-count">${players.length} players</span>${rostersTeamSummaryFields.map(key => `<span class="team-modal-metric">${({ 'paYds/G': 'PaYPG', 'ruYds/G': 'RuYPG' })[key] || key}: <strong data-team-summary-stat="${key}">—</strong> <span class="team-modal-metric-rank" data-team-summary-rank="${key}"></span></span>`).join('')}<span class="team-modal-summary-status" role="status" aria-live="polite" hidden></span></p></div>`;
   const groupNames = { QB: 'Quarterbacks', RB: 'Running backs', WR: 'Wide receivers', TE: 'Tight ends' };
   const body = pane.querySelector('.team-modal-body');
   // Rosters team view stacks full-width QB/RB/WR/TE sections in a fixed order.

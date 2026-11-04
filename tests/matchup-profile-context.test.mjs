@@ -49,11 +49,11 @@ test('profile missing schedule and invalid defensive ranks stay unavailable', ()
 });
 
 test('TM_STAT W-L preserves win/loss/tie records separately from numeric stat ranks', () => {
-  const row = { TM: 'BUF', 'Pa%': '51%', 'Ru%': '49%', paYds: '800', ruYds: '400' };
+  const row = { TM: 'BUF', 'Pa%': '51%', 'Ru%': '49%', 'paYds/G': '256.1', 'ruYds/G': '148.4' };
   for (const [record, expected] of [['6-1', '6-1'], ['0-0', '0-0'], ['3 - 4 - 1', '3-4-1'], ['', null], ['NA', null], ['6', null]]) {
     const teams = build2026TeamStats([{ ...row, 'W-L': record }]);
     assert.equal(teams.BUF.record, expected);
-    assert.equal(teams.BUF.paYds, 800);
+    assert.equal(teams.BUF['paYds/G'], 256.1);
     assert.equal('record' in build2026TeamRanks(teams).BUF, false);
   }
   assert.equal('record' in build2026TeamStats([row]).BUF, false);

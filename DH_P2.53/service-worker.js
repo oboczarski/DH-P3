@@ -129,7 +129,8 @@
 // Restore its rounded scatter bounds and apply DataHub qualification to every summary card.
 // Refresh the home orbital boot screen, measured label layout and tighter scatter gutter.
 // Refresh the home scatter's small, opposite label nudges and removed connectors.
-const CACHE_NAME = 'DH3.61h-scatter-gentle-labels';
+// Refresh Rosters/DataHub team-pane passing/rushing yards per game and ranks.
+const CACHE_NAME = 'DH3.61i-team-yards-per-game';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
