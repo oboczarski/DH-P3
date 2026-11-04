@@ -888,7 +888,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   min-width: 3.5rem;
   /* avoid min-content clamp */
   background: linear-gradient(to bottom, rgba(50, 50, 80, 0.1), rgb(66 45 208 / 10%)) !important;
-  border: 1px solid rgba(128, 138, 189, 0.2) !important;
+  border: 1px solid rgba(128, 138, 189, 0.0) !important;
   border-radius: 12px;
   color: var(--color-text-secondary);
   cursor: pointer;
@@ -897,12 +897,11 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
 }
 
 .start-sit-button.active {
-  color: var(--color-accent-primary);
   border-color: rgba(118, 109, 255, 0.3) !important;
   box-shadow: 0 4px 12px rgba(118, 109, 255, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   border: 1px solid transparent;
-  color: transparent;
+  color: var(--color-text-secondary);
   background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), 
 linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, 
 linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text !important;
