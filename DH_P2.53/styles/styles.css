@@ -42,7 +42,7 @@
 }
 
 .player-ktc-wrapper.has-rank-annotation .stat-rank-annotation {
-  margin-left: -1px;
+  margin-left: 0px;
   /* no space between the KTC value and rank */
 }
 
@@ -846,6 +846,12 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   background: rgba(66, 194, 255, 0.08);
   border: 1px solid;
   box-shadow: 0 1px 3px rgba(66, 194, 255, 0.2);
+  border: 1px solid transparent;
+  color: transparent;
+  background: 
+linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), 
+linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, 
+linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
 }
 
 /* === ROW 3: Start/Sit Button === */
@@ -1588,6 +1594,12 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text !important;
   border-color: var(--color-accent-primary);
   /* Purple */
   box-shadow: 0 0 8px var(--color-accent-primary-glow);
+  border: 1px solid transparent;
+  color: transparent;
+  background: 
+linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), 
+linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, 
+linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
 }
 
 #depthChartViewBtn.active {
