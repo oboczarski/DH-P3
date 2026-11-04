@@ -126,7 +126,8 @@
 // Refresh the Scoring Comparison title and faded, desaturated unplayed labels.
 // Refresh player two's blue SVG ring and Scoring Comparison chart palette.
 // Refresh the home dashboard's live DH adapter, removed card legend and fitted scatter.
-const CACHE_NAME = 'DH3.61e-dashboard-live-season';
+// Restore its rounded scatter bounds and apply DataHub qualification to every summary card.
+const CACHE_NAME = 'DH3.61f-dashboard-axes-qualifiers';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

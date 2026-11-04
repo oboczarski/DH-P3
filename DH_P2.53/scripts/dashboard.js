@@ -302,13 +302,9 @@ function ppgBarData(filter) {
 // Rendering
 function renderSummary() {
   if (!players.length) return;
-  const topFpts = players.find(p => Number.isFinite(p.stats.fpts));
-  // Preserve the summary efficiency/usage cards' original top-100 FPTS pool;
-  // the complete DH roster is needed separately for each position's PPG leaders.
-  const summaryPool = players.slice(0, 100);
-  const topEPAQB = summaryPool.filter(p => p.position === 'QB' && Number.isFinite(p.stats.epa_db)).sort((a,b)=>b.stats.epa_db - a.stats.epa_db)[0];
-  const topCstyRB = dashboardData.selectConsistencyRb(players);
-  const topTSWR = summaryPool.filter(p => p.position === 'WR' && Number.isFinite(p.stats.ts)).sort((a,b)=>b.stats.ts - a.stats.ts)[0];
+  // Each summary leader must qualify for DataHub's default positional ranks;
+  // a high metric or inclusion in the top-100 picker does not bypass that gate.
+  const { topFpts, topEPAQB, topCstyRB, topTSWR } = dashboardData.selectSummaryLeaders(players);
 
   const projectedMax = Math.max(450, topFpts?.stats.fpts || 0);
 
@@ -323,7 +319,7 @@ function renderSummary() {
     setWidth('consistency-bar', topCstyRB.stats.csty);
   } else {
     setText('consistency-value', '—');
-    setText('consistency-name', 'No RB at 100%');
+    setText('consistency-name', 'No qualified RB at 100%');
     setWidth('consistency-bar', 0);
   }
   if (topEPAQB) {
@@ -905,11 +901,11 @@ function drawScatterChart(containerId, data) {
   tooltip.className = 'scatter-tooltip';
   tooltip.style.display = 'none';
   document.body.appendChild(tooltip);
-  // Fit every visible top-eight PPG player, including new season highs/lows.
-  // Nice ticks retain padded headroom; a filtered position gets its own extent.
-  const bounds = dashboardData.getScatterBounds(data);
-  const x = d3.scaleLinear().domain(bounds.x).nice(6).range([0, innerWidth]);
-  const y = d3.scaleLinear().domain(bounds.y).nice(5).range([innerHeight, 0]);
+  // Fit the complete top-eight pool and keep those same axes under position
+  // filters. Bounds are already rounded; .nice() would move 40%/15 back to 30%/10.
+  const bounds = dashboardData.getScatterBounds(scatterAll);
+  const x = d3.scaleLinear().domain(bounds.x).range([0, innerWidth]);
+  const y = d3.scaleLinear().domain(bounds.y).range([innerHeight, 0]);
   const xDomain = x.domain();
   const xTicks = x.ticks(6).filter(value => value >= 0 && value <= 100);
   if (xDomain[0] <= 100 && xDomain[1] >= 100 && !xTicks.includes(100)) xTicks.push(100);
@@ -1295,7 +1291,7 @@ async function initializeDashboard() {
   const status = document.getElementById('dashboard-data-status');
   document.getElementById('fc-dashboard-root')?.setAttribute('aria-busy', 'true');
   try {
-    dashboardData = await import('./dashboard-data.js?v=DH3.61e-dashboard-live-season');
+    dashboardData = await import('./dashboard-data.js?v=DH3.61f-dashboard-axes-qualifiers');
     players = await dashboardData.loadDashboardPlayers();
     computePositionalRanks(players);
     dashState.selectedPlayerId = players[0].id;

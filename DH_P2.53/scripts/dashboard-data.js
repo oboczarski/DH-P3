@@ -1,6 +1,7 @@
-// Home dashboard owns its DH season adapter. Share only the workbook URL config;
-// no weekly results, projections, DataHub state or Sleeper scoring enter these charts.
+// Home dashboard owns its DH season adapter. Share URL configuration and the
+// pure DataHub rank-qualification rule; no other page's state or data loader runs.
 import { get2026SheetCsvUrl } from './nfl-2026-sheets.js';
+import { isStatsSeasonRankQualified } from './datahub-stats-positional-ranks.js';
 
 const POSITIONS = new Set(['QB', 'RB', 'WR', 'TE']);
 
@@ -57,6 +58,8 @@ export function normalizeDashboardPlayer(row) {
       // DH has no PPG column. Use its PPR total and recorded games at full
       // precision so every dashboard PPG comparison uses the same denominator.
       ppg: games > 0 && fpts !== null ? fpts / games : null,
+      // Summary cards use the same position volume fields as DataHub's ranks.
+      pass_att: toNum(row.paATT), rush_att: toNum(row.CAR), rr: toNum(row.RR),
       csty: toPct(row['CSTY%']), ts: toPct(row['TS%']),
       ceiling: toNum(row.CL), cl: toNum(row.CL),
       epa_db: toNum(row['EPA/DB']), cpoe: toPct(row.CPOE),
@@ -90,6 +93,34 @@ export function selectConsistencyRb(players) {
     .sort((a, b) => b.stats.fpts - a.stats.fpts)[0] ?? null;
 }
 
+export function getDashboardQualifierWeeks(players) {
+  // Mirror DH's games-based progression, including 14 games => Week 15.
+  // Only valid recorded season games advance the summary-card minimums.
+  const maxGames = players.reduce((highest, player) => Number.isInteger(player.games)
+    && player.games >= 0 && player.games <= 17 ? Math.max(highest, player.games) : highest, 0);
+  return Math.max(1, maxGames >= 14 ? maxGames + 1 : maxGames);
+}
+
+export function selectSummaryLeaders(players) {
+  const weeks = getDashboardQualifierWeeks(players);
+  // All four home cards use DataHub's default positional-ranking eligibility,
+  // including its half-season/20-PPR-PPG exception. Use the complete DH pool;
+  // the Performance Map's top-100 picker is unrelated to minimum qualification.
+  const qualified = players.filter(player => isStatsSeasonRankQualified({
+    POS: player.position, GM_P: player.games, FPTS: player.stats.fpts,
+    paATT: player.stats.pass_att, CAR: player.stats.rush_att, RR: player.stats.rr
+  }, '2026', weeks, weeks));
+  const leader = (key, position) => qualified
+    .filter(player => (!position || player.position === position) && Number.isFinite(player.stats[key]))
+    .sort((a, b) => b.stats[key] - a.stats[key])[0] ?? null;
+  return {
+    topFpts: leader('fpts'),
+    topEPAQB: leader('epa_db', 'QB'),
+    topCstyRB: selectConsistencyRb(qualified),
+    topTSWR: leader('ts', 'WR')
+  };
+}
+
 export function selectScatterPlayers(players) {
   // Match the three-recorded-game PPG rank minimum. Choose each true top eight
   // before dropping unavailable CSTY/CL cells; missing metrics never promote #9.
@@ -105,14 +136,15 @@ export function getScatterBounds(players) {
     const values = players.map(player => player.stats[key]).filter(Number.isFinite);
     return values.length ? [Math.min(...values), Math.max(...values)] : [0, 1];
   };
-  const [xMin, xMax] = extent('csty');
+  const [xMin] = extent('csty');
   const [yMin, yMax] = extent('ceiling');
-  // Pad both extrema before the renderer rounds to readable ticks. Percentage
-  // ticks stop at 100, but extra domain room keeps 100% dots/labels inside the grid.
-  const xPadding = Math.max(4, (xMax - xMin) * 0.08);
-  const yPadding = Math.max(2, (yMax - yMin) * 0.1);
+  // Home scatter uses the nearest lower 10% / 5-CL steps, without an extra
+  // padding pass: 42.9% starts at 40%, and 16.8 CL starts at 15. Retain the
+  // original four percentage points after 100% instead of expanding to 110%.
+  const yLower = Math.floor(yMin / 5) * 5;
+  const yUpper = Math.ceil(yMax / 5) * 5;
   return {
-    x: [Math.max(0, xMin - xPadding), xMax + xPadding],
-    y: [Math.max(0, yMin - yPadding), yMax + yPadding]
+    x: [Math.max(0, Math.min(90, Math.floor(xMin / 10) * 10)), 104],
+    y: [yLower, yUpper > yMax ? yUpper : yUpper + 5]
   };
 }
