@@ -94,7 +94,7 @@ body[data-page="rosters"] #game-logs-modal .gl-profile-portrait {
 body[data-page="rosters"] #game-logs-modal .gl-profile-watermark {
   position: absolute;
   z-index: 0;
-  left: -9%;
+  left: 0%;
   bottom: -35%;
   width: 110%;
   max-width: none;
@@ -164,7 +164,7 @@ body[data-page="rosters"] #game-logs-modal .gl-profile-byline {
   /* Rosters identity: let the longer record/matchup byline wrap on phones
      while keeping the team action and the watchlist/close controls usable. */
   flex-wrap: nowrap;
-  gap: 3px 16px;
+  gap: 3px 24px;
   margin-top: 2px;
 }
 body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile .gl-profile-affiliation-content { position: static !important; display: flex !important; align-items: center !important; gap: 7px !important; }
@@ -190,7 +190,9 @@ body[data-page="rosters"] #game-logs-modal .gl-profile-team {
 }
 body[data-page="rosters"] #game-logs-modal .gl-profile-team:disabled { cursor: default; }
 body[data-page="rosters"] #game-logs-modal .gl-profile-team-logo {width: 18px;height: 18px;object-fit: contain;}
-body[data-page="rosters"] #game-logs-modal .gl-profile-team-arrow { width: 9px; height: 9px; fill: none; stroke: #7988a4; stroke-width: 1.6; }
+/* Rosters' clickable team label ends with a chevron after the record. Reserve
+   its width so the longer team/record text cannot collapse the icon on phones. */
+body[data-page="rosters"] #game-logs-modal .gl-profile-team-arrow { display: block; flex: 0 0 9px; width: 9px; height: 9px; fill: none; stroke: currentColor; stroke-width: 1.6; }
 body[data-page="rosters"] #game-logs-modal .gl-profile-season {padding-left: 8px;border-left: 1px solid #9eacc52e;color: #77849d;font-size: 12px;text-wrap-mode: nowrap;}
 body[data-page="rosters"] #game-logs-modal .gl-profile-matchup-rank { white-space: nowrap; }
 
