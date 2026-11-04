@@ -133,7 +133,8 @@
 // Refresh neighbor-aware home scatter nudges while preserving the small movement caps.
 // Refresh the reversed research gradients and matching, independently owned Consistency HUDs.
 // Refresh DataHub's independently owned Game Logs profile, shared Ownership header and desktop density.
-const CACHE_NAME = 'DH3.62-datahub-gamelogs-parity';
+// Refresh Rosters' rank-focused Consistency chips, weekly-rank AVG and rate HUD values.
+const CACHE_NAME = 'DH3.62a-consistency-rank-labels';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

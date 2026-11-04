@@ -152,7 +152,9 @@
   body[data-page="rosters"] #game-logs-modal :is(.zone-chip-label, .zone-chip-threshold) { font-size: 10px; }
   body[data-page="rosters"] #game-logs-modal .zone-chip-value { font-size: 12px; }
   body[data-page="rosters"] #game-logs-modal .weekly-point-label__value { font-size: 13px; }
-  body[data-page="rosters"] #game-logs-modal :is(.weekly-point-label__suffix, .weekly-point-label__rank, .weekly-skip-label, .weekly-average__label) { font-size: 10px; }
+  /* Ranked chips share the 13px primary line; only secondary captions and
+     chart annotations use 10px. FPTS keeps its existing value/week sizing. */
+  body[data-page="rosters"] #game-logs-modal :is(.weekly-point-label__suffix, .weekly-skip-label, .weekly-average__label) { font-size: 10px; }
   body[data-page="rosters"] #game-logs-modal .weekly-chart-x-axis { font-size: 12px; }
 
   /* Ownership retains single-line rows; Key stays a vertical list so larger

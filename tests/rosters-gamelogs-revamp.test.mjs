@@ -139,7 +139,8 @@ test('metric switching rebuilds the HUD and ranks only played games of the same 
   assert.equal(chart.ceilingValue, -1);
   assert.equal(chart.lastFiveAvg, -1);
   assert.equal(chart.averageValue, -1);
-  assert.equal(chart.averagePlotValue, 0);
+  assert.equal(chart.averageRank, 2);
+  assert.equal(chart.averagePlotValue, (59 / 60) * 40);
   assert.equal(chart.consistencyRank, 2);
   assert.equal(chart.ceilingRank, 2);
   assert.equal(chart.gamesPlayed, 2);
@@ -160,6 +161,45 @@ test('new metric charts distinguish missing values from real zero and retain Wee
   assert.equal(read('ypr', { rec: 2, rec_yd: 20 }, 'RB'), null);
   assert.equal(read('ypr', { rec: 2, rec_yd: 20, ypr: 10 }, 'RB'), 10);
   assert.equal(read('yds_total', { rush_yd: -3, rec_yd: 1 }, 'RB'), -2);
+});
+
+test('ranked AVG averages weekly positional ranks rather than ranking average metric values', () => {
+  const game = (rec_yd, extra = {}) => ({ pos: 'WR', rec_yd, fpt_ppr: 5, __hasRecordedStats: true, ...extra });
+  const api = harness({ currentGameLogsSeason: '2026', weeklyStats: {
+    1: { target: game(100), peer: game(10) },
+    2: { target: game(10), peer: game(20) },
+    3: { target: game(999, { opponent: 'BYE' }) },
+  } });
+  const base = { playerId: 'target', position: 'WR', axisWeeks: [2, 3] };
+  const data = api.buildRostersConsistencyMetricData(base, 'rec_yd');
+  assert.equal(data.averageValue, 55); // This metric average would rank first.
+  assert.equal(data.averageRank, 1.5); // Weekly ranks 1 and 2, including Week 1.
+  assert.equal(Math.round(data.averageRank), 2);
+  assert.equal(data.averagePlotValue, (59.5 / 60) * 40);
+  assert.equal(data.ceilingValue, 55);
+  assert.equal(data.lastFiveAvg, 55);
+  assert.equal(data.chartSeries.length, 1);
+
+  const lowerBetter = harness({ currentGameLogsSeason: '2026', weeklyStats: {
+    1: { target: { ...game(0), pass_int: 1 }, peer: { ...game(0), pass_int: 2 } },
+    2: { target: { ...game(0), pass_int: 3 }, peer: { ...game(0), pass_int: 0 } },
+  } }).buildRostersConsistencyMetricData({ ...base, axisWeeks: [1, 2] }, 'pass_int');
+  assert.equal(lowerBetter.averageRank, 1.5);
+  assert.equal(lowerBetter.averagePlotValue, (59.5 / 60) * 40);
+});
+
+test('ranked AVG remains unavailable for incomplete or absent metric series', () => {
+  const api = harness({ currentGameLogsSeason: '2026', weeklyStats: {
+    1: { target: { pos: 'WR', rec_yd: 10, fpt_ppr: 5, __hasRecordedStats: true } },
+    2: { target: { pos: 'WR', fpt_ppr: 5, __hasRecordedStats: true } },
+  } });
+  const base = { playerId: 'target', position: 'WR', axisWeeks: [1, 2] };
+  for (const statKey of ['rec_yd', 'rr']) {
+    const data = api.buildRostersConsistencyMetricData(base, statKey);
+    assert.equal(data.averageValue, null);
+    assert.equal(data.averageRank, null);
+    assert.equal(data.averagePlotValue, null);
+  }
 });
 
 
@@ -285,6 +325,8 @@ test('Consistency production summaries cap decimals while other stats retain Sea
     ['QB', 'epa', 0.234, '+0.2'], ['QB', 'epa_per_db', -0.234, '-0.23'],
     ['RB', 'snp_pct', 72.456, '72.5%'], ['WR', 'ay_pct', 45.678, '45.7%'],
     ['RB', 'expl_ru_pct', 0.125, '12.5%'], ['QB', 'dp_pct', 0.0876, '8.8%'],
+    ['RB', 'ypc', 6.234, '6.23'], ['RB', 'mtf_per_att', 0.234, '0.23'],
+    ['RB', 'yco_per_att', 3.456, '3.46'],
   ]) {
     assert.equal(format({ position, statKey, rankMode: true }, value), expected, `${position} ${statKey}`);
   }
@@ -299,6 +341,27 @@ test('archived Consistency formatting keeps the archived Season precision', () =
   assert.equal(format({ position: 'WR', statKey: 'first_down_rec_rate', rankMode: true }, 0.1876), '0.19');
   assert.equal(format({ position: 'RB', statKey: 'fpoe', rankMode: true }, -2.345), '-2.3');
   assert.equal(format({ position: 'QB', statKey: 'ttt', rankMode: true }, 3), '3');
+});
+
+test('rushing efficiency HUD formats the calculated top-three ceiling and last-five mean directly in both seasons', () => {
+  for (const season of ['2025', '2026']) {
+    const weeklyStats = Object.fromEntries([2, 6, 4, 8].map((yardsPerCarry, index) => [index + 1, {
+      target: { pos: 'RB', rush_att: 10, rush_yd: yardsPerCarry * 10,
+        mtf: index * 2, rush_yac: 5 + index * 10, fpt_ppr: 5, __hasRecordedStats: true },
+    }]));
+    const api = harness({ currentGameLogsSeason: season, weeklyStats });
+    const format = formattingHarness(season);
+    for (const [key, ceiling, lastFive] of [
+      ['ypc', '6.00', '5.00'], ['mtf_per_att', '0.40', '0.30'], ['yco_per_att', '2.50', '2.00'],
+    ]) {
+      const data = api.buildRostersConsistencyMetricData({ playerId: 'target', position: 'RB', axisWeeks: [1, 2, 3, 4] }, key);
+      assert.equal(format(data, data.ceilingValue), ceiling, `${season} ${key} ceiling`);
+      assert.equal(format(data, data.lastFiveAvg), lastFive, `${season} ${key} last five`);
+      assert.equal(format(data, 0), '0.00');
+      assert.equal(format(data, -1.234), '-1.23');
+      assert.equal(format(data, null), 'N/A');
+    }
+  }
 });
 
 

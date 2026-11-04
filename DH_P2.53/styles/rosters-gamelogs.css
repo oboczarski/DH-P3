@@ -6993,8 +6993,8 @@ body[data-page="rosters"] #game-logs-modal .weekly-point-label__rank {
   line-height: inherit;
 }
 
-/* Ranked chips reuse the default week-caption typography at every breakpoint.
-   Reduce only the uppercase position prefix to balance it with lowercase wk. */
+/* Ranked chips use the primary value typography at every breakpoint. Keep
+   their position prefix slightly smaller so the rank number leads visually. */
 body[data-page="rosters"] #game-logs-modal .weekly-point-label__position {
   font-size: 0.85em;
 }

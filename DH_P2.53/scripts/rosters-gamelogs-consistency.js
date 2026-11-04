@@ -455,19 +455,21 @@ function buildRostersConsistencyMetricData(base, key) {
     return [playerId, summarizeConsistencyGames(chart.chartSeries, chart.thresholds, gamesPlayed, lowerBetter)];
   }));
   // Retain Rosters' season-volume eligibility for the HUD's season ranks.
-  // The average reference still locates every player's average on the weekly
-  // chart's complete positional scale, including unqualified players.
+  // The chart's weekly-rank average does not use season qualification gates.
   const qualifiedIds = getRostersGameLogsQualifiedIds(state.currentGameLogsSeason);
   const rankSummary = (field, ascending = false, qualifiedOnly = true) => rankWeeklyMetricValues([...summaries]
     .filter(([playerId]) => !qualifiedOnly || qualifiedIds.has(playerId))
     .map(([playerId, summary]) => ({ playerId, value: summary[field] })), ascending).get(base.playerId);
   const chart = chartFor(playerSeries.get(base.playerId) || []);
   const summary = summaries.get(base.playerId) || summarizeConsistencyGames([], chart.thresholds, 0, lowerBetter);
-  // Default AVG is the player's PPG. Ranked charts locate the actual per-game
-  // average at its same-position season rank, rather than averaging rank numbers.
+  // Rosters' non-FPTS AVG is the mean of all recorded weekly positional ranks,
+  // including games before the visible window. Keep metric averages for the HUD
+  // and round only the chart label; incomplete source series stay unavailable.
+  // Default FPTS retains the player's PPG and its existing scoring reference.
   const seasonPpg = Number(state.currentGameLogsPlayerRanks?.ppg ?? state.playerSeasonStats?.[base.playerId]?.ppg);
   const averageValue = key === "fpts" && summary.gamesPlayed > 0 && Number.isFinite(seasonPpg) ? seasonPpg : summary.averageValue;
-  const averageRank = rankSummary("averageValue", lowerBetter, false);
+  const averageRank = key === "fpts" ? rankSummary("averageValue", lowerBetter, false)
+    : Number.isFinite(summary.averageValue) ? chart.chartSeries.reduce((sum, entry) => sum + entry.rank, 0) / chart.chartSeries.length : null;
   return {
     ...base, ...chart, ...summary,
     statKey: key,
@@ -479,7 +481,9 @@ function buildRostersConsistencyMetricData(base, key) {
     ceilingRank: rankSummary("ceilingValue", lowerBetter),
     averageValue,
     averageRank,
-    averagePlotValue: key === "fpts" ? clampRostersConsistencyPoints(averageValue) : getConsistencyRankPlotValue(averageValue, averageRank, chart.rankMax, key),
+    // Rank AVG uses the rank scale even for zero-production games. Only the
+    // individual production points retain their existing baseline exception.
+    averagePlotValue: key === "fpts" ? clampRostersConsistencyPoints(averageValue) : getConsistencyRankPlotValue(averageValue, averageRank, chart.rankMax),
   };
 }
 
@@ -577,6 +581,10 @@ function formatRostersConsistencyMetricAverage(data, value) {
   // retain Season/Weekly totals' units and precision. Format the calculated
   // average directly without reading season totals or recalculating it here.
   const key = data.statKey;
+  // These Season formatters recompute ratios from underlying totals. The
+  // Consistency HUD already has a top-three/last-five mean, so format that
+  // number directly instead of recalculating from absent totals as zero.
+  if (["ypc", "mtf_per_att", "yco_per_att"].includes(key)) return value.toFixed(2);
   // Production totals become fractional after averaging: cap their display at
   // one decimal, preserving integers/zero without unnecessary trailing .0.
   if (isConsistencyProductionStat(key)) {
@@ -609,8 +617,9 @@ function renderRostersConsistencyAverage(pointsLayer, data) {
   average.style.top = `${yFromRostersConsistencyPoints(data.averagePlotValue)}%`;
   const label = document.createElement("span");
   label.className = "weekly-average__label";
-  label.textContent = `AVG: ${formatRostersConsistencyMetricAverage(data, data.averageValue)}`;
-  average.title = data.rankMode ? `Per-game average · ${data.position}${data.averageRank} among positional averages` : "Season points per game";
+  label.textContent = data.rankMode ? `AVG: ${data.position}${Math.round(data.averageRank)}`
+    : `AVG: ${formatRostersConsistencyMetricAverage(data, data.averageValue)}`;
+  average.title = data.rankMode ? "Average weekly positional rank across recorded games (label rounded to the nearest whole rank)" : "Season points per game";
   average.appendChild(label);
   pointsLayer.appendChild(average);
   // Keep the horizontal anchor stable and center the label directly on the
@@ -765,10 +774,11 @@ function renderRostersConsistencyChart() {
   }
   chartBox.setAttribute("role", "img");
   const description = data?.rankMode
-    ? `${ROSTERS_STAT_LABELS[data.statKey]} weekly ${data.position} positional ranks. Green 1–12; blue 13–${data.rankZones.blueEnd}; purple ${data.rankZones.purpleStart}+. Point labels show statistic values.`
+    ? `${ROSTERS_STAT_LABELS[data.statKey]} weekly ${data.position} positional ranks. Green 1–12; blue 13–${data.rankZones.blueEnd}; purple ${data.rankZones.purpleStart}+. Point labels emphasize positional ranks with statistic values as secondary captions.`
     : "Weekly PPR fantasy points with position-specific scoring zones.";
   chartBox.setAttribute("aria-label", description + (Number.isFinite(data?.averageValue)
-    ? ` Average per played game: ${formatRostersConsistencyMetricAverage(data, data.averageValue)}.` : ""));
+    ? data.rankMode ? ` Average weekly positional rank: ${data.position}${Math.round(data.averageRank)}.`
+      : ` Average per played game: ${formatRostersConsistencyMetricAverage(data, data.averageValue)}.` : ""));
   requestAnimationFrame(() => {
     if (state.currentGameLogsView !== "consistency" || gameLogsModal?.classList.contains("hidden")
       || gameLogsModal?.classList.contains("is-team-view") || document.querySelector("#gamelogs-tab-pane")?.classList.contains("hidden")) return;
@@ -1271,8 +1281,9 @@ function renderRostersConsistencyPoints(data) {
     if (entry.baselineProduction) pointEl.title += " · No positive production; plotted at the baseline";
     const label = document.createElement("div");
     label.className = `weekly-point-label weekly-point-label--${bucket.name}`;
-    // Non-default metric chips show only the value and positional rank; their
-    // week is already identified on the x axis. Preserve the default FPTS chip.
+    // Rosters' ranked chips put the metric in the small upper caption and the
+    // rank in the large, conditionally colored lower line. Reuse the existing
+    // responsive typography roles; default FPTS keeps its week/value chip.
     if (!data.rankMode) {
       const suffix = document.createElement("span");
       suffix.className = "weekly-point-label__suffix";
@@ -1280,9 +1291,9 @@ function renderRostersConsistencyPoints(data) {
       label.appendChild(suffix);
     }
     const valueSpan = document.createElement("span");
-    valueSpan.className = "weekly-point-label__value";
+    valueSpan.className = data.rankMode ? "weekly-point-label__suffix weekly-point-label__metric" : "weekly-point-label__value";
     const valueNumber = document.createElement("span");
-    valueNumber.style.color = bucket.color;
+    if (!data.rankMode) valueNumber.style.color = bucket.color;
     valueNumber.textContent = formattedValue;
     valueSpan.appendChild(valueNumber);
     if (!data.rankMode && Number.isFinite(rawValue) && rawValue > ROSTERS_MAX_CONSISTENCY_POINTS) {
@@ -1291,9 +1302,9 @@ function renderRostersConsistencyPoints(data) {
     label.appendChild(valueSpan);
     if (data.rankMode) {
       const rankLabel = document.createElement("span");
-      rankLabel.className = "weekly-point-label__suffix weekly-point-label__rank";
-      // Match the default week caption, with a slightly smaller uppercase
-      // position prefix so WR/RB/QB/TE do not visually outweigh its rank.
+      rankLabel.className = "weekly-point-label__value weekly-point-label__rank";
+      rankLabel.style.color = bucket.color;
+      // Keep the position prefix slightly smaller than the emphasized rank.
       const positionLabel = document.createElement("span");
       positionLabel.className = "weekly-point-label__position";
       positionLabel.textContent = position;
