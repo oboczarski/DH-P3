@@ -302,12 +302,13 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
       return (sort.direction === "asc" ? difference : -difference) || b.week - a.week || b.cents - a.cents || a.player.localeCompare(b.player);
     });
   }
-  // Rosters owns this Players Faced presentation: vs means the player was
-  // Home, @ means Away. Append the player's own team to identify whose venue
-  // is shown, and sort those labels without changing defense filters.
+  // Rosters' Players Faced shows Home with the player's own team and Away
+  // with @ plus the per-game opponent. Sort the displayed location labels;
+  // missing teams stay unlabelled and defense venue filters remain independent.
   function playerLocation(row) {
-    const location = row.playerVenue === "home" ? "Home" : row.playerVenue === "away" ? "Away" : "—";
-    return location !== "—" && row.playerTeam ? `${location} (${row.playerTeam})` : location;
+    if (row.playerVenue === "home") return row.playerTeam ? `Home (${row.playerTeam})` : "Home";
+    if (row.playerVenue === "away") return row.def ? `Away (@ ${row.def})` : "Away";
+    return "—";
   }
   function playersTable(rows) {
     const columns = [["week", "Wk", ""], ["player", "Player", ""], ["team", "TM", "offenseColumn"], ["vs", "Location", ""], ["pts", "PPR", ""]];

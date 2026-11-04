@@ -134,7 +134,8 @@
 // Refresh the reversed research gradients and matching, independently owned Consistency HUDs.
 // Refresh DataHub's independently owned Game Logs profile, shared Ownership header and desktop density.
 // Refresh Rosters' rank-focused Consistency chips, weekly-rank AVG and rate HUD values.
-const CACHE_NAME = 'DH3.62a-consistency-rank-labels';
+// Refresh Players Faced: away locations identify the opponent with @.
+const CACHE_NAME = 'DH3.62b-player-away-location';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
