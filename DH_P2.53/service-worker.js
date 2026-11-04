@@ -119,7 +119,8 @@
 // Refresh Rosters' stacked desktop player profile and viewport-sized modal.
 // Refresh always-visible matchup team columns and Rosters' upcoming-game/record profile.
 // Refresh Players Faced location labels with each player's team abbreviation.
-const CACHE_NAME = 'DH3.60a-player-location-team';
+// Keep the Rosters profile team chevron visible after its record on phones.
+const CACHE_NAME = 'DH3.60b-team-chevron';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
