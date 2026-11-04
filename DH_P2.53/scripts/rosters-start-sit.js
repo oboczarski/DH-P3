@@ -263,7 +263,7 @@
       <div class="ss-dashboard-scroll"><div class="ss-comparison-pickers"><label class="ss-side-0"><span>A</span><select aria-label="First comparison player" data-ss-pick="0">${selectedOptions(0)}</select>${icon('down')}</label><button class="ss-swap ss-icon-button" type="button" data-ss-swap aria-label="Swap compared players">${icon('swap')}</button><label class="ss-side-1"><span>B</span><select aria-label="Second comparison player" data-ss-pick="1">${selectedOptions(1)}</select>${icon('down')}</label></div>
       <div class="ss-hero"><div class="ss-hero-orbit" aria-hidden="true"></div>${pair.map((player, side) => playerHero(player, side, model.week)).join('')}<span class="ss-hero-vs" aria-hidden="true">VS</span></div>
       <div class="ss-projection-insight">${icon('pulse')}<span>${number(pair[0].projection) !== null && number(pair[1].projection) !== null ? Math.abs(pair[0].projection - pair[1].projection) < .05 ? 'Level projections for this week' : `<b class="ss-side-${pair[0].projection > pair[1].projection ? 0 : 1}">${escape(shortName(pair[pair[0].projection > pair[1].projection ? 0 : 1]))}</b> projects <strong>${fmt(Math.abs(pair[0].projection - pair[1].projection))}</strong> points higher` : 'Compare season production while projections are unavailable'}</span><span class="ss-micro-label">WK ${model.week || '—'} OUTLOOK</span></div>
-      <div class="ss-analytics-grid"><section class="ss-panel ss-timeline"><header class="ss-panel-header"><div>${icon('chart')}<h3>Scoring trajectory</h3></div><div class="ss-chart-toggle" role="group" aria-label="Scoring chart view"><button type="button" data-ss-chart="weekly" aria-pressed="${chartMode === 'weekly'}">Weekly</button><button type="button" data-ss-chart="cumulative" aria-pressed="${chartMode === 'cumulative'}">Cumulative</button></div></header><div class="ss-chart-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i></i>${escape(shortName(player))}</span>`).join('')}<span>LEAGUE PTS</span></div><div class="ss-timeline-chart" role="img" aria-label="${chartMode === 'weekly' ? 'Weekly' : 'Cumulative'} fantasy points for ${escape(pair.map(player => player.name).join(' and '))}"></div><div class="ss-chart-caption"><span>Recorded games only</span><span>BYE / DNP = gap</span></div>${weeklyTable(pair)}</section>
+      <div class="ss-analytics-grid"><section class="ss-panel ss-timeline"><header class="ss-panel-header"><div>${icon('chart')}<h3>Scoring trajectory</h3></div><div class="ss-chart-toggle" role="group" aria-label="Scoring chart view"><button type="button" data-ss-chart="weekly" aria-pressed="${chartMode === 'weekly'}">Weekly</button><button type="button" data-ss-chart="cumulative" aria-pressed="${chartMode === 'cumulative'}">Cumulative</button></div></header><div class="ss-chart-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i></i>${escape(shortName(player))}</span>`).join('')}<span>LEAGUE PTS</span></div><div class="ss-timeline-viewport" tabindex="0" role="region" aria-label="Scoring trajectory; scroll horizontally for more weeks"><div class="ss-timeline-chart" role="img" aria-label="${chartMode === 'weekly' ? 'Weekly' : 'Cumulative'} fantasy points for ${escape(pair.map(player => player.name).join(' and '))}"></div></div><div class="ss-chart-caption"><span>Recorded games only</span><span>Unplayed weeks show status</span></div>${weeklyTable(pair)}</section>
       <section class="ss-panel ss-reliability"><header class="ss-panel-header"><div>${icon('shield')}<h3>Consistency & ceiling</h3></div><span class="ss-micro-label">PPR BASELINE</span></header><div class="ss-consistency-rings">${pair.map(ring).join('')}</div><p class="ss-panel-note">CSTY% and CL · published season values</p></section>${production(pair)}</div>
       <div class="ss-detail-heading"><div><span class="ss-eyebrow">THE COMPLETE PICTURE</span><h2>Every stat. Both players.</h2></div><span class="ss-detail-badge">${metricCount}<small>METRICS</small></span></div><div class="ss-stat-contract"><span>${same ? `${escape(pair[0].pos)} · Game Logs season stats` : 'Mixed positions · Data Hub Overview'}</span><span>Bar length = magnitude · scale per metric</span></div>
       <nav class="ss-chapters" aria-label="Stat sections">${sections.map(section => `<button type="button" data-ss-section="${section.id}">${escape(section.label.toLowerCase())}</button>`).join('')}</nav><div class="ss-stat-grid">${statSections(pair)}</div>
@@ -282,11 +282,45 @@
       });
     }) };
   }
-  function timelineOption(players, mode, echarts, narrow) {
+
+  // Scoring trajectory only: bridge missed weeks like the Consistency chart,
+  // interpolating between recorded games and extending the nearest endpoint.
+  // These are drawing coordinates only: totals, tooltips and the weekly table
+  // continue to use seriesFor's nulls, and missed weeks never get scoring dots.
+  function trajectoryPlot(players, mode) {
     const data = seriesFor(players, mode);
+    const recorded = data.series.flat().filter(value => value !== null);
+    const center = (Math.min(0, ...recorded) + Math.max(0, ...recorded)) / 2;
+    const labels = players.map((player, side) => data.weeks.map((week, index) => {
+      if (data.series[side][index] !== null) return fmt(data.series[side][index]);
+      return String(player.weekly.find(row => row.week === week)?.status || '—').trim().toUpperCase();
+    }));
+    const plotted = data.series.map(values => values.map((value, index) => {
+      if (value !== null) return value;
+      let before = index - 1, after = index + 1;
+      while (before >= 0 && values[before] === null) before -= 1;
+      while (after < values.length && values[after] === null) after += 1;
+      if (before >= 0 && after < values.length) {
+        const fraction = (data.weeks[index] - data.weeks[before]) / (data.weeks[after] - data.weeks[before]);
+        return values[before] + (values[after] - values[before]) * fraction;
+      }
+      return values[before] ?? values[after] ?? center;
+    }));
+    return { ...data, labels, plotted, hasScores: recorded.length > 0 };
+  }
+
+  // Reserve one readable label slot per week. Long seasons can scroll within
+  // this comparison card instead of suppressing values or shrinking the text.
+  function sizeTrajectory(chartNode, players, mode) {
+    const data = trajectoryPlot(players, mode);
+    const labelWidth = Math.max(34, ...data.labels.flat().map(label => label.length * 5 + 14));
+    chartNode.style.minWidth = `${Math.max(0, data.weeks.length - 1) * labelWidth + 100}px`;
+  }
+  function timelineOption(players, mode, echarts, narrow) {
+    const data = trajectoryPlot(players, mode);
     return {
       animation: false, backgroundColor: 'transparent', textStyle: { fontFamily: 'Google Sans, Arial, sans-serif' },
-      grid: { top: 26, left: 39, right: 22, bottom: 34 },
+      grid: { top: 28, left: 42, right: 24, bottom: 48 },
       tooltip: { trigger: 'axis', confine: true, transitionDuration: 0, backgroundColor: '#171f32f5', borderColor: '#8db9df55', padding: [10, 12], textStyle: { color: '#ebf4ff', fontSize: 11 }, axisPointer: { type: 'line', lineStyle: { color: '#d2e5ff66', type: 'dashed' } },
         formatter: items => {
           const index = items[0]?.dataIndex;
@@ -297,20 +331,32 @@
             return `<div style="display:flex;gap:20px;justify-content:space-between;margin:5px 0"><span style="color:${PALETTES[side].main}">${escape(player.name)}</span><b>${data.series[side][index] === null ? escape(item?.status || '—') : fmt(data.series[side][index])}</b></div>`;
           }).join('')}`;
         } },
-      xAxis: { type: 'category', data: data.weeks.map(week => `W${week}`), boundaryGap: data.weeks.length === 1, axisTick: { show: false }, axisLine: { lineStyle: { color: '#ffffff13' } }, axisLabel: { color: '#8a9db7', fontSize: 10, interval: narrow && data.weeks.length > 10 ? 1 : 0, margin: 12 }, splitLine: { show: true, lineStyle: { color: '#b5d3ff06', type: 'dotted' } } },
-      yAxis: { type: 'value', scale: false, splitNumber: 4, axisLabel: { color: '#8a9db7', fontSize: 10 }, splitLine: { lineStyle: { color: '#b5d3ff10', type: 'dashed' } } },
+      xAxis: { type: 'category', data: data.weeks.map(week => `W${week}`), boundaryGap: true, axisTick: { show: false }, axisLine: { lineStyle: { color: '#ffffff13' } }, axisLabel: { color: '#8a9db7', fontSize: 10, interval: 0, margin: 26 }, splitLine: { show: true, lineStyle: { color: '#b5d3ff06', type: 'dotted' } } },
+      yAxis: { type: 'value', scale: false, ...(!data.hasScores ? { min: -1, max: 1 } : {}), splitNumber: 4, axisLabel: { color: '#8a9db7', fontSize: 10 }, splitLine: { lineStyle: { color: '#b5d3ff10', type: 'dashed' } } },
       series: players.map((player, side) => {
         const p = PALETTES[side];
-        return { name: player.name, type: 'line', data: data.series[side], connectNulls: false, smooth: false, showSymbol: true, symbol: side === 0 ? 'circle' : 'diamond', symbolSize: 6, clip: true,
-          lineStyle: { width: 2.5, color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: p.mid }, { offset: .4, color: p.main }, { offset: .72, color: p.light }, { offset: 1, color: p.main }]), shadowColor: `rgba(${p.rgb},0.3)`, shadowBlur: 7 },
+        const hasGames = data.series[side].some(value => value !== null);
+        const points = data.plotted[side].map((value, index) => {
+          const missed = data.series[side][index] === null;
+          const other = data.plotted[1 - side][index];
+          // A zero-sized symbol retains its label in ECharts; symbol: 'none'
+          // would suppress the status text along with the scoring marker.
+          return { value, ...(missed ? { symbolSize: 0 } : {}),
+            // Put the higher value above and the lower below, including ties.
+            // Both series keep every label, even when their paths cross.
+            label: { position: value > other || (value === other && side === 0) ? 'top' : 'bottom',
+              ...(missed ? { color: p.main, backgroundColor: '#192334', borderRadius: 3, padding: [2, 3] } : {}) } };
+        });
+        return { name: player.name, type: 'line', data: points, connectNulls: true, smooth: false, showSymbol: true, showAllSymbol: true, symbol: side === 0 ? 'circle' : 'diamond', symbolSize: 6, clip: true,
+          lineStyle: { width: 2.5, opacity: hasGames ? 1 : 0, color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: p.mid }, { offset: .4, color: p.main }, { offset: .72, color: p.light }, { offset: 1, color: p.main }]), shadowColor: `rgba(${p.rgb},0.3)`, shadowBlur: 7 },
           itemStyle: { color: '#151d2c', borderColor: p.light, borderWidth: 1.6 },
-          // Small labels follow the active weekly/cumulative values. Separate
-          // sides and overlap hiding keep dense seasons readable on phones.
+          // Values and literal BYE/injury labels remain visible without hover.
+          // Move collisions vertically; never let ECharts hide either player.
           label: { show: true, position: side === 0 ? 'top' : 'bottom', distance: 7,
             color: p.light, fontSize: narrow ? 8 : 9, textBorderColor: '#192334', textBorderWidth: 3,
-            formatter: item => number(item.value) === null ? '' : fmt(item.value) },
-          labelLayout: { hideOverlap: true },
-          areaStyle: { origin: 'auto', opacity: 1, color: new echarts.graphic.LinearGradient(0, 0, .2, 1, [{ offset: 0, color: `rgba(${p.rgb},.26)` }, { offset: .28, color: `rgba(${p.rgb},.15)` }, { offset: .63, color: `rgba(${p.rgb},.055)` }, { offset: 1, color: `rgba(${p.rgb},0)` }]) },
+            formatter: item => data.labels[side][item.dataIndex] },
+          labelLayout: { hideOverlap: false, moveOverlap: 'shiftY' },
+          areaStyle: { origin: 'auto', opacity: hasGames ? 1 : 0, color: new echarts.graphic.LinearGradient(0, 0, .2, 1, [{ offset: 0, color: `rgba(${p.rgb},.26)` }, { offset: .28, color: `rgba(${p.rgb},.15)` }, { offset: .63, color: `rgba(${p.rgb},.055)` }, { offset: 1, color: `rgba(${p.rgb},0)` }]) },
           emphasis: { disabled: true }, animation: false, z: 3 - side };
       }),
     };
@@ -349,8 +395,13 @@
       model.mount.querySelectorAll('[data-ss-chart]').forEach(button => button.addEventListener('click', () => {
         chartMode = button.dataset.ssChart;
         model.mount.querySelectorAll('[data-ss-chart]').forEach(other => other.setAttribute('aria-pressed', String(other === button)));
-        if (mounted?.chart) mounted.chart.setOption(timelineOption(pair, chartMode, window.echarts, model.mount.querySelector('.ss-timeline-chart').clientWidth < 500), true);
-        model.mount.querySelector('.ss-timeline-chart').setAttribute('aria-label', `${chartMode} fantasy points for ${pair.map(player => player.name).join(' and ')}`);
+        const chartNode = model.mount.querySelector('.ss-timeline-chart');
+        sizeTrajectory(chartNode, pair, chartMode);
+        if (mounted?.chart) {
+          mounted.chart.resize();
+          mounted.chart.setOption(timelineOption(pair, chartMode, window.echarts, chartNode.parentElement.clientWidth < 500), true);
+        }
+        chartNode.setAttribute('aria-label', `${chartMode} fantasy points for ${pair.map(player => player.name).join(' and ')}`);
       }));
       model.mount.querySelectorAll('[data-ss-section]').forEach(button => button.addEventListener('click', () => {
         model.mount.querySelector(`#ss-section-${button.dataset.ssSection}`)?.scrollIntoView({ behavior: 'instant', block: 'start' });
@@ -376,17 +427,18 @@
       model.mount.addEventListener('keydown', keyHandler);
       mounted = { chart: null, observer: null, keyHandler, mount: model.mount };
       const chartNode = model.mount.querySelector('.ss-timeline-chart');
-      if (!pair.some(player => player.weekly.some(item => number(item.points) !== null))) {
+      if (!pair.some(player => player.weekly.length)) {
         chartNode.innerHTML = `<div class="ss-chart-empty">${icon('chart')}<b>No recorded scoring yet</b><span>Season stats remain available below.</span></div>`;
         return;
       }
       loadCharts().then(echarts => {
         if (sequence !== token || !chartNode.isConnected) return;
+        sizeTrajectory(chartNode, pair, chartMode);
         const chart = echarts.init(chartNode, null, { renderer: 'canvas', devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2) });
         mounted.chart = chart;
-        chart.setOption(timelineOption(pair, chartMode, echarts, chartNode.clientWidth < 500));
-        mounted.observer = new ResizeObserver(() => { if (!chart.isDisposed()) { chart.resize(); chart.setOption(timelineOption(pair, chartMode, echarts, chartNode.clientWidth < 500), true); } });
-        mounted.observer.observe(chartNode);
+        chart.setOption(timelineOption(pair, chartMode, echarts, chartNode.parentElement.clientWidth < 500));
+        mounted.observer = new ResizeObserver(() => { if (!chart.isDisposed()) { chart.resize(); chart.setOption(timelineOption(pair, chartMode, echarts, chartNode.parentElement.clientWidth < 500), true); } });
+        mounted.observer.observe(chartNode.parentElement);
       }).catch(() => {
         if (sequence !== token || !chartNode.isConnected) return;
         chartNode.innerHTML = '<div class="ss-chart-empty"><b>Chart unavailable</b><span>Explore the recorded weekly values below.</span></div>';

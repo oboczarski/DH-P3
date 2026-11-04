@@ -30,7 +30,7 @@ function harness(season = '2026') {
     + slice('function getOpponentDefenseRank(', 'let tableCoreLoaderPromise')
     + slice('function buildRostersDecisionPlayer(input) {', 'async function openRostersDecisionComparison(')
     // Test the actual private renderers without expanding the production API.
-    + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, metricRow, sparkline, projectionMatchup, projectionState, timelineOption, playerHero'), context);
+    + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, metricRow, sparkline, projectionMatchup, projectionState, timelineOption, sizeTrajectory, playerHero'), context);
   return context;
 }
 
@@ -270,21 +270,73 @@ test('preview and comparison names are native Game Logs buttons and preview acti
   assert.match(context.window.RostersStartSit.playerHero(player, 0, 7), /<h2><button type="button" class="ss-player-name-button" data-ss-gamelogs="one"/);
 });
 
-test('trajectory labels track weekly/cumulative values without labeling unavailable games', () => {
+test('trajectory bridges missed weeks with status labels and keeps both players visible', () => {
   const { timelineOption } = harness().window.RostersStartSit;
   const echarts = { graphic: { LinearGradient: class {} } };
-  const players = [{ name: 'First', weekly: [{ week: 1, points: 0 }, { week: 2, points: -2 }, { week: 3, points: null }, { week: 4, points: 8 }] },
-    { name: 'Second', weekly: [{ week: 1, points: 2 }, { week: 2, points: 4 }] }];
+  const players = [{ name: 'First', weekly: [{ week: 1, points: 0 }, { week: 2, points: -2 }, { week: 3, points: null, status: 'BYE' }, { week: 4, points: 8 }] },
+    { name: 'Second', weekly: [{ week: 1, points: 2 }, { week: 2, points: 4 }, { week: 3, points: null, status: 'IR' }, { week: 4, points: null, status: 'OUT' }] }];
+  for (const mode of ['weekly', 'cumulative']) {
+    for (const narrow of [true, false]) {
+      const option = timelineOption(players, mode, echarts, narrow);
+      assert.ok(option.series.every(series => series.label.show && series.showAllSymbol && !series.labelLayout.hideOverlap && series.labelLayout.moveOverlap === 'shiftY'));
+      assert.ok(option.series.every(series => series.connectNulls && series.data.every(point => Number.isFinite(point.value))));
+      const first = option.series[0], second = option.series[1];
+      assert.equal(first.label.formatter({ dataIndex: 0 }), '0.0');
+      assert.equal(first.label.formatter({ dataIndex: 1 }), '-2.0');
+      assert.equal(first.label.formatter({ dataIndex: 2 }), 'BYE');
+      assert.equal(first.data[2].symbolSize, 0);
+      assert.notEqual(first.data[2].symbol, 'none');
+      assert.equal(first.data[2].value, mode === 'weekly' ? 3 : 2);
+      assert.equal(first.data[3].value, mode === 'weekly' ? 8 : 6);
+      assert.equal(first.label.formatter({ dataIndex: 3 }), mode === 'weekly' ? '8.0' : '6.0');
+      assert.equal(second.label.formatter({ dataIndex: 2 }), 'IR');
+      assert.equal(second.label.formatter({ dataIndex: 3 }), 'OUT');
+      assert.equal(second.data[3].value, mode === 'weekly' ? 4 : 6);
+      assert.notEqual(first.data[0].label.position, second.data[0].label.position);
+      assert.notEqual(first.data[3].label.position, second.data[3].label.position);
+      const tooltip = option.tooltip.formatter([{ dataIndex: 2 }]);
+      assert.match(tooltip, />BYE<\/b>/);
+      assert.match(tooltip, />IR<\/b>/);
+      assert.deepEqual(Array.from(players[0].weekly, row => row.points), [0, -2, null, 8]);
+    }
+  }
+});
+
+test('trajectory extends leading and trailing statuses without inventing games for an injured player', () => {
+  const { timelineOption } = harness().window.RostersStartSit;
+  const echarts = { graphic: { LinearGradient: class {} } };
+  const players = [{ name: 'First', weekly: [{ week: 1, points: null, status: 'PUP' }, { week: 2, points: 10 }, { week: 3, points: null, status: 'DNR' }] },
+    { name: 'Second', weekly: [{ week: 1, points: null, status: 'IR' }, { week: 2, points: null, status: 'OUT' }, { week: 3, points: null, status: 'reserve' }] }];
   for (const mode of ['weekly', 'cumulative']) {
     const option = timelineOption(players, mode, echarts, true);
-    assert.ok(option.series.every(series => series.label.show && series.label.fontSize === 8 && series.labelLayout.hideOverlap));
-    assert.equal(option.series[0].label.position, 'top');
-    assert.equal(option.series[1].label.position, 'bottom');
-    assert.equal(option.series[0].label.formatter({ value: 0 }), '0.0');
-    assert.equal(option.series[0].label.formatter({ value: -2 }), '-2.0');
-    assert.equal(option.series[0].label.formatter({ value: null }), '');
-    assert.equal(option.series[0].data[3], mode === 'weekly' ? 8 : 6);
-    assert.equal(option.series[0].label.formatter({ value: option.series[0].data[3] }), mode === 'weekly' ? '8.0' : '6.0');
+    assert.deepEqual(Array.from(option.series[0].data, point => point.value), [10, 10, 10]);
+    assert.equal(option.series[0].label.formatter({ dataIndex: 0 }), 'PUP');
+    assert.equal(option.series[0].label.formatter({ dataIndex: 2 }), 'DNR');
+    assert.equal(option.series[1].lineStyle.opacity, 0);
+    assert.equal(option.series[1].areaStyle.opacity, 0);
+    assert.ok(option.series[1].data.every(point => point.symbolSize === 0));
+    assert.equal(option.series[1].label.formatter({ dataIndex: 2 }), 'RESERVE');
+  }
+  players[0].weekly[1] = { week: 2, points: null, status: 'DNP' };
+  const statusOnly = timelineOption(players, 'weekly', echarts, true);
+  assert.equal(statusOnly.yAxis.min, -1);
+  assert.equal(statusOnly.yAxis.max, 1);
+  assert.ok(statusOnly.series.every(series => series.lineStyle.opacity === 0));
+  assert.equal(statusOnly.series[0].label.formatter({ dataIndex: 1 }), 'DNP');
+});
+
+test('full-season trajectory reserves readable slots for both weekly and cumulative labels', () => {
+  const { sizeTrajectory, timelineOption } = harness().window.RostersStartSit;
+  const players = ['First', 'Second'].map(name => ({ name, weekly: Array.from({ length: 18 }, (_, index) => ({ week: index + 1, points: 30 })) }));
+  const node = { style: {} }, echarts = { graphic: { LinearGradient: class {} } };
+  for (const mode of ['weekly', 'cumulative']) {
+    sizeTrajectory(node, players, mode);
+    assert.ok(Number.parseInt(node.style.minWidth) >= 678);
+    const option = timelineOption(players, mode, echarts, true);
+    assert.equal(option.xAxis.axisLabel.interval, 0);
+    assert.equal(option.series[0].label.formatter({ dataIndex: 17 }), mode === 'weekly' ? '30.0' : '540.0');
+    assert.equal(option.series[0].data[17].label.position, 'top');
+    assert.equal(option.series[1].data[17].label.position, 'bottom');
   }
 });
 

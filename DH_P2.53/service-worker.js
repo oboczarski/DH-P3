@@ -121,7 +121,8 @@
 // Refresh Players Faced location labels with each player's team abbreviation.
 // Keep the Rosters profile team chevron visible after its record on phones.
 // Refresh Rosters' narrower desktop Game Logs card and larger content scale.
-const CACHE_NAME = 'DH3.61-desktop-gamelogs-density';
+// Refresh continuous comparison trajectories and always-visible scoring/status labels.
+const CACHE_NAME = 'DH3.61a-comparison-trajectory-labels';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
