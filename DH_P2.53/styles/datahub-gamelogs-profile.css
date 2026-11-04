@@ -164,7 +164,7 @@ body[data-page="datahub"] #game-logs-modal .gl-profile-byline {
   /* DataHub identity: let the longer record/matchup byline wrap on phones
      while keeping the team action and the close control usable. */
   flex-wrap: nowrap;
-  gap: 3px 24px;
+  gap: 3px 5px;
   margin-top: 2px;
 }
 body[data-page="datahub"] #game-logs-modal #modal-header .gl-profile .gl-profile-affiliation-content { position: static !important; display: flex !important; align-items: center !important; gap: 7px !important; }
