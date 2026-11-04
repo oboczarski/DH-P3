@@ -37,9 +37,9 @@ dialog { font:inherit; }
 .weekMatchup { background:linear-gradient(90deg,#8f94a61f,#8f94a612) border-box,linear-gradient(90deg,#74efff5b 0%,#7297ff5b 52%,#d97dff5b 100%) border-area; }
 }
 @media (max-width:400px) {
-.metricStrip { gap:2px; margin-bottom:3px; }
+.metricStrip {gap: 4px;margin-bottom: -2px;}
 }
-.matchupDialog { position:fixed; inset:0; margin:auto; padding:0; width:min(676px,calc(100% - 24px)); max-height:98dvh; color:var(--text); overflow:auto; border:1px solid var(--border); background:linear-gradient(155deg,#252a416e,#080e1aed),#0b1123; box-shadow:0 16px 48px #0008; border-radius:12px; }
+.matchupDialog {position:fixed;inset:0;margin:auto;padding:0;width:min(676px,calc(100% - 24px));max-height: 96dvh;color:var(--text);overflow:auto;border:1px solid var(--border);background:linear-gradient(155deg,#252a416e,#080e1aed),#0b1123;box-shadow:0 16px 48px #0008;border-radius:12px;}
 .matchupDialog #scopeNote { flex-basis:100%; }
 #loadStatus { padding:8px 0; }
 .retryButton { padding:6px 9px; border:1px solid var(--border); border-radius:7px; background:#aabbff10; font-size:11px; }
@@ -137,9 +137,9 @@ dialog { font:inherit; }
 }
 
 /* Expand players button */
-:where(#expandPlayers) .icon { width:16px; height:16px; flex:none; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+:where(#expandPlayers) .icon {width: 13px;height: 13px;flex:none;fill:none;stroke:currentColor;stroke-width: 2px;stroke-linecap:round;stroke-linejoin:round;}
 .sectionHeading > .iconButton:where(#expandPlayers) { margin-left:auto; }
-.iconButton:where(#expandPlayers) { width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; flex:none; border:1px solid var(--border); background:#aabbff08; border-radius:7px; color:#a5accb; }
+.iconButton:where(#expandPlayers) {width: 21px;height: 21px;display:inline-flex;align-items:center;justify-content:center;flex:none;border:1px solid var(--border);background:#aabbff08;border-radius:7px;color:#a5accb;}
 .iconButton:where(#expandPlayers):hover { background:#aabbff18; color:#e8efff; }
 @media print {
 .iconButton:where(#expandPlayers) { display:none; }
@@ -170,7 +170,7 @@ dialog.glass-panel:where(#playersDialog) { position:fixed; inset:0; margin:auto;
 
 /* Defense eyebrow */
 #defenseEyebrow { color:var(--dim); font-weight:600; letter-spacing:0; white-space:nowrap; font-size:9px; }
-.defenseHeaderCopy #defenseEyebrow { white-space:normal; }
+.defenseHeaderCopy #defenseEyebrow {white-space:normal;}
 
 /* Expanded players eyebrow */
 #expandedEyebrow { color:var(--dim); font-weight:600; letter-spacing:0; white-space:nowrap; font-size:9px; }
@@ -437,14 +437,14 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 /* Actual FPA card */
 .metric:where(#actualMetric) { min-width:0; border:1px solid #ffffff10; background:linear-gradient(180deg,#8f94a616,#8f94a609); box-shadow:inset 4px 5px 12px #ffffff04; padding:3px 3px; border-radius:7px; }
 :where(#actualMetric) .metricLabel { color:var(--muted); white-space:nowrap; text-align:center; font-size:7px; }
-:where(#actualMetric) .metricValue { line-height:1.1; letter-spacing:-.5px; font-weight:550; font-variant-numeric:tabular-nums; text-align:center; font-size:16px; white-space:nowrap; margin:2px 0 0px; }
+:where(#actualMetric) .metricValue {line-height: 1;letter-spacing:-.5px;font-weight:550;font-variant-numeric:tabular-nums;text-align:center;font-size:16px;white-space:nowrap;margin: 1px 0 0px;}
 :where(#actualMetric) .metricValue small { color:var(--dim); font-weight:400; font-size:12px; margin-left:1px; }
 :where(#actualMetric) .metricSub { color:var(--dim); text-wrap-mode:nowrap; white-space:nowrap; font-size:8px; text-align:center; letter-spacing:-0.02em; }
 :where(#actualMetric) .metricMobile { display:inline; }
 .metricStrip > .metric:where(#actualMetric) { grid-column:auto; }
 :where(#actualMetric) .metricDesktop { display:none; }
 @media (max-width:400px) {
-:where(#actualMetric) .metricValue { font-size:14px; text-align:center; }
+:where(#actualMetric) .metricValue {font-size: 13px;text-align:center;}
 }
 @media (max-width:400px) {
 :where(#actualMetric) .metricLabel { font-size:7px; font-weight:800; text-align:center; letter-spacing:-0.05em; }
@@ -453,21 +453,21 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 :where(#actualMetric) .metricSub { font-size:8px; text-align:center; letter-spacing:-0.02em; }
 }
 @media (max-width:400px) {
-.metric:where(#actualMetric) { padding:3px 1px; }
+.metric:where(#actualMetric) {padding: 2px 1px;}
 }
 :where(#actualMetric) .metricValue .metricPercent { font-size:.8em; margin-left:1px; }
 
 /* Expected FPA card */
 .metric:where(#expectedMetric) { min-width:0; border:1px solid #ffffff10; background:linear-gradient(180deg,#8f94a616,#8f94a609); box-shadow:inset 4px 5px 12px #ffffff04; padding:3px 3px; border-radius:7px; }
 :where(#expectedMetric) .metricLabel { color:var(--muted); white-space:nowrap; text-align:center; font-size:7px; }
-:where(#expectedMetric) .metricValue { line-height:1.1; letter-spacing:-.5px; font-weight:550; font-variant-numeric:tabular-nums; text-align:center; font-size:16px; white-space:nowrap; margin:2px 0 0px; }
+:where(#expectedMetric) .metricValue {line-height: 1;letter-spacing:-.5px;font-weight:550;font-variant-numeric:tabular-nums;text-align:center;font-size:16px;white-space:nowrap;margin: 1px 0 0px;}
 :where(#expectedMetric) .metricValue small { color:var(--dim); font-weight:400; font-size:12px; margin-left:1px; }
 :where(#expectedMetric) .metricSub { color:var(--dim); text-wrap-mode:nowrap; white-space:nowrap; font-size:8px; text-align:center; letter-spacing:-0.02em; }
 :where(#expectedMetric) .metricMobile { display:inline; }
 .metricStrip > .metric:where(#expectedMetric) { grid-column:auto; }
 :where(#expectedMetric) .metricDesktop { display:none; }
 @media (max-width:400px) {
-:where(#expectedMetric) .metricValue { font-size:14px; text-align:center; }
+:where(#expectedMetric) .metricValue {font-size: 13px;text-align:center;}
 }
 @media (max-width:400px) {
 :where(#expectedMetric) .metricLabel { font-size:7px; font-weight:800; text-align:center; letter-spacing:-0.05em; }
@@ -476,14 +476,14 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 :where(#expectedMetric) .metricSub { font-size:8px; text-align:center; letter-spacing:-0.02em; }
 }
 @media (max-width:400px) {
-.metric:where(#expectedMetric) { padding:3px 1px; }
+.metric:where(#expectedMetric) {padding: 2px 1px;}
 }
 :where(#expectedMetric) .metricValue .metricPercent { font-size:.8em; margin-left:1px; }
 
 /* Versus expected card */
 .metric:where(#deltaMetric) { min-width:0; border:1px solid #ffffff10; background:linear-gradient(180deg,#8f94a616,#8f94a609); box-shadow:inset 4px 5px 12px #ffffff04; padding:3px 3px; border-radius:7px; }
 :where(#deltaMetric) .metricLabel { color:var(--muted); white-space:nowrap; text-align:center; font-size:7px; }
-:where(#deltaMetric) .metricValue { line-height:1.1; letter-spacing:-.5px; font-weight:550; font-variant-numeric:tabular-nums; text-align:center; font-size:16px; white-space:nowrap; margin:2px 0 0px; }
+:where(#deltaMetric) .metricValue {line-height: 1;letter-spacing:-.5px;font-weight:550;font-variant-numeric:tabular-nums;text-align:center;font-size:16px;white-space:nowrap;margin: 1px 0 0px;}
 :where(#deltaMetric) .metricValue small { color:var(--dim); font-weight:400; font-size:12px; margin-left:1px; }
 :where(#deltaMetric) .metricSub { color:var(--dim); text-wrap-mode:nowrap; white-space:nowrap; font-size:8px; text-align:center; letter-spacing:-0.02em; }
 :where(#deltaMetric) .metricMobile { display:inline; }
@@ -492,7 +492,7 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 .metricStrip > .metric:where(#deltaMetric) { grid-column:auto; }
 :where(#deltaMetric) .metricDesktop { display:none; }
 @media (max-width:400px) {
-:where(#deltaMetric) .metricValue { font-size:14px; text-align:center; }
+:where(#deltaMetric) .metricValue {font-size: 13px;text-align:center;}
 }
 @media (max-width:400px) {
 :where(#deltaMetric) .metricLabel { font-size:7px; font-weight:800; text-align:center; letter-spacing:-0.05em; }
@@ -501,14 +501,14 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 :where(#deltaMetric) .metricSub { font-size:8px; text-align:center; letter-spacing:-0.02em; }
 }
 @media (max-width:400px) {
-.metric:where(#deltaMetric) { padding:3px 1px; }
+.metric:where(#deltaMetric) {padding: 2px 1px;}
 }
 :where(#deltaMetric) .metricValue .metricPercent { font-size:.8em; margin-left:1px; }
 
 /* Defense rank card */
 .metric:where(#rankMetric) { min-width:0; border:1px solid #ffffff10; background:linear-gradient(180deg,#8f94a616,#8f94a609); box-shadow:inset 4px 5px 12px #ffffff04; padding:3px 3px; border-radius:7px; }
 :where(#rankMetric) .metricLabel { color:var(--muted); white-space:nowrap; text-align:center; font-size:7px; }
-:where(#rankMetric) .metricValue { line-height:1.1; letter-spacing:-.5px; font-weight:550; font-variant-numeric:tabular-nums; text-align:center; font-size:16px; white-space:nowrap; margin:2px 0 0px; }
+:where(#rankMetric) .metricValue {line-height: 1;letter-spacing:-.5px;font-weight:550;font-variant-numeric:tabular-nums;text-align:center;font-size:16px;white-space:nowrap;margin: 1px 0 0px;}
 :where(#rankMetric) .metricValue small { color:var(--dim); font-weight:400; font-size:12px; margin-left:1px; }
 :where(#rankMetric) .metricSub { color:var(--dim); text-wrap-mode:nowrap; white-space:nowrap; font-size:8px; text-align:center; letter-spacing:-0.02em; }
 :where(#rankMetric) .metricMobile { display:inline; }
@@ -516,7 +516,7 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 .metricStrip > .metric:where(#rankMetric):nth-child(n+4) { grid-column:auto; }
 :where(#rankMetric) .metricDesktop { display:none; }
 @media (max-width:400px) {
-:where(#rankMetric) .metricValue { font-size:14px; text-align:center; }
+:where(#rankMetric) .metricValue {font-size: 13px;text-align:center;}
 }
 @media (max-width:400px) {
 :where(#rankMetric) .metricLabel { font-size:7px; font-weight:800; text-align:center; letter-spacing:-0.05em; }
@@ -525,14 +525,14 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 :where(#rankMetric) .metricSub { font-size:8px; text-align:center; letter-spacing:-0.02em; }
 }
 @media (max-width:400px) {
-.metric:where(#rankMetric) { padding:3px 1px; }
+.metric:where(#rankMetric) {padding: 2px 1px;}
 }
 :where(#rankMetric) .metricValue .metricPercent { font-size:.8em; margin-left:1px; }
 
 /* SOS rank card */
 .metric:where(#sosMetric) { min-width:0; border:1px solid #ffffff10; background:linear-gradient(180deg,#8f94a616,#8f94a609); box-shadow:inset 4px 5px 12px #ffffff04; padding:3px 3px; border-radius:7px; }
 :where(#sosMetric) .metricLabel { color:var(--muted); white-space:nowrap; text-align:center; font-size:7px; }
-:where(#sosMetric) .metricValue { line-height:1.1; letter-spacing:-.5px; font-weight:550; font-variant-numeric:tabular-nums; text-align:center; font-size:16px; white-space:nowrap; margin:2px 0 0px; }
+:where(#sosMetric) .metricValue {line-height: 1;letter-spacing:-.5px;font-weight:550;font-variant-numeric:tabular-nums;text-align:center;font-size:16px;white-space:nowrap;margin: 1px 0 0px;}
 :where(#sosMetric) .metricValue small { color:var(--dim); font-weight:400; font-size:12px; margin-left:1px; }
 :where(#sosMetric) .metricSub { color:var(--dim); text-wrap-mode:nowrap; white-space:nowrap; font-size:8px; text-align:center; letter-spacing:-0.02em; }
 :where(#sosMetric) .metricMobile { display:inline; }
@@ -540,7 +540,7 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 .metricStrip > .metric:where(#sosMetric):nth-child(n+4) { grid-column:auto; }
 :where(#sosMetric) .metricDesktop { display:none; }
 @media (max-width:400px) {
-:where(#sosMetric) .metricValue { font-size:14px; text-align:center; }
+:where(#sosMetric) .metricValue {font-size: 13px;text-align:center;}
 }
 @media (max-width:400px) {
 :where(#sosMetric) .metricLabel { font-size:7px; font-weight:800; text-align:center; letter-spacing:-0.05em; }
@@ -549,7 +549,7 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 :where(#sosMetric) .metricSub { font-size:8px; text-align:center; letter-spacing:-0.02em; }
 }
 @media (max-width:400px) {
-.metric:where(#sosMetric) { padding:3px 1px; }
+.metric:where(#sosMetric) {padding: 2px 1px;}
 }
 :where(#sosMetric) .metricValue .metricPercent { font-size:.8em; margin-left:1px; }
 
