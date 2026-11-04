@@ -125,7 +125,8 @@
 // Refresh unplayed-week designations as plain text without label backgrounds.
 // Refresh the Scoring Comparison title and faded, desaturated unplayed labels.
 // Refresh player two's blue SVG ring and Scoring Comparison chart palette.
-const CACHE_NAME = 'DH3.61d-comparison-player-two-blue';
+// Refresh the home dashboard's live DH adapter, removed card legend and fitted scatter.
+const CACHE_NAME = 'DH3.61e-dashboard-live-season';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -191,6 +192,8 @@ const CORE_ASSET_PATHS = [
   '/scripts/vendor/echarts-6.0.0.min.js',
   '/styles/leaguehub-analysis.css',
   '/scripts/dashboard.js',
+  // Home DH adapter is page-owned; cache only its code, never the Google export.
+  '/scripts/dashboard-data.js',
   '/scripts/syop.js',
   '/scripts/dh-scramble.js',
   '/scripts/contact.js'

@@ -125,6 +125,13 @@
   gap: 0.95em;
 }
 
+/* Home dashboard DH loading/failure text stays within the dashboard's type scale. */
+body[data-page="welcome"] #dashboard-data-status {
+  color: var(--text-secondary);
+  font-size: max(11px, 1.1em);
+  text-align: center;
+}
+
 @media (max-width: 819px) {
   .fc-main {
     gap: 1.25em;
@@ -1932,12 +1939,10 @@ body[data-page="welcome"] .username-area::before {
     font-size: 0.98em;
   }
   
-  /* Dashboard scatter plot desktop-only sizing:
-     - targets the home-page scatter panel only
-     - increases the actual chart host height, not just the outer card shell
-     - leaves mobile behavior untouched */
-  .fc-scatter-panel {min-height: 51em;backdrop-filter: blur(3px);-webkit-backdrop-filter: blur(3px);}
-  .fc-scatter-panel .fc-chart-container { min-height: 35em; }
+  /* Home scatter: add about 69px of desktop plotting space at the default scale.
+     Grow the host and outer panel together so D3 measures the taller graph. */
+  body[data-page="welcome"] .fc-scatter-panel {min-height: 57em;backdrop-filter: blur(3px);-webkit-backdrop-filter: blur(3px);}
+  body[data-page="welcome"] .fc-scatter-panel .fc-chart-container { min-height: 41em; }
   /* Desktop-only scatter label bump for readability. */
   .fc-scatter-panel .scatter-label { font-size: 12.5px; }
 }
@@ -2053,8 +2058,9 @@ body[data-page="welcome"] .username-area::before {
     align-self: stretch;
   }
 
-  /* Scatter Panel: Tall on mobile */
-  .fc-scatter-panel {min-height: 68em;backdrop-filter: blur(4px);-webkit-backdrop-filter: blur(4px);}
+  /* Home scatter: a small mobile increase (about 13px at 390px wide), with
+     the flex chart host taking the extra room rather than adding empty padding. */
+  body[data-page="welcome"] .fc-scatter-panel {min-height: 71em;backdrop-filter: blur(4px);-webkit-backdrop-filter: blur(4px);}
 
 
   /* Radar Legend: Bigger & Abbreviated */

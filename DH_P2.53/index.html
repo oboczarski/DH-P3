@@ -30,7 +30,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     crossorigin="anonymous" referrerpolicy="no-referrer" />
   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
-  <link rel="stylesheet" href="styles/dashboard.css?v=DH3.35-expanded-page-backgrounds">
+  <link rel="stylesheet" href="styles/dashboard.css?v=DH3.61e-dashboard-live-season">
   <!-- Cloudflare Web Analytics: tracks visits for the current Dynasty Hub Cloudflare property; kept deferred so it does not block app rendering. -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
     data-cf-beacon='{"token": "0a02235754b046f389fb57f26b46f13a"}'></script>
@@ -167,8 +167,10 @@
 
         <!-- Page Subtitle -->
         <div class="welcome-subtitle-row">
-          <h3>25-26 League Leaders Dashboard</h3>
+          <h3>2026 League Leaders Dashboard</h3>
         </div>
+        <!-- Home-only live DH status: keep source failures visible without blocking navigation. -->
+        <p id="dashboard-data-status" role="status" aria-live="polite">Loading 2026 season stats…</p>
 
         <!-- Key Metrics Row -->
         <div class="fc-grid-metrics">
@@ -186,7 +188,7 @@
               </div>
             </div>
             <div class="fc-metric-row">
-              <div id="total-points-value" class="fc-metric-value fc-text-glow">0</div>
+              <div id="total-points-value" class="fc-metric-value fc-text-glow">—</div>
               <div class="fc-metric-sub fc-text-purple">
                 <svg class="fc-icon-xs fc-icon-value" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -216,7 +218,7 @@
               </div>
             </div>
             <div class="fc-metric-row">
-              <div id="ppg-value" class="fc-metric-value fc-text-glow">0</div>
+              <div id="ppg-value" class="fc-metric-value fc-text-glow">—</div>
               <div class="fc-metric-sub fc-text-pink">
                 <i class="fa-solid fa-crosshairs fc-icon-value fc-icon-target" aria-hidden="true"></i>
               </div>
@@ -241,7 +243,7 @@
               </div>
             </div>
             <div class="fc-metric-row">
-              <div id="consistency-value" class="fc-metric-value fc-text-glow">0%</div>
+              <div id="consistency-value" class="fc-metric-value fc-text-glow">—</div>
               <div class="fc-metric-sub fc-text-emerald">
                 <i class="fa-solid fa-repeat fc-icon-value fc-icon-consistency" aria-hidden="true"></i>
               </div>
@@ -268,7 +270,7 @@
               </div>
             </div>
             <div class="fc-metric-row">
-              <div id="share-value" class="fc-metric-value fc-text-glow">0%</div>
+              <div id="share-value" class="fc-metric-value fc-text-glow">—</div>
               <div class="fc-metric-sub fc-text-cyan">Share</div>
             </div>
             <div class="fc-progress-accent fc-progress-accent--cyan"></div>
@@ -474,33 +476,6 @@
 
       <!-- External footnote (below card) -->
     </div>
-    <section aria-label="Player Card Legend" class="hidden legend-section panel" id="legend-section">
-      <h3 class="panel-title">Player Card Legend</h3>
-      <div aria-label="Roster Player Card Key" class="player-row legend-card" id="rosterPlayerCardKey" role="region">
-        <!-- Top row: Position tag + Player  -->
-        <div class="player-main-line legend-main">
-          <span class="player-tag legend-pos">POSITION</span>
-          <span class="player-name legend-name">PLAYER NAME</span>
-        </div>
-        <!-- Middle row: Position Rank • Age • Team tag (right aligned) -->
-        <div class="player-meta-line legend-meta">
-          <span class="player-pos-rank legend-pos-rank">POSITION RANK<br /> (PPR FPTS)</span>
-          <span class="separator">•</span>
-          <span><span class="player-age legend-age">AGE</span></span>
-          <span class="separator">•</span>
-          <span class="team-tag legend-team">TEAM</span>
-        </div>
-        <!-- Bottom row: KTC left, ADP right (no chips) -->
-        <div class="player-value-line legend-bottom">
-          <div class="legend-bottom-bg">
-            <span class="kv-left"><span class="value player-ktc legend-ktc"><b>KTC VALUE</b> (POS RK)</span></span>
-            <span class="kv-right"><span class="value player-adp legend-adp"><b>PPG</b></span></span>
-          </div>
-        </div>
-      </div>
-      <div class="legend-footnote" id="rosterCardFootnote">KTC VALUE AND ADP ARE SPECIFIC TO LEAGUE SCORING / FORMAT.
-      </div>
-    </section>
     <div id="loading" class="hidden">
       <div class="loading-overlay" role="alert" aria-live="polite">
         <div class="loading-spinner" aria-hidden="true"></div>
@@ -541,7 +516,7 @@
 
   <script defer src="scripts/app.js?v=DH3.49n-local-weekly-stats"></script>
   <script src="scripts/dh-scramble.js?v=DH3.23B-dashboard-branding"></script>
-  <script src="scripts/dashboard.js?v=DH3.34-responsive-page-backgrounds"></script>
+  <script src="scripts/dashboard.js?v=DH3.61e-dashboard-live-season"></script>
 </body>
 
 </html>
