@@ -1,4 +1,172 @@
 /* Scoped Dashboard Styles */
+/* Home boot experience: a fixed, page-owned orbital scene while DH and the
+   dashboard charts prepare. Every animation has a reduced-motion alternative. */
+body[data-page="welcome"][data-dashboard-loading] { overflow: hidden; }
+body[data-page="welcome"] .dh-boot {
+  --boot-progress: 12%;
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 28px 24px;
+  background:
+    radial-gradient(ellipse at 50% 38%, #5540a32e 0%, transparent 48%),
+    radial-gradient(ellipse at 17% 80%, #087b8f15, transparent 40%),
+    radial-gradient(ellipse at 85% 18%, #b8387a12, transparent 35%), #090d19;
+  color: #edf2ff;
+  font-family: 'Product Sans', system-ui, sans-serif;
+  text-align: center;
+}
+body[data-page="welcome"] .dh-boot[hidden] { display: none; }
+body[data-page="welcome"] .dh-boot * { box-sizing: border-box; }
+.dh-boot__mesh {
+  position: absolute;
+  inset: -20%;
+  opacity: 0.3;
+  background-image: linear-gradient(#9d9acf0a 1px, transparent 1px), linear-gradient(90deg, #9d9acf0a 1px, transparent 1px);
+  background-size: 60px 60px;
+  transform: perspective(650px) rotateX(28deg);
+  mask-image: radial-gradient(ellipse, #000 15%, transparent 65%);
+}
+.dh-boot__content { position: relative; width: min(100%, 490px); }
+.dh-boot__eyebrow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  color: #d8def4;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.23em;
+}
+.dh-boot__eyebrow > span:first-child {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #70e8d0;
+  box-shadow: 0 0 12px #70e8d0aa;
+}
+.dh-boot__season { padding-left: 12px; border-left: 1px solid #c2c9e929; color: #8a93b4; font-size: 9px; letter-spacing: 0.13em; }
+.dh-boot__orbit { position: relative; width: 280px; height: 280px; margin: 28px auto 16px; }
+.dh-boot__orbit::before {
+  content: '';
+  position: absolute;
+  inset: 17%;
+  border-radius: 50%;
+  background: #6747df;
+  filter: blur(48px);
+  opacity: 0.17;
+  animation: dh-boot-breathe 3.5s ease-in-out infinite;
+}
+.dh-boot__orbit-ring { position: absolute; border-radius: 50%; border: 1px solid #a9b9fa1c; }
+.dh-boot__orbit-ring--outer { inset: 0; border-style: dashed; border-color: #bdc8ff1c; animation: dh-boot-orbit 36s linear infinite; }
+.dh-boot__orbit-ring--inner { inset: 20px; border-top-color: #9d8dffb3; border-right-color: #5ddfe66b; animation: dh-boot-orbit 8s linear infinite reverse; }
+.dh-boot__orbit-ring--inner::after {
+  content: '';
+  position: absolute;
+  top: 31px;
+  right: 31px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #a3f3ff;
+  box-shadow: 0 0 13px 3px #57c6ef66;
+}
+.dh-boot__sweep { position: absolute; inset: 23px; border-radius: 50%; background: conic-gradient(from 0deg, transparent 70%, #9b83ff15 95%, #9b83ff55); animation: dh-boot-orbit 5s linear infinite; }
+.dh-boot__core {
+  position: absolute;
+  inset: 62px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #c4b3ff30;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 25%, #a8a4fa18, #1a203529 65%);
+  box-shadow: 0 0 50px #8d66ff12, inset 0 0 24px #ad9eff0d;
+  backdrop-filter: blur(10px);
+}
+.dh-boot__core img { width: 118px; height: 118px; object-fit: contain; filter: drop-shadow(0 0 14px #b8b0ff26); }
+.dh-boot__position {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 27px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: #101626;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  box-shadow: 0 0 25px #080b1599;
+  animation: dh-boot-float 3s ease-in-out infinite;
+}
+.dh-boot__position--qb { top: 23px; right: 28px; color: #ed8ac4; }
+.dh-boot__position--rb { right: -5px; bottom: 69px; color: #6ad6b3; animation-delay: -0.7s; }
+.dh-boot__position--wr { bottom: -1px; left: 74px; color: #65cfe5; animation-delay: -1.4s; }
+.dh-boot__position--te { left: -8px; top: 84px; color: #e7b079; animation-delay: -2.1s; }
+body[data-page="welcome"] .dh-boot__title { margin: 0; font-size: clamp(32px, 5vw, 48px); font-weight: 500; line-height: 1.06; letter-spacing: -0.04em; }
+.dh-boot__title span { color: #aaa5e7; }
+.dh-boot__description { margin: 16px 0 28px; color: #8792b0; font-size: 13px; letter-spacing: 0.015em; }
+.dh-boot__progress { position: relative; width: min(100%, 320px); height: 3px; margin: 0 auto; overflow: hidden; border-radius: 3px; background: #bfcaff12; }
+.dh-boot__progress > span { display: block; width: var(--boot-progress); height: 100%; border-radius: inherit; background: linear-gradient(90deg, #7b68db, #a696ff, #70dfdd); box-shadow: 0 0 12px #a696ff66; transition: width 0.5s ease; }
+.dh-boot__progress::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, #fff8, transparent); transform: translateX(-100%); animation: dh-boot-scan 2s ease-in-out infinite; }
+.dh-boot__status { margin: 14px 0 18px; color: #bec7df; font-size: 12px; font-weight: 400; letter-spacing: 0.015em; }
+.dh-boot__steps { display: flex; justify-content: center; gap: 20px; color: #606b89; font-size: 10px; }
+.dh-boot__steps > span { display: inline-flex; align-items: center; gap: 6px; transition: color 0.3s; }
+.dh-boot__steps i { width: 4px; height: 4px; border-radius: 50%; border: 1px solid currentColor; }
+.dh-boot__steps [data-state="current"] { color: #c8c3f5; }
+.dh-boot__steps [data-state="current"] i { background: #b5a9ff; box-shadow: 0 0 8px #b5a9ff99; }
+.dh-boot__steps [data-state="complete"] { color: #6dbaa9; }
+.dh-boot__steps [data-state="complete"] i { background: currentColor; }
+.dh-boot__signature { position: absolute; bottom: max(22px, env(safe-area-inset-bottom)); color: #586280; font-size: 8px; letter-spacing: 0.22em; }
+.dh-boot__signature span { color: #9c8ac7; margin-left: 8px; }
+body[data-page="welcome"] .dh-boot[data-phase="1"] { --boot-progress: 60%; }
+body[data-page="welcome"] .dh-boot[data-phase="2"] { --boot-progress: 85%; }
+body[data-page="welcome"] .dh-boot[data-phase="3"] { --boot-progress: 100%; }
+@keyframes dh-boot-orbit { to { transform: rotate(360deg); } }
+@keyframes dh-boot-breathe { 50% { opacity: 0.32; transform: scale(1.12); } }
+@keyframes dh-boot-float { 50% { transform: translateY(-5px); } }
+@keyframes dh-boot-scan { to { transform: translateX(100%); } }
+@media (max-width: 520px) {
+  .dh-boot__orbit { width: 236px; height: 236px; margin-top: 28px; margin-bottom: 20px; }
+  .dh-boot__core { inset: 52px; }
+  .dh-boot__core img { width: 102px; height: 102px; }
+  .dh-boot__steps { gap: 15px; }
+}
+@media (max-height: 650px) {
+  .dh-boot__orbit { width: 190px; height: 190px; margin: 18px auto 14px; }
+  .dh-boot__core { inset: 42px; }
+  .dh-boot__core img { width: 84px; height: 84px; }
+  body[data-page="welcome"] .dh-boot__title { font-size: 30px; }
+  .dh-boot__description { margin: 12px 0 20px; }
+  .dh-boot__signature { display: none; }
+}
+/* Short phone windows retain the complete loading scene; landscape uses the
+   orbit beside the copy so neither the logo nor loading status gets clipped. */
+@media (max-height: 500px) and (max-width: 599px) {
+  .dh-boot__orbit { width: 150px; height: 150px; margin: 12px auto 10px; }
+  .dh-boot__core { inset: 32px; }
+  .dh-boot__core img { width: 72px; height: 72px; }
+  body[data-page="welcome"] .dh-boot__title { font-size: 27px; }
+  .dh-boot__description { margin: 10px 0 16px; font-size: 11px; }
+  .dh-boot__status { margin: 10px 0; }
+}
+@media (max-height: 500px) and (min-width: 600px) {
+  .dh-boot__content { display: grid; grid-template-columns: 210px 1fr; column-gap: 30px; width: min(100%, 650px); text-align: left; }
+  .dh-boot__content > :not(.dh-boot__orbit) { grid-column: 2; }
+  .dh-boot__orbit { grid-column: 1; grid-row: 1 / span 6; width: 210px; height: 210px; margin: 0; }
+  .dh-boot__eyebrow, .dh-boot__steps { justify-content: flex-start; }
+  body[data-page="welcome"] .dh-boot__title { font-size: 32px; margin-top: 14px; }
+  .dh-boot__description { margin: 10px 0 18px; }
+  .dh-boot__progress { width: 100%; }
+  .dh-boot__status { margin: 12px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-page="welcome"] .dh-boot *, body[data-page="welcome"] .dh-boot *::before, body[data-page="welcome"] .dh-boot *::after { animation: none; transition: none; }
+}
+
 .fc-dashboard {
   /* Colors */
   --bg-deep: #0f172a;
@@ -1752,6 +1920,13 @@ body[data-page="welcome"] .username-area::before {
   font-weight: 500;
   pointer-events: none;
   text-shadow: 0 0px 4px #000, 0 0px 3px #000, 0 0px 3px #000, 0 0px 3px #000;
+}
+
+/* Home scatter connectors are decorative and never intercept point interactions. */
+body[data-page="welcome"] .scatter-label-leaders {
+  pointer-events: none;
+  stroke-width: 0.8px;
+  stroke-opacity: 0.5;
 }
 
 .scatter-dot {

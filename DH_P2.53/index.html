@@ -29,15 +29,44 @@
   <link rel="shortcut icon" href="assets/icons/favicon.ico?v=20250926r5c" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
-  <link rel="stylesheet" href="styles/dashboard.css?v=DH3.61f-dashboard-axes-qualifiers">
+  <!-- Let the home loading screen paint while the chart library downloads. -->
+  <script defer src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+  <link rel="stylesheet" href="styles/dashboard.css?v=DH3.61g-dashboard-boot-labels">
   <!-- Cloudflare Web Analytics: tracks visits for the current Dynasty Hub Cloudflare property; kept deferred so it does not block app rendering. -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
     data-cf-beacon='{"token": "0a02235754b046f389fb57f26b46f13a"}'></script>
 
 </head>
 
-<body data-page="welcome" class="p-2 sm:p-4">
+<body data-page="welcome" data-dashboard-loading class="p-2 sm:p-4">
+  <!-- Home-only boot screen: stages follow DH loading, qualified leader selection
+       and chart rendering. The page is released on success or source failure. -->
+  <div id="dashboard-boot" class="dh-boot" data-phase="0" role="region" aria-label="Loading Dynasty Hub">
+    <div class="dh-boot__mesh" aria-hidden="true"></div>
+    <div class="dh-boot__content">
+      <div class="dh-boot__eyebrow"><span></span> DYNASTY HUB <span class="dh-boot__season">2026 SEASON</span></div>
+      <div class="dh-boot__orbit" aria-hidden="true">
+        <div class="dh-boot__orbit-ring dh-boot__orbit-ring--outer"></div>
+        <div class="dh-boot__orbit-ring dh-boot__orbit-ring--inner"></div>
+        <div class="dh-boot__sweep"></div>
+        <div class="dh-boot__core"><img src="assets/welcome/welcome-logo-256.png" width="128" height="128" alt="" fetchpriority="high" /></div>
+        <span class="dh-boot__position dh-boot__position--qb">QB</span>
+        <span class="dh-boot__position dh-boot__position--rb">RB</span>
+        <span class="dh-boot__position dh-boot__position--wr">WR</span>
+        <span class="dh-boot__position dh-boot__position--te">TE</span>
+      </div>
+      <h2 class="dh-boot__title">Bring the season<br /><span>into focus.</span></h2>
+      <p class="dh-boot__description">The numbers. The leaders. Your next edge.</p>
+      <div class="dh-boot__progress" aria-hidden="true"><span></span></div>
+      <p id="dashboard-boot-status" class="dh-boot__status" role="status" aria-live="polite">Connecting to the 2026 season</p>
+      <div class="dh-boot__steps" aria-hidden="true">
+        <span data-boot-step="0" data-state="current"><i></i> Season data</span>
+        <span data-boot-step="1"><i></i> League leaders</span>
+        <span data-boot-step="2"><i></i> Dashboard</span>
+      </div>
+    </div>
+    <div class="dh-boot__signature" aria-hidden="true">BUILT FOR THE LONG GAME <span>✦</span></div>
+  </div>
   <!-- Glass-refraction SVG filter defs — hidden, referenced by backdrop-filter: url(#glass-refract).
        Two strengths: subtle (scale 8) for cards/pills, strong (scale 16) for dense/header tiers. -->
   <svg class="glass-svg-defs" aria-hidden="true" width="0" height="0"
@@ -80,7 +109,7 @@
   </div>
   <div id="noise-overlay"></div>
   <!-- EDITED: Added a class for layout control -->
-  <main class="container mx-auto" id="content">
+  <main class="container mx-auto" id="content" inert>
     <div id="fc-dashboard-root" class="fc-dashboard">
       <main class="fc-main">
         <div class="welcome-header-group">
@@ -496,7 +525,7 @@
       </div>
     </div>
   </main>
-  <footer id="legalFootnote" class="page-footnote" role="contentinfo" aria-label="Data & affiliation disclaimer">
+  <footer id="legalFootnote" class="page-footnote" role="contentinfo" aria-label="Data & affiliation disclaimer" inert>
     This App uses KTC player values and Sleeper roster data (updated daily). Data is owned by their respective
     providers. This App is not affiliated with or endorsed by KTC or Sleeper.
   </footer>
@@ -516,7 +545,7 @@
 
   <script defer src="scripts/app.js?v=DH3.49n-local-weekly-stats"></script>
   <script src="scripts/dh-scramble.js?v=DH3.23B-dashboard-branding"></script>
-  <script src="scripts/dashboard.js?v=DH3.61f-dashboard-axes-qualifiers"></script>
+  <script src="scripts/dashboard.js?v=DH3.61g-dashboard-boot-labels"></script>
 </body>
 
 </html>

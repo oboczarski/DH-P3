@@ -140,11 +140,11 @@ export function getScatterBounds(players) {
   const [yMin, yMax] = extent('ceiling');
   // Home scatter uses the nearest lower 10% / 5-CL steps, without an extra
   // padding pass: 42.9% starts at 40%, and 16.8 CL starts at 15. Retain the
-  // original four percentage points after 100% instead of expanding to 110%.
+  // tighter two percentage points after 100% to reduce unused right-side space.
   const yLower = Math.floor(yMin / 5) * 5;
   const yUpper = Math.ceil(yMax / 5) * 5;
   return {
-    x: [Math.max(0, Math.min(90, Math.floor(xMin / 10) * 10)), 104],
+    x: [Math.max(0, Math.min(90, Math.floor(xMin / 10) * 10)), 102],
     y: [yLower, yUpper > yMax ? yUpper : yUpper + 5]
   };
 }

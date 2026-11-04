@@ -127,7 +127,8 @@
 // Refresh player two's blue SVG ring and Scoring Comparison chart palette.
 // Refresh the home dashboard's live DH adapter, removed card legend and fitted scatter.
 // Restore its rounded scatter bounds and apply DataHub qualification to every summary card.
-const CACHE_NAME = 'DH3.61f-dashboard-axes-qualifiers';
+// Refresh the home orbital boot screen, measured label layout and tighter scatter gutter.
+const CACHE_NAME = 'DH3.61g-dashboard-boot-labels';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -195,6 +196,7 @@ const CORE_ASSET_PATHS = [
   '/scripts/dashboard.js',
   // Home DH adapter is page-owned; cache only its code, never the Google export.
   '/scripts/dashboard-data.js',
+  '/scripts/dashboard-scatter-layout.js',
   '/scripts/syop.js',
   '/scripts/dh-scramble.js',
   '/scripts/contact.js'

@@ -70,20 +70,20 @@ test('scatter selects eight by PPG at every position from the complete season po
   assert.ok(!tightEnds.some(player => player.id === 'TE-8'));
 });
 
-test('scatter uses 40%/15 lower bounds for the live extrema and restores the original 104% upper bound', () => {
+test('scatter uses 40%/15 lower bounds for the live extrema and uses the tighter 102% upper bound', () => {
   assert.deepEqual(getScatterBounds([
     { stats: { csty: 42.9, ceiling: 16.8 } },
     { stats: { csty: 100, ceiling: 37.6 } }
-  ]), { x: [40, 104], y: [15, 40] });
+  ]), { x: [40, 102], y: [15, 40] });
 });
 
-test('scatter rounds future extrema down/up once, preserves 104%, and handles constant data', () => {
+test('scatter rounds future extrema down/up once, preserves 102%, and handles constant data', () => {
   const players = [
     { stats: { csty: 15, ceiling: 9 } },
     { stats: { csty: 100, ceiling: 65 } }
   ];
   const bounds = getScatterBounds(players);
-  assert.deepEqual(bounds, { x: [10, 104], y: [5, 70] });
+  assert.deepEqual(bounds, { x: [10, 102], y: [5, 70] });
   const single = getScatterBounds([players[1]]);
   assert.ok(single.x[0] < 100 && single.x[1] > 100);
   assert.deepEqual(single.y, [65, 70]);

@@ -4,19 +4,13 @@
 let players = [];
 let scatterAll = [];
 let dashboardData;
+let dashboardLayout;
 let dashboardInitPromise;
 let scatterTooltipCleanup;
 const dashState = { selectedPlayerId: null, filter: 'all', scatterFilter: 'ALL' };
 
 // === Helpers ===
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
-const formatInitialLast = (name = '') => {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0];
-  const firstInitial = parts[0]?.[0] ? `${parts[0][0].toUpperCase()}.` : '';
-  const last = parts.slice(1).join(' ');
-  return `${firstInitial} ${last}`.trim();
-};
 const getSelected = () => players.find(p => p.id === dashState.selectedPlayerId) || players[0];
 
 const RADAR_STATS_CONFIG = {
@@ -446,15 +440,16 @@ function updateLegendForPosition(pos) {
 
 function renderScatter() {
   scatterAll = dashboardData.selectScatterPlayers(players);
-  applyScatterFilter(dashState.scatterFilter);
+  return applyScatterFilter(dashState.scatterFilter);
 }
 
 function applyScatterFilter(pos) {
   const selected = pos && pos !== 'ALL' ? pos : 'ALL';
   dashState.scatterFilter = selected;
   const filtered = selected === 'ALL' ? scatterAll : scatterAll.filter(p => p.position === selected);
-  drawScatterChart('scatter-chart', filtered);
+  const ready = drawScatterChart('scatter-chart', filtered);
   updateScatterLegend(selected);
+  return ready;
 }
 
 // Event wiring
@@ -866,7 +861,8 @@ function drawScatterChart(containerId, data) {
   // Dashboard scatter sizing follows its page-local CSS at each breakpoint.
   const margin = {
     top: isMobile ? 10 : height * 0.02,
-    right: width * 0.02,
+    // Home scatter: reduce the outer right gutter together with the 102% domain.
+    right: width * 0.01,
     bottom: isMobile ? 30 : height * 0.085,
     left: isMobile ? 30 : width * 0.055
   };
@@ -1099,7 +1095,8 @@ function drawScatterChart(containerId, data) {
     tooltip.remove();
     document.removeEventListener('touchstart', dismissTooltip);
   };
-  // Data labels: restore the original fixed positioning relative to each dot
+  // Home scatter names start beside their points; measured text bounds below
+  // resolve vertical collisions independently of the existing dot separation.
   const labelDx = isMobile ? -2 : 3;
   const labelDy = isMobile ? 2 : 1;
   const labels = g.selectAll('.scatter-label')
@@ -1111,22 +1108,28 @@ function drawScatterChart(containerId, data) {
     .attr('text-anchor', (d, i) => dotPositions[i].cx > innerWidth * 0.8 ? 'end' : 'start')
     .attr('x', (d, i) => dotPositions[i].cx + (dotPositions[i].cx > innerWidth * 0.8 ? -Math.abs(labelDx) : labelDx))
     .attr('y', (d, i) => dotPositions[i].cy + labelDy)
-    .text(d => {
-    const parts = d.name.split(' ');
-    const firstInitial = parts[0]?.[0] ? `${parts[0][0]}.` : '';
-    let last = parts.slice(1).join(' ');
-    if (parts.length >= 3) {
-      const penultimate = parts[parts.length - 2];
-      const lastWord = parts[parts.length - 1];
-      if (/^[A-Za-z]{2,3}\.?$/.test(penultimate)) {
-        last = `${penultimate} ${lastWord}`;
-      } else {
-        last = lastWord;
-      }
-    }
-    return `${firstInitial} ${last}`.trim();
-  })
+    .text(d => dashboardLayout.formatScatterName(d.name))
     .attr('opacity', 0);
+
+  const textBoxes = labels.nodes().map(node => {
+    const box = node.getBBox();
+    return { x: box.x, y: box.y, width: box.width, height: box.height,
+      baseline: Number(node.getAttribute('y')) };
+  });
+  const labelLayout = dashboardLayout.arrangeScatterLabels(textBoxes, innerHeight, isMobile ? 2 : 3);
+  labels.attr('y', (d, i) => textBoxes[i].baseline + labelLayout[i].top - textBoxes[i].y);
+
+  // Subtle position-colored leaders keep moved names associated with their
+  // original dot. Draw behind points/text, and omit lines for untouched labels.
+  const leaders = g.insert('g', '.scatter-dot').attr('class', 'scatter-label-leaders').attr('aria-hidden', 'true');
+  leaders.selectAll('line').data(data.map((player, i) => ({ player, i }))
+    .filter(({ i }) => Math.abs(labelLayout[i].top - textBoxes[i].y) > 3))
+    .enter().append('line')
+    .attr('x1', ({ i }) => dotPositions[i].cx)
+    .attr('y1', ({ i }) => dotPositions[i].cy)
+    .attr('x2', ({ i }) => clamp(dotPositions[i].cx, textBoxes[i].x, textBoxes[i].x + textBoxes[i].width))
+    .attr('y2', ({ i }) => clamp(dotPositions[i].cy, labelLayout[i].top, labelLayout[i].top + textBoxes[i].height))
+    .attr('stroke', ({ player }) => glowColors[player.position.toLowerCase()].color);
 
   if (isMobile) {
     labels.on('click touchstart', function(event,d){
@@ -1138,10 +1141,10 @@ function drawScatterChart(containerId, data) {
       showTooltip(event,d);
     });
   }
-  labels.transition()
+  return labels.transition()
     .duration(900)
     .delay((d, i) => i * 25 + 450)
-    .attr('opacity', 1);
+    .attr('opacity', 1).end().catch(() => {});
 }
 
 // Dashboard header branding: keep the home-page logo visible when the app is opened
@@ -1279,6 +1282,33 @@ function stabilizeDashboardBrandLogo() {
   });
 })();
 
+// Home boot stages represent actual work, without a fabricated percentage or
+// a minimum display timer. Release the page on either readiness or failure.
+function setDashboardBootPhase(phase, message) {
+  const boot = document.getElementById('dashboard-boot');
+  if (!boot) return;
+  boot.dataset.phase = String(phase);
+  setText('dashboard-boot-status', message);
+  boot.querySelectorAll('[data-boot-step]').forEach(step => {
+    const index = Number(step.dataset.bootStep);
+    step.dataset.state = index < phase ? 'complete' : index === phase ? 'current' : 'pending';
+  });
+}
+
+async function dismissDashboardBoot() {
+  const boot = document.getElementById('dashboard-boot');
+  if (boot && !boot.hidden && typeof boot.animate === 'function') {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    await boot.animate([{ opacity: 1 }, { opacity: 0 }], {
+      duration: reducedMotion ? 0 : 360, easing: 'ease-out', fill: 'forwards'
+    }).finished.catch(() => {});
+  }
+  if (boot) boot.hidden = true;
+  document.body.removeAttribute('data-dashboard-loading');
+  document.getElementById('content')?.removeAttribute('inert');
+  document.getElementById('legalFootnote')?.removeAttribute('inert');
+}
+
 // Initialize the home dashboard once from DH; failures stay explicit and never
 // fall back to the retired 2025 snapshot or another page's loaded stats/state.
 window.initFantasyDashboard = function() {
@@ -1291,8 +1321,13 @@ async function initializeDashboard() {
   const status = document.getElementById('dashboard-data-status');
   document.getElementById('fc-dashboard-root')?.setAttribute('aria-busy', 'true');
   try {
-    dashboardData = await import('./dashboard-data.js?v=DH3.61f-dashboard-axes-qualifiers');
+    setDashboardBootPhase(0, 'Connecting to the 2026 season');
+    [dashboardData, dashboardLayout] = await Promise.all([
+      import('./dashboard-data.js?v=DH3.61g-dashboard-boot-labels'),
+      import('./dashboard-scatter-layout.js?v=DH3.61g-dashboard-boot-labels')
+    ]);
     players = await dashboardData.loadDashboardPlayers();
+    setDashboardBootPhase(1, 'Finding the league leaders');
     computePositionalRanks(players);
     dashState.selectedPlayerId = players[0].id;
     // Begin with unavailable values so absent source metrics never look like zero.
@@ -1302,11 +1337,17 @@ async function initializeDashboard() {
     renderCustomSelect();
     setupCustomSelect();
     renderSelectedDetails();
+    // Wait for the font metrics before measuring scatter names; the boot screen
+    // stays visible while the real data and chart preparation are underway.
+    if (document.fonts) await document.fonts.ready;
+    setDashboardBootPhase(2, 'Bringing your dashboard into focus');
     renderRadar();
     renderBar();
-    renderScatter();
+    const scatterReady = renderScatter();
     updateFilterButtons();
     wireEvents();
+    await scatterReady;
+    setDashboardBootPhase(3, 'Dashboard ready');
     if (status) status.hidden = true;
   } catch (error) {
     console.error('Home dashboard season data could not load.', error);
@@ -1315,6 +1356,7 @@ async function initializeDashboard() {
     ['total-points-name', 'ppg-name', 'consistency-name', 'share-name'].forEach(id => setText(id, 'Unavailable'));
   } finally {
     document.getElementById('fc-dashboard-root')?.setAttribute('aria-busy', 'false');
+    await dismissDashboardBoot();
   }
 }
 
