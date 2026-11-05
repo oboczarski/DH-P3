@@ -12,7 +12,7 @@ button, input { font:inherit; color:inherit; min-width:0; }
 button { cursor:pointer; background:none; }
 button, a, input { -webkit-tap-highlight-color:transparent; }
 button:disabled { cursor:default; opacity:.45; }
-button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
+button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-visible {outline: 0px solid #74efff25;outline-offset: 0px;}
 [hidden] { display:none!important; }
 svg { display:block; }
 .iconSprite { position:absolute; width:0; height:0; overflow:hidden; }
@@ -424,7 +424,7 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 #breakdownPlayer {color:var(--muted);font-size: 12px;font-weight: 300;}
 /* Main matchup header only: keep the launch week lighter and the numeric
    projection's Start/Sit color separate from its opponent text. */
-#breakdownWeek { font-size:.8em; font-weight:350; white-space:nowrap; }
+#breakdownWeek {font-size: 0.7em;font-weight:350;white-space:nowrap;}
 #breakdownPlayer .breakdownProjectionMatchup { display:inline-block; }
 #breakdownProjection { font-weight:500; }
 
@@ -1290,8 +1290,8 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
    nor the native dialog clips it. A muted second line identifies the opponent. */
 #breakdownTitle { display:flex; flex-wrap:wrap; align-items:center; gap:4px 6px; }
 #breakdownWeek { display:inline-flex; vertical-align:middle; }
-#breakdownWeekBtn { display:inline-flex; align-items:center; gap:4px; padding:3px 1px; border:0; border-radius:5px; color:inherit; font:inherit; white-space:nowrap; }
-#breakdownWeekBtn svg { width:11px; height:11px; fill:none; stroke:currentColor; stroke-width:1.7; transition:transform .15s; }
+#breakdownWeekBtn {display:inline-flex;align-items:center;gap:4px;padding: 3px 4px 3px 5px;border:0;border-radius: 7px;color:inherit;font:inherit;white-space:nowrap;border: 0px solid transparent;border-color: transparent;background: linear-gradient(90deg, #74efff15 0%, #7297ff15 52%, #d97dff15 100%);}
+#breakdownWeekBtn svg {width:11px;height:11px;fill:none;stroke: #fff;stroke-width: 1.7px;transition:transform .15s;}
 #breakdownWeekBtn[aria-expanded="true"] svg { transform:rotate(180deg); }
 #breakdownWeek .teamPicker__panel { position:fixed; inset:auto; margin:0; width:120px; max-height:300px; overflow:auto; overscroll-behavior:contain; padding:5px; border:1px solid #a3bcef4d; border-radius:12px; background:linear-gradient(150deg,#24314dfc,#0c1425fc); color:var(--text); box-shadow:0 14px 40px #0008,inset 0 1px 0 #e7f1ff29; scrollbar-width:thin; display:none; }
 #breakdownWeek .teamPicker__panel:popover-open { display:grid; gap:3px; }
