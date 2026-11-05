@@ -168,12 +168,20 @@
     if (/^\d+$/.test(String(player?.id))) image.src = `https://sleepercdn.com/content/nfl/players/${encodeURIComponent(player.id)}.jpg`;
   }
 
+  // Rosters' completed-schedule label uses the existing SOS results cutoff.
+  // Keep an unknown/empty cutoff neutral instead of showing a year or Week 0.
+  function renderScheduleRange(source) {
+    const cutoff = source?.latestRecordedWeek;
+    find('[data-profile-sos-season]').textContent = Number.isInteger(cutoff) && cutoff >= 1 && cutoff <= 18
+      ? `WK1-WK${cutoff}:` : 'WK1-WK—:';
+  }
+
   function resetSchedule(player) {
     // Prefix SOS with the selected season's team and the player's position;
     // the async result below confirms the same context used for both ranks.
     const { team, pos } = profileContext(player);
     renderScheduleHeading(team, pos);
-    find('[data-profile-sos-season]').textContent = `${state.currentGameLogsSeason}:`;
+    renderScheduleRange(state.currentGameLogsSeason === '2026' ? state.rosters2026GameLogs : state.rosters2025GameLogs);
     find('.gl-profile-schedule').setAttribute('aria-label', `${team} ${pos} strength of schedule; ${state.currentGameLogsSeason} so far and rest of season`.trim());
     profile.querySelectorAll('[data-profile-sos]').forEach(node => {
       node.textContent = '—';
@@ -205,6 +213,7 @@
       const module = await (sosModule ||= import('./rosters-gamelogs-sos.js?v=DH3.54c-profile-sos-ranks').catch(error => { sosModule = null; throw error; }));
       const source = season === '2026' ? state.rosters2026GameLogs : await historicalSource(module);
       if (token !== revision || modal.classList.contains('hidden') || season !== state.currentGameLogsSeason) return;
+      renderScheduleRange(source);
       let positions = source && rankCache.get(source);
       if (!positions && source) { positions = {}; rankCache.set(source, positions); }
       const ranked = positions ? (positions[pos] ||= module.rankPositionSchedules(source, pos, season === '2026' ? 'rank' : 'allowance')) : null;

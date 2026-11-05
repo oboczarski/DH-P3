@@ -1281,9 +1281,9 @@
             </div>
             <div class="gl-profile-schedule" aria-label="Position-specific strength of schedule" aria-live="polite">
               <!-- One SOS heading groups the selected season's completed schedule
-                   and ROS (rest of season); the year follows the season switcher. -->
+                   and ROS (rest of season); the week range follows its SOS cutoff. -->
               <span class="gl-profile-schedule-position" data-profile-sos-position>SOS</span>
-              <div class="gl-profile-sos-metric"><span data-profile-sos-season>2026:</span><strong data-profile-sos="faced">—</strong></div>
+              <div class="gl-profile-sos-metric"><span data-profile-sos-season>WK1-WK—:</span><strong data-profile-sos="faced">—</strong></div>
               <div class="gl-profile-sos-metric"><span title="Rest of season">ROS:</span><strong data-profile-sos="remaining">—</strong></div>
               <details class="gl-profile-sos-help">
                 <summary aria-label="How strength of schedule is calculated"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7h.01"></path></svg></summary>
@@ -1628,7 +1628,7 @@
          depending on the Stats page head assets. -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-    <!-- Refresh Game Logs team-header per-game yardage values and NFL ranks. -->
-    <script type="module" src="../scripts/DataHub.js?v=DH3.62-datahub-gamelogs-parity"></script>
+    <!-- Refresh the Game Logs SOS label to show its completed-week range. -->
+    <script type="module" src="../scripts/DataHub.js?v=DH3.63b-sos-week-label"></script>
   </body>
 </html>

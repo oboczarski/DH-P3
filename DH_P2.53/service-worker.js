@@ -137,7 +137,8 @@
 // Refresh Players Faced: away locations identify the opponent with @.
 // Refresh Rosters Game Logs matchup navigation, profile shortcut and week picker.
 // Refresh mobile Game Logs matchup spacing and shorter summary chips.
-const CACHE_NAME = 'DH3.63a-mobile-matchup-space';
+// Refresh Rosters/DataHub Game Logs SOS labels with the completed-week range.
+const CACHE_NAME = 'DH3.63b-sos-week-label';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
