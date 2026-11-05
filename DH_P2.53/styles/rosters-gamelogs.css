@@ -6903,7 +6903,7 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-bottom-nav {
   isolation: isolate;
   display: grid;
   /* Six equal dock slots include the Rosters-only Matchups shortcut. */
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr) minmax(0, 1.03fr) minmax(0, 0.95fr) minmax(0, 0.85fr) minmax(0, 0.85fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr) minmax(0, 1.03fr) minmax(0, 0.9fr) minmax(0, 0.85fr) minmax(0, 0.85fr);
   gap: 0px;
   padding: 2px;
   border: 1px solid rgba(188, 208, 255, 0.22);
