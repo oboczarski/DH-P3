@@ -136,7 +136,8 @@
 // Refresh Rosters' rank-focused Consistency chips, weekly-rank AVG and rate HUD values.
 // Refresh Players Faced: away locations identify the opponent with @.
 // Refresh Rosters Game Logs matchup navigation, profile shortcut and week picker.
-const CACHE_NAME = 'DH3.63-gamelogs-matchups';
+// Refresh mobile Game Logs matchup spacing and shorter summary chips.
+const CACHE_NAME = 'DH3.63a-mobile-matchup-space';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

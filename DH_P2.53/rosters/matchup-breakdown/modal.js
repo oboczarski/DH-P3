@@ -492,7 +492,7 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
       // sections, with separate selectors for each modal area in both sections.
       const stylesheet = document.createElement('link');
       stylesheet.rel = 'stylesheet';
-      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.63-gamelogs-matchups', import.meta.url).href;
+      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.63a-mobile-matchup-space', import.meta.url).href;
       const styled = new Promise((resolve, reject) => {
         stylesheet.onload = resolve;
         stylesheet.onerror = () => reject(new Error('Matchup panel styling could not load.'));

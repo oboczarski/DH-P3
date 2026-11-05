@@ -1297,6 +1297,24 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 #breakdownWeek .weekOption small { color:var(--muted); font-size:9px; font-weight:400; }
 #breakdownWeek .weekOption.is-selected { border-color:#8ec2ff66; background:linear-gradient(100deg,#62a6ef33,#8f7ae71f); color:#e0efff; }
 #breakdownWeek .weekOption:enabled:hover { background-color:#afc7ff14; }
+@media (max-width:620px) {
+  /* Game Logs matchup entries use the mobile viewport above and below their
+     dock. Let flex sizing reserve its real height instead of a fixed 104px;
+     only the card scrolls, and notches/home indicators keep a safe gutter. */
+  .matchupDialog[data-gamelogs][open] {
+    display:flex;
+    flex-direction:column;
+    inset-block:max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-bottom));
+    max-height:calc(100dvh - max(6px, env(safe-area-inset-top)) - max(6px, env(safe-area-inset-bottom)));
+  }
+  .matchupDialog[data-gamelogs] .breakdownSurface { flex:0 1 auto; min-height:0; max-height:none; }
+  .matchupDialog[data-gamelogs] #breakdownNavigation { flex:none; margin-top:6px; }
+  /* Keep all five summary chips and their existing font sizes/values. Trim
+     just their vertical padding and text spacing for this mobile dock layout. */
+  .matchupDialog[data-gamelogs] #metrics > .metric { padding-block:1px; }
+  .matchupDialog[data-gamelogs] #metrics :is(.metricLabel, .metricSub) { line-height:1.15; }
+  .matchupDialog[data-gamelogs] #metrics .metricValue { margin-block:0; }
+}
 @media (min-width:869px) {
   #breakdownNavigation .gamelogs-nav-button { min-height:60px; gap:4px; font-size:14px; }
   #breakdownNavigation .rosters-modal-icon { width:28px; height:28px; }
