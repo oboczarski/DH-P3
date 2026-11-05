@@ -7289,17 +7289,17 @@ body[data-page="rosters"] #game-logs-modal .consistency-hud .progress-circle {
    and low results are pink. Season bars share these same stops while choosing
    their tone from the position-specific rank tiers rather than HUD progress. */
 body[data-page="rosters"] #game-logs-modal .consistency-hud [data-dial-tone="green"],
-body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts [data-rank-tone="green"] { --dial-accent: #55e58f; --dial-start: #8fffc0; --dial-mid: #55e58f; --dial-end: #00d9b0; }
+body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts [data-rank-tone="green"] {--dial-accent: #55e58f;--dial-start: #8fffc0;--dial-mid: #55e58f;--dial-end: #00d9b0;}
 body[data-page="rosters"] #game-logs-modal .consistency-hud [data-dial-tone="teal"],
-body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts [data-rank-tone="teal"] { --dial-accent: #00dcca; --dial-start: #50e8ff; --dial-mid: #00dcca; --dial-end: #27ef9f; }
+body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts [data-rank-tone="teal"] {--dial-accent: #00dcca;--dial-start: #50e8ff;--dial-mid: #00dcca;--dial-end: #27ef9f;}
 body[data-page="rosters"] #game-logs-modal .consistency-hud [data-dial-tone="cyan"],
 body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts [data-rank-tone="cyan"] { --dial-accent: #00a9ff; --dial-start: #69a9ff; --dial-mid: #009fff; --dial-end: #00d7f2; }
 body[data-page="rosters"] #game-logs-modal .consistency-hud [data-dial-tone="blue"],
-body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts [data-rank-tone="blue"] { --dial-accent: #4d79ff; --dial-start: #a68dff; --dial-mid: #6870ff; --dial-end: #16a9ff; }
+body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts [data-rank-tone="blue"] {--dial-accent: #4d79ff;--dial-start: #a68dff;--dial-mid: #6870ff;--dial-end: #16a9ff;}
 body[data-page="rosters"] #game-logs-modal .consistency-hud [data-dial-tone="violet"],
 body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts [data-rank-tone="violet"] { --dial-accent: #8b6cff; --dial-start: #d09bff; --dial-mid: #8b6cff; --dial-end: #5f79ff; }
 body[data-page="rosters"] #game-logs-modal .consistency-hud [data-dial-tone="magenta"],
-body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts [data-rank-tone="magenta"] { --dial-accent: #d747ff; --dial-start: #ef83ff; --dial-mid: #d747ff; --dial-end: #986cff; }
+body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts [data-rank-tone="magenta"] {--dial-accent: #d747ff;--dial-start: #ef83ff;--dial-mid: #d747ff;--dial-end: #986cff;}
 body[data-page="rosters"] #game-logs-modal .consistency-hud [data-dial-tone="pink"],
 body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts [data-rank-tone="pink"] { --dial-accent: #ff0aa5; --dial-start: #ff82d7; --dial-mid: #ff0aa5; --dial-end: #bc3dff; }
 
@@ -7515,8 +7515,8 @@ body[data-page="rosters"] #game-logs-modal #consistency-container .hud-eyebrow {
    exact seven palettes above. These selectors include the Season root so no
    Weekly, Career, Consistency or other-page layout inherits this redesign. */
 body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts {
-  --season-label-width: 64px;
-  --season-value-width: 64px;
+  --season-label-width: 47px;
+  --season-value-width: 47px;
   width: 100%;
   min-width: 0;
   padding: 10px;
@@ -7528,7 +7528,7 @@ body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts .gamelogs
   justify-content: flex-start;
   gap: 7px;
   margin: 0;
-  padding: 4px 2px 7px;
+  padding: 0px 2px 0px;
   border: 0;
   border-radius: 0;
   background: none;
@@ -7554,7 +7554,7 @@ body[data-page="rosters"] #game-logs-modal .rosters-season-chart-guide {
   align-items: baseline;
   justify-content: space-between;
   gap: 4px 8px;
-  margin: 0 2px 12px;
+  margin: 0 2px 5px;
   color: #99abc8;
   font-size: 10px;
   line-height: 1.5;
@@ -7602,7 +7602,7 @@ body[data-page="rosters"] #game-logs-modal .rosters-season-tier-key > p {
   margin-top: 4px;
   font-size: 10px;
 }
-body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts .gamelogs-szn-list { gap: 12px; }
+body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts .gamelogs-szn-list {gap: 4px;}
 body[data-page="rosters"] #game-logs-modal .rosters-season-chart-group {
   min-width: 0;
   overflow: hidden;
@@ -7613,7 +7613,7 @@ body[data-page="rosters"] #game-logs-modal .rosters-season-chart-group {
 }
 body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts .gamelogs-szn-section-header {
   margin: 0;
-  padding: 10px 11px 8px;
+  padding: 5px 11px 5px;
   border: 0;
   border-bottom: 1px solid rgba(149, 176, 228, 0.1);
   border-radius: 0;
@@ -7634,10 +7634,10 @@ body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts .gamelogs
   display: grid;
   grid-template-columns: var(--season-label-width) minmax(0, 1fr) var(--season-value-width);
   align-items: center;
-  gap: 8px;
+  gap: 0px;
 }
 body[data-page="rosters"] #game-logs-modal .rosters-season-chart-columns {
-  padding: 8px 10px 2px;
+  padding: 4px 10px 2px;
   font-size: 8px;
   font-weight: 500;
   letter-spacing: 0.12em;
@@ -7646,83 +7646,81 @@ body[data-page="rosters"] #game-logs-modal .rosters-season-chart-columns {
 body[data-page="rosters"] #game-logs-modal .rosters-season-chart-columns > :last-child { text-align: right; }
 body[data-page="rosters"] #game-logs-modal .rosters-season-chart-rows { padding: 0 6px 6px; }
 body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts .gamelogs-szn-row {
-  min-height: 40px;
-  padding: 6px 4px;
+  min-height: 18px;
+  padding: 0px 4px;
   border: 0;
   border-radius: 5px;
   background: none;
   box-shadow: none;
 }
 body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts .gamelogs-szn-row + .gamelogs-szn-row {
-  border-top: 1px solid rgba(149, 176, 228, 0.055);
+  border-top: 0px solid rgba(149, 176, 228, 0.055);
 }
 body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts .gamelogs-szn-label {
   min-width: 0;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0;
   color: #bdcbe0;
   white-space: normal;
   overflow-wrap: anywhere;
-  line-height: 1.3;
+  line-height: 1;
 }
 body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts .gamelogs-szn-bar {
   isolation: isolate;
   width: 100%;
-  height: 26px;
+  height: 14px;
   margin: 0;
   overflow: hidden;
-  border: 1px solid rgba(147, 174, 218, 0.09);
-  border-radius: 5px;
-  background: repeating-linear-gradient(90deg, transparent 0, transparent calc(25% - 1px), rgba(155, 181, 226, 0.09) calc(25% - 1px), rgba(155, 181, 226, 0.09) 25%), rgba(3, 8, 16, 0.55);
-  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.2);
+  border: 0px solid rgba(147, 174, 218, 0.09);
+  border-radius: 25px;
+  background: none;
+  box-shadow: none;
 }
 body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts .gamelogs-szn-bar-fill {
   flex: 0 0 auto;
   height: 100%;
   border: 0;
-  border-radius: 4px;
+  border-radius: 10px 15px 15px 10px;
   /* The old theme used !important on a fixed gradient. This scoped rule
      replaces it with the same start/mid/end colors used by the HUD dials. */
   background: linear-gradient(100deg, var(--dial-start), var(--dial-mid) 52%, var(--dial-end)) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), inset 0 -3px 7px rgba(0, 0, 0, 0.14);
-  filter: none;
-  opacity: 0.88;
+  filter: saturate(1);
+  opacity: 0.48;
   transition: none;
 }
 body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts .gamelogs-szn-bar-rank {
   position: absolute;
-  inset: 0 4px 0 auto;
+  inset: 0 0px 0 auto;
   align-self: center;
   width: auto;
-  min-width: 28px;
-  min-height: 18px;
-  max-height: 18px;
+  min-width: 26px;
+  min-height: 14px;
+  max-height: 14px;
   margin: auto 0;
-  padding: 2px 4px;
+  padding: 1px 0px;
   transform: none;
   border: 1px solid rgba(170, 193, 232, 0.14);
-  border-radius: 4px;
-  background: rgba(7, 14, 26, 0.86);
+  border-radius: 14px;
+  background: rgb(35 44 59 / 98%);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16);
   color: color-mix(in srgb, var(--dial-start) 80%, white);
   filter: none;
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
-  font-variant-numeric: tabular-nums;
   text-shadow: none;
   opacity: 1;
 }
 body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts .gamelogs-szn-value {
   min-width: 0;
   margin: 0;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 1;
   letter-spacing: -0.02em;
   white-space: nowrap;
-  font-variant-numeric: tabular-nums;
   color: #e2ecfc;
 }
 body[data-page="rosters"] #game-logs-modal .rosters-season-rank-charts [data-rank-tone="neutral"] { --dial-start: #b0bdcf; }
