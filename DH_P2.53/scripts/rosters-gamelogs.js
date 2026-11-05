@@ -611,9 +611,123 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
   // changes; stale responses keep the shared request guard and never decorate
   // a newer player's content. Existing values/ranks/scoring are preserved.
   const originalSeasonRender = window.renderGameLogsSeasonStatsView;
+  // Rosters Season charts use the requested positional bands, independently
+  // of the HUD's percentage bands. A missing/invalid rank never creates a bar.
+  const ROSTERS_SEASON_RANK_TIERS = Object.freeze({
+    QB: [3, 6, 12, 18, 24, 36],
+    RB: [6, 12, 18, 24, 36, 48],
+    TE: [3, 6, 12, 18, 24, 36],
+    WR: [6, 12, 24, 36, 50, 68],
+  });
+  const ROSTERS_SEASON_RANK_TONES = ['green', 'teal', 'cyan', 'blue', 'violet', 'magenta', 'pink'];
+  function getRostersSeasonRankPresentation(rank, position) {
+    const cutoffs = ROSTERS_SEASON_RANK_TIERS[position];
+    if (!cutoffs || !Number.isInteger(rank) || rank < 1) return { tier: null, tone: 'neutral', width: 0 };
+    const band = cutoffs.findIndex(limit => rank <= limit);
+    const tierIndex = band === -1 ? 6 : band;
+    // Interpolate within each tier so equal ranks have equal lengths across
+    // all stat groups. The last tier tapers toward zero, staying visible even
+    // for deep ranks; only rank 1 fills the complete track.
+    const widths = [100, 88, 74, 60, 46, 32, 18];
+    let width;
+    if (tierIndex === 6) {
+      width = Math.max(3, 18 * cutoffs[5] / rank);
+    } else {
+      const startRank = tierIndex === 0 ? 1 : cutoffs[tierIndex - 1];
+      const fraction = (rank - startRank) / (cutoffs[tierIndex] - startRank);
+      width = widths[tierIndex] + (widths[tierIndex + 1] - widths[tierIndex]) * fraction;
+    }
+    return { tier: tierIndex + 1, tone: ROSTERS_SEASON_RANK_TONES[tierIndex], width };
+  }
+
+  // Keep the existing Season formatter, rank pools, order and stat-help hooks.
+  // Only regroup its rendered rows into Rosters-owned charts; the source rank
+  // number is read separately from its decorative ordinal suffix.
+  function decorateRostersSeasonRankCharts({ container, player }) {
+    const list = container?.querySelector('.gamelogs-szn-list');
+    if (!list) return;
+    const position = String(player?.basePos || player?.pos || '').trim().toUpperCase();
+    const cutoffs = ROSTERS_SEASON_RANK_TIERS[position];
+    container.classList.add('rosters-season-rank-charts');
+    const guide = document.createElement('div');
+    guide.className = 'rosters-season-chart-guide';
+    const caption = document.createElement('p');
+    caption.textContent = `Bars show ${position || 'position'} rank · #1 is best`;
+    guide.appendChild(caption);
+    if (cutoffs) {
+      const legend = document.createElement('details');
+      legend.className = 'rosters-season-tier-key';
+      const summary = document.createElement('summary');
+      summary.textContent = 'Rank tiers';
+      legend.appendChild(summary);
+      const swatches = document.createElement('div');
+      swatches.className = 'rosters-season-tier-swatches';
+      ROSTERS_SEASON_RANK_TONES.forEach((tone, index) => {
+        const swatch = document.createElement('span');
+        swatch.className = 'rosters-season-tier-swatch';
+        swatch.dataset.rankTone = tone;
+        swatch.textContent = `T${index + 1} ${index < 6 ? '≤' : '>'}${cutoffs[Math.min(index, 5)]}`;
+        swatch.title = `${position} tier ${index + 1}: ${index < 6 ? `ranks ${index === 0 ? 1 : cutoffs[index - 1] + 1}–${cutoffs[index]}` : `ranks above ${cutoffs[5]}`}`;
+        swatches.appendChild(swatch);
+      });
+      const note = document.createElement('p');
+      note.textContent = 'Longer bars mean better positional ranks. Unranked stats keep their values with an empty track.';
+      legend.append(swatches, note);
+      guide.appendChild(legend);
+    }
+    list.before(guide);
+    let group;
+    let chart;
+    for (const child of [...list.children]) {
+      if (child.classList.contains('gamelogs-szn-section-header') || !group) {
+        group = document.createElement('section');
+        group.className = 'rosters-season-chart-group';
+        chart = document.createElement('div');
+        chart.className = 'rosters-season-chart-rows';
+        list.appendChild(group);
+        if (child.classList.contains('gamelogs-szn-section-header')) {
+          group.setAttribute('aria-label', `${child.textContent.trim()} positional rankings`);
+          group.appendChild(child);
+        }
+        const columns = document.createElement('div');
+        columns.className = 'rosters-season-chart-columns';
+        columns.setAttribute('aria-hidden', 'true');
+        for (const text of ['STAT', `${position || 'POS'} RANK`, 'VALUE']) {
+          const column = document.createElement('span');
+          column.textContent = text;
+          columns.appendChild(column);
+        }
+        group.append(columns, chart);
+        if (child.classList.contains('gamelogs-szn-section-header')) continue;
+      }
+      const label = child.querySelector('.gamelogs-szn-label');
+      const bar = child.querySelector('.gamelogs-szn-bar');
+      const fill = child.querySelector('.gamelogs-szn-bar-fill');
+      const rankLabel = child.querySelector('.gamelogs-szn-bar-rank');
+      if (!label || !bar || !fill || !rankLabel) continue;
+      const rankText = rankLabel.querySelector('.stat-rank-number')?.textContent;
+      const rank = rankText ? Number(rankText) : null;
+      const presentation = getRostersSeasonRankPresentation(rank, position);
+      child.dataset.rankTone = presentation.tone;
+      child.dataset.rankTier = presentation.tier ?? 'unranked';
+      // Replace legacy inline neon styling and floating ordinal badges. The
+      // same palette tokens as the HUD now paint each gradient and rank label.
+      fill.removeAttribute('style');
+      fill.style.width = `${presentation.width}%`;
+      rankLabel.removeAttribute('style');
+      rankLabel.textContent = presentation.tier ? `#${rank}` : '—';
+      rankLabel.setAttribute('aria-hidden', 'true');
+      const value = child.querySelector('.gamelogs-szn-value')?.textContent.trim() || 'N/A';
+      const rankDescription = presentation.tier ? `${position} rank ${rank}, tier ${presentation.tier}` : 'positional rank unavailable';
+      bar.setAttribute('aria-label', `${label.textContent}: ${value}; ${rankDescription}`);
+      bar.title = rankDescription;
+      chart.appendChild(child);
+    }
+  }
   window.renderGameLogsSeasonStatsView = function(options) {
     const result = originalSeasonRender(options);
     options?.container?.querySelector('.gamelogs-szn-title-icon')?.replaceWith(seasonIcon());
+    if (options?.container) decorateRostersSeasonRankCharts(options);
     decorateStatLabels();
     // The Season container is initially detached during the weekly render.
     options?.container?.querySelectorAll('.gamelogs-szn-label').forEach(element => setStatHelp(element, element.textContent.trim()));

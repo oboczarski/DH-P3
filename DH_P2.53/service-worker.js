@@ -138,7 +138,8 @@
 // Refresh Rosters Game Logs matchup navigation, profile shortcut and week picker.
 // Refresh mobile Game Logs matchup spacing and shorter summary chips.
 // Refresh Rosters/DataHub Game Logs SOS labels with the completed-week range.
-const CACHE_NAME = 'DH3.63b-sos-week-label';
+// Refresh Rosters Season chart cards and their position-specific HUD gradients.
+const CACHE_NAME = 'DH3.64-season-rank-charts';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

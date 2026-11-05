@@ -422,3 +422,43 @@ test('AVG is centered on the reference unless nearby points/chips/statuses requi
   assert.equal(getConsistencyAverageLabelCenter(90, label, plot, [obstacle(80,100)]), 72);
   assert.equal(getConsistencyAverageLabelCenter(50, label, plot, [obstacle(45,55), obstacle(30,38)]), 63);
 });
+
+
+// Season-chart tiers are a presentation rule: test every requested boundary
+// without booting the app or changing the existing stat/rank data adapters.
+const seasonChartSource = fs.readFileSync(new URL('../DH_P2.53/scripts/rosters-gamelogs.js', import.meta.url), 'utf8');
+const seasonChartContext = vm.createContext({});
+vm.runInContext([
+  seasonChartSource.match(/const ROSTERS_SEASON_RANK_TIERS = Object.freeze\(\{[^]*?\n  \}\);/)[0],
+  seasonChartSource.match(/const ROSTERS_SEASON_RANK_TONES = \[[^]*?\];/)[0],
+  seasonChartSource.match(/function getRostersSeasonRankPresentation\([^]*?\n  \}/)[0],
+].join('\n'), seasonChartContext);
+const seasonRank = seasonChartContext.getRostersSeasonRankPresentation;
+for (const [position, cutoffs] of Object.entries({ QB: [3, 6, 12, 18, 24, 36], RB: [6, 12, 18, 24, 36, 48], TE: [3, 6, 12, 18, 24, 36], WR: [6, 12, 24, 36, 50, 68] })) {
+  test(`${position}: Season chart tiers honor every inclusive cutoff and better ranks have longer bars`, () => {
+    const tones = ['green', 'teal', 'cyan', 'blue', 'violet', 'magenta', 'pink'];
+    cutoffs.forEach((cutoff, index) => {
+      assert.equal(seasonRank(cutoff, position).tier, index + 1);
+      assert.equal(seasonRank(cutoff, position).tone, tones[index]);
+      assert.equal(seasonRank(cutoff + 1, position).tier, index + 2);
+      assert.equal(seasonRank(cutoff + 1, position).tone, tones[index + 1]);
+    });
+    assert.equal(seasonRank(1, position).width, 100);
+    let previous = 101;
+    for (let rank = 1; rank <= 500; rank++) {
+      const { width } = seasonRank(rank, position);
+      assert.ok(width > 0 && width <= 100 && width <= previous, `${position} rank ${rank}`);
+      previous = width;
+    }
+    assert.equal(seasonRank(1000, position).tier, 7);
+  });
+}
+test('Season chart missing/invalid ranks retain neutral empty tracks', () => {
+  for (const rank of [null, undefined, '', '1', 0, -1, NaN, Infinity, 1.5]) {
+    const result = seasonRank(rank, 'QB');
+    assert.equal(result.tier, null);
+    assert.equal(result.tone, 'neutral');
+    assert.equal(result.width, 0);
+  }
+  assert.equal(seasonRank(1, 'K').width, 0);
+});
