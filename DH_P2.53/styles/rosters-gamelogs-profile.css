@@ -194,6 +194,12 @@ body[data-page="rosters"] #game-logs-modal .gl-profile-team-logo {width: 18px;he
    its width so the longer team/record text cannot collapse the icon on phones. */
 body[data-page="rosters"] #game-logs-modal .gl-profile-team-arrow { display: block; flex: 0 0 9px; width: 9px; height: 9px; fill: none; stroke: currentColor; stroke-width: 1.6; }
 body[data-page="rosters"] #game-logs-modal .gl-profile-season {padding-left: 8px;border-left: 1px solid #9eacc52e;color: #77849d;font-size: 12px;text-wrap-mode: nowrap;}
+/* The profile matchup is an inline button; keep its existing text spacing and
+   use the team shortcut's chevron size without inheriting generic button chrome. */
+body[data-page="rosters"] #game-logs-modal button.gl-profile-season { display:inline-flex; align-items:center; gap:3px; padding-top:0; padding-right:0; padding-bottom:0; border-top:0; border-right:0; border-bottom:0; border-radius:0; background:transparent; font-family:inherit; line-height:inherit; cursor:pointer; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-season:disabled { cursor:default; opacity:1; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-season-arrow { flex:0 0 9px; width:9px; height:9px; fill:none; stroke:currentColor; stroke-width:1.6; }
+body[data-page="rosters"] #game-logs-modal .gl-profile-season:focus-visible { outline:2px solid #a8d5ff; outline-offset:3px; }
 body[data-page="rosters"] #game-logs-modal .gl-profile-matchup-rank { white-space: nowrap; }
 
 body[data-page="rosters"] #game-logs-modal .gl-profile-actions {display: flex;align-items: center;justify-content: end;gap: 14px;transform: translate(5px, -10px);}

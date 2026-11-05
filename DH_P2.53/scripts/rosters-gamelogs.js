@@ -406,7 +406,8 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
       const selection = { id: player.id, label: player.name || player.full_name || `${position} player`,
         // Carry the clicked log week into the matchup header, including when
         // viewing a historical season or a future projection.
-        week: Number(week.match(/\d+/)?.[0]), basePos: position, matchup: { opponent } };
+        week: Number(week.match(/\d+/)?.[0]), season: state.currentGameLogsSeason,
+        team: player.team, basePos: position, matchup: { opponent } };
       trigger.addEventListener('click', () => rostersOpenWeeklyMatchup(selection, trigger));
       tag.replaceWith(trigger);
     });
@@ -420,7 +421,17 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
       const controller = await getRostersMatchupController();
       // A pending module import must not open over a closed/replaced player log.
       if (request !== gameLogsModalRequestSeq || !trigger.isConnected || modal.classList.contains('hidden')) return;
-      await controller.open(selection, trigger);
+      // The native matchup dialog owns a copy of this dock while open, so its
+      // buttons stay focusable above the Game Logs overlay. Start/Sit passes no dock.
+      await controller.open(selection, trigger, {
+        navigation: modal.querySelector('.gamelogs-bottom-nav'),
+        isCurrent: () => request === gameLogsModalRequestSeq,
+        onNavigate: panel => {
+          const button = navButtons.find(button => button.dataset.gamelogsPanel === panel);
+          button?.click();
+          button?.focus({ preventScroll: true });
+        },
+      });
     } catch (error) {
       console.warn('Unable to open Game Logs matchup details.', error);
       if (trigger.isConnected) showTemporaryTooltip(trigger, 'Unable to open matchup details. Please try again.');
@@ -438,6 +449,31 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
   const topButtons = [...modal.querySelectorAll('[data-gamelogs-view]')].filter(node => node.classList.contains('gamelogs-view-option'));
   const performanceControl = modal.querySelector('[data-gamelogs-performance-control]');
   const performanceToggle = modal.querySelector('[data-gamelogs-performance-toggle]');
+  // Header and dock share the selected player's default matchup. Prefer the
+  // upcoming week, then the nearest valid game when that week is a BYE/missing.
+  function defaultMatchupSelection() {
+    const player = state.currentGameLogsPlayer;
+    if (!player) return null;
+    const selection = { id: player.id, label: player.name || player.full_name || 'Player',
+      team: player.team, basePos: player.basePos || player.pos || player.position, season: state.currentGameLogsSeason };
+    if (!rostersTeamPositions.includes(String(selection.basePos).toUpperCase())) return null;
+    const weeks = getRostersPlayerMatchupWeeks(selection).filter(entry => {
+      const match = /^(?:(?:vs\.?|@)\s*)?([a-z]{2,3})$/i.exec(entry.matchup.opponent);
+      return match && rostersTeamNames[rostersTeamKey(match[1])];
+    });
+    const nflWeek = getCurrentNflWeekNumber(), cutoff = state.rosters2026GameLogs?.latestRecordedWeek;
+    // Match the profile header's recorded-cutoff fallback if NFL state is stale.
+    const currentWeek = selection.season === '2026' && Number.isInteger(cutoff)
+      ? Number.isInteger(nflWeek) && nflWeek > cutoff && nflWeek <= 18 ? nflWeek : Math.min(18, cutoff + 1)
+      : nflWeek;
+    const entry = weeks.find(entry => entry.week >= currentWeek) || weeks.at(-1);
+    return entry ? { ...selection, ...entry } : null;
+  }
+  const openDefaultMatchup = trigger => {
+    const selection = defaultMatchupSelection();
+    if (selection) void rostersOpenWeeklyMatchup(selection, trigger);
+  };
+  modal.querySelector('[data-profile-season]').addEventListener('click', event => openDefaultMatchup(event.currentTarget));
   let pendingSeasonNavigation = null;
   const syncYearControl = () => {
     const toggle = modal.querySelector('#gamelogsSeasonToggle');
@@ -466,6 +502,7 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
       button.classList.toggle('active', active);
       button.setAttribute('aria-pressed', String(active));
       if (button.dataset.gamelogsPanel === 'team') button.disabled = !rostersTeamNames[rostersTeamKey(state.currentGameLogsPlayer?.team)];
+      if (button.dataset.gamelogsPanel === 'matchups') button.disabled = !defaultMatchupSelection();
       if (button.dataset.gamelogsPanel === 'performance') button.setAttribute('aria-controls', navigation.content === 'szn' ? 'modal-body' : 'radar-chart-container');
     });
     performanceControl.classList.toggle('hidden', team || !navigation.performanceAction);
@@ -499,6 +536,7 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
     if (next === 'consistency') window.renderConsistencyChart();
   };
   navButtons.forEach(button => button.addEventListener('click', () => {
+    if (button.dataset.gamelogsPanel === 'matchups') { openDefaultMatchup(button); return; }
     if (button.dataset.gamelogsPanel === 'team') { rostersOpenTeamView(button); return; }
     rostersResetTeamView();
     window.setGameLogsModalView(button.dataset.gamelogsPanel);

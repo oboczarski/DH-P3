@@ -2650,13 +2650,32 @@ function handleCompareClick() {
     }
     renderAllTeamData(state.currentTeams);
 }
+// Rosters' matchup week menu reads only the selected season's existing weekly
+// snapshot/schedule. BYEs and missing opponents remain unavailable; changing a
+// week never changes Game Logs season state or imports results from other feeds.
+function getRostersPlayerMatchupWeeks(selection) {
+    // Game Logs supplies its selected year explicitly. Start/Sit follows the
+    // active league even when the last closed Game Logs view was historical.
+    const league = state.leagues?.find(entry => entry.league_id === state.currentLeagueId);
+    const season = String(selection.season || league?.season || state.currentGameLogsSeason || '2026');
+    const source = season === '2026' ? state.rosters2026GameLogs : state.rosters2025GameLogs;
+    const rawTeam = String(source?.seasonStats?.[selection.id]?.team || selection.team || state.players?.[selection.id]?.team || '').toUpperCase();
+    const team = ({ WSH: 'WAS', JAC: 'JAX', LA: 'LAR' })[rawTeam] || rawTeam;
+    return Array.from({ length: 18 }, (_, index) => {
+        const week = index + 1;
+        const opponent = source?.weeklyStats?.[week]?.[selection.id]?.opponent
+            || source?.scheduleByTeam?.[team]?.[week] || '';
+        return { week, matchup: { opponent } };
+    });
+}
 function getRostersMatchupController() {
     if (pageType !== 'rosters') return Promise.reject(new Error('Matchup Breakdown belongs to Rosters.'));
     if (!rostersMatchupsModulePromise) {
-        // Start/Sit and Weekly opponent tags share this Rosters-owned panel.
-        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.62b-player-away-location')
+        // Start/Sit and every Game Logs matchup shortcut share this owned panel.
+        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.63-gamelogs-matchups')
             .then(({ createMatchupBreakdown }) => {
                 rostersMatchups = createMatchupBreakdown({
+                    getPlayerWeeks: getRostersPlayerMatchupWeeks,
                     // The matchup header uses the clicked log's week or the active
                     // Start/Sit week. Reuse Rosters projections and the preview's
                     // conditional color without importing its CSS into the shadow root.

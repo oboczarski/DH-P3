@@ -26,9 +26,9 @@
   <!-- Ownership modal styles (needed for watchlist → ownership flow) -->
   <link rel="stylesheet" href="../styles/ownership.css?v=DH3.1t-vi10" />
   <!-- Rosters Game Logs owns its complete responsive theme; it loads last to replace the older shared modal rules. -->
-  <link rel="stylesheet" href="../styles/rosters-gamelogs.css?v=DH3.62a-consistency-rank-labels" />
+  <link rel="stylesheet" href="../styles/rosters-gamelogs.css?v=DH3.63-gamelogs-matchups" />
   <!-- Player profile styles apply only above the Rosters Game Logs navigation. -->
-  <link rel="stylesheet" href="../styles/rosters-gamelogs-profile.css?v=DH3.60b-team-chevron" />
+  <link rel="stylesheet" href="../styles/rosters-gamelogs-profile.css?v=DH3.63-gamelogs-matchups" />
   <!-- Desktop Game Logs owns its content scale independently of comparison modals. -->
   <link rel="stylesheet" href="../styles/rosters-gamelogs-desktop.css?v=DH3.62a-consistency-rank-labels" media="(min-width: 869px)" />
   <!-- Start/Sit owns a separate mobile-first dashboard theme and desktop layer. -->
@@ -371,7 +371,8 @@
             <h3 id="modal-player-name">Player Game Logs</h3>
             <div class="gl-profile-byline">
               <div class="gl-profile-affiliation" data-profile-affiliation></div>
-              <span class="gl-profile-season" data-profile-season>Upcoming matchup —</span>
+              <!-- The upcoming opponent opens the same player matchup as the dock. -->
+              <button type="button" class="gl-profile-season" data-profile-season aria-haspopup="dialog" disabled>Upcoming matchup —</button>
             </div>
           </div>
           <div class="gl-profile-actions">
@@ -623,6 +624,11 @@
             </svg>
             <span>Consistency</span>
           </button>
+          <!-- Matchups follows Consistency and remains available in its own dialog. -->
+          <button type="button" class="gamelogs-nav-button" data-gamelogs-panel="matchups" aria-pressed="false" aria-haspopup="dialog">
+            <svg class="rosters-modal-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4"></path></svg>
+            <span>Matchups</span>
+          </button>
           <button type="button" class="gamelogs-nav-button" data-gamelogs-panel="team" aria-pressed="false" aria-controls="gamelogs-team-pane">
             <svg class="rosters-modal-icon" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path>
@@ -705,12 +711,12 @@
   <!-- Rosters data stays in the existing loader; local presentation supplies modal icons, help, and view styling. -->
   <!-- Start/Sit and Weekly opponent tags lazily open the Rosters-owned Matchup Breakdown. -->
   <!-- Rosters rank rules: refresh the three-game PPG pool and 2026 volume gates together. -->
-  <script defer="True" src="../scripts/app.js?v=DH3.62b-player-away-location"></script>
+  <script defer="True" src="../scripts/app.js?v=DH3.63-gamelogs-matchups"></script>
   <script defer="True" src="../scripts/rosters-2026-gamelogs.js?v=DH3.55-qualifier-ranks"></script>
   <script defer src="../scripts/rosters-gamelogs-controls.js?v=DH3.53-rosters-gamelogs"></script>
   <script defer src="../scripts/rosters-gamelogs-consistency.js?v=DH3.62a-consistency-rank-labels"></script>
-  <script defer src="../scripts/rosters-gamelogs.js?v=DH3.61i-team-yards-per-game"></script>
-  <script defer src="../scripts/rosters-gamelogs-profile.js?v=DH3.60-matchup-profile"></script>
+  <script defer src="../scripts/rosters-gamelogs.js?v=DH3.63-gamelogs-matchups"></script>
+  <script defer src="../scripts/rosters-gamelogs-profile.js?v=DH3.63-gamelogs-matchups"></script>
   <script defer src="../scripts/rosters-start-sit.js?v=DH3.61d-comparison-player-two-blue"></script>
 </body>
 </html>

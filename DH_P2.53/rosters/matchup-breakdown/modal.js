@@ -4,7 +4,8 @@ import Data from './model.js?v=DH3.57-matchup-average-precision';
 import { createMatchupStore, resolveMatchupSelection } from './data.js?v=DH3.57-matchup-average-precision';
 import { defenseMetric, rankColor as heatColor, ordinalRank } from './rank-view.js?v=DH3.53f-rosters-matchup-header';
 
-export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerContext = selection => selection } = {}) {
+export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerContext = selection => selection,
+  getPlayerWeeks = () => [] } = {}) {
   if (document.body?.dataset.page !== 'rosters') throw new Error('Matchup Breakdown belongs to Rosters.');
   const store = createMatchupStore();
   const host = document.createElement('div');
@@ -45,6 +46,7 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
   let model = null, summary = null, offenses = null, analysis = null, openPicker = null;
   const tooltips = new Map();
   let mountPromise = null, preparationPromise = null, launch = 0, scrollState = null, triggerPlayerId = null;
+  let playerSelection = null, playerWeeks = [], navigateBack = null, pendingNavigation = null;
   const images = [];
 
   const esc = value => String(value ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
@@ -107,20 +109,23 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
     panel.showPopover(); root.classList.add("is-open"); button.setAttribute("aria-expanded", "true"); openPicker = root;
     const anchor = button.getBoundingClientRect(), padding = 8, gap = 6;
     const viewportWidth = document.documentElement.clientWidth, viewportHeight = innerHeight;
-    panel.style.maxHeight = `${Math.max(36, viewportHeight - padding * 2)}px`;
+    // The week list stays compact even on tall screens; team pickers retain
+    // their existing viewport-based height and placement behavior.
+    const heightLimit = root.dataset.pickerKind === 'week' ? 300 : viewportHeight;
+    panel.style.maxHeight = `${Math.max(36, Math.min(heightLimit, viewportHeight - padding * 2))}px`;
     const box = panel.getBoundingClientRect();
     panel.style.left = `${Math.max(padding, Math.min(anchor.left, viewportWidth - box.width - padding))}px`;
     const below = viewportHeight - anchor.bottom - gap - padding, above = anchor.top - gap - padding;
     const placeAbove = box.height > below && above > below;
-    panel.style.maxHeight = `${Math.max(36, placeAbove ? above : below)}px`;
+    panel.style.maxHeight = `${Math.max(36, Math.min(heightLimit, placeAbove ? above : below))}px`;
     panel.style.top = `${placeAbove ? Math.max(padding, anchor.top - gap - Math.min(box.height, above)) : anchor.bottom + gap}px`;
-    const options = [...panel.querySelectorAll("[data-picker-value]")].filter(option => option.getClientRects().length);
+    const options = [...panel.querySelectorAll("[data-picker-value]")].filter(option => !option.disabled && option.getClientRects().length);
     const selected = options.find(option => option.getAttribute("aria-selected") === "true");
     focusPickerOption(last ? options.at(-1) : selected || options[0]);
   }
   function pickerKeys(event) {
     const root = event.target.closest("[data-picker-kind]");
-    if (!root || !model) return;
+    if (!root || (!model && root.dataset.pickerKind !== 'week')) return;
     if (!openPicker && ["ArrowDown", "ArrowUp"].includes(event.key)) {
       event.preventDefault(); showPicker(root, event.key === "ArrowUp"); return;
     }
@@ -129,10 +134,43 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
     if (event.key === "Tab") { closePicker(true); return; }
     if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
     event.preventDefault();
-    const options = [...$(`${root.id}Panel`).querySelectorAll("[data-picker-value]")].filter(option => option.getClientRects().length);
+    const options = [...$(`${root.id}Panel`).querySelectorAll("[data-picker-value]")].filter(option => !option.disabled && option.getClientRects().length);
     const index = options.indexOf(host.shadowRoot.activeElement);
     const next = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : (index + (event.key === "ArrowUp" ? -1 : 1) + options.length) % options.length;
     focusPickerOption(options[next]);
+  }
+
+  // This compact, keyboard-accessible menu changes the launched player's game,
+  // independently of the season-to-date defense filters and the source data.
+  // Keep BYEs/missing opponents visible but disabled, and preserve a clicked
+  // historical game even when no full-season schedule is available.
+  function renderPlayerContext(trigger = null) {
+    const context = getPlayerContext(playerSelection, trigger);
+    const week = Number(context.week), hasWeek = Number.isInteger(week) && week >= 1 && week <= 18;
+    const picker = $('breakdownWeek');
+    picker.hidden = !hasWeek;
+    picker.innerHTML = hasWeek ? `<button type="button" id="breakdownWeekBtn" data-picker-toggle="breakdownWeek" aria-haspopup="listbox" aria-expanded="false" aria-controls="breakdownWeekPanel" aria-label="Matchup week: Week ${week}">(Week ${week})<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button><span class="teamPicker__panel" id="breakdownWeekPanel" popover="manual" role="listbox" aria-label="Choose matchup week">${playerWeeks.map(entry => {
+      const available = Boolean(resolveMatchupSelection({ ...playerSelection, ...entry }));
+      const selected = entry.week === week;
+      return `<button type="button" class="weekOption${selected ? ' is-selected' : ''}" role="option" aria-selected="${selected}" tabindex="-1" data-picker-value="${entry.week}" ${available ? '' : 'disabled'}><span>Week ${entry.week}</span><small>${esc(entry.matchup.opponent || 'Unavailable')}</small></button>`;
+    }).join('')}</span>` : '';
+    const projection = context.projection;
+    const numericProjection = typeof projection === 'number' && Number.isFinite(projection);
+    const projectionDisplay = numericProjection ? fmt(projection, 1)
+      : /^(?:NA|N\/A)?$/i.test(String(context.projectionDisplay ?? '').trim()) ? '—' : context.projectionDisplay;
+    $('breakdownPlayer').innerHTML = `${esc(playerSelection.basePos || playerSelection.pos)} · ${esc(playerSelection.label)} · <span class="breakdownProjectionMatchup">Proj. <strong id="breakdownProjection">${esc(projectionDisplay)}</strong> ${esc(playerSelection.matchup.opponent)}</span>`;
+    if (numericProjection && context.projectionColor) $('breakdownProjection').style.color = context.projectionColor;
+  }
+  function choosePlayerWeek(value) {
+    const entry = playerWeeks.find(entry => entry.week === Number(value));
+    const selection = entry && { ...playerSelection, ...entry };
+    const resolved = selection && resolveMatchupSelection(selection);
+    if (!resolved || (model && !model.defenses.includes(resolved.team))) return;
+    playerSelection = selection;
+    state.team = resolved.team; state.pos = resolved.pos; state.venue = 'all'; state.query = '';
+    renderPlayerContext();
+    $('breakdownWeekBtn')?.focus({ preventScroll: true });
+    render();
   }
 
   function syncControls() {
@@ -318,7 +356,7 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
   }
   function renderPlayers() {
     const rows = selectedPlayers(), total = rows.reduce((sum, row) => sum + row.cents, 0) / 100;
-    $("playerScope").textContent = `${state.team} · ${state.pos}`;
+    $("playerScope").textContent = `${state.pos} · vs ${state.team}`;
     for (const id of ["playerSearch", "expandedSearch"]) if ($(id).value !== state.query) $(id).value = state.query;
     for (const id of ["hideZero", "expandedHideZero"]) $(id).checked = state.hideZero;
     $("playerTable").innerHTML = playersTable(rows);
@@ -383,6 +421,11 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
         .find(button => button.dataset.startSitMatchupId === triggerPlayerId);
       trigger?.focus({ preventScroll: true });
       returnTrigger = null;
+      // Navigate only after native close restores focus/scroll locks. This
+      // keeps Team/Performance/Consistency actions in their original owner.
+      const panel = pendingNavigation, navigate = navigateBack;
+      pendingNavigation = null; navigateBack = null;
+      if (panel) navigate?.(panel);
     });
     // Listen only inside this panel's shadow root. Its original data-position,
     // picker and sorting attributes cannot trigger another Rosters feature.
@@ -393,14 +436,19 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
       if (target.hasAttribute('data-close-breakdown')) { close(); return; }
       if (target.hasAttribute('data-close-dialog')) { $('playersDialog').close(); return; }
       if (target.hasAttribute('data-retry-load')) { prepare().catch(() => {}); return; }
-      if (!model) return;
+      if (target.dataset.gamelogsPanel) {
+        if (target.dataset.gamelogsPanel !== 'matchups') { pendingNavigation = target.dataset.gamelogsPanel; close(); }
+        return;
+      }
+      if (!model && target.closest('[data-picker-kind]')?.dataset.pickerKind !== 'week') return;
       if (target.dataset.pickerToggle) {
         const picker = $(target.dataset.pickerToggle);
         if (openPicker === picker) closePicker(true); else showPicker(picker);
       } else if (target.dataset.pickerValue) {
         const picker = target.closest('[data-picker-kind]'), value = target.dataset.pickerValue;
         closePicker(true);
-        if (picker.dataset.pickerKind === 'team') choose(value);
+        if (picker.dataset.pickerKind === 'week') choosePlayerWeek(value);
+        else if (picker.dataset.pickerKind === 'team') choose(value);
         else { state.venue = value; render(); }
       } else if (target.dataset.position) choose(state.team, target.dataset.position);
       else if (target.dataset.playerSort) {
@@ -437,14 +485,14 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
   function mount() {
     if (mountPromise) return mountPromise;
     mountPromise = (async () => {
-      const response = await fetch(new URL('./panel.html?v=DH3.58-per-game-summary-chips', import.meta.url));
+      const response = await fetch(new URL('./panel.html?v=DH3.63-gamelogs-matchups', import.meta.url));
       if (!response.ok) throw new Error(`Matchup panel could not load (${response.status}).`);
       root.innerHTML = await response.text();
       // One Rosters-owned stylesheet contains independent MOBILE and DESKTOP
       // sections, with separate selectors for each modal area in both sections.
       const stylesheet = document.createElement('link');
       stylesheet.rel = 'stylesheet';
-      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.60-matchup-profile', import.meta.url).href;
+      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.63-gamelogs-matchups', import.meta.url).href;
       const styled = new Promise((resolve, reject) => {
         stylesheet.onload = resolve;
         stylesheet.onerror = () => reject(new Error('Matchup panel styling could not load.'));
@@ -459,7 +507,7 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
         document.head.append(font);
       }
       await styled;
-      pickerRoots = [...root.querySelectorAll('[data-picker-kind]')];
+      pickerRoots = [...root.querySelectorAll('[data-picker-kind]')].filter(picker => picker.dataset.pickerKind !== 'week');
       bindEvents();
     })().catch(error => { mountPromise = null; throw error; });
     return mountPromise;
@@ -511,15 +559,15 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
   }
 
   let returnTrigger = null;
-  async function open(selection, trigger) {
+  async function open(selection, trigger, { navigation = null, onNavigate = null, isCurrent = () => true } = {}) {
     const resolved = resolveMatchupSelection(selection);
     if (!resolved) throw new Error('No opponent defense is available for this player.');
     const request = ++launch;
     await mount();
-    if (request !== launch) return;
+    if (request !== launch || !isCurrent()) return;
     // The panel can now launch from either a Start/Sit preview or a weekly
     // opponent tag. Do not reopen over an entry removed while mounting assets.
-    if (trigger?.classList.contains('gamelog-week-matchup') && (!trigger.isConnected
+    if (navigation && (!trigger?.isConnected
       || trigger.closest('#game-logs-modal')?.classList.contains('hidden'))) return;
     returnTrigger = trigger;
     closePicker(); hideTooltip();
@@ -528,22 +576,28 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
     state.team = resolved.team; state.pos = resolved.pos; state.venue = 'all';
     state.query = ''; state.hideZero = true; state.playerSort = { key: 'week', direction: 'desc', activeKey: null, step: 0 };
     triggerPlayerId = trigger?.hasAttribute('data-start-sit-matchup-id') ? String(selection.id) : null;
-    // Keep the clicked week/opponent/projection together as launch context.
-    // Defense filters below never replace this identity. Numeric zero survives;
-    // missing projections and literal status text remain neutral.
-    const context = getPlayerContext(selection, trigger);
-    const week = Number(context.week), hasWeek = Number.isInteger(week) && week >= 1 && week <= 18;
-    $('breakdownWeek').textContent = hasWeek ? `(Week ${week})` : '';
-    $('breakdownWeek').hidden = !hasWeek;
-    const projection = context.projection;
-    const numericProjection = typeof projection === 'number' && Number.isFinite(projection);
-    const projectionDisplay = numericProjection ? fmt(projection, 1)
-      : /^(?:NA|N\/A)?$/i.test(String(context.projectionDisplay ?? '').trim()) ? '—' : context.projectionDisplay;
-    $('breakdownPlayer').innerHTML = `${esc(resolved.pos)} · ${esc(selection.label)} · <span class="breakdownProjectionMatchup">Proj. <strong id="breakdownProjection">${esc(projectionDisplay)}</strong> ${esc(selection.matchup.opponent)}</span>`;
-    // Reuse Start/Sit's exact rendered color; a weekly log without comparison
-    // peers inherits the subtitle's neutral color.
-    if (numericProjection && context.projectionColor) $('breakdownProjection').style.color = context.projectionColor;
+    playerSelection = { ...selection, basePos: resolved.pos, week: getPlayerContext(selection, trigger).week };
+    playerWeeks = getPlayerWeeks(playerSelection).map(entry => entry.week === playerSelection.week
+      ? { ...entry, matchup: selection.matchup } : entry);
+    if (!playerWeeks.some(entry => entry.week === playerSelection.week)) playerWeeks.push({ week: playerSelection.week, matchup: selection.matchup });
+    playerWeeks.sort((a, b) => a.week - b.week);
+    renderPlayerContext(trigger);
     const dialog = $('breakdownDialog');
+    // Copy only the six dock buttons into this native dialog's focus scope.
+    // The independent Start/Sit launch explicitly clears all Game Logs chrome.
+    const dock = $('breakdownNavigation');
+    dock.replaceChildren(); dock.hidden = !navigation;
+    dialog.toggleAttribute('data-gamelogs', Boolean(navigation));
+    navigateBack = onNavigate; pendingNavigation = null;
+    if (navigation) {
+      const copy = navigation.cloneNode(true);
+      copy.querySelectorAll('[data-gamelogs-panel]').forEach(button => {
+        const active = button.dataset.gamelogsPanel === 'matchups';
+        button.classList.toggle('active', active); button.setAttribute('aria-pressed', String(active));
+        button.removeAttribute('aria-controls');
+      });
+      dock.append(copy);
+    }
     if (!dialog.open) {
       scrollState = { html: document.documentElement.style.overflow, body: document.body.style.overflow };
       dialog.showModal();

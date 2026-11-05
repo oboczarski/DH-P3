@@ -44,6 +44,8 @@
   function renderUpcomingMatchup(player) {
     const node = find('[data-profile-season]');
     node.removeAttribute('title');
+    node.removeAttribute('aria-label');
+    node.disabled = true;
     // Historical views keep their season label and never borrow a 2026 game.
     if (state.currentGameLogsSeason !== '2026') {
       node.textContent = `${state.currentGameLogsSeason} season`;
@@ -62,6 +64,11 @@
     rank.title = matchup.rank == null ? `Defense rank vs ${pos} unavailable`
       : `Defense vs ${pos}: ${matchup.rank} of 32 · 1 strongest, 32 weakest`;
     node.append(' ', rank);
+    // The upcoming-game label mirrors the team label's chevron and opens the
+    // Rosters-owned matchup dialog. BYEs/missing/historical labels stay inert.
+    node.disabled = false;
+    node.setAttribute('aria-label', `Open matchup breakdown · Week ${matchup.week} ${matchup.opponent}`);
+    node.insertAdjacentHTML('beforeend', '<svg class="gl-profile-season-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg>');
   }
 
   function renderScheduleHeading(team, pos) {

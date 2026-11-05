@@ -135,7 +135,8 @@
 // Refresh DataHub's independently owned Game Logs profile, shared Ownership header and desktop density.
 // Refresh Rosters' rank-focused Consistency chips, weekly-rank AVG and rate HUD values.
 // Refresh Players Faced: away locations identify the opponent with @.
-const CACHE_NAME = 'DH3.62b-player-away-location';
+// Refresh Rosters Game Logs matchup navigation, profile shortcut and week picker.
+const CACHE_NAME = 'DH3.63-gamelogs-matchups';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
