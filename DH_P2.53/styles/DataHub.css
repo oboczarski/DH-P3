@@ -2206,6 +2206,7 @@ body[data-page="datahub"] .mini-chip.is-active::before {
   gap: 0;
   border-radius: 14px;
   background: linear-gradient(180deg, rgb(133 215 255 / 33%), rgb(124 75 255 / 28%)), rgba(11, 22, 39, 0.74);
+  opacity: 0.7;
 }
 
 /* DataHub Stats WR / TE nested filters:
@@ -2217,6 +2218,8 @@ body[data-page="datahub"] .mini-chip.is-active::before {
        font-size: 14px;
        font-weight: 600;
        text-shadow: 1px 1px 0px #223;
+       opacity: 1;
+       background: linear-gradient(180deg, rgb(133 215 255 / 33%), rgb(124 75 255 / 28%)), rgba(11, 22, 39, 0.74);
    }
    body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="WR"].is-active::before {
      background: linear-gradient(135deg, #6d65e4, #7872ff, #729aff);
@@ -2229,6 +2232,7 @@ body[data-page="datahub"] .mini-chip.is-active::before {
         font-size: 14px;
         font-weight: 600;
         text-shadow: 1px 1px 0px #223;
+        opacity: 1;
     }
 body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="TE"].is-active::before {
   background: linear-gradient(135deg, rgb(156 102 255), rgb(92 23 255), rgb(139 30 252));
