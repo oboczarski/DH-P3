@@ -39,7 +39,7 @@ dialog { font:inherit; }
 @media (max-width:400px) {
 .metricStrip {gap: 4px;margin-bottom: -2px;}
 }
-.matchupDialog {position:fixed;inset:0;margin:auto;padding:0;width:min(676px,calc(100% - 24px));max-height: 96dvh;color:var(--text);overflow:auto;border:1px solid var(--border);background:linear-gradient(155deg,#252a416e,#080e1aed),#0b1123;box-shadow:0 16px 48px #0008;border-radius:12px;}
+.matchupDialog {position:fixed;inset:0;margin:auto;padding:0;width:min(676px,calc(100% - 24px));max-height: 94dvh;color:var(--text);overflow:auto;border:1px solid var(--border);background:linear-gradient(155deg,#252a416e,#080e1aed),#0b1123;box-shadow:0 16px 48px #0008;border-radius:12px;}
 .matchupDialog #scopeNote { flex-basis:100%; }
 #loadStatus { padding:8px 0; }
 .retryButton { padding:6px 9px; border:1px solid var(--border); border-radius:7px; background:#aabbff10; font-size:11px; }
@@ -60,7 +60,7 @@ dialog { font:inherit; }
       var(--pos-text-gradient) text; }
 }
 .defensePanel { padding:2px 10px 4px; }
-.defenseHeader { display:flex; align-items:center; gap:7px; margin-bottom:4px; }
+.defenseHeader {display:flex;align-items:center;gap:7px;margin-bottom: 3px;}
 .defenseLogo { display:flex; align-items:center; justify-content:center; flex:none; border:1px solid #ffffff1c; background:#ffffff06; box-shadow:inset 4px 6px 16px #ffffff06,0 8px 24px #1f26691a; width:42px; height:37px; border-radius:10px; }
 .defenseLogo img { object-fit:contain; width:36px; height:30px; }
 .defenseHeader h2 { margin:0px 0; font-size:17px; }
@@ -89,7 +89,7 @@ dialog { font:inherit; }
 .sectionHeading:where(#weeklyHeading) { display:flex; align-items:center; gap:8px; margin-bottom:0px; min-height:19px; }
 .sectionHeading:where(#weeklyHeading) > .smallMuted { margin-left:auto; }
 .sectionHeading:where(#weeklyHeading) h3 {font-size: 12.5px;margin: 1px 0 -15px;}
-.matchupDialog .weeklySection > .sectionHeading:where(#weeklyHeading).chartHeading {row-gap:0px;margin: 6px 0 -10px;}
+.matchupDialog .weeklySection > .sectionHeading:where(#weeklyHeading).chartHeading {row-gap:0px;margin: 5px 0 -10px;}
 
 /* Players faced heading */
 :where(#playersHeading) h3 { margin:0; font-size:12px; font-weight:550; }
@@ -584,7 +584,7 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 .chartPoint:focus-visible rect { stroke:#fff; stroke-width:2; }
 .weeklyTimeline {width: calc(100% + 10px);margin-inline: -6px;min-width:0;overflow-x:auto;scrollbar-width:thin;scrollbar-color:#4e5d8080 transparent;}
 .weeklyTimelineContent { width:100%; min-width:max(260px,calc(20px + var(--weekly-week-count,1) * 38px)); }
-.weeklyMatchups {display:grid;grid-template-columns:repeat(var(--weekly-week-count,1),minmax(0,1fr));gap:0;padding-left:var(--weekly-plot-left,0%);padding-right:var(--weekly-plot-right,0%);margin: -2px 0 10px;margin-bottom:8px;}
+.weeklyMatchups {display:grid;grid-template-columns:repeat(var(--weekly-week-count,1),minmax(0,1fr));gap:0;padding-left:var(--weekly-plot-left,0%);padding-right:var(--weekly-plot-right,0%);margin: -2px 0 6px;margin-bottom: 6px;}
 .expectedLine { fill:none; stroke:url(#weekly-expected-line); stroke-width:6px; stroke-dasharray:1; filter:drop-shadow(0px 2px 4px #0008); }
 :where(#weeklyChart) .emptyState { padding:18px 8px; text-align:center; color:var(--dim); font-size:10px; }
 :where(#weeklyChart) .emptyState strong { display:block; color:#bdc1d8; font-size:12px; margin-bottom:4px; font-weight:500; }
@@ -620,7 +620,7 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 }
 
 /* Players faced footer */
-.playerFooter:where(#playerFooter) { display:flex; justify-content:space-between; gap:8px; padding:7px 2px 0; color:var(--dim); font-size:8px; }
+.playerFooter:where(#playerFooter) {display:flex;justify-content:space-between;gap:8px;padding: 6px 2px 0;color:var(--dim);font-size:8px;}
 .playerFooter:where(#playerFooter) span:last-child { color:#bbc0d8; }
 
 /* Expanded players footer */
