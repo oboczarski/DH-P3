@@ -27,7 +27,7 @@ dialog { font:inherit; }
 :host { color-scheme:dark; --page-bg:#050b13; --text:#e6e9ff; --muted:#a5accb; --dim:#7b81a5; --border:rgba(170,187,255,.14); --mint:#75e0b7; --pink:#ffb2d8; --accent-gradient:linear-gradient(90deg,#74efff 0%,#7297ff 52%,#d97dff 100%); --position:#ffb2d8; --font:"Google Sans Flex","Google Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; display:contents; font:12px/1.4 var(--font); color:var(--text); -webkit-font-smoothing:antialiased; }
 .loadError { margin:0 0 8px; padding:10px; color:#ffd1da; border:1px solid #ff8fab40; background:#852b4920; border-radius:10px; }
 .metricStrip { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:3px; margin-bottom:4px; }
-.weekMatchup {display:flex;justify-content:center;align-items:center;min-width:0;justify-self:center;color:var(--muted);border:1px solid #aabbff10;border-radius:7px;width: 85%;font-size:8px;padding: 3px 0 1px;gap:5px;border-color:transparent;background:linear-gradient(90deg,#8f94a61f,#8f94a612) padding-box,linear-gradient(90deg,#74efff5b 0%,#7297ff5b 52%,#d97dff5b 100%) border-box;}
+.weekMatchup {display:flex;justify-content:center;align-items:center;min-width:0;justify-self:center;color:var(--muted);border:1px solid #aabbff10;border-radius:7px;width: 85%;font-size:8px;padding: 2px 0 1px;gap: 2px;border-color:transparent;background:linear-gradient(90deg,#8f94a61f,#8f94a612) padding-box,linear-gradient(90deg,#74efff5b 0%,#7297ff5b 52%,#d97dff5b 100%) border-box;}
 .weekOpponentStack { display:flex; flex-direction:column; align-items:center; gap:0; min-width:0; max-width:100%; }
 .weekMatchup .weekOpponent {max-width:100%;text-align:center;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;word-spacing: -0.08em;}
 .weekMatchup img { width:19px; height:18px; object-fit:contain; }
@@ -51,7 +51,7 @@ dialog { font:inherit; }
 
 /* Defense summary panel */
 :where(#defensePanel) h2 { margin:0; font-size:17px; line-height:1.2; font-weight:550; letter-spacing:-.3px; }
-.glass-panel:where(#defensePanel) { position:relative; min-width:0; border:1px solid var(--border); background:linear-gradient(155deg,rgba(255,255,255,.055),rgba(255,255,255,.009)),linear-gradient(180deg,rgba(15,21,39,.76),rgba(8,13,26,.7)); box-shadow:0 8px 28px rgba(2,5,17,.22),inset 0 4px 18px rgba(255,255,255,.035); backdrop-filter:blur(7px) saturate(140%); -webkit-backdrop-filter:blur(7px) saturate(140%); border-radius:12px; }
+.glass-panel:where(#defensePanel) {position:relative;min-width:0;border:1px solid var(--border);background:linear-gradient(155deg,rgba(255,255,255,.055),rgba(255,255,255,.009)),linear-gradient(180deg,rgba(15,21,39,.76),rgba(8,13,26,.7));box-shadow:0 8px 28px rgba(2,5,17,.22),inset 0 4px 18px rgba(255,255,255,.035);backdrop-filter:blur(7px) saturate(140%);-webkit-backdrop-filter:blur(7px) saturate(140%);border-radius: 0px 0px 10px 10px;}
 .glass-panel:where(#defensePanel)::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:linear-gradient(135deg,rgba(215,225,255,.065),transparent 30%); }
 .positionBadge {color:var(--pos-color);padding: 2px 6px;border:1px solid color-mix(in srgb,var(--pos-color) 25%,transparent);border-radius:7px;font-size: 13px;background:color-mix(in srgb,var(--pos-color) 8%,transparent);font-weight:500;box-shadow:inset 0 3px 9px #ffffff08,0 0 9px color-mix(in srgb,var(--pos-color) 9%,transparent);}
 @supports (background-clip:border-area) {
@@ -59,7 +59,7 @@ dialog { font:inherit; }
       linear-gradient(90deg,#74efffbb 0%,#7297ffbb 52%,#d97dffbb 100%) border-area,
       var(--pos-text-gradient) text; }
 }
-.defensePanel { padding:2px 10px 4px; }
+.defensePanel {padding:2px 10px 4px;}
 .defenseHeader {display:flex;align-items:center;gap:7px;margin-bottom: 3px;}
 .defenseLogo { display:flex; align-items:center; justify-content:center; flex:none; border:1px solid #ffffff1c; background:#ffffff06; box-shadow:inset 4px 6px 16px #ffffff06,0 8px 24px #1f26691a; width:42px; height:37px; border-radius:10px; }
 .defenseLogo img { object-fit:contain; width:36px; height:30px; }
@@ -631,7 +631,7 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 #breakdownDialog::backdrop { background:rgba(0,0,0,.58); backdrop-filter:blur(5px); }
 
 /* Main dialog body */
-.dialogBody:where(#breakdownBody) { padding:2px 10px 2px; }
+.dialogBody:where(#breakdownBody) {padding: 0px 0px 0px;}
 .matchupDialog > .dialogBody:where(#breakdownBody) { padding-top:4px; padding-bottom:8px; }
 
 /* Expanded players body */
@@ -1219,11 +1219,11 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
   isolation: isolate;
   display: grid;
   /* Six equal dock slots include the Rosters-only Matchups shortcut. */
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) minmax(0, 0.98fr) minmax(0, 0.95fr) minmax(0, 0.85fr) minmax(0, 0.85fr);
   gap: 0px;
   padding: 2px;
   border: 1px solid rgba(188, 208, 255, 0.22);
-  border-radius: 35px;
+  border-radius: 28px / 35px;
   background:
     radial-gradient(ellipse at 17% 0%, rgba(183, 227, 255, 0.13), transparent 55%),
     linear-gradient(145deg, rgba(68, 81, 114, 0.54), rgba(21, 29, 49, 0.66) 60%, rgba(65, 52, 96, 0.4));
@@ -1239,10 +1239,10 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
+  gap: 0px;
   min-width: 0;
-  min-height: 44px;
-  padding: 5px 0px 3px;
+  min-height: 38px;
+  padding: 3px 0px 3px;
   border: 1px solid transparent;
   border-radius: 20px / 24px;
   color: #a3b0cb;
@@ -1269,8 +1269,8 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
     linear-gradient(140deg, rgba(164, 236, 255, 0.48), rgba(135, 157, 255, 0.25) 55%, rgba(207, 157, 255, 0.38)) border-box;
   box-shadow: inset 0 1px 0 rgba(242, 249, 255, 0.22), inset 0 -6px 18px rgba(101, 128, 219, 0.08),
     0 2px 8px rgba(0, 0, 0, 0.15), 0 0 15px rgba(116, 160, 244, 0.1);
-  width: 115%;
-  border-radius: 20px / 24px;
+  width: 108%;
+  border-radius: 18px / 24px;
 }
 
 #breakdownNavigation .gamelogs-nav-button.active .rosters-modal-icon {
