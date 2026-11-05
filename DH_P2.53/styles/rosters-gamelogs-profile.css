@@ -374,10 +374,11 @@ body[data-page="rosters"] #game-logs-modal .gl-profile :is(button, summary):focu
   body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__value { font-size: 12px; letter-spacing: 0; word-spacing: normal; }
   body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-summary-row { padding: 8px 0 2px; }
   body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-summary-chips {
-    width: 100%;
+    width: 90%;
     max-width: none;
     margin: 0;
-    gap: 10px !important;
+    gap: 20px !important;
+    justify-self: center;
   }
   body[data-page="rosters"] #game-logs-modal .gl-profile-stat { padding: 8px 10px; }
   body[data-page="rosters"] #game-logs-modal .gl-profile-stat-value { font-size: 20px; }
