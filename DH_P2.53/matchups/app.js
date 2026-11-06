@@ -341,7 +341,7 @@
     }
     if (yBounds.high - 9 / (bottom - top) * (yBounds.high - yBounds.low) > xBounds.low + 5 / (right - left) * (xBounds.high - xBounds.low)) content += `<text class="zoneLabel" x="${left + 5}" y="${top + 9}">${ranked ? "Weaker Defense vs. Baseline" : "Above Expected FPA/Game"}</text>`;
     if (yBounds.low + 6 / (bottom - top) * (yBounds.high - yBounds.low) < xBounds.high - 5 / (right - left) * (xBounds.high - xBounds.low)) content += `<text class="zoneLabel" x="${right - 5}" y="${bottom - 6}" text-anchor="end">${ranked ? "Stronger Defense vs. Baseline" : "Below Expected FPA/Game"}</text>`;
-    content += `<text class="axisTitle" x="${(left + right) / 2}" y="${H - 10}" text-anchor="middle">${ranked ? seasonRanks ? "SOS Rank · 1 = Easiest" : "Expected FPA/Game · Rank" : "Expected FPA · Points | [Opponent Weekly Avg.]"}</text><text class="axisTitle" transform="translate(19 ${(top + bottom) / 2}) rotate(-90)" text-anchor="middle">${ranked ? "Defense Rank · 1 = Best" : "Actual FPA · Points/Game"}</text>`;
+    content += `<text class="axisTitle" x="${(left + right) / 2}" y="${H - 10}" text-anchor="middle">${ranked ? seasonRanks ? "SOS Rank · 1 = Easiest" : "Expected FPA/Game · Rank" : "Expected FPA · Points | [Opponent Weekly Avg.]"}</text><text class="axisTitle" transform="translate(23 ${(top + bottom) / 2}) rotate(-90)" text-anchor="middle">${ranked ? "Defense Rank · 1 = Best" : "Actual FPA · Points/Game"}</text>`;
     // This scatter alone uses smaller logos and bounded collision spacing at
     // both widths. Lay out before selection sorting so picking a team never
     // reshuffles the cluster; connectors retain each team's exact data anchor.
