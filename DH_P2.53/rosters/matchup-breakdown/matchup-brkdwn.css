@@ -1318,7 +1318,7 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
   .matchupDialog[data-gamelogs] #metrics .metricValue { margin-block:0; }
 }
 @media (min-width:869px) {
-  #breakdownNavigation .gamelogs-nav-button { min-height:60px; gap:4px; font-size:14px; }
+  #breakdownNavigation .gamelogs-nav-button {min-height:60px;gap:4px;font-size:14px;border-radius: 24px / 28px !important;}
   #breakdownNavigation .rosters-modal-icon { width:28px; height:28px; }
   .matchupDialog[data-gamelogs] .breakdownSurface { max-height:calc(100dvh - 116px - env(safe-area-inset-bottom)); }
 }

@@ -49,7 +49,7 @@
   }
   body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__label { font-size: 11px; }
   body[data-page="rosters"] #game-logs-modal .gl-profile .player-vitals__value { font-size: 13px; }
-  body[data-page="rosters"] #game-logs-modal .gl-profile-stat { padding: 8px 6px; }
+  body[data-page="rosters"] #game-logs-modal .gl-profile-stat {padding: 8px 6px;border-radius: 15px;}
   body[data-page="rosters"] #game-logs-modal .gl-profile-stat-unit { font-size: 15px; }
   body[data-page="rosters"] #game-logs-modal .gl-profile-stat-value { font-size: 22px; }
   body[data-page="rosters"] #game-logs-modal .gl-profile-stat-ranks { font-size: 14px; }
@@ -71,7 +71,7 @@
   body[data-page="rosters"] #game-logs-modal .gamelogs-season-option { font-size: 15px; }
   body[data-page="rosters"] #game-logs-modal .gamelogs-season-option-year { font-size: inherit; }
   body[data-page="rosters"] #game-logs-modal .gamelogs-dock { width: min(580px, var(--gamelogs-desktop-width)); margin-top: 8px; }
-  body[data-page="rosters"] #game-logs-modal .gamelogs-nav-button { min-height: 60px; gap: 4px; font-size: 14px; }
+  body[data-page="rosters"] #game-logs-modal .gamelogs-nav-button {min-height: 60px;gap: 4px;font-size: 14px;border-radius: 24px / 28px;}
   body[data-page="rosters"] #game-logs-modal .gamelogs-nav-button .rosters-modal-icon { width: 28px; height: 28px; }
   body[data-page="rosters"] #game-logs-modal .gamelogs-context-caption { font-size: 13px; }
   body[data-page="rosters"] #game-logs-modal .gamelogs-stat-mode { font-size: 11px; }
