@@ -3,7 +3,7 @@ import { get2026QualifierOptions } from "./datahub-stats-season.js";
 import { getDataHubStatsPeriodOptions, getDataHubWeeklyColumns, getDataHubWeeklyColumnGroups, getDataHubWeeklyTableSourceRows } from "./datahub-stats-period.js";
 import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSeasonRankQualified } from "./datahub-stats-positional-ranks.js";
 import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js";
-import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js?v=DH3.64-qb-passing-efficiency";
+import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js?v=DH3.64a-air-yards-icon";
 import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js?v=DH3.62-datahub-gamelogs-parity";
 import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames, isConsistencyProductionStat, getConsistencyAverageLabelCenter } from "./datahub-gamelogs-controls.js?v=DH3.53-rosters-gamelogs";
 
@@ -1029,6 +1029,9 @@ const ROOKIE_CAREER_TIER_BADGE_ICONS = Object.freeze({
 // Lucide icon paths (24×24 viewBox, stroke-based). Only columns used in this
 // app are listed here — no full icon library is loaded or bundled.
 // ---------------------------------------------------------------------------
+// AY/A uses Material Symbols airline_stops: its curved flight-path arrow
+// represents air yards per attempt and is reserved for this column header.
+const AIR_YARDS_PER_ATTEMPT_HEADER_ICON_MARKUP = '<path d="M360-200v-80h80q-15-138-118-229T80-600v-80q129 0 237 68t163 184q38-81 100-143.5T719-680H560v-80h280v280h-80v-132q-93 57-160 141t-80 191h80v80H360Z"/>';
 const COLUMN_ICONS = {
   index:     "M4 6h16M4 12h8M4 18h4", // Row index lines
   RK:        "M4 6h16M4 12h8M4 18h4", // Hash-like lines
@@ -1079,7 +1082,7 @@ const COLUMN_ICONS = {
   CPOE:      DATAHUB_LUCIDE_ICON_MARKUP.RedoDot,
   CMP:       CMP_HEADER_ICON_MARKUP,
   YPA:       DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
-  "AY/A":    DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
+  "AY/A":    AIR_YARDS_PER_ATTEMPT_HEADER_ICON_MARKUP,
   paYPG:     DATAHUB_LUCIDE_ICON_MARKUP.BowArrow,
   ruYDS:     DATAHUB_LUCIDE_ICON_MARKUP.Route,
   ruTD:      RUTD_HEADER_ICON_MARKUP,
@@ -1166,6 +1169,8 @@ const STATS_COLUMN_ICON_OVERRIDES = Object.freeze({
   // QB 2026 additions use the requested filled Material Symbols through the same
   // inline registry as the RB headers, with CAR/G retaining its shared icon.
   passing: Object.freeze({
+    // Use the existing Material viewBox/fill and responsive QB icon sizing.
+    "AY/A": AIR_YARDS_PER_ATTEMPT_HEADER_ICON_MARKUP,
     "EPA": '<path d="M120-160v-240h120v240H120Zm200-240v-200h120v200H320Zm200-200v-200h120v200H520Zm200 440v-640h120v640H720Z"/>',
     // Requested DB glyph rotates 90 degrees clockwise about the Material viewBox center.
     "DB": '<g transform="rotate(90 480 -480)"><path d="M680-280q-72 0-127-45.5T484-440H272q-12 27-37 43.5T180-380q-42 0-71-29t-29-71q0-42 29-71t71-29q30 0 55 16.5t37 43.5h212q14-69 69-114.5T680-680q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280Zm85-115q35-35 35-85t-35-85q-35-35-85-35t-85 35q-35 35-35 85t35 85q35 35 85 35t85-35Z"/></g>',

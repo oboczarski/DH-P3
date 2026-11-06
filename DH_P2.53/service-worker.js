@@ -139,7 +139,8 @@
 // Refresh mobile Game Logs matchup spacing and shorter summary chips.
 // Refresh Rosters/DataHub Game Logs SOS labels with the completed-week range.
 // Refresh 2026 QB AY/A mappings, Passing Efficiency order and both owned Game Logs.
-const CACHE_NAME = 'DH3.64-qb-passing-efficiency';
+// Refresh AY/A's dedicated Material flight-path icon and air-yard help text.
+const CACHE_NAME = 'DH3.64a-air-yards-icon';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

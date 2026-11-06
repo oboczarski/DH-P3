@@ -74,7 +74,7 @@ const ROSTERS_GAMELOG_STAT_SECTIONS = [
     stat("BLTZ%", "Blitz Rate", ["blitz_pct"]),
     stat("DP%", "Deep Pass Rate", ["dp_pct"]),
     // QB 2026 table/Season labels describe the AYA source under its AY/A display name.
-    stat("AY/A", "Adjusted Yards per Attempt", ["AYA", "adjusted_ypa"]),
+    stat("AY/A", "Air Yards per Attempt", ["AYA", "adjusted_ypa"]),
     stat("TmPa%", "Team Pass Rate", ["team_pass_pct"]),
   ] },
   { id: "rushing", label: "Rushing", tone: "rushing", items: [
