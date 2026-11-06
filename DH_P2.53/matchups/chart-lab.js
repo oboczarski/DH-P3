@@ -175,9 +175,9 @@
           const data = column.dataItem?.dataContext; if (!data?.team) return;
           const row = snapshot.cells.find(cell => cell.team === data.team && cell.pos === pos);
           column.set("tooltipText", cellTooltip(row));
-          register(scene, row, column, selected => column.setAll({ fillOpacity: selected ? 1 : .77,
-            stroke: selected ? color(0xe2efff) : tint, strokeOpacity: selected ? .85 : .15,
-            strokeWidth: selected ? 1.2 : .5 }));
+          // Stacked-bar selection changes only fill opacity; keep each
+          // segment's normal position-colored edge instead of a white outline.
+          register(scene, row, column, selected => column.set("fillOpacity", selected ? 1 : .77));
         });
         scene.select();
       });
