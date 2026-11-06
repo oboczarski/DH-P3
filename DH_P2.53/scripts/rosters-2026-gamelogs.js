@@ -18,6 +18,8 @@
         // the weekly table and its season footer; 2025 CSV parsing stays in app.js.
         paYDS: 'pass_yd', paTD: 'pass_td', pa1D: 'pass_fd', EPA: 'epa', 'EPA/DB': 'epa_per_db', CPOE: 'cpoe',
         'BLTZ%': 'blitz_pct', DB: 'dropbacks', 'TmPa%': 'team_pass_pct',
+        // Rosters owns the 2026 QB AYA source mapping for Weekly/Season and ranks.
+        AYA: 'adjusted_ypa',
         'DP%': 'dp_pct', 'IMP/G': 'imp_per_g', paRTG: 'pass_rtg', pIMP: 'pass_imp', 'pIMP/A': 'pass_imp_per_att',
         INT: 'pass_int', SAC: 'pass_sack', TTT: 'ttt', 'PRS%': 'prs_pct', CAR: 'rush_att', ruYDS: 'rush_yd',
         // Rosters 2026 RB Game Logs: read these exact WK/DH rushing headers;

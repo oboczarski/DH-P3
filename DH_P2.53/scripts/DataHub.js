@@ -3,7 +3,7 @@ import { get2026QualifierOptions } from "./datahub-stats-season.js";
 import { getDataHubStatsPeriodOptions, getDataHubWeeklyColumns, getDataHubWeeklyColumnGroups, getDataHubWeeklyTableSourceRows } from "./datahub-stats-period.js";
 import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSeasonRankQualified } from "./datahub-stats-positional-ranks.js";
 import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js";
-import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js";
+import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js?v=DH3.64-qb-passing-efficiency";
 import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js?v=DH3.62-datahub-gamelogs-parity";
 import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames, isConsistencyProductionStat, getConsistencyAverageLabelCenter } from "./datahub-gamelogs-controls.js?v=DH3.53-rosters-gamelogs";
 
@@ -827,6 +827,8 @@ const PAGE_VIEW_COLUMN_SETS = Object.freeze({
 // as "NA" until a future integration supplies live values.
 // ---------------------------------------------------------------------------
 const SOURCE_ALIASES = {
+  // 2026 QB Stats displays AY/A while DH and the weekly CSV publish AYA.
+  "AY/A": "AYA",
   index: null,
   PLAYER: "NM",
   RK: "PRK_PPR",
@@ -1077,6 +1079,7 @@ const COLUMN_ICONS = {
   CPOE:      DATAHUB_LUCIDE_ICON_MARKUP.RedoDot,
   CMP:       CMP_HEADER_ICON_MARKUP,
   YPA:       DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
+  "AY/A":    DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
   paYPG:     DATAHUB_LUCIDE_ICON_MARKUP.BowArrow,
   ruYDS:     DATAHUB_LUCIDE_ICON_MARKUP.Route,
   ruTD:      RUTD_HEADER_ICON_MARKUP,
@@ -1632,7 +1635,8 @@ const STATS_PASSING_GROUP_COLUMNS_2026 = Object.freeze({
     "paATT", "CMP", "paYDS", "paTD", "pa1D", "EPA", "SAC", "INT", "DB",
   ]),
   "PASSING EFFICIENCY": Object.freeze([
-    "CMP%", "paRTG", "EPA/DB", "CPOE", "TTT", "PRS%", "DP%", "BLTZ%", "paYPG", "pIMP/A", "TmPa%",
+    // Keep the 2026 table and its Focus/Sort menus in the requested QB order.
+    "CMP%", "paRTG", "EPA/DB", "CPOE", "TTT", "PRS%", "BLTZ%", "DP%", "AY/A", "paYPG", "pIMP/A", "TmPa%",
   ]),
   RUSHING: Object.freeze(["ruYDS", "ruTD", "CAR", "YPC", "CAR/G"]),
 });
@@ -2498,6 +2502,7 @@ const COLUMN_WIDTHS = {
   EPA: 94,
   DB: 82,
   "BLTZ%": 96,
+  "AY/A": 90,
   "TmPa%": 100,
   CMP: 90,
   YPA: 84,
@@ -2661,6 +2666,7 @@ CPOE: 50,
 EPA: 44,
 DB: 40,
 "BLTZ%": 52,
+"AY/A": 48,
 "TmPa%": 55,
 CMP: 46,
 YPA: 50,
@@ -11756,6 +11762,11 @@ function getRookieTierStyleLevel(value) {
 }
 
 function formatDisplayValue(columnName, value) {
+  // 2026 QB Stats: AY/A is a source-backed rate; round only its display.
+  if (columnName === "AY/A" && is2026PassingStatsView()) {
+    const numericValue = toComparableNumber(value);
+    return numericValue == null ? formatCellValue(value) : numericValue.toFixed(2);
+  }
   if (BLANK_PLACEHOLDER_COLUMNS.has(columnName)) {
     return "";
   }
@@ -12321,6 +12332,8 @@ const DATAHUB_PLAYER_STAT_HEADER_MAP = {
   DB: "dropbacks",
   "TmPa%": "team_pass_pct",
   "DP%": "dp_pct",
+  // QB 2026 Weekly/Season values read AYA directly, displaying AY/A.
+  AYA: "adjusted_ypa",
   "IMP/G": "imp_per_g",
   paRTG: "pass_rtg",
   pIMP: "pass_imp",
@@ -12594,6 +12607,8 @@ const DATAHUB_LEAGUE_ABBR_OVERRIDES = {
 };
 const DATAHUB_STAT_LABELS = buildDataHubStatLabels();
 const DATAHUB_NO_FALLBACK_KEYS = new Set([
+  // QB efficiency rates must never become summed weekly rates or missing zeroes.
+  "adjusted_ypa",
   "td_total",
   // Share fields use the supplied season percentage, never a weekly sum.
   "tds_pct", "ys_pct", "rush_tms", "rush_yms", "pass_tms", "pass_yms",
@@ -12635,7 +12650,8 @@ const DATAHUB_QB_LOG_ORDER_2026 = [
   "fpts", "proj", "pass_rtg", "pass_yd", "pass_td", "yds_total",
   "rush_yd", "rush_td", "cmp_pct", "pass_att", "pass_cmp", "cpoe",
   "rush_att", "ypc", "epa", "epa_per_db", "pass_imp_per_att",
-  "pass_fd", "ttt", "prs_pct", "blitz_pct", "pass_sack", "pass_int",
+  // QB 2026 weekly additions follow BLTZ% before the turnover counts.
+  "pass_fd", "ttt", "prs_pct", "blitz_pct", "adjusted_ypa", "dp_pct", "pass_sack", "pass_int",
   "dropbacks", "team_pass_pct", "fpoe",
 ];
 const DATAHUB_RB_LOG_ORDER = [
@@ -12706,6 +12722,7 @@ function buildDataHubStatLabels() {
   labels.ts_per_rr = "TS%";
   labels.fpoe = "FPOE";
   labels.expl_ru_pct = "EXPLSV%";
+  labels.adjusted_ypa = "AY/A";
   return labels;
 }
 
@@ -14983,6 +15000,8 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
     pass_imp_per_att: 44,
     epa: 42,
     blitz_pct: 48,
+    adjusted_ypa: 44,
+    dp_pct: 44,
     dropbacks: 38,
     team_pass_pct: 52,
     prs_pct: 42,
@@ -15579,6 +15598,10 @@ function computeDataHubSeasonValue(statKey, seasonTotals, aggregatedTotals, game
 
 function getDataHubGameLogStatValue(statKey, stats, is2026RbLog = false, is2026WtLog = false) {
   if (!stats || stats.__hasRecordedStats === false) return null;
+  // The newly visible 2026 QB deep-pass rate preserves a missing WK cell.
+  if (statKey === "dp_pct" && state.currentModalSeason === "2026") {
+    return Number.isFinite(stats.dp_pct) ? stats.dp_pct : null;
+  }
   if (DATAHUB_NO_FALLBACK_KEYS.has(statKey) || (is2026RbLog && ["ryoe", "rr", "ypr"].includes(statKey))
     || (is2026WtLog && ["rr", "rz_tgt", "ay_pct"].includes(statKey))) {
     // Source-backed weekly cells keep missing values blank; RB 2026 also
@@ -15657,6 +15680,9 @@ function formatDataHubGameLogCellValue(statKey, value, is2026QbLog = false, is20
   if (Number.isNaN(numericValue)) {
     return statKey === "fpts" ? "-" : "N/A";
   }
+  // QB Weekly: AY/A retains hundredths; DP% uses the source percentage points.
+  if (is2026QbLog && statKey === "adjusted_ypa") return numericValue.toFixed(2);
+  if (is2026QbLog && statKey === "dp_pct") return formatDataHubPercentage(numericValue);
   // Weekly Game Logs: exact count/impact stats use whole numbers; CPOE is
   // percentage points with one decimal and a plus sign only for positive values.
   if (["rz_att", "gl_att", "rush_ybc", "imp_per_g"].includes(statKey)) return numericValue.toFixed(0);
@@ -15818,6 +15844,9 @@ function getDataHubGameLogsSeasonDisplayValue({
     const raw = seasonTotals && typeof seasonTotals[key] === "number" ? seasonTotals[key] : null;
     if (raw === null) {
       displayValue = "N/A";
+    } else if (key === "adjusted_ypa") {
+      // QB Season and Weekly footer share the published DH AY/A rate.
+      displayValue = Number(raw).toFixed(2);
     } else if (["rz_att", "gl_att", "rush_ybc", "imp_per_g"].includes(key)) {
       // Season view and weekly footer share these whole-number display rules.
       displayValue = Number(raw).toFixed(0);
@@ -16013,7 +16042,8 @@ function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
       if (section.label === "PASSING EFFICIENCY") {
         return { ...section, stats: [
           "epa_per_db", "cpoe", "pass_rtg", "cmp_pct", "pass_imp_per_att",
-          "ttt", "prs_pct", "blitz_pct", "dp_pct", "pa_ypg", "team_pass_pct",
+          // QB 2026 Season: AY/A belongs directly after DP%.
+          "ttt", "prs_pct", "blitz_pct", "dp_pct", "adjusted_ypa", "pa_ypg", "team_pass_pct",
         ] };
       }
       return section;
@@ -16190,7 +16220,7 @@ function getDataHubStatGroup(statKey) {
   if ([
     "pass_att", "pass_cmp", "pass_yd", "pass_td", "pass_fd", "pass_imp", "pass_rtg",
     "pass_imp_per_att", "pass_int", "pass_sack", "ttt", "prs_pct", "cmp_pct", "epa_per_db", "cpoe", "dp_pct", "pa_ypg",
-    "epa", "blitz_pct", "dropbacks", "team_pass_pct",
+    "epa", "blitz_pct", "dropbacks", "team_pass_pct", "adjusted_ypa",
   ].includes(statKey)) return "passing";
   if ([
     "rush_att", "rush_yd", "rush_td", "rush_fd", "ypc", "elu", "mtf_per_att", "yco_per_att",

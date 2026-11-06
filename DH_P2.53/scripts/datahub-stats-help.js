@@ -71,6 +71,8 @@ export const DATAHUB_STAT_SECTIONS = [
     stat("PRS%", "Pressure Rate", ["prs_pct"]),
     stat("BLTZ%", "Blitz Rate", ["blitz_pct"]),
     stat("DP%", "Deep Pass Rate", ["dp_pct"]),
+    // QB 2026 Stats/Weekly/Season share the AY/A label for the source AYA rate.
+    stat("AY/A", "Adjusted Yards per Attempt", ["AYA", "adjusted_ypa"]),
     stat("TmPa%", "Team Pass Rate", ["team_pass_pct"]),
   ] },
   { id: "rushing", label: "Rushing", tone: "rushing", items: [

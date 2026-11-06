@@ -4256,6 +4256,8 @@ function buildStatLabels() {
     // season; shared 2025 and Stats-page labels remain untouched.
     if (pageType === 'rosters' && state.currentGameLogsSeason === '2026') {
         Object.assign(labels, {
+            // Rosters 2026 QB labels use AY/A for the independently parsed AYA field.
+            adjusted_ypa: 'AY/A',
             epa: 'EPA', blitz_pct: 'BLTZ%', dropbacks: 'DB', team_pass_pct: 'TmPa%',
             ryoe_per_att: 'RYOE/A', rz_att: 'RZ Att', gl_att: 'GL Att',
             rush_ybc: 'YBC', ybc_per_att: 'YBC/A', car_per_g: 'CAR/G', tgt_per_g: 'TGT/G',
@@ -4271,6 +4273,8 @@ function buildStatLabels() {
 }
 // Stats that must not use code-derived fallbacks; sheet is source of truth
 const NO_FALLBACK_KEYS = new Set([
+    // QB AY/A uses the supplied season/weekly rate, never a sum of weekly rates.
+    'adjusted_ypa',
     // Share percentages must come from their source column, never weekly sums.
     'tds_pct', 'ys_pct', 'rush_tms', 'rush_yms', 'pass_tms', 'pass_yms',
     // Rosters receiving rates use DH/WK values rather than summing weekly ratios.
@@ -6084,7 +6088,7 @@ const SZN_WR_TE_SECTIONS_2026 = Object.fromEntries(['WR', 'TE'].map((position) =
         return section;
     })
 ]));
-function getSznSectionsForPosition(position) {
+function getSznSectionsForPosition(position, { forGameLogsModal = false } = {}) {
     const posKey = typeof position === 'string' ? position.trim().toUpperCase() : '';
     if (SZN_WR_TE_SECTIONS_2026[posKey] && pageType === 'rosters' && state.currentGameLogsSeason === '2026') {
         return SZN_WR_TE_SECTIONS_2026[posKey];
@@ -6106,7 +6110,10 @@ function getSznSectionsForPosition(position) {
             if (section.id === 'passing-efficiency') {
                 return { ...section, stats: [
                     'epa_per_db', 'cpoe', 'pass_rtg', 'cmp_pct', 'pass_imp_per_att',
-                    'ttt', 'prs_pct', 'blitz_pct', 'dp_pct', 'pa_ypg', 'team_pass_pct'
+                    // QB 2026 Game Logs places AY/A after DP%; Start/Sit's
+                    // separate comparison keeps its existing shared group schema.
+                    'ttt', 'prs_pct', 'blitz_pct', 'dp_pct',
+                    ...(forGameLogsModal ? ['adjusted_ypa'] : []), 'pa_ypg', 'team_pass_pct'
                 ] };
             }
             return section;
@@ -6229,6 +6236,9 @@ function getGameLogsSeasonDisplayValue({
 		const raw = (seasonTotals && typeof seasonTotals[key] === 'number') ? seasonTotals[key] : null;
 		if (raw === null) {
 			displayValue = 'N/A';
+        } else if (key === 'adjusted_ypa') {
+            // Rosters QB Season and Weekly footer share the DH AY/A precision.
+            displayValue = Number(raw).toFixed(2);
         } else if (pageType === 'rosters' && ['rz_att', 'gl_att', 'rush_ybc', 'imp_per_g'].includes(key)) {
             // Rosters Season view and weekly footer share whole-number counts.
             displayValue = Number(raw).toFixed(0);
@@ -6658,7 +6668,7 @@ function renderGameLogsSeasonStatsView({
     };
 
     const usedKeys = new Set();
-    const sections = getSznSectionsForPosition(player?.pos);
+    const sections = getSznSectionsForPosition(player?.pos, { forGameLogsModal: true });
 
     if (sections.length) {
         for (const section of sections) {
@@ -7546,7 +7556,8 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         'fpts', 'proj', 'pass_rtg', 'pass_yd', 'pass_td', 'yds_total',
         'rush_yd', 'rush_td', 'cmp_pct', 'pass_att', 'pass_cmp', 'cpoe',
         'rush_att', 'ypc', 'epa', 'epa_per_db', 'pass_imp_per_att',
-        'pass_fd', 'ttt', 'prs_pct', 'blitz_pct', 'pass_sack', 'pass_int',
+        // QB 2026 Weekly places AY/A and DP% immediately after BLTZ%.
+        'pass_fd', 'ttt', 'prs_pct', 'blitz_pct', 'adjusted_ypa', 'dp_pct', 'pass_sack', 'pass_int',
         'dropbacks', 'team_pass_pct', 'fpoe'
     ];
     const rbStatOrder = [
@@ -7626,7 +7637,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     assignStatGroup('passing', [
         'pass_rtg', 'pass_yd', 'pass_td', 'cmp_pct', 'pass_att', 'pass_cmp', 'pass_fd',
         'pass_imp', 'pass_imp_per_att', 'ttt', 'prs_pct', 'pass_sack', 'cpoe', 'dp_pct', 'pass_int', 'epa_per_db', 'pa_ypg',
-        'epa', 'blitz_pct', 'dropbacks', 'team_pass_pct'
+        'epa', 'blitz_pct', 'dropbacks', 'team_pass_pct', 'adjusted_ypa'
     ]);
     assignStatGroup('rushing', [
         'rush_att', 'rush_yd', 'ypc', 'rush_td', 'rush_fd', 'elu', 'mtf_per_att',
@@ -7737,6 +7748,8 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         pass_imp_per_att: 44,
         epa: 42,
         blitz_pct: 48,
+        adjusted_ypa: 44,
+        dp_pct: 44,
         dropbacks: 38,
         team_pass_pct: 52,
         prs_pct: 42,
@@ -7965,7 +7978,8 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
                 continue;
             }
             let value;
-            if (NO_FALLBACK_KEYS.has(key) || (is2026RostersRbLog && ['ryoe', 'rr', 'ypr'].includes(key))
+            if (NO_FALLBACK_KEYS.has(key) || (is2026RostersQbLog && key === 'dp_pct')
+                || (is2026RostersRbLog && ['ryoe', 'rr', 'ypr'].includes(key))
                 || (is2026RostersWtLog && ['rr', 'rz_tgt', 'ay_pct'].includes(key))) {
                 // Current receiving cells use WK directly so unavailable
                 // counts and shares never become fabricated zeroes.
@@ -8044,6 +8058,9 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
             let displayValue;
             // For FPTS, show "-" instead of "N/A" when value is null (e.g. SNP=0 or no data)
             if (value === null || typeof value !== 'number') displayValue = key === 'fpts' ? '-' : 'N/A';
+            // QB 2026 Weekly: AY/A is hundredths and DP% is percentage points.
+            else if (is2026RostersQbLog && key === 'adjusted_ypa') displayValue = value.toFixed(2);
+            else if (is2026RostersQbLog && key === 'dp_pct') displayValue = formatPercentage(value);
             // Rosters weekly Game Logs: count/impact stats round to whole numbers;
             // CPOE keeps percentage points, one decimal, and positive + signs.
             else if (pageType === 'rosters' && ['rz_att', 'gl_att', 'rush_ybc', 'imp_per_g'].includes(key)) displayValue = value.toFixed(0);

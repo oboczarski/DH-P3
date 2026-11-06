@@ -138,7 +138,8 @@
 // Refresh Rosters Game Logs matchup navigation, profile shortcut and week picker.
 // Refresh mobile Game Logs matchup spacing and shorter summary chips.
 // Refresh Rosters/DataHub Game Logs SOS labels with the completed-week range.
-const CACHE_NAME = 'DH3.63b-sos-week-label';
+// Refresh 2026 QB AY/A mappings, Passing Efficiency order and both owned Game Logs.
+const CACHE_NAME = 'DH3.64-qb-passing-efficiency';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
