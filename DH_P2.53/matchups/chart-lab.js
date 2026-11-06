@@ -31,7 +31,9 @@
     const value = (name, fallback) => css.getPropertyValue(`--am-${name}`).trim() || fallback;
     const size = (name, fallback) => { const n = parseFloat(value(name, "")); return n > 0 ? n : fallback; };
     const opacity = (name, fallback) => { const n = parseFloat(value(name, "")); return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : fallback; };
-    return { fontFamily: css.fontFamily, chartPaddingRight: size("chart-padding-right", 20),
+    return { fontFamily: css.fontFamily, chartPaddingLeft: size("chart-padding-left", 9), chartPaddingRight: size("chart-padding-right", 20),
+      teamLogos: mobileViewport.matches && ["labBreakdown", "labDumbbell"].includes(host.id),
+      stackBarHeight: size("stack-bar-height", 14),
       axisSize: size("axis-font-size", 10), axisColor: value("axis-color", "#97afd1"), axisWeight: value("axis-font-weight", "400"),
       xGridColor: value("x-grid-color", "#9ab6e0"), xGridOpacity: opacity("x-grid-opacity", .09),
       teamSize: size("team-font-size", 11), teamColor: value("team-color", "#b6c9e9"), teamWeight: value("team-font-weight", "500"),
@@ -79,6 +81,28 @@
       fill: color(team ? t.teamColor : t.axisColor), paddingTop: 3, paddingBottom: 3 });
     renderer.grid.template.setAll({ stroke: color(0x9ab6e0), strokeOpacity: .09 });
   }
+  // The two mobile comparison charts prepend page-owned logos to team labels.
+  // HTML keeps logos sharp; the category text and desktop canvas labels remain.
+  function teamAxisLogos(scene, renderer) {
+    if (!scene.text.teamLogos) return;
+    // Mobile logos start at the panel's compact left inset; discard the
+    // renderer's extra default label padding without moving desktop labels.
+    renderer.labels.template.set("paddingLeft", 0);
+    renderer.labels.template.adapters.add("html", (html, target) => {
+      const team = target.dataItem?.dataContext?.team;
+      if (!team) return html;
+      return `<span class="labAxisTeam${team === current.team ? ' is-selected' : ''}"><img src="assets/NFL-Tags_webp/${team.toLowerCase()}.webp" alt="" width="15" height="15"><span>${team}</span></span>`;
+    });
+  }
+  // Reuse each live subtitle as the mobile footer, then restore its original
+  // heading on desktop. Moving the node preserves sort/position/venue updates.
+  function syncSubtitleLayout() {
+    for (const id of ["labBreakdown", "labDumbbell"]) {
+      const panel = $(id).closest("[data-amchart-panel]"), subtitle = $(`${id}Subtitle`);
+      if (mobileViewport.matches) panel.insertBefore(subtitle, panel.querySelector(".labReadout"));
+      else panel.querySelector(".labHeading").append(subtitle);
+    }
+  }
   function legend(scene, entries) {
     const host = $(`${scene.id}Legend`); host.replaceChildren();
     for (const entry of entries) {
@@ -86,7 +110,14 @@
       if (entry.fill) swatch.style.setProperty("--legend-color", entry.fill.toCSSHex());
       if (entry.gradient) swatch.style.setProperty("--legend-gradient", entry.gradient);
       if (entry.symbol) { swatch.className = "labLegendSymbol"; swatch.textContent = entry.symbol; }
-      label.textContent = entry.text; item.append(swatch, label); host.append(item);
+      label.textContent = entry.text;
+      // Optional legend explanations keep their own dimmed text styling;
+      // only the Actual vs. Expected chart supplies these parentheticals.
+      if (entry.detail) {
+        const detail = document.createElement("span"); detail.className = "labLegendDetail";
+        detail.textContent = `(${entry.detail})`; label.append(" ", detail);
+      }
+      item.append(swatch, label); host.append(item);
     }
   }
   function register(scene, row, sprite, paint) {
@@ -97,7 +128,8 @@
     paint(row.team === current.team); return sprite;
   }
   function selectMarkers(scene) {
-    for (const renderer of scene.labelRenderers) renderer.labels.each(label => { label.markDirtyKey("fill"); label.markDirtyKey("text"); });
+    for (const renderer of scene.labelRenderers) renderer.labels.each(label => { label.markDirtyKey("fill"); label.markDirtyKey("text");
+      if (scene.text.teamLogos) label.markDirtyKey("html"); });
     for (const marker of scene.markers) {
       if (marker.sprite.isDisposed()) { scene.markers.delete(marker); continue; }
       const selected = marker.row.team === current.team;
@@ -118,9 +150,10 @@
     const scene = makeScene(definition), root = scene.root, palette = am5.ColorSet.new(root, {});
     const positions = Model.POSITIONS.slice(0, 4);
     legend(scene, positions.map((pos, index) => ({ text: pos, fill: palette.getIndex(index) })));
-    const chart = xy(scene, { paddingLeft: 9, paddingRight: scene.text.chartPaddingRight, paddingTop: 4 });
+    const chart = xy(scene, { paddingLeft: scene.text.chartPaddingLeft, paddingRight: scene.text.chartPaddingRight, paddingTop: 4 });
     const xr = am5xy.AxisRendererX.new(root, { minGridDistance: 65 }), yr = am5xy.AxisRendererY.new(root, { minGridDistance: 1, inversed: true });
     axisStyle(scene, xr); axisStyle(scene, yr, true); yr.labels.template.setAll({ paddingTop: 0, paddingBottom: 0, paddingRight: 12 });
+    teamAxisLogos(scene, yr);
     yr.grid.template.set("forceHidden", true);
     const xAxis = chart.xAxes.push(am5xy.ValueAxis.new(root, { min: 0, strictMinMax: true, renderer: xr }));
     const yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root, { categoryField: "team", renderer: yr }));
@@ -133,7 +166,9 @@
         { color: tint, opacity: .45 }, { color: tint, opacity: .94 } ] });
       const series = chart.series.push(am5xy.ColumnSeries.new(root, { name: pos, xAxis, yAxis, baseAxis: yAxis,
         categoryYField: "team", valueXField: pos, stacked: true, fill: tint, stroke: tint }));
-      series.columns.template.setAll({ height: 14, fillGradient: gradient, strokeOpacity: .15, strokeWidth: .5,
+      // Bar thickness reads the composition panel's CSS; mobile row pitch is
+      // sized there from thickness + gap without changing any scoring values.
+      series.columns.template.setAll({ height: scene.text.stackBarHeight, fillGradient: gradient, strokeOpacity: .15, strokeWidth: .5,
         cornerRadiusTL: 2, cornerRadiusTR: 2, cornerRadiusBL: 2, cornerRadiusBR: 2 });
       series.events.on("datavalidated", () => {
         series.columns.each(column => {
@@ -148,6 +183,26 @@
       });
       seriesByPos.set(pos, series);
     });
+    // The stacked bars are drawn on canvas, so stylesheet/DevTools edits do
+    // not update their thickness through CSS alone. Observe a CSS-sized probe
+    // to sync the column template even when height + gap leaves row pitch
+    // unchanged; gap changes continue to affect only the canvas's row spacing.
+    const barSizer = document.createElement("span");
+    barSizer.className = "labStackBarSizer"; barSizer.setAttribute("aria-hidden", "true");
+    $(definition.id).append(barSizer);
+    const syncBarHeight = () => {
+      const height = barSizer.getBoundingClientRect().height;
+      if (height > 0) seriesByPos.forEach(series => {
+        if (series.columns.template.get("height") === height) return;
+        series.columns.template.set("height", height);
+        // amCharts caches calculated column bounds; invalidate them even if
+        // a compensating gap edit keeps the overall plot size unchanged.
+        series.markDirtyValues();
+      });
+    };
+    const barSizeObserver = new ResizeObserver(syncBarHeight);
+    barSizeObserver.observe(barSizer); syncBarHeight();
+    root.addDisposer({ dispose() { barSizeObserver.disconnect(); barSizer.remove(); } });
     const totals = chart.series.push(am5xy.LineSeries.new(root, { xAxis, yAxis, categoryYField: "team", valueXField: "avg",
       minBulletDistance: 0, maskBullets: false }));
     totals.strokes.template.set("forceHidden", true);
@@ -172,6 +227,7 @@
         return second - first || a.team.localeCompare(b.team);
       });
       const bounds = Model.extent(rows.map(row => row.avg), 10, true);
+      $(definition.id).style.setProperty("--am-stack-team-count", rows.length);
       xAxis.setAll({ min: bounds.min, max: Math.max(10, bounds.max) }); yAxis.data.setAll(rows);
       seriesByPos.forEach(series => series.data.setAll(rows));
       totals.data.setAll(rows);
@@ -193,10 +249,14 @@
     }));
     // The endpoint legend retains Expected/Actual; row gradients still show
     // relative FPA without adding four redundant ranking-band legend entries.
-    legend(scene, [{ text: "EXPECTED", symbol: "○", fill: color(0xd4e4ff) }, { text: "ACTUAL", symbol: "●", fill: color(0xd4e4ff) }]);
-    const chart = xy(scene, { paddingLeft: 9, paddingRight: scene.text.chartPaddingRight, paddingTop: 4 });
+    legend(scene, [{ text: "EXPECTED", detail: "OPP AVG PPG", symbol: "○", fill: color(0xd4e4ff) },
+      { text: "ACTUAL", detail: "PPG ALLOWED", symbol: "●", fill: color(0xd4e4ff) }]);
+    const chart = xy(scene, { paddingLeft: scene.text.chartPaddingLeft, paddingRight: scene.text.chartPaddingRight, paddingTop: 4 });
     const xr = am5xy.AxisRendererX.new(root, { minGridDistance: 65 }), yr = am5xy.AxisRendererY.new(root, { minGridDistance: 1, inversed: true });
     axisStyle(scene, xr); axisStyle(scene, yr, true); yr.labels.template.setAll({ paddingTop: 0, paddingBottom: 0, paddingRight: 28 });
+    // Reclaim some label padding for mobile logos so the plot stays readable.
+    if (scene.text.teamLogos) yr.labels.template.set("paddingRight", 12);
+    teamAxisLogos(scene, yr);
     // Only dumbbell vertical gridlines read these panel-owned CSS variables.
     // Desktop supplies faint styling; mobile retains the previous defaults.
     xr.grid.template.setAll({ stroke: color(scene.text.xGridColor), strokeOpacity: scene.text.xGridOpacity });
@@ -447,6 +507,8 @@
     const scene = button && scenes.get(button.dataset.labFocus);
     if (scene) { scene.spotlight = !scene.spotlight; scene.select(); }
   });
+  syncSubtitleLayout();
+  mobileViewport.addEventListener("change", () => { syncSubtitleLayout(); scheduleStyles(); });
   window.addEventListener("resize", scheduleStyles);
   window.FPAChartLab = { update, dispose, refreshStyles };
   window.addEventListener("pagehide", dispose);
