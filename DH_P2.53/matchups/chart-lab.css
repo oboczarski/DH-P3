@@ -254,7 +254,7 @@
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="dumbbell"]) .labTitleRow .chartPositionToggle {gap:1px;margin-right: -6px;}
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="dumbbell"]) .labTitleRow .chartPositionToggle button {min-width: 33px;padding: 3px;font-size:9px;}
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="dumbbell"]) .labSubtitle { font-size:8px; }
-  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="dumbbell"]) .labLegend {gap:5px 11px;font-size:9px;}
+  :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="dumbbell"]) .labLegend {gap: 5px 20px;font-size:9px;}
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="dumbbell"]) .labReadout,
   :where(body[data-page="matchups"]) .chartLab :where([data-matchups-area="dumbbell"]) .labFootnote { display:none; }
   @media (max-width: 360px) {
