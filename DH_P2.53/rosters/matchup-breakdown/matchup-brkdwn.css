@@ -67,7 +67,7 @@ dialog { font:inherit; }
 .defenseHeaderCopy { flex:1; min-width:0; }
 .defenseHeaderCopy h2 { overflow-wrap:anywhere; }
 /* Mobile defense header keeps the colored rank and position on one row. */
-.defenseMatchup { display:flex; align-items:center; align-self:flex-start; flex:none; margin-left:auto; white-space:nowrap; gap:5px; }
+.defenseMatchup {display:flex;align-items:center;align-self:flex-start;flex:none;margin-left:auto;white-space:nowrap;gap:5px;margin-top: 4px;}
 .defenseRank { color:var(--text); font-weight:600; font-variant-numeric:tabular-nums; font-size:12px; }
 @supports (background-clip:border-area) {
 .defenseLogo { border-color:transparent; color:transparent; background:linear-gradient(90deg,#74efff33 0%,#7297ff33 52%,#d97dff33 100%),linear-gradient(90deg,#74efffbb 0%,#7297ffbb 52%,#d97dffbb 100%) border-area,linear-gradient(90deg,#74efff 0%,#7297ff 52%,#d97dff 100%) text; }

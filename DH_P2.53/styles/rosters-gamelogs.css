@@ -3504,6 +3504,7 @@ body[data-page="rosters"] :where(#game-logs-modal) .weekly-chart-x-axis > span.a
     width: 686px;
     max-width: 93%;
     padding: 0.65rem 0.85rem 0.25rem 0.85rem;
+    border-radius: 20px;
   }
 
   body[data-page="rosters"] #game-logs-modal .modal-close-btn {
