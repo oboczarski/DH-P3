@@ -1363,7 +1363,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
     box-shadow:0 8px 28px rgba(2,5,17,.22),inset 0 4px 18px rgba(255,255,255,.035);
     backdrop-filter:blur(7px) saturate(140%); -webkit-backdrop-filter:blur(7px) saturate(140%); }
   :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="comparison"])::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:linear-gradient(135deg,rgba(215,225,255,.065),transparent 30%); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .fieldLabel { color:var(--dim);font-size: 9px;font-weight:600;letter-spacing: 0;white-space:nowrap; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .fieldLabel {color:var(--dim);font-size: 9px;font-weight:600;letter-spacing: 0;white-space: nowrap;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle,
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .smallToggle { display:inline-flex;gap:3px;padding:3px;border:1px solid #aabbff1c;border-radius:11px;background:#03091642;box-shadow:inset 0 2px 9px #01051238;margin-left: auto; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle { background:#0309160a; }
@@ -1412,11 +1412,11 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
     border: 1px solid transparent;
     background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #e4efff 25%, #b2c7ff 50%, #d9addf 75%) text;
   }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .smallToggle button { padding: 3px 8px;min-height: 20px;border:1px solid transparent;border-radius:7px;font-size:10px;color:var(--muted); }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .smallToggle button {padding: 3px 11px;min-height: 20px;border:1px solid transparent;border-radius:7px;font-size:10px;color:var(--muted);}
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .smallToggle button[aria-pressed="true"] {background:linear-gradient(180deg,#85d7ff24,#a27fff17);border-color:#9ad1ff35;color:#dceeff;box-shadow:inset 0 3px 8px #ffffff08;border: 1px solid transparent;color: transparent;background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;}
   :where(body[data-page="matchups"]) .is-easy:where([data-matchups-area="comparison"], [data-matchups-area="comparison"] *) { color:var(--mint); }
   :where(body[data-page="matchups"]) .is-tough:where([data-matchups-area="comparison"], [data-matchups-area="comparison"] *) { color:var(--pink); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chartHeaderControls { display:flex;align-items:center;justify-content: center;flex-wrap: wrap;gap: 4px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chartHeaderControls {display:flex;align-items:center;justify-content: center;flex-wrap: wrap;gap: 4px;margin-left: -68px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle.chartPositionToggle button { min-width: 40px;padding: 3px 6px;font-size:9px;border-radius:6px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart { min-width:0; }
@@ -1445,11 +1445,11 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   :where(body[data-page="matchups"]) .comparisonPanel:where([data-matchups-area="comparison"]) .panelHeader { flex-wrap:wrap; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle { padding:2px;border-radius:9px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle button { flex:1; min-width:0; font-size:10px; padding:5px 7px; }
-  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="comparison"]) { border-radius:12px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .fieldLabel { font-size: 9px; }
+  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="comparison"]) {border-radius:12px;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .fieldLabel {font-size: 11px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .panelHeader { padding: 3px 5px 0px 10px;margin-bottom: -6px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .panelHeader h2 { font-size: 18px;margin-top: 8px;margin-bottom: 5px; }
-  :where(body[data-page="matchups"]) .comparisonPanel:where([data-matchups-area="comparison"]) .panelHeader { flex-wrap: nowrap;gap: 0px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .panelHeader h2 {font-size: 18px;margin-top: 12px;margin-bottom: -4px;text-wrap-mode: nowrap;}
+  :where(body[data-page="matchups"]) .comparisonPanel:where([data-matchups-area="comparison"]) .panelHeader {flex-wrap: nowrap;gap: 0px;grid: auto;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonChart {padding: 0 0px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonDetail { padding:5px 10px; font-size:9px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chartNote { padding-inline:10px; font-size:8px; }
