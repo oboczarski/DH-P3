@@ -1234,9 +1234,9 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTableScroll { max-height: 180px;min-height: 160px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable th:first-child,
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td:first-child { width:35px; color:var(--dim); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable th:last-child,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td:last-child { text-align:right; width:64px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td:last-child { font-weight:550; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable th.scoreColumn,
+  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td.scoreColumn { text-align:right; width:64px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td.scoreColumn { font-weight:550; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td { white-space:nowrap; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerName { color:#dfe3f9; font-weight:500; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .offenseCell { display:flex; align-items:center; gap:4px; font-size:9px; color:var(--muted); }
@@ -1257,8 +1257,8 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td { font-size:10px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable th:first-child,
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td:first-child { width:28px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable th:last-child,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td:last-child { width:46px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable th.scoreColumn,
+  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td.scoreColumn { width:46px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerFilters { gap:7px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerFooter { font-size:8px; }
   /* Players Faced keeps TM visible on phones; names may wrap to make room. */
@@ -1328,9 +1328,9 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTableScroll {max-height: 210px;min-height: 160px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable th:first-child,
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td:first-child { width:35px; color:var(--dim); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable th:last-child,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td:last-child { text-align:right; width:64px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td:last-child { font-weight:550; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable th.scoreColumn,
+  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td.scoreColumn { text-align:right; width:64px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td.scoreColumn { font-weight:550; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerTable td { white-space:nowrap; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .playerName { color:#dfe3f9; font-weight:500; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="players"]) .offenseCell { display:flex; align-items:center; gap:4px; font-size:9px; color:var(--muted); }
@@ -2500,7 +2500,8 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
 
 /* Players Faced only: both regular/expanded tables show compact weekly stats.
    All headers/values are centered; Player body cells remain left aligned.
-   Keep scroll, caption and button styling owned by these exact table IDs. */
+   Keep scroll, caption and button styling owned by these exact table IDs.
+   PPR styling follows scoreColumn even when per-view stats come after it. */
 body[data-page="matchups"] :is(#playerTable, #expandedTable).playerTable { width:100%; min-width:0; table-layout:auto; border-collapse:separate; border-spacing:0; font-variant-numeric:tabular-nums; }
 body[data-page="matchups"] :is(#playerTable, #expandedTable).playerTable :is(th, td) {padding: 4px 6px;white-space:nowrap;text-align:center;}
 body[data-page="matchups"] :is(#playerTable, #expandedTable).playerTable th { position:sticky; top:0; z-index:2; background:#182039; color:#bbc0e8; border-bottom:1px solid #808abd2e; font-size:8px; font-weight:550; }

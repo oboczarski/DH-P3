@@ -357,8 +357,8 @@ table:where(#playerTable) { width:100%; border-collapse:separate; border-spacing
 :where(#playerTable) .sortArrow { color:#88b8ff; margin-left:3px; font-size:9px; }
 .playerTable:where(#playerTable) th:first-child { color:var(--dim); width:28px; }
 .playerTable:where(#playerTable) td:first-child { color:var(--dim); width:28px; }
-.playerTable:where(#playerTable) th:last-child { text-align:right; width:46px; }
-.playerTable:where(#playerTable) td:last-child { text-align:right; font-weight:550; width:46px; }
+.playerTable:where(#playerTable) th.scoreColumn { text-align:right; width:46px; }
+.playerTable:where(#playerTable) td.scoreColumn { text-align:right; font-weight:550; width:46px; }
 .playerTable:where(#playerTable) td { white-space:nowrap; padding:3px 5px; font-size:10px; }
 :where(#playerTable) .playerName { color:#dfe3f9; font-weight:500; }
 :where(#playerTable) .offenseCell { display:flex; align-items:center; gap:4px; font-size:9px; color:var(--muted); }
@@ -399,8 +399,8 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 :where(#expandedTable) .sortArrow { color:#88b8ff; margin-left:3px; font-size:9px; }
 .playerTable:where(#expandedTable) th:first-child { color:var(--dim); width:28px; }
 .playerTable:where(#expandedTable) td:first-child { color:var(--dim); width:28px; }
-.playerTable:where(#expandedTable) th:last-child { text-align:right; width:46px; }
-.playerTable:where(#expandedTable) td:last-child { text-align:right; font-weight:550; width:46px; }
+.playerTable:where(#expandedTable) th.scoreColumn { text-align:right; width:46px; }
+.playerTable:where(#expandedTable) td.scoreColumn { text-align:right; font-weight:550; width:46px; }
 .playerTable:where(#expandedTable) td { white-space:nowrap; padding:3px 5px; font-size:10px; }
 :where(#expandedTable) .playerName { color:#dfe3f9; font-weight:500; }
 :where(#expandedTable) .offenseCell { display:flex; align-items:center; gap:4px; font-size:9px; color:var(--muted); }
@@ -962,8 +962,8 @@ table:where(#playerTable) { width:100%; border-collapse:separate; border-spacing
 :where(#playerTable) .sortArrow { color:#88b8ff; margin-left:3px; font-size:9px; }
 .playerTable:where(#playerTable) th:first-child { width:35px; color:var(--dim); }
 .playerTable:where(#playerTable) td:first-child { width:35px; color:var(--dim); }
-.playerTable:where(#playerTable) th:last-child { text-align:right; width:64px; }
-.playerTable:where(#playerTable) td:last-child { text-align:right; width:64px; font-weight:550; }
+.playerTable:where(#playerTable) th.scoreColumn { text-align:right; width:64px; }
+.playerTable:where(#playerTable) td.scoreColumn { text-align:right; width:64px; font-weight:550; }
 .playerTable:where(#playerTable) td { white-space:nowrap; }
 :where(#playerTable) .playerName { color:#dfe3f9; font-weight:500; }
 :where(#playerTable) .offenseCell { display:flex; align-items:center; gap:4px; font-size:9px; color:var(--muted); }
@@ -991,8 +991,8 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 :where(#expandedTable) .sortArrow { color:#88b8ff; margin-left:3px; font-size:9px; }
 .playerTable:where(#expandedTable) th:first-child { width:35px; color:var(--dim); }
 .playerTable:where(#expandedTable) td:first-child { width:35px; color:var(--dim); }
-.playerTable:where(#expandedTable) th:last-child { text-align:right; width:64px; }
-.playerTable:where(#expandedTable) td:last-child { text-align:right; width:64px; font-weight:550; }
+.playerTable:where(#expandedTable) th.scoreColumn { text-align:right; width:64px; }
+.playerTable:where(#expandedTable) td.scoreColumn { text-align:right; width:64px; font-weight:550; }
 .playerTable:where(#expandedTable) td { white-space:nowrap; }
 :where(#expandedTable) .playerName { color:#dfe3f9; font-weight:500; }
 :where(#expandedTable) .offenseCell { display:flex; align-items:center; gap:4px; font-size:9px; color:var(--muted); }
@@ -1325,7 +1325,8 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 
 /* Players Faced only: both regular/expanded tables show compact weekly stats.
    All headers/values are centered; Player body cells remain left aligned.
-   Keep scroll, caption and button styling owned by these exact table IDs. */
+   Keep scroll, caption and button styling owned by these exact table IDs.
+   PPR styling follows scoreColumn even when per-view stats come after it. */
 :host :is(#playerTable, #expandedTable).playerTable { width:100%; min-width:0; table-layout:auto; border-collapse:separate; border-spacing:0; font-variant-numeric:tabular-nums; }
 :host :is(#playerTable, #expandedTable).playerTable :is(th, td) {padding: 4px 6px;white-space:nowrap;text-align:center;}
 :host :is(#playerTable, #expandedTable).playerTable th { position:sticky; top:0; z-index:2; background:#182039; color:#bbc0e8; border-bottom:1px solid #808abd2e; font-size:8px; font-weight:550; }

@@ -184,7 +184,8 @@ team, position, opponent and venue. Missing or ambiguous matches stay blank;
 zero and negative stats remain valid. This supplemental read cannot add FPA
 results or change scores, summary ranks, charts or game cutoffs. A failed
 AllWKs read leaves the three required matchup feeds usable and marks weekly
-stats unavailable. Column sets follow the active QB/RB/WR/TE/ALL view. Site
+stats unavailable. Column sets follow the active QB/RB/WR/TE/ALL view. PPR
+precedes the per-view stats; RB ends with REC, TGT, recYDS. Site
 retains the former parenthesized text, e.g. (BUF) or (@ BAL). Both table sizes
 center every header and all body cells except Player; mobile names ellipsize
 on one line with horizontal scrolling, while desktop columns share the space

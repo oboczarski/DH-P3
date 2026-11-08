@@ -436,7 +436,7 @@
     const receiving = [["TGT", "TGT"], ["REC", "REC"], ["RECYDS", "recYDS"], ["RECTD", "recTD"], ["YAC", "YAC"]];
     return ({
       QB: [["PAATT", "paATT/CMP"], ["CMP%", "CMP%", 1, "%"], ["PAYDS", "paYDS"], ["PATD", "paTD"], ["PARTG", "paRTG", 1]],
-      RB: [["CAR", "CAR"], ["RUYDS", "ruYDS"], ["YPC", "YPC", 2], ["TD(T)", "TD(t)"], ["REC", "REC"]],
+      RB: [["CAR", "CAR"], ["RUYDS", "ruYDS"], ["YPC", "YPC", 2], ["TD(T)", "TD(t)"], ["REC", "REC"], ["TGT", "TGT"], ["RECYDS", "recYDS"]],
       WR: receiving, TE: receiving,
       ALL: [["YDS(T)", "YDS(t)"], ["TD(T)", "TD(t)"], ["OPP", "OPP"], ["REC", "REC"]],
     })[state.pos] || [];
@@ -447,10 +447,12 @@
     return Number.isFinite(value) ? `${fmt(value, digits)}${suffix}` : "—";
   }
   function playersTable(rows) {
+    // Regular and expanded Players Faced put PPR before every per-view stat;
+    // RB receiving details end with REC, TGT, recYDS in that exact order.
     const stats = playerStatColumns();
-    const columns = [["week", "Wk", "weekColumn"], ["player", "Player", "nameColumn"], ["team", "TM", "offenseColumn"], ["vs", "Site", "siteColumn"], ...stats.map(([key, label]) => [key, label, "statColumn"]), ["pts", "PPR", "scoreColumn"]];
+    const columns = [["week", "Wk", "weekColumn"], ["player", "Player", "nameColumn"], ["team", "TM", "offenseColumn"], ["vs", "Site", "siteColumn"], ["pts", "PPR", "scoreColumn"], ...stats.map(([key, label]) => [key, label, "statColumn"])];
     const head = columns.map(([key, label, className]) => `<th class="${className}" scope="col" aria-sort="${state.playerSort.key === key ? state.playerSort.direction === "desc" ? "descending" : "ascending" : "none"}"><button type="button" data-player-sort="${key}" aria-label="Sort players by ${label}">${label}${state.playerSort.key === key ? `<span class="sortArrow">${state.playerSort.direction === "desc" ? "↓" : "↑"}</span>` : ""}</button></th>`).join("");
-    const body = rows.length ? rows.map(row => `<tr><td class="weekColumn">W${row.week}</td><td class="nameColumn">${state.pos === "ALL" ? `<span class="playerPosition" data-pos="${row.pos}">${row.pos}</span>` : ""}<span class="playerName" title="${esc(row.player)}">${esc(row.player)}</span></td><td class="offenseColumn"><span class="offenseCell" title="${esc(Data.TEAM_NAMES[row.playerTeam] || "Offense not supplied")}">${logo(row.playerTeam)}${row.playerTeam || "—"}</span></td><td class="siteColumn"><span class="playerOpponent">${esc(playerLocation(row))}</span></td>${stats.map(column => `<td class="statColumn">${playerStatCell(row, column)}</td>`).join("")}<td class="scoreColumn ${row.cents < 0 ? "scoreNegative" : row.cents === 0 ? "scoreZero" : ""}">${fmt(row.pts, 1)}</td></tr>`).join("") : `<tr><td colspan="${columns.length}">${empty("No matching player results", "Change the matchup or clear the player filters.")}<div class="emptyState"><button type="button" data-clear-search>Clear player filters</button></div></td></tr>`;
+    const body = rows.length ? rows.map(row => `<tr><td class="weekColumn">W${row.week}</td><td class="nameColumn">${state.pos === "ALL" ? `<span class="playerPosition" data-pos="${row.pos}">${row.pos}</span>` : ""}<span class="playerName" title="${esc(row.player)}">${esc(row.player)}</span></td><td class="offenseColumn"><span class="offenseCell" title="${esc(Data.TEAM_NAMES[row.playerTeam] || "Offense not supplied")}">${logo(row.playerTeam)}${row.playerTeam || "—"}</span></td><td class="siteColumn"><span class="playerOpponent">${esc(playerLocation(row))}</span></td><td class="scoreColumn ${row.cents < 0 ? "scoreNegative" : row.cents === 0 ? "scoreZero" : ""}">${fmt(row.pts, 1)}</td>${stats.map(column => `<td class="statColumn">${playerStatCell(row, column)}</td>`).join("")}</tr>`).join("") : `<tr><td colspan="${columns.length}">${empty("No matching player results", "Change the matchup or clear the player filters.")}<div class="emptyState"><button type="button" data-clear-search>Clear player filters</button></div></td></tr>`;
     return `<caption class="srOnly">${state.pos} recorded player scores and weekly stats against ${state.team}, ${weekLabel()}, ${venueLabel()}</caption><thead><tr>${head}</tr></thead><tbody>${body}</tbody>`;
   }
   function renderPlayers() {
