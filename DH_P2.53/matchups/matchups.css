@@ -2553,5 +2553,5 @@ body[data-page="matchups"] :is(#playerTable, #expandedTable) tbody::before,
 body[data-page="matchups"] :is(#playerTable, #expandedTable) tbody::after {
   content:"";
   display:table-row;
-  height:4px;
+  height: 2px;
 }
