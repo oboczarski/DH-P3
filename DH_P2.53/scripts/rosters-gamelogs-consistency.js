@@ -492,6 +492,9 @@ function getRostersConsistencyAxisWeeks() {
     .map(Number)
     .filter(Number.isFinite)
     .sort((left, right) => left - right);
+  // Rosters' archived 2025 Consistency chart shows the full season. Keep the
+  // rolling results-only window below exclusive to the current 2026 season.
+  if (state.currentGameLogsSeason === "2025") return weeks;
   // The 2026 feed contains future schedule placeholders. End the nine-week
   // chart at the last week with recorded results instead of at Week 18.
   const recordedWeeks = state.currentGameLogsSeason === "2026"
