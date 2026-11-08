@@ -1,5 +1,5 @@
-import { rankPositionSchedules, canonicalSosTeam } from './datahub-gamelogs-sos.js?v=DH3.62-datahub-gamelogs-parity';
-export { historicalSosSource } from './datahub-gamelogs-sos.js?v=DH3.62-datahub-gamelogs-parity';
+import { rankPositionSchedules, canonicalSosTeam } from './datahub-gamelogs-sos.js?v=DH3.65-playoff-sos';
+export { historicalSosSource } from './datahub-gamelogs-sos.js?v=DH3.65-playoff-sos';
 
 /* DataHub Game Logs upper profile only. Existing renderers remain responsible
  * for every scoring/rank value, source, and navigation/table interaction.
@@ -162,28 +162,19 @@ export function createDataHubGameLogsProfile({ modal, state, teamNames, loadTeam
     if (/^\d+$/.test(String(player?.id))) image.src = `https://sleepercdn.com/content/nfl/players/${encodeURIComponent(player.id)}.jpg`;
   }
 
-  // DataHub's completed-schedule label uses the existing SOS results cutoff.
-  // Keep an unknown/empty cutoff neutral instead of showing a year or Week 0.
-  function renderScheduleRange(source) {
-    const cutoff = source?.latestRecordedWeek;
-    find('[data-profile-sos-season]').textContent = Number.isInteger(cutoff) && cutoff >= 1 && cutoff <= 18
-      ? `WK1-WK${cutoff}:` : 'WK1-WK—:';
-  }
-
   function resetSchedule(player) {
     // Prefix SOS with the selected season's team and the player's position;
-    // the async result below confirms the same context used for both ranks.
+    // the async result below confirms the context for all three SOS periods.
     const { team, pos } = profileContext(player);
     renderScheduleHeading(team, pos);
-    renderScheduleRange(state.seasonDataCache[state.currentModalSeason]?.profileSource);
-    find('.gl-profile-schedule').setAttribute('aria-label', `${team} ${pos} strength of schedule; ${state.currentModalSeason} so far and rest of season`.trim());
+    find('.gl-profile-schedule').setAttribute('aria-label', `${team} ${pos} strength of schedule; ${state.currentModalSeason} year to date, rest of season, and fantasy playoffs (Weeks 15–17)`.trim());
     profile.querySelectorAll('[data-profile-sos]').forEach(node => {
       node.textContent = '—';
       node.style.removeProperty('color');
       node.parentElement.title = 'Schedule difficulty is loading.';
     });
     find('.gl-profile-sos-help').open = false;
-    find('[data-profile-sos-help]').textContent = '1 = easiest · 32 = toughest. Position-specific schedule difficulty is loading.';
+    find('[data-profile-sos-help]').textContent = '1 = easiest · 32 = toughest. Position-specific schedule difficulty is loading. YTD = year to date; ROS = rest of season; PLAYOFF = fantasy playoffs, Weeks 15–17 only.';
   }
 
   async function renderSchedule(player, token) {
@@ -194,13 +185,14 @@ export function createDataHubGameLogsProfile({ modal, state, teamNames, loadTeam
       // Historical SOS was built from the same archived CSV read; no extra feed.
       const source = state.seasonDataCache[season]?.profileSource;
       if (token !== revision || modal.classList.contains('hidden') || season !== state.currentModalSeason) return;
-      renderScheduleRange(source);
       let positions = source && rankCache.get(source);
       if (!positions && source) { positions = {}; rankCache.set(source, positions); }
       const ranked = positions ? (positions[pos] ||= module.rankPositionSchedules(source, pos, season === '2026' ? 'rank' : 'allowance')) : null;
       const team = module.canonicalSosTeam(profileContext(player).team);
       renderScheduleHeading(team, pos);
-      for (const period of ['faced', 'remaining']) {
+      // PLAYOFF shares the existing rank, color, ordinal and divider styling;
+      // its fixed Weeks 15–17 range is independent of the YTD/ROS cutoff.
+      for (const period of ['faced', 'remaining', 'playoff']) {
         const metric = ranked?.[period]?.[team];
         const node = find(`[data-profile-sos="${period}"]`);
         node.textContent = metric?.rank ?? '—';
@@ -212,7 +204,7 @@ export function createDataHubGameLogsProfile({ modal, state, teamNames, loadTeam
           node.appendChild(suffix);
           node.style.color = getOpponentRankColor(metric.rank, 'descending');
         }
-        const range = period === 'faced' ? `Weeks 1–${ranked?.cutoff || 0}` : `Weeks ${(ranked?.cutoff ?? 0) + 1}–18`;
+        const range = period === 'playoff' ? 'Weeks 15–17' : period === 'faced' ? `Weeks 1–${ranked?.cutoff || 0}` : `Weeks ${(ranked?.cutoff ?? 0) + 1}–18`;
         const average = ranked?.basis === 'rank'
           ? `Average opponent defensive rank vs ${pos}: ${metric?.average?.toFixed(2)} (1 easiest, 32 toughest).`
           : `${pos} opponents allow ${metric?.average?.toFixed(2)} fantasy points per game on average.`;
@@ -220,15 +212,16 @@ export function createDataHubGameLogsProfile({ modal, state, teamNames, loadTeam
           ? `${range} · ${metric.games} games · ${average} Schedule rank ${metric.rank} of 32; 1 easiest, 32 toughest.`
           : period === 'remaining' && ranked?.cutoff === 18 ? 'Season complete — no remaining games.' : 'SOS unavailable — complete positional defense and schedule data is required.';
       }
-      const range = ranked?.cutoff === 18 ? 'Season complete; no remaining games.'
-        : ranked?.cutoff ? `So far: Weeks 1–${ranked.cutoff}. Remaining: Weeks ${ranked.cutoff + 1}–18.` : 'No completed weeks yet.';
+      const range = ranked?.cutoff === 18 ? 'YTD: Weeks 1–18. Season complete; no remaining games.'
+        : ranked?.cutoff ? `YTD: Weeks 1–${ranked.cutoff}. ROS: Weeks ${ranked.cutoff + 1}–18.`
+          : ranked?.cutoff === 0 ? 'No completed weeks yet. ROS: Weeks 1–18.' : 'Completed-week cutoff unavailable.';
       const method = season === '2026'
-        ? `Defensive ranks against ${pos} are averaged across the opponents each team has faced, then ranked against the corresponding averages for all 32 NFL teams. ROS uses the same method for remaining opponents.`
-        : `${pos} fantasy points allowed per game are averaged across each team's opponents, then ranked across all 32 schedules.`;
-      find('[data-profile-sos-help]').textContent = `1 = easiest · 32 = toughest. ${method} ${season} = schedule so far; ROS = rest of season. ${range} BYEs are excluded; repeat opponents count once per scheduled game. The cutoff is the latest recorded results week, regardless of the player's availability; future projections do not count. Tied averages share a rank. A dash means no games or incomplete data.`;
+        ? `Defensive ranks against ${pos} are averaged across each team's opponents in each period, then ranked against the corresponding averages for all 32 NFL teams.`
+        : `${pos} fantasy points allowed per game are averaged across each team's opponents in each period, then ranked across all 32 schedules.`;
+      find('[data-profile-sos-help]').textContent = `1 = easiest · 32 = toughest. ${method} YTD = year to date; ROS = rest of season; PLAYOFF = fantasy playoffs, Weeks 15–17 only. ${range} PLAYOFF always includes all three weeks, even after those games are played. BYEs are excluded; repeat opponents count once per scheduled game. The YTD/ROS cutoff is the latest recorded results week, regardless of the player's availability; future projections do not count. Tied averages share a rank. A dash means no games or incomplete data.`;
     } catch (error) {
       if (token !== revision) return;
-      find('[data-profile-sos-help]').textContent = 'SOS is unavailable right now. Reopen this player to retry. Rankings compare position-specific opponent defensive averages across all 32 schedules; 1 is easiest, 32 toughest. ROS means rest of season.';
+      find('[data-profile-sos-help]').textContent = 'SOS is unavailable right now. Reopen this player to retry. Rankings compare position-specific opponent defensive averages across all 32 schedules; 1 is easiest, 32 toughest. YTD = year to date; ROS = rest of season; PLAYOFF = fantasy playoffs, Weeks 15–17 only.';
       profile.querySelectorAll('[data-profile-sos]').forEach(node => { node.parentElement.title = 'Schedule data could not load.'; });
       console.warn('DataHub player profile SOS unavailable.', error);
     }

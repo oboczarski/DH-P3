@@ -1,4 +1,4 @@
-import { createDataHubGameLogsProfile, historicalSosSource } from "./datahub-gamelogs-profile.js?v=DH3.63b-sos-week-label";
+import { createDataHubGameLogsProfile, historicalSosSource } from "./datahub-gamelogs-profile.js?v=DH3.65-playoff-sos";
 import { get2026QualifierOptions } from "./datahub-stats-season.js";
 import { getDataHubStatsPeriodOptions, getDataHubWeeklyColumns, getDataHubWeeklyColumnGroups, getDataHubWeeklyTableSourceRows } from "./datahub-stats-period.js";
 import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSeasonRankQualified } from "./datahub-stats-positional-ranks.js";

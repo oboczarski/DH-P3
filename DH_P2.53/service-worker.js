@@ -140,7 +140,8 @@
 // Refresh Rosters/DataHub Game Logs SOS labels with the completed-week range.
 // Refresh 2026 QB AY/A mappings, Passing Efficiency order and both owned Game Logs.
 // Refresh AY/A's dedicated Material flight-path icon and air-yard help text.
-const CACHE_NAME = 'DH3.64a-air-yards-iconv2';
+// Refresh the owned Game Logs SOS profiles with YTD/ROS/Weeks 15–17 playoffs.
+const CACHE_NAME = 'DH3.65-playoff-sos';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

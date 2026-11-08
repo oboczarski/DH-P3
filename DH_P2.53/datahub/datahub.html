@@ -1280,14 +1280,15 @@
               </div>
             </div>
             <div class="gl-profile-schedule" aria-label="Position-specific strength of schedule" aria-live="polite">
-              <!-- One SOS heading groups the selected season's completed schedule
-                   and ROS (rest of season); the week range follows its SOS cutoff. -->
+              <!-- SOS periods share one style/divider: YTD and ROS use the recorded
+                   results cutoff; PLAYOFF always compares Weeks 15–17 only. -->
               <span class="gl-profile-schedule-position" data-profile-sos-position>SOS</span>
-              <div class="gl-profile-sos-metric"><span data-profile-sos-season>WK1-WK—:</span><strong data-profile-sos="faced">—</strong></div>
+              <div class="gl-profile-sos-metric"><span title="Year to date">YTD:</span><strong data-profile-sos="faced">—</strong></div>
               <div class="gl-profile-sos-metric"><span title="Rest of season">ROS:</span><strong data-profile-sos="remaining">—</strong></div>
+              <div class="gl-profile-sos-metric"><span title="Fantasy playoffs: Weeks 15–17">PLAYOFF:</span><strong data-profile-sos="playoff">—</strong></div>
               <details class="gl-profile-sos-help">
                 <summary aria-label="How strength of schedule is calculated"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7h.01"></path></svg></summary>
-                <p data-profile-sos-help>1 = easiest · 32 = toughest. Opponent defensive ranks against the player's position are averaged across each team's schedule, then compared across all 32 teams. ROS means rest of season. BYEs are excluded.</p>
+                <p data-profile-sos-help>1 = easiest · 32 = toughest. Opponent defensive ranks against the player's position are averaged across each team's schedule, then compared across all 32 teams. YTD means year to date; ROS means rest of season; PLAYOFF uses Weeks 15–17 only. Each period uses the same ranking method. BYEs are excluded.</p>
               </details>
             </div>
           </section>

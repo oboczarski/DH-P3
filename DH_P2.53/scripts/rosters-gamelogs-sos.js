@@ -26,10 +26,11 @@ export function rankPositionSchedules(source, position, basis = 'rank') {
   const defenses = Object.fromEntries(Object.entries(source.defenseByTeam || {}).map(([team, row]) => [canonicalSosTeam(team), row]));
   // The historical CSV archive retains its original allowance-based method;
   // 2026 explicitly uses QBRK/RBRK/WRRK/TERK, never QB/RB/WR/TE FPA values.
-  const result = { cutoff, basis, faced: {}, remaining: {} };
-  for (const period of ['faced', 'remaining']) {
-    const start = period === 'faced' ? 1 : cutoff + 1;
-    const end = period === 'faced' ? cutoff : 18;
+  const result = { cutoff, basis, faced: {}, remaining: {}, playoff: {} };
+  // Profile PLAYOFF SOS uses the same 32-team comparison for Weeks 15–17
+  // only. Keep that full window even after playoff games have been recorded.
+  const periods = { faced: [1, cutoff], remaining: [cutoff + 1, 18], playoff: [15, 17] };
+  for (const [period, [start, end]] of Object.entries(periods)) {
     const scores = SOS_TEAMS.map(team => {
       const values = [];
       let missing = false;
