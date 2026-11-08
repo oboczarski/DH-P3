@@ -422,11 +422,11 @@
       return (sort.direction === "asc" ? difference : -difference) || b.week - a.week || b.cents - a.cents || a.player.localeCompare(b.player);
     });
   }
-  // Site retains exactly the former parenthesized location: the player's
-  // team at home, or @ plus the defense away. Venue filters stay independent.
+  // Site shows only the former location contents, without parentheses:
+  // the player's team at home, or @ plus the defense away. Venue filters stay independent.
   function playerLocation(row) {
-    if (row.playerVenue === "home") return row.playerTeam ? `(${row.playerTeam})` : "—";
-    if (row.playerVenue === "away") return row.def ? `(@ ${row.def})` : "—";
+    if (row.playerVenue === "home") return row.playerTeam || "—";
+    if (row.playerVenue === "away") return row.def ? `@ ${row.def}` : "—";
     return "—";
   }
   // Both player tables select columns from the active VIEW, never row.pos.

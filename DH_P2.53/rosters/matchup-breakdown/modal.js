@@ -343,11 +343,11 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
       return (sort.direction === "asc" ? difference : -difference) || b.week - a.week || b.cents - a.cents || a.player.localeCompare(b.player);
     });
   }
-  // Site retains exactly the former parenthesized location: the player's
-  // team at home, or @ plus the defense away. Venue filters stay independent.
+  // Site shows only the former location contents, without parentheses:
+  // the player's team at home, or @ plus the defense away. Venue filters stay independent.
   function playerLocation(row) {
-    if (row.playerVenue === "home") return row.playerTeam ? `(${row.playerTeam})` : "—";
-    if (row.playerVenue === "away") return row.def ? `(@ ${row.def})` : "—";
+    if (row.playerVenue === "home") return row.playerTeam || "—";
+    if (row.playerVenue === "away") return row.def ? `@ ${row.def}` : "—";
     return "—";
   }
   // Both player tables select columns from the active VIEW, never row.pos.
@@ -516,7 +516,7 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
       // sections, with separate selectors for each modal area in both sections.
       const stylesheet = document.createElement('link');
       stylesheet.rel = 'stylesheet';
-      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.67a-ppr-first', import.meta.url).href;
+      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.67b-site-labels', import.meta.url).href;
       const styled = new Promise((resolve, reject) => {
         stylesheet.onload = resolve;
         stylesheet.onerror = () => reject(new Error('Matchup panel styling could not load.'));

@@ -77,13 +77,13 @@ for (const path of ['matchups/app.js', 'rosters/matchup-breakdown/modal.js']) {
     const html = table.playersTable(rows);
     assert.match(html, />TM(?:<|\$)/);
     assert.match(html, />Site</);
-    assert.match(html, /class="playerOpponent">\(BUF\)</);
-    assert.match(html, /class="playerOpponent">\(@ WAS\)</);
+    assert.match(html, /class="playerOpponent">BUF</);
+    assert.match(html, /class="playerOpponent">@ WAS</);
     assert.equal(table.playerLocation({ playerVenue: 'home', playerTeam: null }), '—');
     assert.equal(table.playerLocation({ playerVenue: 'away', playerTeam: 'CIN', def: null }), '—');
-    assert.equal(table.playerLocation({ playerVenue: 'away', playerTeam: null, def: 'BAL' }), '(@ BAL)');
+    assert.equal(table.playerLocation({ playerVenue: 'away', playerTeam: null, def: 'BAL' }), '@ BAL');
     assert.equal(table.playerLocation({ playerVenue: null, playerTeam: 'BUF' }), '—');
-    assert.doesNotMatch(html, />Player VS<|>Offense<|>vs WAS<|>@ WAS</);
+    assert.doesNotMatch(html, />Player VS<|>Offense<|>vs WAS<|class="playerOpponent">[^<]*[()]/);
     table.state.playerSort.direction = 'desc';
     assert.equal(table.selectedPlayers()[0].player, 'Home Player');
   });

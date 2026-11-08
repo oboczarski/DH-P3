@@ -143,7 +143,8 @@
 // Refresh the owned Game Logs SOS profiles with YTD/ROS/Weeks 15–17 playoffs.
 // Refresh profile injury badges, WK11–13 projections and both Players Faced stat tables.
 // Refresh PPR-first Players Faced columns and RB targets/receiving yards.
-const CACHE_NAME = 'DH3.67a-ppr-first';
+// Refresh plain Site labels and the 2px mobile Player-column trim.
+const CACHE_NAME = 'DH3.67b-site-labels';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

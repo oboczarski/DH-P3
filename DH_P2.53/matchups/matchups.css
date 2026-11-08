@@ -2521,8 +2521,10 @@ body[data-page="matchups"] :is(#playerTable, #expandedTable) .playerPosition { m
 body[data-page="matchups"] :is(#playerTable, #expandedTable) .playerOpponent { color:#b5bddd; font-size:8px; }
 body[data-page="matchups"] :is(#playerTable, #expandedTable) .sortArrow { color:#88b8ff; margin-left:1px; font-size:8px; }
 body[data-page="matchups"] :is(#playerTable, #expandedTable) caption.srOnly { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
-/* Mobile names stay on one line with ellipsis; let the table scroll as needed. */
+/* Mobile names stay on one line with ellipsis; let the table scroll as needed.
+   Trim 1px from each side of Player cells (2px total), only on mobile. */
 @media (max-width:620px) {
+  body[data-page="matchups"] :is(#playerTable, #expandedTable).playerTable :is(th, td).nameColumn { padding-inline:5px; }
   body[data-page="matchups"] :is(#playerTable, #expandedTable).playerTable td.nameColumn { white-space:nowrap; }
   body[data-page="matchups"] :is(#playerTable, #expandedTable) .playerName { display:inline-block; max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:middle; }
 }

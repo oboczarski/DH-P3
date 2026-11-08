@@ -63,14 +63,14 @@ for (const path of ['matchups/app.js', 'rosters/matchup-breakdown/modal.js']) {
       const html = ctx.playersTable(model.results);
       assert.deepEqual([...html.matchAll(/data-player-sort="[^"]+"[^>]*>([^<]+)/g)].map(match => match[1]), ['Wk', 'Player', 'TM', 'Site', 'PPR', ...labels]);
       assert.equal((html.match(/class="statColumn"/g) || []).length, labels.length * 4);
-      assert.match(html, /class="playerOpponent">\(@ JAX\)</);
-      assert.match(html, /class="playerOpponent">\(BUF\)</);
+      assert.match(html, /class="playerOpponent">@ JAX</);
+      assert.match(html, /class="playerOpponent">BUF</);
       assert.match(ctx.playersTable([]), new RegExp(`colspan="${labels.length + 5}"`));
     }
     state.pos = 'RB';
     const rbBody = ctx.playersTable([model.results[2]]).split('<tbody>')[1];
     const rbCells = [...rbBody.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map(match => match[1].replace(/<[^>]+>/g, ''));
-    assert.deepEqual(rbCells, ['W1', 'Runner', 'BUF', '(@ JAX)', '-1.0', '10', '-4', '-0.40', '0', '3', '4', '20']);
+    assert.deepEqual(rbCells, ['W1', 'Runner', 'BUF', '@ JAX', '-1.0', '10', '-4', '-0.40', '0', '3', '4', '20']);
     state.pos = 'QB';
     assert.match(ctx.playersTable([model.results[0]]), />29\/20</);
     assert.match(ctx.playersTable([model.results[0]]), />69\.0%</);
