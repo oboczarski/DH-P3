@@ -2545,3 +2545,13 @@ body[data-page="matchups"] :is(#playerTable, #expandedTable) caption.srOnly { po
 body[data-page="matchups"] :is(#playerTable, #expandedTable) td.scoreColumn[data-ppr-tier="low"] {color:#c26cfc;border: 1px solid transparent;color: transparent;background: linear-gradient(90deg, #74efff15 0%, #7297ff15 52%, #d97dff15 100%), linear-gradient(90deg, #74efff4b 0%, #7297ff4b 52%, #d97dff4b 100%) border-area, linear-gradient(90deg, #dca7fcdd 0%, #dca7fcdd 52%, #dca7fcdd 100%) text;border-radius: 8px;max-height: 21px;box-sizing: border-box;display: flex;margin: 2px 2px;padding: 3px;justify-self: center;justify-content: center;}
 body[data-page="matchups"] :is(#playerTable, #expandedTable) td.scoreColumn[data-ppr-tier="solid"] {color:#00c5ff;border: 1px solid transparent;color: transparent;background: linear-gradient(90deg, #74efff20 0%, #7297ff20 52%, #d97dff20 100%), linear-gradient(90deg, #74efff7b 0%, #7297ff7b 52%, #d97dff7b 100%) border-area, linear-gradient(90deg, #74efffee 0%, #7297ffee 52%, #7297ffee 100%) text;border-radius: 8px;max-height: 21px;box-sizing: border-box;display: flex;margin: 2px 2px;padding: 3px;justify-self: center;justify-content: center;}
 body[data-page="matchups"] :is(#playerTable, #expandedTable) td.scoreColumn[data-ppr-tier="high"] {color:#00ffc1;border: 1px solid transparent;color: transparent;background: linear-gradient(90deg, #74efff30 0%, #7297ff30 52%, #d97dff30 100%), linear-gradient(90deg, #74efff8b 0%, #7297ff8b 52%, #d97dff8b 100%) border-area, linear-gradient(90deg, #74efff 90%, #7297ff 92%, #d97dff 100%) text;border-radius: 8px;max-height: 21px;box-sizing: border-box;display: flex;margin: 2px 2px;padding: 3px;justify-self: center;justify-content: center;}
+
+/* Matchups Players Faced only: empty presentation rows add a small gap below
+   the sticky header and after the last result, preserving PPR tag dimensions
+   and the spacing between actual player rows in both table sizes. */
+body[data-page="matchups"] :is(#playerTable, #expandedTable) tbody::before,
+body[data-page="matchups"] :is(#playerTable, #expandedTable) tbody::after {
+  content:"";
+  display:table-row;
+  height:4px;
+}
