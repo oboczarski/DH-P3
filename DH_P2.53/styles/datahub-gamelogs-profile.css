@@ -270,13 +270,13 @@ body[data-page="datahub"] #game-logs-modal .gl-profile-rank-label {color: #6e7c9
 /* One compact SOS group: the main label stays left of two separately divided
    periods. Insets and dividers provide hierarchy without increasing row height. */
 body[data-page="datahub"] #game-logs-modal .gl-profile-schedule {grid-area: schedule;display: flex;align-items: center;justify-content: center;gap: 0;min-width: 0;min-height: 23px;color: #8794ac;font-size: 11px;line-height: 1;}
-body[data-page="datahub"] #game-logs-modal .gl-profile-schedule-position {flex: 0 0 auto;padding-right: 10px;color: #b0bed5;font-size: 13px;font-weight: 500;letter-spacing: 0;}
+body[data-page="datahub"] #game-logs-modal .gl-profile-schedule-position {flex: 0 0 auto;padding-right: 5px;color: #b0bed5;font-size: 13px;font-weight: 500;letter-spacing: 0;}
 /* SOS's team logo precedes its abbreviation; the position retains the same
    conditional colors as the identity row without inheriting its larger font. */
 body[data-page="datahub"] #game-logs-modal .gl-profile-schedule-position { display: inline-flex; align-items: center; gap: 3px; }
 body[data-page="datahub"] #game-logs-modal .gl-profile-schedule-logo { width: 16px; height: 16px; object-fit: contain; flex: 0 0 auto; }
 body[data-page="datahub"] #game-logs-modal .gl-profile-schedule-position .gl-profile-position { font: inherit; letter-spacing: inherit; }
-body[data-page="datahub"] #game-logs-modal .gl-profile-sos-metric { display: flex; align-items: baseline; gap: 5px; padding: 0 10px; border-left: 1px solid #9eacc52e; white-space: nowrap; }
+body[data-page="datahub"] #game-logs-modal .gl-profile-sos-metric {display: flex;align-items: baseline;gap: 5px;padding: 0px 5px;border-left: 1px solid #9eacc52e;white-space: nowrap;}
 /* SOS values use the existing easy-to-tough rank palette from DataHub.js. The
    superscript shares its number's color; unavailable ranks remain neutral. */
 body[data-page="datahub"] #game-logs-modal .gl-profile-sos-metric strong {color: #b0bed5;font-size: 12px;font-weight: 550;font-variant-numeric: tabular-nums;}
