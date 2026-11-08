@@ -144,7 +144,8 @@
 // Refresh profile injury badges, WK11–13 projections and both Players Faced stat tables.
 // Refresh PPR-first Players Faced columns and RB targets/receiving yards.
 // Refresh plain Site labels and the 2px mobile Player-column trim.
-const CACHE_NAME = 'DH3.67b-site-labels';
+// Refresh Players Faced PPR value colors using positional Consistency zones.
+const CACHE_NAME = 'DH3.67c-ppr-tiers';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

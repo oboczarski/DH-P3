@@ -2539,3 +2539,9 @@ body[data-page="matchups"] :is(#playerTable, #expandedTable) caption.srOnly { po
 @media (max-width:620px) {
   body[data-page="matchups"] #analysis > .defensePanel { width:100%; max-width:100%; }
 }
+
+/* Players Faced PPR values only: use the Consistency chart's exact low,
+   solid and high colors in both table sizes, including ALL's mixed positions. */
+body[data-page="matchups"] :is(#playerTable, #expandedTable) td.scoreColumn[data-ppr-tier="low"] { color:#c26cfc; }
+body[data-page="matchups"] :is(#playerTable, #expandedTable) td.scoreColumn[data-ppr-tier="solid"] { color:#00c5ff; }
+body[data-page="matchups"] :is(#playerTable, #expandedTable) td.scoreColumn[data-ppr-tier="high"] { color:#00ffc1; }

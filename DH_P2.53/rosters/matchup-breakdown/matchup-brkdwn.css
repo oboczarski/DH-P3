@@ -1359,3 +1359,9 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
   :host :is(#playerTable, #expandedTable).playerTable :is(th, td) { width:auto; }
   :host :is(#playerTable, #expandedTable).playerTable :is(th, td).nameColumn { width:22%; }
 }
+
+/* Players Faced PPR values only: use the Consistency chart's exact low,
+   solid and high colors in both table sizes, including ALL's mixed positions. */
+:host :is(#playerTable, #expandedTable) td.scoreColumn[data-ppr-tier="low"] { color:#c26cfc; }
+:host :is(#playerTable, #expandedTable) td.scoreColumn[data-ppr-tier="solid"] { color:#00c5ff; }
+:host :is(#playerTable, #expandedTable) td.scoreColumn[data-ppr-tier="high"] { color:#00ffc1; }

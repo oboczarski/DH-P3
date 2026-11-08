@@ -16,6 +16,22 @@ const details = 'WK,SLPR_ID,POS,TM,VS,paATT,CMP,CMP%,paYDS,paTD,paRTG,CAR,ruYDS,
   + '1,2,RB,BUF,@ JAX,0,0,0%,0,0,0,10,-4,-0.4,0,3,4,20,0,12,16,14,999\n'
   + '13,1,QB,BUF,@ JAX,99,99,100%,999,9,158.3,0,0,0,9,0,0,0,0,0,999,99,999';
 
+// Use the existing chart controllers as the scoring-zone oracle so boundary
+// checks catch future drift between the chart rules and both owned tables.
+const consistencyReferences = [
+  ['scripts/rosters-gamelogs-consistency.js', 'ROSTERS', 'Rosters', '// Install only'],
+  ['scripts/DataHub.js', 'DATAHUB', 'DataHub', '// DataHub ownership league filtering:'],
+].map(([path, prefix, name, end]) => {
+  const source = read(path), context = vm.createContext({});
+  vm.runInContext(
+    slice(source, `const ${prefix}_CONSISTENCY_THRESHOLD_MAP =`, `const ${prefix}_MAX_CONSISTENCY_POINTS`)
+      + slice(source, `const ${prefix}_CONSISTENCY_BUCKET_STYLES =`, `const ${prefix}_CONSISTENCY_HUD_CONDITIONAL_COLORS`)
+      + slice(source, `function get${name}ConsistencyThresholds(`, `function render${name}ConsistencyZoneSummary(`)
+      + slice(source, `function get${name}ConsistencyBucket(`, end), context);
+  return { thresholds: pos => context[`get${name}ConsistencyThresholds`](pos),
+    bucket: (value, thresholds) => context[`get${name}ConsistencyBucket`](value, thresholds) };
+});
+
 for (const [name, Data] of [['Matchups', Matchups], ['Rosters', Rosters]]) {
   test(`${name}: exact-game box scores preserve FPA ownership, aliases, zeros, negatives and missing cells`, () => {
     const model = Data.readSource(fpa), audit = structuredClone(model.audit);
@@ -76,6 +92,24 @@ for (const path of ['matchups/app.js', 'rosters/matchup-breakdown/modal.js']) {
     assert.match(ctx.playersTable([model.results[0]]), />69\.0%</);
     state.pos = 'ALL';
     assert.doesNotMatch(ctx.playersTable(model.results), /paYDS|CAR|YPC|recYDS|paATT/);
+  });
+  test(`${path}: PPR tiers match both Consistency charts at raw-score boundaries and use each row's position in ALL`, () => {
+    for (const view of ['QB', 'RB', 'WR', 'TE', 'ALL']) {
+      state.pos = view;
+      for (const pos of ['QB', 'RB', 'WR', 'TE']) {
+        const { solid, high } = consistencyReferences[0].thresholds(pos);
+        for (const pts of [-2, 0, solid - 0.01, solid, high - 0.01, high, 45]) {
+          const row = { ...model.results[0], pos, pts, cents: Math.round(pts * 100) };
+          for (const reference of consistencyReferences) {
+            const expected = reference.bucket(pts, reference.thresholds(pos)).name;
+            assert.equal(ctx.playerPprTier(row), expected, `${view} view / ${pos} / ${pts}`);
+            assert.match(ctx.playersTable([row]), new RegExp(`class="scoreColumn" data-ppr-tier="${expected}"`));
+          }
+        }
+      }
+    }
+    for (const pts of [undefined, null, NaN, Infinity, '18']) assert.equal(ctx.playerPprTier({ pos: 'RB', pts }), '');
+    for (const pos of [undefined, 'ALL', 'K']) assert.equal(ctx.playerPprTier({ pos, pts: 20 }), '');
   });
   test(`${path}: numeric stat sorting keeps unavailable last in either direction`, () => {
     state.pos = 'ALL'; state.team = 'JAX';

@@ -367,13 +367,22 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
     if (key === "PAATT") return `${fmt(value, 0)}/${fmt(row.stats?.CMP, 0)}`;
     return Number.isFinite(value) ? `${fmt(value, digits)}${suffix}` : "—";
   }
+  // Players Faced PPR values mirror Consistency's FPTS zones, using each
+  // row's base position even in ALL. These are local copies so neither owned
+  // matchup surface loads another page's chart controller. Compare raw scores
+  // before display rounding; recorded zero/negative values remain low-tier.
+  function playerPprTier(row) {
+    const thresholds = { QB: [16, 22], RB: [12, 18], WR: [12, 18], TE: [11, 17] }[row.pos];
+    if (!thresholds || !Number.isFinite(row.pts)) return "";
+    return row.pts >= thresholds[1] ? "high" : row.pts >= thresholds[0] ? "solid" : "low";
+  }
   function playersTable(rows) {
     // Regular and expanded Players Faced put PPR before every per-view stat;
     // RB receiving details end with REC, TGT, recYDS in that exact order.
     const stats = playerStatColumns();
     const columns = [["week", "Wk", "weekColumn"], ["player", "Player", "nameColumn"], ["team", "TM", "offenseColumn"], ["vs", "Site", "siteColumn"], ["pts", "PPR", "scoreColumn"], ...stats.map(([key, label]) => [key, label, "statColumn"])];
     const head = columns.map(([key, label, className]) => `<th class="${className}" scope="col" aria-sort="${state.playerSort.key === key ? state.playerSort.direction === "desc" ? "descending" : "ascending" : "none"}"><button type="button" data-player-sort="${key}" aria-label="Sort players by ${label}">${label}${state.playerSort.key === key ? `<span class="sortArrow">${state.playerSort.direction === "desc" ? "↓" : "↑"}</span>` : ""}</button></th>`).join("");
-    const body = rows.length ? rows.map(row => `<tr><td class="weekColumn">W${row.week}</td><td class="nameColumn">${state.pos === "ALL" ? `<span class="playerPosition" data-pos="${row.pos}">${row.pos}</span>` : ""}<span class="playerName" title="${esc(row.player)}">${esc(row.player)}</span></td><td class="offenseColumn"><span class="offenseCell" title="${esc(Data.TEAM_NAMES[row.playerTeam] || "Offense not supplied")}">${logo(row.playerTeam)}${row.playerTeam || "—"}</span></td><td class="siteColumn"><span class="playerOpponent">${esc(playerLocation(row))}</span></td><td class="scoreColumn ${row.cents < 0 ? "scoreNegative" : row.cents === 0 ? "scoreZero" : ""}">${fmt(row.pts, 1)}</td>${stats.map(column => `<td class="statColumn">${playerStatCell(row, column)}</td>`).join("")}</tr>`).join("") : `<tr><td colspan="${columns.length}">${empty("No matching player results", "Change the matchup or clear the player filters.")}<div class="emptyState"><button type="button" data-clear-search>Clear player filters</button></div></td></tr>`;
+    const body = rows.length ? rows.map(row => `<tr><td class="weekColumn">W${row.week}</td><td class="nameColumn">${state.pos === "ALL" ? `<span class="playerPosition" data-pos="${row.pos}">${row.pos}</span>` : ""}<span class="playerName" title="${esc(row.player)}">${esc(row.player)}</span></td><td class="offenseColumn"><span class="offenseCell" title="${esc(Data.TEAM_NAMES[row.playerTeam] || "Offense not supplied")}">${logo(row.playerTeam)}${row.playerTeam || "—"}</span></td><td class="siteColumn"><span class="playerOpponent">${esc(playerLocation(row))}</span></td><td class="scoreColumn" data-ppr-tier="${playerPprTier(row)}">${fmt(row.pts, 1)}</td>${stats.map(column => `<td class="statColumn">${playerStatCell(row, column)}</td>`).join("")}</tr>`).join("") : `<tr><td colspan="${columns.length}">${empty("No matching player results", "Change the matchup or clear the player filters.")}<div class="emptyState"><button type="button" data-clear-search>Clear player filters</button></div></td></tr>`;
     return `<caption class="srOnly">${state.pos} recorded player scores and weekly stats against ${state.team}, ${weekLabel()}, ${venueLabel()}</caption><thead><tr>${head}</tr></thead><tbody>${body}</tbody>`;
   }
   function renderPlayers() {
@@ -516,7 +525,7 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
       // sections, with separate selectors for each modal area in both sections.
       const stylesheet = document.createElement('link');
       stylesheet.rel = 'stylesheet';
-      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.67b-site-labels', import.meta.url).href;
+      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.67c-ppr-tiers', import.meta.url).href;
       const styled = new Promise((resolve, reject) => {
         stylesheet.onload = resolve;
         stylesheet.onerror = () => reject(new Error('Matchup panel styling could not load.'));
