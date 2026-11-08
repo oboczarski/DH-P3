@@ -1,11 +1,12 @@
 // Rosters owns this loader and its prepared state. Only DH's existing workbook
 // URL configuration is shared; no code or assets are read from the Matchups page.
 import { get2026SheetCsvUrl } from '../../scripts/nfl-2026-sheets.js';
-import Data from './model.js?v=DH3.57-matchup-average-precision';
+import Data from './model.js?v=DH3.67-profile-weekly-stats';
 import { defenseMetric } from './rank-view.js?v=DH3.52r-rosters-defense-ranks';
 
 const SOURCES = Object.freeze([
   ['offense', 'FPF'], ['summary', 'FPFA'], ['weekly', 'FPA'],
+  ['playerStats', 'AllWKs'],
 ]);
 
 export async function loadMatchupSources({ fetchImpl = globalThis.fetch } = {}) {
@@ -17,6 +18,9 @@ export async function loadMatchupSources({ fetchImpl = globalThis.fetch } = {}) 
       if (!csv.trim()) throw new Error('The sheet is empty.');
       return [key, { name: `2026-Wkly / ${sheet}`, csv }];
     } catch (error) {
+      // Box-score availability must not take down the existing live matchup
+      // sources. The table shows dashes and an explicit availability message.
+      if (key === 'playerStats') return [key, { csv: null, error: error.message }];
       throw new Error(`2026 ${sheet} could not load: ${error.message}`, { cause: error });
     }
   }));
@@ -51,6 +55,10 @@ export function createMatchupStore({ fetchImpl = globalThis.fetch } = {}) {
         // averages and ranks, FPF offense baselines, and FPA player/week scores
         // independent, including zeros, negatives, and source rounding.
         const model = Data.readSource(sources.weekly.csv, { name: sources.weekly.name });
+        try {
+          if (!sources.playerStats?.csv) throw new Error(sources.playerStats?.error || 'Weekly box scores unavailable.');
+          Data.attachPlayerStats(model, sources.playerStats.csv);
+        } catch (error) { model.playerStatsError = error.message; }
         const summary = Data.readFPFA(sources.summary.csv, { name: sources.summary.name });
         const offenses = Data.readOffenses(sources.offense.csv, { name: sources.offense.name });
         for (const venue of ['all', 'home', 'away']) {

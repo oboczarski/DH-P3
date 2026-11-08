@@ -23,7 +23,7 @@ function createLoader(tables, failures = {}, boot = false) {
     if (failures[key] instanceof Error) throw failures[key];
     if (failures[key]) return { ok: false, status: failures[key] };
     if (sheet) {
-      assert.ok(['DH', 'DRK'].includes(sheet) || /^WK(?:[1-9]|10)$/.test(sheet), 'Only mapped projection tabs may supplement DH/DRK');
+      assert.ok(['DH', 'DRK'].includes(sheet) || /^WK(?:[1-9]|1[0-3])$/.test(sheet), 'Only mapped projection tabs may supplement DH/DRK');
       return { ok: true, text: async () => tables[sheet] || '' };
     }
     if (filename === 'Schedule2026.csv') {
@@ -279,13 +279,14 @@ test('a failed background 2025 CSV load cannot erase active Rosters 2026 data an
   }
 });
 
-test('Rosters boot loads WK8-WK10 projections after the CSV cutoff without delaying results or sharing historical state', async () => {
+test('Rosters boot loads WK8-WK13 projections after the CSV cutoff without delaying results or sharing historical state', async () => {
   let release;
   const held = new Promise((resolve) => { release = resolve; });
   const projections = (week, proj) => `WK,SLPR_ID,POS,TM,PROJ,FPT_PPR,SNP\n${week},4984,QB,BUF,${proj},999,99`;
   const window = createLoader({ DH: season, DRK: defense,
     '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n7,4984,QB,BUF,19.52,1,59,23.4',
     WK8: held.then(() => projections(8, '22.0')), WK9: projections(9, '0'), WK10: projections(10, 'BYE'),
+    WK11: projections(11, '21.2'), WK12: projections(12, 'OUT'), WK13: projections(13, '0'),
   }, {}, true);
   const first = window.ensureRosters2026ProjectionsLoaded();
   assert.equal(window.ensureRosters2026ProjectionsLoaded(), first);
@@ -300,6 +301,10 @@ test('Rosters boot loads WK8-WK10 projections after the CSV cutoff without delay
   assert.equal(snapshot.weeklyStats[8]['4984'].proj, '22.0');
   assert.equal(snapshot.weeklyStats[9]['4984'].proj, '0');
   assert.equal(snapshot.weeklyStats[10]['4984'].proj, 'BYE');
+  assert.equal(snapshot.weeklyStats[11]['4984'].proj, '21.2');
+  assert.equal(snapshot.weeklyStats[12]['4984'].proj, 'OUT');
+  assert.equal(snapshot.weeklyStats[13]['4984'].proj, '0');
+  assert.equal(snapshot.weeklyStats[13]['4984'].fpt_ppr, undefined);
   assert.equal(snapshot.weeklyStats[7]['4984'].proj, '23.4');
   assert.equal(snapshot.weeklyStats[7]['4984'].fpt_ppr, 19.52);
   assert.equal(snapshot.weeklyStats[8]['4984'].fpt_ppr, undefined);
@@ -311,7 +316,7 @@ test('Rosters boot loads WK8-WK10 projections after the CSV cutoff without delay
   assert.equal(window.state.currentNflWeek, 8);
   assert.equal(window.state.playerProjectionWeeks[8], true);
   assert.equal(window.state.playerProjectionWeeks[7], undefined);
-  assert.deepEqual(window.requests.map(({ sheet }) => sheet).filter((sheet) => /^WK/.test(sheet)).sort(), ['WK10', 'WK8', 'WK9']);
+  assert.deepEqual(window.requests.map(({ sheet }) => sheet).filter((sheet) => /^WK/.test(sheet)).sort(), ['WK10', 'WK11', 'WK12', 'WK13', 'WK8', 'WK9']);
   assert.equal(window.requests.filter(({ pathname }) => pathname.endsWith('2026_AllWKs.csv')).length, 1);
 });
 

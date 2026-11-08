@@ -5,9 +5,9 @@ export { historicalSosSource } from './datahub-gamelogs-sos.js?v=DH3.65-playoff-
  * for every scoring/rank value, source, and navigation/table interaction.
  * This adapter composes their header nodes and asynchronously adds local SOS. */
 export function createDataHubGameLogsProfile({ modal, state, teamNames, loadTeamStats, loadNflWeek,
-  getOpponentDefenseRank, getOpponentRankColor, ordinalSuffix }) {
+  getOpponentDefenseRank, getOpponentRankColor, ordinalSuffix, getInjuryDesignation = () => null }) {
   const profile = modal?.querySelector('.gl-profile');
-  if (!profile) return { begin() {}, compose() {}, invalidate() {} };
+  if (!profile) return { begin() {}, updateName() {}, compose() {}, invalidate() {} };
   const find = selector => profile.querySelector(selector);
   const portrait = find('[data-profile-portrait]');
   const headshot = find('[data-profile-headshot]');
@@ -145,7 +145,7 @@ export function createDataHubGameLogsProfile({ modal, state, teamNames, loadTeam
     find('[data-profile-watermark]').replaceWith(watermark);
     if (Object.hasOwn(teamNames, teamKey) && teamKey !== 'FA') watermark.src = `../assets/NFL_logos_svg/${teamKey.toLowerCase()}.svg`;
     profile.dataset.playerId = String(player?.id || '');
-    find('#modal-player-name').textContent = name;
+    renderProfileName(player, name);
     renderUpcomingMatchup(player);
     find('[data-profile-monogram]').textContent = name.split(/\s+/).filter(Boolean).map(word => word[0]).slice(0, 2).join('');
     // Replace the image element per player so a late load/error from an old
@@ -160,6 +160,24 @@ export function createDataHubGameLogsProfile({ modal, state, teamNames, loadTeam
     portrait.classList.remove('has-headshot');
     find('[data-profile-headshot]').replaceWith(image);
     if (/^\d+$/.test(String(player?.id))) image.src = `https://sleepercdn.com/content/nfl/players/${encodeURIComponent(player.id)}.jpg`;
+  }
+
+  function renderProfileName(player, name) {
+    // DataHub profile only: show the current Sleeper designation beside the
+    // name. Rebuilding the heading clears stale badges when players change;
+    // historical weekly injury cells and future projections are not consulted.
+    const nameNode = find('#modal-player-name');
+    nameNode.querySelector('.gl-profile-injury')?.remove();
+    if (name !== undefined) nameNode.textContent = name;
+    const injury = getInjuryDesignation(player?.id);
+    if (injury) {
+      const badge = document.createElement('span');
+      badge.className = 'gl-profile-injury';
+      badge.textContent = injury.designation;
+      badge.style.color = injury.color;
+      badge.setAttribute('aria-label', `Current injury designation: ${injury.designation}`);
+      nameNode.append(badge);
+    }
   }
 
   function resetSchedule(player) {
@@ -301,6 +319,7 @@ export function createDataHubGameLogsProfile({ modal, state, teamNames, loadTeam
   return {
     // Invalidate pending header work on every player/season launch and close.
     begin(player) { revision++; showIdentity(player); resetSchedule(player); },
+    updateName(player) { renderProfileName(player); },
     compose(player) {
       revision++;
       showIdentity(player);

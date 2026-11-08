@@ -10,7 +10,10 @@ const PROJECTION_SHEET_GIDS = Object.freeze({
     5: '749604963', 6: '677856696', 7: '696122995',
     // Verified WK8-WK10 exports supply future PROJ cells to the independent
     // Rosters/DataHub loaders; completed results still come only from the CSV.
-    8: '1110983817', 9: '102083848', 10: '462792316'
+    8: '1110983817', 9: '102083848', 10: '462792316',
+    // WK11–WK13 are published projection tabs, verified in 2026-Wkly.
+    // Only their PROJ cells supplement future Game Logs on either page.
+    11: '1798954669', 12: '1103756901', 13: '1927039275'
 });
 
 export function get2026ProjectionWeeks(latestCompletedWeek) {
@@ -31,7 +34,10 @@ export function get2026ProjectionCsvUrl(week) {
 const MATCHUPS_SHEET_GIDS = Object.freeze({
     FPF: '2006116709',
     FPFA: '1845231826',
-    FPA: '1398845421'
+    FPA: '1398845421',
+    // Supplemental weekly box scores for Players Faced only. FPA continues
+    // to own player inclusion, scores, venues and every matchup calculation.
+    AllWKs: '731946850'
 });
 
 export function get2026SheetCsvUrl(sheetName) {

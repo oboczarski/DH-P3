@@ -61,7 +61,7 @@ test('TM_STAT W-L preserves win/loss/tie records separately from numeric stat ra
 });
 
 for (const path of ['matchups/app.js', 'rosters/matchup-breakdown/modal.js']) {
-  test(`${path}: Players Faced displays and sorts the player's Home/Away location`, () => {
+  test(`${path}: Players Faced displays and sorts the compact player Site`, () => {
     const source = read(path);
     const data = { selectResults: () => [
       { week: 9, player: 'Home Player', playerTeam: 'BUF', def: 'WAS', pos: 'QB', vs: 'vs WAS', playerVenue: 'home', defenseVenue: 'away', cents: 1200, pts: 12 },
@@ -69,19 +69,19 @@ for (const path of ['matchups/app.js', 'rosters/matchup-breakdown/modal.js']) {
     ], TEAM_NAMES: { BUF: 'Buffalo Bills', CIN: 'Cincinnati Bengals' } };
     const table = vm.createContext({ Data: data, state: { pos: 'QB', team: 'WAS',
       playerSort: { key: 'vs', direction: 'asc' } }, model: {},
-      esc: value => value, logo: () => '', fmt: value => value.toFixed(1),
+      esc: value => value, logo: () => '', fmt: (value, digits = 1) => Number.isFinite(value) ? value.toFixed(digits) : '—',
       weekLabel: () => 'Weeks 8–9', venueLabel: () => 'All games' });
     vm.runInContext(slice(source, '  function selectedPlayers()', '  function renderPlayers()'), table);
     const rows = table.selectedPlayers();
     assert.deepEqual(Array.from(rows, row => row.player), ['Away Player', 'Home Player']);
     const html = table.playersTable(rows);
     assert.match(html, />TM(?:<|\$)/);
-    assert.match(html, />Location</);
-    assert.match(html, /class="playerOpponent">Home \(BUF\)</);
-    assert.match(html, /class="playerOpponent">Away \(@ WAS\)</);
-    assert.equal(table.playerLocation({ playerVenue: 'home', playerTeam: null }), 'Home');
-    assert.equal(table.playerLocation({ playerVenue: 'away', playerTeam: 'CIN', def: null }), 'Away');
-    assert.equal(table.playerLocation({ playerVenue: 'away', playerTeam: null, def: 'BAL' }), 'Away (@ BAL)');
+    assert.match(html, />Site</);
+    assert.match(html, /class="playerOpponent">\(BUF\)</);
+    assert.match(html, /class="playerOpponent">\(@ WAS\)</);
+    assert.equal(table.playerLocation({ playerVenue: 'home', playerTeam: null }), '—');
+    assert.equal(table.playerLocation({ playerVenue: 'away', playerTeam: 'CIN', def: null }), '—');
+    assert.equal(table.playerLocation({ playerVenue: 'away', playerTeam: null, def: 'BAL' }), '(@ BAL)');
     assert.equal(table.playerLocation({ playerVenue: null, playerTeam: 'BUF' }), '—');
     assert.doesNotMatch(html, />Player VS<|>Offense<|>vs WAS<|>@ WAS</);
     table.state.playerSort.direction = 'desc';

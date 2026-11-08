@@ -406,32 +406,52 @@
   // display rounding never changes the score used to sort or total records.
   function cyclePlayerSort(key) {
     const step = state.playerSort.activeKey === key ? state.playerSort.step + 1 : 1;
-    const firstDirection = key === "pts" ? "desc" : "asc";
+    const firstDirection = ["week", "player", "team", "vs"].includes(key) ? "asc" : "desc";
     state.playerSort = step === 3 ? { key: "week", direction: "desc", activeKey: null, step: 0 } :
       { key, direction: step === 1 ? firstDirection : firstDirection === "desc" ? "asc" : "desc", activeKey: key, step };
   }
   function selectedPlayers() {
     const getters = { week: row => row.week, player: row => row.player, team: row => row.playerTeam || "", vs: playerLocation, pts: row => row.cents };
     const sort = state.playerSort;
+    const getter = getters[sort.key] || (row => row.stats?.[sort.key] ?? null);
     return Data.selectResults(model, { team: state.team, pos: state.pos, venue: state.venue, query: state.query, hideZero: state.hideZero, minPoints: state.hideZero ? 1 : null }).sort((a, b) => {
-      const first = getters[sort.key](a), second = getters[sort.key](b);
+      const first = getter(a), second = getter(b);
+      // Unavailable stats sort last in either direction; zero is a real value.
+      if (first === null || second === null) return first === second ? b.week - a.week || a.player.localeCompare(b.player) : first === null ? 1 : -1;
       const difference = typeof first === "string" ? first.localeCompare(second) : first - second;
       return (sort.direction === "asc" ? difference : -difference) || b.week - a.week || b.cents - a.cents || a.player.localeCompare(b.player);
     });
   }
-  // Players Faced and Location sorting describe where the player played:
-  // Home names their own team; Away names the per-game opponent with @.
-  // Missing teams stay unlabelled; defense venue filters remain independent.
+  // Site retains exactly the former parenthesized location: the player's
+  // team at home, or @ plus the defense away. Venue filters stay independent.
   function playerLocation(row) {
-    if (row.playerVenue === "home") return row.playerTeam ? `Home (${row.playerTeam})` : "Home";
-    if (row.playerVenue === "away") return row.def ? `Away (@ ${row.def})` : "Away";
+    if (row.playerVenue === "home") return row.playerTeam ? `(${row.playerTeam})` : "—";
+    if (row.playerVenue === "away") return row.def ? `(@ ${row.def})` : "—";
     return "—";
   }
+  // Both player tables select columns from the active VIEW, never row.pos.
+  // ALL deliberately uses only its four totals for QB/RB/WR/TE alike. Values
+  // are published per-game cells; no season averages or derived replacements.
+  function playerStatColumns() {
+    const receiving = [["TGT", "TGT"], ["REC", "REC"], ["RECYDS", "recYDS"], ["RECTD", "recTD"], ["YAC", "YAC"]];
+    return ({
+      QB: [["PAATT", "paATT/CMP"], ["CMP%", "CMP%", 1, "%"], ["PAYDS", "paYDS"], ["PATD", "paTD"], ["PARTG", "paRTG", 1]],
+      RB: [["CAR", "CAR"], ["RUYDS", "ruYDS"], ["YPC", "YPC", 2], ["TD(T)", "TD(t)"], ["REC", "REC"]],
+      WR: receiving, TE: receiving,
+      ALL: [["YDS(T)", "YDS(t)"], ["TD(T)", "TD(t)"], ["OPP", "OPP"], ["REC", "REC"]],
+    })[state.pos] || [];
+  }
+  function playerStatCell(row, [key, , digits = 0, suffix = ""]) {
+    const value = row.stats?.[key];
+    if (key === "PAATT") return `${fmt(value, 0)}/${fmt(row.stats?.CMP, 0)}`;
+    return Number.isFinite(value) ? `${fmt(value, digits)}${suffix}` : "—";
+  }
   function playersTable(rows) {
-    const columns = [["week", "Wk", ""], ["player", "Player", ""], ["team", "TM", "offenseColumn"], ["vs", "Location", ""], ["pts", "PPR", ""]];
+    const stats = playerStatColumns();
+    const columns = [["week", "Wk", "weekColumn"], ["player", "Player", "nameColumn"], ["team", "TM", "offenseColumn"], ["vs", "Site", "siteColumn"], ...stats.map(([key, label]) => [key, label, "statColumn"]), ["pts", "PPR", "scoreColumn"]];
     const head = columns.map(([key, label, className]) => `<th class="${className}" scope="col" aria-sort="${state.playerSort.key === key ? state.playerSort.direction === "desc" ? "descending" : "ascending" : "none"}"><button type="button" data-player-sort="${key}" aria-label="Sort players by ${label}">${label}${state.playerSort.key === key ? `<span class="sortArrow">${state.playerSort.direction === "desc" ? "↓" : "↑"}</span>` : ""}</button></th>`).join("");
-    const body = rows.length ? rows.map(row => `<tr><td>W${row.week}</td><td>${state.pos === "ALL" ? `<span class="playerPosition" data-pos="${row.pos}">${row.pos}</span>` : ""}<span class="playerName">${esc(row.player)}</span></td><td class="offenseColumn"><span class="offenseCell" title="${esc(Data.TEAM_NAMES[row.playerTeam] || "Offense not supplied")}">${logo(row.playerTeam)}${row.playerTeam || "—"}</span></td><td><span class="playerOpponent">${esc(playerLocation(row))}</span></td><td class="${row.cents < 0 ? "scoreNegative" : row.cents === 0 ? "scoreZero" : ""}">${fmt(row.pts, 1)}</td></tr>`).join("") : `<tr><td colspan="5">${empty("No matching player results", "Change the matchup or clear the player filters.")}<div class="emptyState"><button type="button" data-clear-search>Clear player filters</button></div></td></tr>`;
-    return `<caption class="srOnly">${state.pos} recorded player scores against ${state.team}, ${weekLabel()}, ${venueLabel()}</caption><thead><tr>${head}</tr></thead><tbody>${body}</tbody>`;
+    const body = rows.length ? rows.map(row => `<tr><td class="weekColumn">W${row.week}</td><td class="nameColumn">${state.pos === "ALL" ? `<span class="playerPosition" data-pos="${row.pos}">${row.pos}</span>` : ""}<span class="playerName" title="${esc(row.player)}">${esc(row.player)}</span></td><td class="offenseColumn"><span class="offenseCell" title="${esc(Data.TEAM_NAMES[row.playerTeam] || "Offense not supplied")}">${logo(row.playerTeam)}${row.playerTeam || "—"}</span></td><td class="siteColumn"><span class="playerOpponent">${esc(playerLocation(row))}</span></td>${stats.map(column => `<td class="statColumn">${playerStatCell(row, column)}</td>`).join("")}<td class="scoreColumn ${row.cents < 0 ? "scoreNegative" : row.cents === 0 ? "scoreZero" : ""}">${fmt(row.pts, 1)}</td></tr>`).join("") : `<tr><td colspan="${columns.length}">${empty("No matching player results", "Change the matchup or clear the player filters.")}<div class="emptyState"><button type="button" data-clear-search>Clear player filters</button></div></td></tr>`;
+    return `<caption class="srOnly">${state.pos} recorded player scores and weekly stats against ${state.team}, ${weekLabel()}, ${venueLabel()}</caption><thead><tr>${head}</tr></thead><tbody>${body}</tbody>`;
   }
   function renderPlayers() {
     const rows = selectedPlayers(), total = rows.reduce((sum, row) => sum + row.cents, 0) / 100;
@@ -441,13 +461,15 @@
     $("playerTable").innerHTML = playersTable(rows);
     $("expandedSubtitle").textContent = `${Data.TEAM_NAMES[state.team]} defense vs. ${LABELS[state.pos]} · ${venueLabel()}`;
     if ($("playersDialog").open) $("expandedTable").innerHTML = playersTable(rows);
-    const label = `${rows.length} player record${rows.length === 1 ? "" : "s"}${state.hideZero ? " · scores below 1 hidden" : ""}`;
+    const label = `${rows.length} player record${rows.length === 1 ? "" : "s"}${state.hideZero ? " · scores below 1 hidden" : ""}${model.playerStatsError ? " · weekly stats unavailable" : ""}`;
     $("playerCount").textContent = label; $("expandedCount").textContent = label;
     $("playerTotal").textContent = `${fmt(total, 1)} displayed PPR points`;
   }
   function choose(team, pos = state.pos) {
     if (!model.defenses.includes(team) || !POSITIONS.includes(pos)) return;
     if (state.team !== team || state.pos !== pos) state.query = "";
+    // A stat absent from the newly selected view cannot remain its sort key.
+    if (state.pos !== pos) state.playerSort = { key: "week", direction: "desc", activeKey: null, step: 0 };
     state.team = team; state.pos = pos; render();
   }
   function hideTooltip() { $("chartTooltip").hidden = true; }
@@ -557,10 +579,15 @@
     try {
       // Load the same workbook configuration as DH, with page-local source
       // state. Keep the original parsers and publish only a valid three-tab set.
-      const { load2026MatchupSources } = await import("./data/2026-sheets.js?v=DH3.49-matchups-sheets");
+      const { load2026MatchupSources } = await import("./data/2026-sheets.js?v=DH3.67-profile-weekly-stats");
       const sources = await load2026MatchupSources();
       if (!Data || sources?.season !== 2026 || !sources.weekly?.csv || !sources.summary?.csv || !sources.offense?.csv) throw new Error("The 2026 weekly, defense-summary and offense sources are unavailable.");
       const nextModel = Data.readSource(sources.weekly.csv, { name: sources.weekly.name });
+      // Attach only matched weekly stat cells; FPA remains the scoring source.
+      try {
+        if (!sources.playerStats?.csv) throw new Error(sources.playerStats?.error || 'Weekly box scores unavailable.');
+        Data.attachPlayerStats(nextModel, sources.playerStats.csv);
+      } catch (error) { nextModel.playerStatsError = error.message; }
       const nextSummary = Data.readFPFA(sources.summary.csv, { name: sources.summary.name });
       const nextOffenses = Data.readOffenses(sources.offense.csv, { name: sources.offense.name });
       model = nextModel; summary = nextSummary; offenses = nextOffenses; readURL();
@@ -570,7 +597,7 @@
         const rb = row.metrics.RB, wr = row.metrics.WR;
         return rb.expectedTotal === wr.expectedTotal && rb.expectedAvg === wr.expectedAvg && rb.expectedRank === wr.expectedRank;
       });
-      $("sourceNotes").textContent = `Live 2026-Wkly sheets: FPA (formerly FPAv2), FPFA and FPF. ${model.audit.excludedRows} rows without an opposing defense are excluded. ` +
+      $("sourceNotes").textContent = `Live 2026-Wkly sheets: FPA (formerly FPAv2), FPFA and FPF; AllWKs supplies matched weekly player stats only. ${model.audit.excludedRows} rows without an opposing defense are excluded. ` +
         (differences.length ? "FPFA season totals and FPAv2 weekly totals differ beyond rounding for " + [...new Set(differences.map(row => row.team))].join(", ") + ". Each view preserves its source. " : "") +
         (repeatedExpectations ? "FPFA supplies identical RB and WR expected totals, averages, and ranks for every team; these are retained as provided. " : "") +
         "FPFA totals and ranks stay intact; displayed season defense rank = 33 minus the published matchup rank. SOS and FPF offense ranks retain their supplied direction. All season per-game views divide actual and expected totals by games played and display one decimal, excluding BYEs. ALL uses its own total rather than adding rounded positional labels.";

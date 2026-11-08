@@ -33,7 +33,7 @@ const offense = [
   ['ARI', ...positions.flatMap(() => ['33.3', '11', '11.1'])].join(','),
   ['BAL', ...positions.flatMap(() => ['66.6', '3', '22.2'])].join(','),
 ].join('\n');
-const bySheet = { FPA: weekly, FPFA: summary, FPF: offense };
+const bySheet = { FPA: weekly, FPFA: summary, FPF: offense, AllWKs: weekly };
 const response = text => ({ ok: true, text: async () => text });
 const fetchFixture = async url => response(bySheet[new URL(url).searchParams.get('sheet')]);
 
@@ -50,7 +50,7 @@ test('Start/Sit preparation starts all live reads immediately and reuses one in-
   const concurrent = store.prepare();
   assert.equal(first, concurrent);
   assert.equal(store.status, 'loading');
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 4);
   for (const { url, options } of calls) {
     const parsed = new URL(url);
     assert.equal(parsed.pathname, '/spreadsheets/d/16fOWHEuPWkNz9AHLCiySjxwW_y4ulLemNaMVc3srE94/export');
@@ -61,7 +61,7 @@ test('Start/Sit preparation starts all live reads immediately and reuses one in-
   await first;
   assert.equal(store.status, 'ready');
   await store.prepare();
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 4);
   assert.ok(['all', 'home', 'away'].every(venue => store.analysis(venue)));
 });
 
@@ -73,6 +73,7 @@ test('the independently owned model matches every source metric, venue and playe
     summary: sourceData.readFPFA(summary, { name: '2026-Wkly / FPFA' }),
     offenses: sourceData.readOffenses(offense, { name: '2026-Wkly / FPF' }),
   };
+  sourceData.attachPlayerStats(original.model, weekly);
   for (const venue of ['all', 'home', 'away']) {
     assert.deepEqual(store.analysis(venue), sourceData.matchupAnalysis(original.model, original.summary, { venue }, original.offenses));
     for (const pos of positions) for (const hideZero of [true, false]) {
@@ -105,7 +106,7 @@ test('Start/Sit prepares updated sources with bye weeks, later games and unused 
   assert.equal(store.snapshot.model.audit.sourcePlayers, 8);
   for (const venue of ['all', 'home', 'away']) {
     assert.deepEqual(store.analysis(venue), sourceData.matchupAnalysis(
-      sourceData.readSource(updatedWeekly, { name: '2026-Wkly / FPA' }),
+      sourceData.attachPlayerStats(sourceData.readSource(updatedWeekly, { name: '2026-Wkly / FPA' }), weekly),
       sourceData.readFPFA(updatedSummary, { name: '2026-Wkly / FPFA' }),
       { venue }, sourceData.readOffenses(offense, { name: '2026-Wkly / FPF' })
     ));
@@ -245,5 +246,18 @@ test('a new document store loads updated Sheets instead of an earlier snapshot',
   await next.prepare();
   assert.equal(first.analysis().byTeam.get('BAL').metrics.QB.actual.total, 90.1);
   assert.equal(next.analysis().byTeam.get('BAL').metrics.QB.actual.total, 100.1);
-  assert.equal(requests, 6);
+  assert.equal(requests, 8);
+});
+
+
+test('unavailable supplemental stats do not block the Rosters scoring panel', async () => {
+  const store = createMatchupStore({ fetchImpl: async url => {
+    if (new URL(url).searchParams.get('sheet') === 'AllWKs') throw new Error('stats offline');
+    return fetchFixture(url);
+  } });
+  await store.prepare();
+  assert.equal(store.status, 'ready');
+  assert.match(store.snapshot.model.playerStatsError, /stats offline/);
+  assert.equal(store.snapshot.model.results.length, 10);
+  assert.equal(store.analysis().byTeam.get('BAL').metrics.QB.actual.total, 90.1);
 });

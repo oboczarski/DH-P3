@@ -29,7 +29,7 @@ const offense = [
   ['ARI', ...positions.flatMap(() => ['33.3', '11', '11.1'])].join(','),
   ['BAL', ...positions.flatMap(() => ['66.6', '3', '22.2'])].join(','),
 ].join('\n');
-const csvBySheet = { FPA: weekly, FPFA: summary, FPF: offense };
+const csvBySheet = { FPA: weekly, FPFA: summary, FPF: offense, AllWKs: weekly };
 const response = (text, status = 200) => ({ ok: status === 200, status, text: async () => text });
 // Match the live FPA export: VS owns matchup data; unused VS_TM formulas can
 // return #VALUE! while every source field in that row remains empty.
@@ -38,8 +38,8 @@ const weeklyWithTeam = weekly.split('\r\n').map((line, index) =>
 ).join('\r\n');
 const unusedFormulaRow = `${','.repeat(7)}#VALUE!`;
 
-test('Matchups maps the three live tabs to native CSV exports in DH\'s workbook', () => {
-  for (const [sheet, gid] of [['FPF', '2006116709'], ['FPFA', '1845231826'], ['FPA', '1398845421']]) {
+test('Matchups maps the core live tabs and supplemental stats feed to native exports', () => {
+  for (const [sheet, gid] of [['FPF', '2006116709'], ['FPFA', '1845231826'], ['FPA', '1398845421'], ['AllWKs', '731946850']]) {
     const url = new URL(get2026SheetCsvUrl(sheet));
     assert.equal(url.pathname, `/spreadsheets/d/${workbook}/export`);
     assert.equal(url.searchParams.get('format'), 'csv');
@@ -60,7 +60,7 @@ test('the live source boundary preserves parser headers, scores and each view\'s
     return response(csvBySheet[sheet]);
   } });
   assert.equal(sources.season, 2026);
-  assert.deepEqual(calls.map(call => call.sheet).sort(), ['FPA', 'FPF', 'FPFA']);
+  assert.deepEqual(calls.map(call => call.sheet).sort(), ['AllWKs', 'FPA', 'FPF', 'FPFA']);
   assert.ok(calls.every(call => call.options.cache === 'no-store'));
   assert.equal(sources.weekly.csv, weekly);
   const model = Data.readSource(sources.weekly.csv, { name: sources.weekly.name });
@@ -96,7 +96,7 @@ test('each load reads updated sheets rather than retaining an earlier snapshot',
   assert.equal((await load2026MatchupSources({ fetchImpl })).weekly.csv, 'first');
   revision = 'updated';
   assert.equal((await load2026MatchupSources({ fetchImpl })).weekly.csv, 'updated');
-  assert.equal(requests, 6);
+  assert.equal(requests, 8);
 });
 
 test('unused VS_TM formula rows preserve all player results and audit counts', () => {
@@ -153,7 +153,7 @@ test('a fresh Week 5 update extends games, published summaries and charts across
   const model = Data.readSource(sources.weekly.csv);
   const published = Data.readFPFA(sources.summary.csv);
   const offenses = Data.readOffenses(sources.offense.csv);
-  assert.equal(requests, 6);
+  assert.equal(requests, 8);
   assert.deepEqual(model.weeks, [1, 5]);
   assert.deepEqual(published.weeks, [1, 5]);
   assert.equal(model.maxWeek, 5);

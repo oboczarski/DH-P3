@@ -418,3 +418,19 @@ body[data-page="rosters"] #game-logs-modal .gl-profile :is(button, summary):focu
   body[data-page="rosters"] #game-logs-modal .gl-profile-schedule { min-height: 22px; font-size: 11px; }
   body[data-page="rosters"] #game-logs-modal > .gamelogs-modal-tabs .gamelogs-modal-tab { min-height: 30px; padding-block: 5px !important; }
 }
+
+/* Game Logs profile only: current injury stays inline after the name, with
+   compact sizing and a nonbreaking badge so long names can wrap on phones. */
+body[data-page="rosters"] #game-logs-modal #modal-player-name .gl-profile-injury {
+  display: inline-block;
+  margin-left: .5em;
+  padding: .2em .35em;
+  border-radius: 5px;
+  background: rgb(32 40 54 / 78%);
+  font-size: .55em;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: .02em;
+  vertical-align: middle;
+  white-space: nowrap;
+}

@@ -588,3 +588,19 @@ body[data-page="datahub"] #game-logs-modal #gamelogs-tab-pane > #gamelogs-owners
   body[data-page="datahub"] #game-logs-modal .gamelogs-context-row { min-height: 32px; margin-bottom: 4px; }
   body[data-page="datahub"] #game-logs-modal .gamelogs-context-action { min-height: 30px; padding-block: 5px; }
 }
+
+/* Game Logs profile only: current injury stays inline after the name, with
+   compact sizing and a nonbreaking badge so long names can wrap on phones. */
+body[data-page="datahub"] #game-logs-modal #modal-player-name .gl-profile-injury {
+  display: inline-block;
+  margin-left: .5em;
+  padding: .2em .35em;
+  border-radius: 5px;
+  background: rgb(32 40 54 / 78%);
+  font-size: .55em;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: .02em;
+  vertical-align: middle;
+  white-space: nowrap;
+}

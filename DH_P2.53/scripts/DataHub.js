@@ -1,4 +1,4 @@
-import { createDataHubGameLogsProfile, historicalSosSource } from "./datahub-gamelogs-profile.js?v=DH3.65-playoff-sos";
+import { createDataHubGameLogsProfile, historicalSosSource } from "./datahub-gamelogs-profile.js?v=DH3.67-profile-weekly-stats";
 import { get2026QualifierOptions } from "./datahub-stats-season.js";
 import { getDataHubStatsPeriodOptions, getDataHubWeeklyColumns, getDataHubWeeklyColumnGroups, getDataHubWeeklyTableSourceRows } from "./datahub-stats-period.js";
 import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSeasonRankQualified } from "./datahub-stats-positional-ranks.js";
@@ -13020,6 +13020,12 @@ const dataHubGameLogsProfile = createDataHubGameLogsProfile({
   getOpponentDefenseRank: value => getDataHubOpponentDefenseRank(Number(value)),
   getOpponentRankColor: (rank, direction) => getDataHubOpponentRankColor(direction === 'descending' ? 33 - rank : rank),
   ordinalSuffix: rank => `${rank}${getDataHubOrdinalSuffix(rank)}`,
+  // Reuse DataHub's current injury codes/colors without treating BYE or a
+  // weekly projection cell as an injury in the Game Logs profile heading.
+  getInjuryDesignation: id => {
+    const injury = parseDataHubInjuryDesignation(state.sleeperPlayers?.[id]?.injury_status);
+    return injury?.designation !== 'BYE' && Object.hasOwn(DATAHUB_INJURY_DESIGNATION_COLORS, injury?.designation) ? injury : null;
+  },
 });
 let dataHubProfileNflWeekPromise = null;
 function loadDataHubProfileNflWeek() {
@@ -13779,6 +13785,7 @@ async function openDataHubGameLogs(row, triggerButton = null, { season = state.s
     const player = buildDataHubModalPlayer(seasonMeta);
     state.currentGameLogsPlayer = player;
     modalPlayerName.textContent = player.fullName || player.name || "Player";
+    dataHubGameLogsProfile.updateName(player);
 
     const gameLogs = await fetchDataHubGameLogs(player.id, season);
     if (isStaleRequest()) {

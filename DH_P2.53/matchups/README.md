@@ -177,3 +177,15 @@ missing values or ranks stay neutral. The RANK footer describes the displayed
 rank as Brutal (1–6), Tough (7–12), Moderate (13–16), Favorable (17–20),
 Great (21–26) or Prime (27–32), with a dash when unavailable. Supplied defense,
 SOS and offense ranks are never recomputed from the more precise averages.
+
+Players Faced additionally reads the live AllWKs native CSV export for weekly
+box-score stats only, matched to an existing FPA result by player ID, week,
+team, position, opponent and venue. Missing or ambiguous matches stay blank;
+zero and negative stats remain valid. This supplemental read cannot add FPA
+results or change scores, summary ranks, charts or game cutoffs. A failed
+AllWKs read leaves the three required matchup feeds usable and marks weekly
+stats unavailable. Column sets follow the active QB/RB/WR/TE/ALL view. Site
+retains the former parenthesized text, e.g. (BUF) or (@ BAL). Both table sizes
+center every header and all body cells except Player; mobile names ellipsize
+on one line with horizontal scrolling, while desktop columns share the space
+more evenly and reserve 22% for names.

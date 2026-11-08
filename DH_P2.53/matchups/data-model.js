@@ -208,6 +208,37 @@
     };
   }
 
+  // Players Faced supplements FPA with live AllWKs box scores only. Match the
+  // exact player/week/team/position/opponent; never add games or replace FPA
+  // points, ranks or venues. Missing/ambiguous cells stay null, including when
+  // a newer FPA game has no matching box score yet; zero/negative stats survive.
+  function attachPlayerStats(model, text) {
+    const { records } = parseCSV(text, ["WK", "SLPR_ID", "POS", "TM", "VS"]);
+    const fields = ["PAATT", "CMP", "CMP%", "PAYDS", "PATD", "PARTG", "CAR", "RUYDS", "YPC", "TD(T)", "REC", "TGT", "RECYDS", "RECTD", "YAC", "YDS(T)", "OPP"];
+    const key = (week, id, team, pos, vs) => {
+      const opponent = /^(vs\.?|@)\s+([a-z]{2,3})$/i.exec(String(vs).trim());
+      return opponent ? JSON.stringify([week, id, canonicalTeam(team), pos, canonicalTeam(opponent[2]), opponent[1][0] === "@"]) : null;
+    };
+    const byGame = new Map();
+    for (const { values: row } of records) {
+      const week = Number(row.WK);
+      if (!Number.isInteger(week) || week < 1 || week > 22 || !row.SLPR_ID) continue;
+      const identity = key(week, row.SLPR_ID, row.TM, row.POS, row.VS);
+      if (!identity) continue;
+      // Duplicate box scores are ambiguous, so do not choose one silently.
+      if (byGame.has(identity)) { byGame.set(identity, null); continue; }
+      const stats = Object.fromEntries(fields.map(field => {
+        const raw = String(row[field] ?? "").trim().replace(/%$/, "");
+        return [field, /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(raw) && Number.isFinite(Number(raw)) ? Number(raw) : null];
+      }));
+      byGame.set(identity, stats);
+    }
+    for (const result of model.results) {
+      result.stats = byGame.get(key(result.week, result.playerId, result.playerTeam, result.pos, result.vs)) || null;
+    }
+    return model;
+  }
+
   // Weekly expected points use the opposing offense's season-to-date scoring
   // average, reconstructed from player data. Count each offense-game once.
   function offenseAverages(model) {
@@ -445,5 +476,5 @@
     }));
   }
 
-  return Object.freeze({ POSITIONS, TEAM_NAMES, TEAMS, REQUIRED_COLUMNS, canonicalTeam, parseOpponent, parseCSV, readSource, offenseAverages, summarize, selectResults, inScope, readFPFA, readOffenses, matchupAnalysis, summaryDifferences });
+  return Object.freeze({ POSITIONS, TEAM_NAMES, TEAMS, REQUIRED_COLUMNS, canonicalTeam, parseOpponent, parseCSV, readSource, attachPlayerStats, offenseAverages, summarize, selectResults, inScope, readFPFA, readOffenses, matchupAnalysis, summaryDifferences });
 });

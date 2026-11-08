@@ -141,7 +141,8 @@
 // Refresh 2026 QB AY/A mappings, Passing Efficiency order and both owned Game Logs.
 // Refresh AY/A's dedicated Material flight-path icon and air-yard help text.
 // Refresh the owned Game Logs SOS profiles with YTD/ROS/Weeks 15–17 playoffs.
-const CACHE_NAME = 'DH3.65-playoff-sos';
+// Refresh profile injury badges, WK11–13 projections and both Players Faced stat tables.
+const CACHE_NAME = 'DH3.67-profile-weekly-stats';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

@@ -1322,3 +1322,37 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
   #breakdownNavigation .rosters-modal-icon { width:28px; height:28px; }
   .matchupDialog[data-gamelogs] .breakdownSurface { max-height:calc(100dvh - 116px - env(safe-area-inset-bottom)); }
 }
+
+/* Players Faced only: both regular/expanded tables show compact weekly stats.
+   All headers/values are centered; Player body cells remain left aligned.
+   Keep scroll, caption and button styling owned by these exact table IDs. */
+:host :is(#playerTable, #expandedTable).playerTable { width:100%; min-width:0; table-layout:auto; border-collapse:separate; border-spacing:0; font-variant-numeric:tabular-nums; }
+:host :is(#playerTable, #expandedTable).playerTable :is(th, td) { padding:4px 2px; white-space:nowrap; text-align:center; }
+:host :is(#playerTable, #expandedTable).playerTable th { position:sticky; top:0; z-index:2; background:#182039; color:#bbc0e8; border-bottom:1px solid #808abd2e; font-size:8px; font-weight:550; }
+:host :is(#playerTable, #expandedTable) th button { display:block; width:100%; margin:0; padding:1px 0; border:0; background:transparent; color:inherit; font:inherit; text-align:center; }
+:host :is(#playerTable, #expandedTable).playerTable td { border-bottom:1px solid #ffffff0a; font-size:10px; }
+:host :is(#playerTable, #expandedTable) .weekColumn { width:20px; }
+:host :is(#playerTable, #expandedTable) .nameColumn { width:auto; min-width:60px; }
+:host :is(#playerTable, #expandedTable).playerTable td.nameColumn { text-align:left; white-space:normal; overflow-wrap:normal; }
+:host :is(#playerTable, #expandedTable) .offenseColumn { display:table-cell; width:32px; }
+:host :is(#playerTable, #expandedTable) .siteColumn { width:33px; }
+:host :is(#playerTable, #expandedTable) .statColumn { width:1%; }
+:host :is(#playerTable, #expandedTable) .scoreColumn { width:31px; font-weight:550; }
+:host :is(#playerTable, #expandedTable) .offenseCell { display:flex; align-items:center; justify-content:center; gap:2px; font-size:8px; }
+:host :is(#playerTable, #expandedTable) .offenseCell img { width:16px; height:16px; }
+:host :is(#playerTable, #expandedTable) .playerName { color:#dfe3f9; font-size:10px; font-weight:500; }
+:host :is(#playerTable, #expandedTable) .playerPosition { margin-right:2px; padding:1px 2px; }
+:host :is(#playerTable, #expandedTable) .playerOpponent { color:#b5bddd; font-size:8px; }
+:host :is(#playerTable, #expandedTable) .sortArrow { color:#88b8ff; margin-left:1px; font-size:8px; }
+:host :is(#playerTable, #expandedTable) caption.srOnly { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+/* Mobile names stay on one line with ellipsis; let the table scroll as needed. */
+@media (max-width:620px) {
+  :host :is(#playerTable, #expandedTable).playerTable td.nameColumn { white-space:nowrap; }
+  :host :is(#playerTable, #expandedTable) .playerName { display:inline-block; max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:middle; }
+}
+/* Desktop columns share the available width, with a modest extra name share. */
+@media (width > 620px) {
+  :host :is(#playerTable, #expandedTable).playerTable { table-layout:fixed; }
+  :host :is(#playerTable, #expandedTable).playerTable :is(th, td) { width:auto; }
+  :host :is(#playerTable, #expandedTable).playerTable :is(th, td).nameColumn { width:22%; }
+}

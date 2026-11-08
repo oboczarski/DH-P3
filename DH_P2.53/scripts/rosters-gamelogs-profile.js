@@ -151,7 +151,7 @@
     find('[data-profile-watermark]').replaceWith(watermark);
     if (Object.hasOwn(TEAM_COLORS, teamKey) && teamKey !== 'FA') watermark.src = `../assets/NFL_logos_svg/${teamKey.toLowerCase()}.svg`;
     profile.dataset.playerId = String(player?.id || '');
-    find('#modal-player-name').textContent = name;
+    renderProfileName(player, name);
     renderUpcomingMatchup(player);
     find('[data-profile-monogram]').textContent = name.split(/\s+/).filter(Boolean).map(word => word[0]).slice(0, 2).join('');
     // Replace the image element per player so a late load/error from an old
@@ -166,6 +166,23 @@
     portrait.classList.remove('has-headshot');
     find('[data-profile-headshot]').replaceWith(image);
     if (/^\d+$/.test(String(player?.id))) image.src = `https://sleepercdn.com/content/nfl/players/${encodeURIComponent(player.id)}.jpg`;
+  }
+
+  // The profile name uses current Sleeper injury metadata, even in historical
+  // views. Rebuild it after the base renderer runs so badges never stick to the
+  // next player, and keep BYE/projection text out of current injury status.
+  function renderProfileName(player, name) {
+    const node = find('#modal-player-name');
+    node.querySelector('.gl-profile-injury')?.remove();
+    if (name !== undefined) node.textContent = name;
+    const injury = getSleeperInjuryDesignation(player?.id);
+    if (!injury || injury.designation === 'BYE' || !Object.hasOwn(INJURY_DESIGNATION_COLORS, injury.designation)) return;
+    const badge = document.createElement('span');
+    badge.className = 'gl-profile-injury';
+    badge.textContent = injury.designation;
+    badge.style.color = injury.color;
+    badge.setAttribute('aria-label', `Current injury designation: ${injury.designation}`);
+    node.append(badge);
   }
 
   function resetSchedule(player) {
@@ -249,6 +266,7 @@
   }
 
   function composeProfile(player) {
+    renderProfileName(player);
     renderUpcomingMatchup(player);
     resetSchedule(player);
     const affiliation = find('[data-profile-affiliation]');
@@ -313,7 +331,9 @@
     revision++;
     showIdentity(player);
     resetSchedule(player);
-    return originalClick(player, ...args);
+    const pending = originalClick(player, ...args);
+    renderProfileName(player);
+    return pending;
   };
   const originalRender = window.renderGameLogs;
   window.renderGameLogs = async function(...args) {

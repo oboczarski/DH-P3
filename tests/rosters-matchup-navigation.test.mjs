@@ -66,7 +66,7 @@ test('header and dock select the upcoming game using the same recorded-week fall
 test('Players Faced follows the selected defense and position in the requested order', () => {
   const source = read('rosters/matchup-breakdown/modal.js');
   const nodes = new Map();
-  const context = vm.createContext({ state: { pos: 'QB', team: 'NYJ', query: '', hideZero: true },
+  const context = vm.createContext({ model: {}, state: { pos: 'QB', team: 'NYJ', query: '', hideZero: true },
     $: id => { if (!nodes.has(id)) nodes.set(id, {}); return nodes.get(id); },
     selectedPlayers: () => [], playersTable: () => '', fmt: value => value.toFixed(1),
     Data: { TEAM_NAMES: { NYJ: 'New York Jets', ARI: 'Arizona Cardinals' } },
