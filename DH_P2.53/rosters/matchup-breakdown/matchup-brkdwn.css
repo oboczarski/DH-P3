@@ -1327,7 +1327,7 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
    All headers/values are centered; Player body cells remain left aligned.
    Keep scroll, caption and button styling owned by these exact table IDs. */
 :host :is(#playerTable, #expandedTable).playerTable { width:100%; min-width:0; table-layout:auto; border-collapse:separate; border-spacing:0; font-variant-numeric:tabular-nums; }
-:host :is(#playerTable, #expandedTable).playerTable :is(th, td) { padding:4px 2px; white-space:nowrap; text-align:center; }
+:host :is(#playerTable, #expandedTable).playerTable :is(th, td) {padding: 4px 6px;white-space:nowrap;text-align:center;}
 :host :is(#playerTable, #expandedTable).playerTable th { position:sticky; top:0; z-index:2; background:#182039; color:#bbc0e8; border-bottom:1px solid #808abd2e; font-size:8px; font-weight:550; }
 :host :is(#playerTable, #expandedTable) th button { display:block; width:100%; margin:0; padding:1px 0; border:0; background:transparent; color:inherit; font:inherit; text-align:center; }
 :host :is(#playerTable, #expandedTable).playerTable td { border-bottom:1px solid #ffffff0a; font-size:10px; }
