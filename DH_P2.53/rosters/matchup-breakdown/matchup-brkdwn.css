@@ -1338,7 +1338,7 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
 :host :is(#playerTable, #expandedTable) .offenseColumn { display:table-cell; width:32px; }
 :host :is(#playerTable, #expandedTable) .siteColumn { width:33px; }
 :host :is(#playerTable, #expandedTable) .statColumn { width:1%; }
-:host :is(#playerTable, #expandedTable) .scoreColumn { width:31px; font-weight:550; }
+:host :is(#playerTable, #expandedTable) .scoreColumn { width:32px; font-weight:550; }
 :host :is(#playerTable, #expandedTable) .offenseCell { display:flex; align-items:center; justify-content:center; gap:2px; font-size:8px; }
 :host :is(#playerTable, #expandedTable) .offenseCell img { width:16px; height:16px; }
 :host :is(#playerTable, #expandedTable) .playerName { color:#dfe3f9; font-size:10px; font-weight:500; }
@@ -1358,10 +1358,23 @@ table:where(#expandedTable) { width:100%; border-collapse:separate; border-spaci
   :host :is(#playerTable, #expandedTable).playerTable { table-layout:fixed; }
   :host :is(#playerTable, #expandedTable).playerTable :is(th, td) { width:auto; }
   :host :is(#playerTable, #expandedTable).playerTable :is(th, td).nameColumn { width:22%; }
+  /* Match the source's desktop main-table PPR tag width; expanded tags retain
+     the shared 32px width while other columns keep their existing sizing. */
+  :host #playerTable :is(th, td).scoreColumn { width:44px !important; }
 }
 
-/* Players Faced PPR values only: use the Consistency chart's exact low,
-   solid and high colors in both table sizes, including ALL's mixed positions. */
-:host :is(#playerTable, #expandedTable) td.scoreColumn[data-ppr-tier="low"] { color:#c26cfc; }
-:host :is(#playerTable, #expandedTable) td.scoreColumn[data-ppr-tier="solid"] { color:#00c5ff; }
-:host :is(#playerTable, #expandedTable) td.scoreColumn[data-ppr-tier="high"] { color:#00ffc1; }
+/* Rosters-owned Players Faced copies the current Matchups PPR gradient tags.
+   Keep their borders, padding, height and per-tier appearance inside this
+   shadow root for both Start/Sit and Game Logs; scoring thresholds stay local. */
+:host :is(#playerTable, #expandedTable) td.scoreColumn[data-ppr-tier="low"] {color:#c26cfc;border: 1px solid transparent;color: transparent;background: linear-gradient(90deg, #74efff15 0%, #7297ff15 52%, #d97dff15 100%), linear-gradient(90deg, #74efff4b 0%, #7297ff4b 52%, #d97dff4b 100%) border-area, linear-gradient(90deg, #dca7fcdd 0%, #dca7fcdd 52%, #dca7fcdd 100%) text;border-radius: 8px;max-height: 21px;box-sizing: border-box;display: flex;margin: 2px 2px;padding: 3px;justify-self: center;justify-content: center;}
+:host :is(#playerTable, #expandedTable) td.scoreColumn[data-ppr-tier="solid"] {color:#00c5ff;border: 1px solid transparent;color: transparent;background: linear-gradient(90deg, #74efff20 0%, #7297ff20 52%, #d97dff20 100%), linear-gradient(90deg, #74efff7b 0%, #7297ff7b 52%, #d97dff7b 100%) border-area, linear-gradient(90deg, #74efffee 0%, #7297ffee 52%, #7297ffee 100%) text;border-radius: 8px;max-height: 21px;box-sizing: border-box;display: flex;margin: 2px 2px;padding: 3px;justify-self: center;justify-content: center;}
+:host :is(#playerTable, #expandedTable) td.scoreColumn[data-ppr-tier="high"] {color:#00ffc1;border: 1px solid transparent;color: transparent;background: linear-gradient(90deg, #74efff30 0%, #7297ff30 52%, #d97dff30 100%), linear-gradient(90deg, #74efff8b 0%, #7297ff8b 52%, #d97dff8b 100%) border-area, linear-gradient(90deg, #74efff 90%, #7297ff 92%, #d97dff 100%) text;border-radius: 8px;max-height: 21px;box-sizing: border-box;display: flex;margin: 2px 2px;padding: 3px;justify-self: center;justify-content: center;}
+
+/* Start/Sit and Game Logs Players Faced mirror the current Matchups 2px gaps
+   below the header and after the last result, without adding real data rows. */
+:host :is(#playerTable, #expandedTable) tbody::before,
+:host :is(#playerTable, #expandedTable) tbody::after {
+  content:"";
+  display:table-row;
+  height:2px;
+}

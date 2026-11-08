@@ -138,8 +138,11 @@ center every header and all body cells except Player; mobile names ellipsize
 on one line with horizontal scrolling, while desktop columns share the space
 more evenly and reserve 22% for names.
 
-PPR value colors mirror the Consistency chart FPTS zones: low purple
-(#c26cfc), solid blue (#00c5ff), high green (#00ffc1). Solid/high cutoffs are
-QB 16/22, RB and WR 12/18, TE 11/17. Each row uses its own position in ALL,
-with raw scores compared before rounding. Zero and negative scores are low;
-unavailable scores or unknown positions stay neutral.
+PPR tiers retain the Consistency chart FPTS cutoffs: QB 16/22, RB and WR
+12/18, TE 11/17. Each row uses its own position in ALL, with raw scores
+compared before rounding. Zero and negative scores are low; unavailable
+scores or unknown positions stay neutral. Rosters independently copies the
+current Matchups gradient PPR tags, including borders, padding, dimensions
+and the 2px gaps below the header and after the last result. These styles
+cover Start/Sit, Game Logs and expanded Players Faced tables in the modal's
+shadow root, without importing the Matchups stylesheet.

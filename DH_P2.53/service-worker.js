@@ -146,7 +146,8 @@
 // Refresh plain Site labels and the 2px mobile Player-column trim.
 // Refresh Players Faced PPR value colors using positional Consistency zones.
 // Refresh Matchups Players Faced spacing above/below the data rows.
-const CACHE_NAME = 'DH3.67d-table-edge-space';
+// Refresh Rosters matchup PPR gradient tags and current 2px table-edge gaps.
+const CACHE_NAME = 'DH3.67e-rosters-matchup-tags';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

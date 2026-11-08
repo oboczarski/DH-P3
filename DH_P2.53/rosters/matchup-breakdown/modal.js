@@ -525,7 +525,7 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
       // sections, with separate selectors for each modal area in both sections.
       const stylesheet = document.createElement('link');
       stylesheet.rel = 'stylesheet';
-      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.67c-ppr-tiers', import.meta.url).href;
+      stylesheet.href = new URL('./matchup-brkdwn.css?v=DH3.67e-rosters-matchup-tags', import.meta.url).href;
       const styled = new Promise((resolve, reject) => {
         stylesheet.onload = resolve;
         stylesheet.onerror = () => reject(new Error('Matchup panel styling could not load.'));

@@ -2672,7 +2672,7 @@ function getRostersMatchupController() {
     if (pageType !== 'rosters') return Promise.reject(new Error('Matchup Breakdown belongs to Rosters.'));
     if (!rostersMatchupsModulePromise) {
         // Start/Sit and every Game Logs matchup shortcut share this owned panel.
-        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.67c-ppr-tiers')
+        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.67e-rosters-matchup-tags')
             .then(({ createMatchupBreakdown }) => {
                 rostersMatchups = createMatchupBreakdown({
                     getPlayerWeeks: getRostersPlayerMatchupWeeks,
