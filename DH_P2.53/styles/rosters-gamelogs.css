@@ -7085,7 +7085,9 @@ body[data-page="rosters"] #game-logs-modal #gamelogs-tab-pane > #gamelogs-owners
   min-width: 0;
   height: var(--gamelogs-body-height, 415px);
   max-height: var(--gamelogs-body-height, 415px);
-  min-height: 400px;
+  /* Fit the space actually left below the shared profile. A fixed minimum
+     can push this pane past the viewport-bounded card on real phones. */
+  min-height: 0;
   margin: 0;
   padding: 0 !important;
   border: 0;
@@ -7096,6 +7098,9 @@ body[data-page="rosters"] #game-logs-modal #gamelogs-tab-pane > #gamelogs-owners
   opacity: 1;
   transition: none;
   overflow: hidden;
+  /* Clip the touch-scrolling layer at this lower pane's own edge, including
+     on mobile WebKit, without clipping the profile artwork or controls. */
+  clip-path: inset(0);
 }
 
 body[data-page="rosters"] #game-logs-modal #gamelogs-tab-pane > #gamelogs-ownership-pane::before,
@@ -7110,6 +7115,15 @@ body[data-page="rosters"] #game-logs-modal.is-ownership-view #modal-header .game
 body[data-page="rosters"] #game-logs-modal.is-ownership-view #modal-body,
 body[data-page="rosters"] #game-logs-modal.is-ownership-view #gamelogs-tab-pane > :is(#stats-key-container, #radar-chart-container, #consistency-container) {
   display: none !important;
+}
+
+@media (max-width: 868px) {
+  /* Ownership hides the detached dock. Let only this phone/tablet card use
+     2rem more viewport height to preserve list space; shorter screens still
+     shrink the pane and keep its body scrollable inside the safe-area limit. */
+  body[data-page="rosters"] #game-logs-modal.is-ownership-view:not(.hidden) #gamelogs-tab-pane {
+    max-height: calc(100dvh - 9rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
 }
 
 /* A shrinking flex body keeps the profile and close action visible on phones.

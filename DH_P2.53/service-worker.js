@@ -148,7 +148,8 @@
 // Refresh Matchups Players Faced spacing above/below the data rows.
 // Refresh Rosters matchup PPR gradient tags and current 2px table-edge gaps.
 // Refresh Rosters Game Logs header/weekly opponent ranks from the published FPFA summary.
-const CACHE_NAME = 'DH3.68-rosters-fpfa-ranks';
+// Refresh Rosters' bounded Ownership scroll pane and its mobile-only height allowance.
+const CACHE_NAME = 'DH3.68a-rosters-ownership-bounds';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
