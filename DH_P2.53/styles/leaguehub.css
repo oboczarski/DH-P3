@@ -3766,6 +3766,8 @@ body[data-page="leaguehub"] .leaguehub-tab-label {
 }
 
 body[data-page="leaguehub"] .leaguehub-hero-league-control {
+  --lh-control-accent: #74cfe8;
+  position: relative;
   grid-area: league;
   display: grid;
   gap: 0.14rem;
@@ -3778,64 +3780,55 @@ body[data-page="leaguehub"] .leaguehub-hero-league-control > label {
 
 body[data-page="leaguehub"] .leaguehub-hero-league-select {
   position: relative;
-  display: flex;
-  align-items: center;
+  display: block;
   min-width: 0;
   min-height: 2.54rem;
-  border: 1px solid rgba(137, 161, 216, 0.18);
-  border-radius: 12px;
-  box-shadow:
-    inset 3px 0 0 rgba(116, 207, 232, 0.58),
-    inset 0 1px 0 rgba(255, 255, 255, 0.045);
-  background: radial-gradient(110% 100% at 86% 8%, rgba(117, 220, 255, 0.17), transparent 50%), radial-gradient(100% 90% at 10% 95%, rgba(173, 119, 255, 0.14), transparent 58%), linear-gradient(155deg, rgba(43, 62, 100, 0.92), rgba(20, 27, 52, 0.94));
-  color: #fff;
-  filter: brightness(0.8);
 }
 
-body[data-page="leaguehub"] .leaguehub-hero-league-select > i:first-child {
+/* Active League uses the archive dropdown's button/menu skins. Keep the
+   shield, responsive header height, and popup stacking local to this picker. */
+body[data-page="leaguehub"] #leagueHubLeagueButton {
+  min-height: 2.54rem;
+  padding-inline: 0.68rem;
+  font-size: 0.69rem;
+}
+
+body[data-page="leaguehub"] #leagueHubLeagueButton > i:first-child {
   flex: 0 0 auto;
-  margin-left: 0.68rem;
   color: rgba(119, 221, 224, 0.78);
   font-size: 0.7rem;
   pointer-events: none;
+  transform: none;
 }
 
-body[data-page="leaguehub"] .leaguehub-hero-league-select > i:last-child {
-  position: absolute;
-  right: 0.68rem;
-  color: rgba(189, 204, 234, 0.55);
-  font-size: 0.54rem;
-  pointer-events: none;
+body[data-page="leaguehub"] #leagueHubLeagueValue {
+  flex: 1 1 auto;
 }
 
-body[data-page="leaguehub"] .leaguehub-hero-league-select #leagueSelect {
-  width: 100%;
-  min-width: 0;
-  height: 2.48rem;
-  padding: 0 1.9rem 0 0.5rem;
-  overflow: hidden;
-  border: 0;
-  outline: 0;
-  appearance: none;
-  background: transparent;
-  color: #eef4ff;
-  font: inherit;
-  font-size: 0.69rem;
-  font-weight: 730;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: pointer;
+body[data-page="leaguehub"] .leaguehub-hero-league-control.is-select-open {
+  z-index: 200;
 }
 
-body[data-page="leaguehub"] .leaguehub-hero-league-select:focus-within {
-  border-color: rgba(111, 221, 227, 0.45);
-  box-shadow:
-    inset 3px 0 0 rgba(116, 225, 228, 0.82),
-    0 0 0 2px rgba(105, 215, 231, 0.12);
-  filter: brightness(1);
+/* Give full league names more room than the compact header trigger, keeping
+   the popup aligned to its right edge and within narrow mobile viewports. */
+body[data-page="leaguehub"] #leagueHubLeagueMenu {
+  left: auto;
+  width: max(100%, min(18rem, calc(100vw - 2rem)));
 }
 
-body[data-page="leaguehub"] .leaguehub-hero-league-select #leagueSelect:disabled {
+body[data-page="leaguehub"] #leagueHubLeagueMenu .leaguehub-trades-select-option {
+  min-height: 2.5rem;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="leaguehub"] #leagueHubLeagueMenu .leaguehub-trades-select-option:hover,
+body[data-page="leaguehub"] #leagueHubLeagueMenu .leaguehub-trades-select-option:focus-visible {
+  outline: none;
+  background: rgba(141, 202, 255, 0.12);
+  color: #fff;
+}
+
+body[data-page="leaguehub"] #leagueHubLeagueButton:disabled {
   color: rgba(188, 203, 233, 0.46);
   cursor: default;
 }
@@ -4923,7 +4916,9 @@ body[data-page="leaguehub"] .leaguehub-trade-stat-chip strong {
 
   body[data-page="leaguehub"] .leaguehub-context-row {
     --leaguehub-context-gap: 2.16rem;
-    grid-template-columns: minmax(16.5rem, 0.9fr) minmax(19rem, 1.28fr) minmax(11.5rem, 0.84fr);
+    /* Only the league lane may shrink at compact desktop widths so its custom
+       popup stays inside the header while the user and tab lanes keep their sizing. */
+    grid-template-columns: minmax(16.5rem, 0.9fr) minmax(19rem, 1.28fr) minmax(0, 0.84fr);
     grid-template-areas:
       "session tabs league";
     gap: var(--leaguehub-context-gap);
@@ -5012,8 +5007,8 @@ body[data-page="leaguehub"] .leaguehub-trade-stat-chip strong {
     min-height: 2.62rem;
   }
 
-  body[data-page="leaguehub"] .leaguehub-hero-league-select #leagueSelect {
-    height: 2.56rem;
+  body[data-page="leaguehub"] #leagueHubLeagueButton {
+    min-height: 2.62rem;
     font-size: 0.68rem;
   }
 
@@ -5245,7 +5240,7 @@ body[data-page="leaguehub"] .leaguehub-trade-stat-chip strong {
   }
 
   body[data-page="leaguehub"] .leaguehub-hero-league-select,
-  body[data-page="leaguehub"] .leaguehub-hero-league-select #leagueSelect {
+  body[data-page="leaguehub"] #leagueHubLeagueButton {
     min-height: 2.6rem;
     height: 2.62rem;
   }

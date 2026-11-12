@@ -56,6 +56,14 @@
       tradesFeedMeta: document.getElementById('leagueTradesFeedMeta'),
       tradesSearchInput: document.getElementById('leagueTradesSearch'),
       tradeSelects: {
+        // Active League shares the page-local dropdown controller so opening
+        // it closes archive filters, and all menus use the same keyboard UI.
+        league: {
+          control: document.getElementById('leagueHubLeagueButton')?.closest('.leaguehub-hero-league-control'),
+          button: document.getElementById('leagueHubLeagueButton'),
+          value: document.getElementById('leagueHubLeagueValue'),
+          menu: document.getElementById('leagueHubLeagueMenu'),
+        },
         member: {
           control: document.getElementById('leagueTradesMemberButton')?.closest('.leaguehub-trades-control'),
           button: document.getElementById('leagueTradesMemberButton'),
@@ -568,6 +576,13 @@
     // LeagueHub trade filters:
     // uses custom listbox controls so the archive avoids native dropdown styling
     // while keeping filter state local to this page.
+    wireTradeSelect('league', (value) => {
+      if (!elements.leagueSelect || value === elements.leagueSelect.value) return;
+      // Route custom league choices through the existing change handler so
+      // analysis, archive loading, and shared navigation keep one league value.
+      elements.leagueSelect.value = value;
+      elements.leagueSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    });
     wireTradeSelect('member', (value) => {
       toggleTradeMemberSelection(value);
       syncTradeMemberSelection();
@@ -767,14 +782,14 @@
         if (targetLeagueId) {
           const target = state.leagues.find((league) => league.league_id === targetLeagueId);
           if (target) {
-            elements.leagueSelect.value = targetLeagueId;
+            syncLeagueSelectValues(targetLeagueId);
             wasSuccessful = await analyzeLeague(targetLeagueId, { preserveExistingContent });
             if (wasSuccessful) finalizeConnectedUsername(username);
             return wasSuccessful;
           }
         }
 
-        elements.leagueSelect.selectedIndex = 1;
+        syncLeagueSelectValues(state.leagues[0].league_id);
         wasSuccessful = await analyzeLeague(state.leagues[0].league_id, { preserveExistingContent });
         if (wasSuccessful) finalizeConnectedUsername(username);
       } catch (error) {
@@ -876,6 +891,7 @@
         if (shouldOpen) openTradeSelect(type);
       });
       select.button.addEventListener('keydown', (event) => {
+        if (select.button.disabled) return;
         if (!['Enter', ' ', 'ArrowDown', 'ArrowUp'].includes(event.key)) return;
         event.preventDefault();
         openTradeSelect(type);
@@ -913,6 +929,13 @@
           : Math.max(0, currentIndex - 1);
         options[nextIndex]?.focus();
       });
+      if (type === 'league') {
+        // Leaving the header picker with Tab closes its menu without trapping
+        // focus; Escape and arrow/Enter selection are shared with archive menus.
+        select.control?.addEventListener('focusout', (event) => {
+          if (state.trades.openSelect === type && !select.control.contains(event.relatedTarget)) closeTradeSelect();
+        });
+      }
     }
 
     function commitTradeSelectOption(select, option, onSelect) {
@@ -938,7 +961,7 @@
 
     function openTradeSelect(type) {
       const select = elements.tradeSelects?.[type];
-      if (!select?.button || !select?.menu) return;
+      if (!select?.button || !select?.menu || select.button.disabled) return;
       state.trades.openSelect = type;
       // Trade Archive dropdown stacking:
       // marks the full filter control as open so its mobile stacking context
@@ -946,6 +969,9 @@
       select.control?.classList.add('is-select-open');
       select.button.setAttribute('aria-expanded', 'true');
       select.menu.classList.remove('hidden');
+      // A long league list opens at the active league, even after scrolling
+      // through another league's options on the previous visit.
+      if (type === 'league') select.menu.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' });
     }
 
     function closeTradeSelect() {
@@ -4889,7 +4915,11 @@
         option.textContent = league.name;
         elements.leagueSelect.appendChild(option);
       });
-      elements.leagueSelect.disabled = false;
+      elements.leagueSelect.disabled = !leagues.length;
+      renderTradeSelectOptions('league', leagues.map((league) => ({
+        value: String(league.league_id),
+        label: league.name,
+      })), state.currentLeagueId || '');
       syncLeagueSelectValues(state.currentLeagueId || '');
     }
 
@@ -4899,6 +4929,19 @@
       const hasTarget = [...elements.leagueSelect.options]
         .some((option) => option.value === targetLeagueId);
       elements.leagueSelect.value = hasTarget ? targetLeagueId : '';
+      // Synchronize initial/query-string selection, league switches, and the
+      // Change User rollback with the same visible label and selected option.
+      const select = elements.tradeSelects.league;
+      if (!select?.button || !select?.value || !select?.menu) return;
+      select.button.disabled = elements.leagueSelect.disabled;
+      select.value.textContent = elements.leagueSelect.selectedOptions[0]?.textContent || 'Select a league...';
+      select.button.title = select.value.textContent;
+      select.menu.querySelectorAll('[role="option"]').forEach((option) => {
+        const isSelected = option.dataset.value === elements.leagueSelect.value;
+        option.classList.toggle('is-selected', isSelected);
+        option.setAttribute('aria-selected', String(isSelected));
+      });
+      if (select.button.disabled && state.trades.openSelect === 'league') closeTradeSelect();
     }
 
     function setLoading(isLoading, message = 'Loading LeagueHub...') {

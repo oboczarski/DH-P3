@@ -27,7 +27,7 @@
   <meta name="theme-color" content="#0D0E1B" />
   <link href="../styles/styles.css?v=20260902-leaguehub-user-switch" rel="stylesheet" />
   <!-- LeagueHub page-specific styles (extracted from styles.css) -->
-  <link rel="stylesheet" href="../styles/leaguehub.css?v=DH3.49o-trade-member-pair" />
+  <link rel="stylesheet" href="../styles/leaguehub.css?v=DH3.49p-active-league-menu" />
   <link rel="stylesheet" href="../styles/leaguehub-analysis.css?v=DH3.48r-power-bars-refined" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
@@ -173,14 +173,23 @@
             </section>
 
             <div class="leaguehub-hero-league-control">
-              <label for="leagueSelect">Active league</label>
-              <div class="leaguehub-hero-league-select">
-                <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
-                <select disabled id="leagueSelect">
-                  <option value="">Select a league...</option>
-                </select>
-                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+              <label id="leagueHubLeagueLabel" for="leagueHubLeagueButton">Active league</label>
+              <!-- The visible league picker shares the archive's custom listbox
+                   UI; the hidden select preserves shared routing compatibility. -->
+              <div class="leaguehub-hero-league-select leaguehub-trades-select" data-trade-select="league">
+                <button type="button" id="leagueHubLeagueButton" class="leaguehub-trades-select-button" disabled
+                  aria-haspopup="listbox" aria-expanded="false" aria-controls="leagueHubLeagueMenu"
+                  aria-labelledby="leagueHubLeagueLabel leagueHubLeagueValue">
+                  <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                  <span id="leagueHubLeagueValue">Select a league...</span>
+                  <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                </button>
+                <div id="leagueHubLeagueMenu" class="leaguehub-trades-select-menu hidden" role="listbox"
+                  aria-labelledby="leagueHubLeagueLabel"></div>
               </div>
+              <select disabled hidden id="leagueSelect" tabindex="-1" aria-hidden="true">
+                <option value="">Select a league...</option>
+              </select>
             </div>
           </div>
 
@@ -497,7 +506,7 @@
   </div>
 
   <script src="../scripts/leaguehub-analysis.js?v=DH3.47w-playoff-gauge"></script>
-  <script src="../scripts/leaguehub.js?v=DH3.49o-trade-member-pair"></script>
+  <script src="../scripts/leaguehub.js?v=DH3.49p-active-league-menu"></script>
   <script defer src="../scripts/app.js?v=DH3.49n-local-weekly-stats"></script>
 </body>
 
