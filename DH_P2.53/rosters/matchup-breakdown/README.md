@@ -45,9 +45,13 @@ Already-ascending venue ranks keep their number, pool, missing values and ties.
 The cached source analysis, SOS and FPF offense ranks remain unchanged. Both
 Start/Sit preview rank locations, the comparison hero, breakdown heading and
 RANK card use this defense-strength convention; their colors reverse with the
-number so the same defense keeps its difficulty color. Game Logs independently
-converts its DRK/CSV opponent rank only when rendering, including historical and
-future weeks, without changing source snapshots or other pages.
+number so the same defense keeps its difficulty color. Rosters 2026 Game Logs
+independently reads only FPFA's positional rank cells for the upcoming profile
+matchup and every weekly opponent tag, including future/projection-only players.
+Both displays reverse the published rank only when rendering, matching the
+breakdown's default All Games RANK card. Missing/failed FPFA ranks stay unavailable
+without a DRK/CSV fallback. DRK remains the Game Logs SOS source, and historical
+2025 Game Logs retain their CSV ranks; recorded results and other pages stay intact.
 
 The preview keeps the opponent's positional defense rank inline to the right of
 the projected value. Its separate info strip

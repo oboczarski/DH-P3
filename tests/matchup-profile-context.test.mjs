@@ -14,7 +14,8 @@ vm.runInContext(slice(app, 'function getOpponentDefenseRank(', 'let tableCoreLoa
 const matchup = (...args) => JSON.parse(JSON.stringify(context.upcomingProfileMatchup(...args)));
 const snapshot = () => ({ latestRecordedWeek: 8,
   scheduleByTeam: { BUF: { 9: 'vs. WSH', 10: '@ JAC', 11: 'BYE', 18: '@ NYJ' } },
-  defenseByTeam: { WAS: { QBRK: '32', RBRK: '1', WRRK: '20', TERK: '9' }, JAX: { QBRK: '10' } },
+  matchupRanksByTeam: { WAS: { QBRK: '32', RBRK: '1', WRRK: '20', TERK: '9' }, JAX: { QBRK: '10' } },
+  defenseByTeam: { WAS: { QBRK: '1', RBRK: '32', WRRK: '2', TERK: '3' } },
 });
 
 test('profile upcoming opponent uses schedule aliases, base position ranks and display-only rank reversal', () => {
@@ -43,7 +44,7 @@ test('profile missing schedule and invalid defensive ranks stay unavailable', ()
   assert.deepEqual(matchup(snapshot(), 'FA', 'QB', 9), { week: 9, opponent: '—', rank: null });
   for (const value of ['', null, undefined, 'NA', 0, -1, 33, 1.5]) {
     const source = snapshot();
-    source.defenseByTeam.WAS.QBRK = value;
+    source.matchupRanksByTeam.WAS.QBRK = value;
     assert.equal(matchup(source, 'BUF', 'QB', 9).rank, null);
   }
 });

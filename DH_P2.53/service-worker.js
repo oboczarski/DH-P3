@@ -147,7 +147,8 @@
 // Refresh Players Faced PPR value colors using positional Consistency zones.
 // Refresh Matchups Players Faced spacing above/below the data rows.
 // Refresh Rosters matchup PPR gradient tags and current 2px table-edge gaps.
-const CACHE_NAME = 'DH3.67e-rosters-matchup-tags';
+// Refresh Rosters Game Logs header/weekly opponent ranks from the published FPFA summary.
+const CACHE_NAME = 'DH3.68-rosters-fpfa-ranks';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
