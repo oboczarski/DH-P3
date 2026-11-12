@@ -3571,7 +3571,7 @@ body[data-page="leaguehub"] .leaguehub-hero-user {
   padding: 0.4rem 0.5rem;
   border: 1px solid rgba(137, 160, 215, 0.17);
   border-radius: 12px;
-  background: linear-gradient(145deg, rgb(44 58 98 / 70%), rgba(12, 18, 37, 0.48));
+  background: linear-gradient(145deg, rgb(50 60 103), rgb(30 34 48 / 48%));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
 }
 
@@ -3587,7 +3587,7 @@ body[data-page="leaguehub"] .leaguehub-hero-user-icon {
   background: linear-gradient(145deg, rgba(91, 222, 211, 0.13), rgba(107, 103, 255, 0.13));
   color: #a7b6d3;
   font-size: 0.68rem;
-  background: linear-gradient(rgb(31 41 65 / 92%), rgb(16 24 41 / 98%)) padding-box, linear-gradient(135deg, rgb(115 244 255), rgb(91 127 255), rgb(219 109 255)) border-box;
+  background: linear-gradient(rgb(42 55 85 / 92%), rgb(20 29 47 / 98%)) padding-box, linear-gradient(135deg, rgb(115 244 255), rgb(91 127 255), rgb(219 109 255)) border-box;
   border: 0.1px solid transparent;
 }
 
@@ -3601,7 +3601,7 @@ body[data-page="leaguehub"] .leaguehub-hero-user-copy {
 body[data-page="leaguehub"] .leaguehub-hero-user-copy small,
 body[data-page="leaguehub"] .leaguehub-hero-league-control > label {
   color: rgba(180, 197, 229, 0.54);
-  font-size: 0.45rem;
+  font-size: 0.52rem;
   font-weight: 850;
   letter-spacing: 0.12em;
   line-height: 1;
@@ -3768,7 +3768,7 @@ body[data-page="leaguehub"] .leaguehub-tab-label {
 body[data-page="leaguehub"] .leaguehub-hero-league-control {
   grid-area: league;
   display: grid;
-  gap: 0.24rem;
+  gap: 0.14rem;
   min-width: 0;
 }
 
@@ -5246,8 +5246,8 @@ body[data-page="leaguehub"] .leaguehub-trade-stat-chip strong {
 
   body[data-page="leaguehub"] .leaguehub-hero-league-select,
   body[data-page="leaguehub"] .leaguehub-hero-league-select #leagueSelect {
-    min-height: 2.42rem;
-    height: 2.42rem;
+    min-height: 2.6rem;
+    height: 2.62rem;
   }
 
   body[data-page="leaguehub"] .leaguehub-trades-toolbar {
