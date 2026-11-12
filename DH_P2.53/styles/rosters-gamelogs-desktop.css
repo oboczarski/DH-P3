@@ -15,19 +15,26 @@
     padding: 14px 18px;
   }
 
-  /* Keep the phone's stacked profile with larger text and usable actions.
-     The affiliation and upcoming matchup can take separate lines when a
-     record or player name needs room; summary cards retain equal columns. */
+  /* Desktop player header: inset the portrait from the left edge and add
+     space before the identity. Reuse both offsets for vitals so the name,
+     byline and vitals keep one left edge; mobile and summary cards stay put. */
   body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile {
+    --profile-left-inset: 12px;
     --profile-portrait-width: 76px;
-    --profile-identity-gap: 24px;
+    --profile-identity-gap: 36px;
     gap: 4px;
   }
   body[data-page="rosters"] #game-logs-modal .gl-profile-intro {
     grid-template-columns: var(--profile-portrait-width) minmax(0, 1fr) 76px;
     min-height: 56px;
+    padding-left: var(--profile-left-inset);
   }
   body[data-page="rosters"] #game-logs-modal .gl-profile-portrait { height: 56px; }
+  /* Keep the watermark behind the inset headshot at the desktop-only offset. */
+  body[data-page="rosters"] #game-logs-modal .gl-profile-watermark { left: -16%; }
+  body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-player-vitals {
+    margin-left: calc(var(--profile-left-inset) + var(--profile-portrait-width) + var(--profile-identity-gap));
+  }
   body[data-page="rosters"] #game-logs-modal #modal-header .gl-profile #modal-player-name { font-size: 26px !important; }
   body[data-page="rosters"] #game-logs-modal .gl-profile-byline { flex-wrap: wrap; gap: 5px 12px; margin-top: 5px; }
   body[data-page="rosters"] #game-logs-modal .gl-profile-position { font-size: 16px; }
