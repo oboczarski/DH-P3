@@ -25,8 +25,12 @@ function createLoader(tables, failures = {}, boot = false) {
     if (failures[key] instanceof Error) throw failures[key];
     if (failures[key]) return { ok: false, status: failures[key] };
     if (sheet) {
-      assert.ok(['DH', 'DRK', 'FPFA'].includes(sheet) || /^WK(?:[1-9]|1[0-3])$/.test(sheet), 'Only FPFA ranks and mapped projections may supplement DH/DRK');
+      assert.ok(['DRK', 'FPFA'].includes(sheet) || /^WK(?:[1-9]|1[0-3])$/.test(sheet), 'Only defense ranks and mapped projections may use Sheets');
       return { ok: true, text: async () => tables[sheet] ?? (sheet === 'FPFA' ? matchupRanks : '') };
+    }
+    if (filename === '2026_Season.csv') {
+      assert.equal(parsed.pathname, '/data/NFL-2026_Stats/SeasonStats/2026_Season.csv');
+      return { ok: true, text: async () => tables[filename] || '' };
     }
     if (filename === 'Schedule2026.csv') {
       assert.equal(parsed.pathname, '/data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv');
@@ -53,7 +57,7 @@ test('Rosters profile and recorded/future weekly ranks match the breakdown All G
     ['HOU', 'BUF', ...[...published, 7].flatMap(rank => [999, 999, rank, 500, 500, 2])].join(','),
   ].join('\n');
   const window = createLoader({
-    DH: 'SZN,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,GM_P\n' + positions.map((pos, i) => `2026,${i + 1},Player ${pos},${pos},BUF,5,1`).join('\n'),
+    '2026_Season.csv': 'SZN,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,GM_P\n' + positions.map((pos, i) => `2026,${i + 1},Player ${pos},${pos},BUF,5,1`).join('\n'),
     DRK: defense, FPFA: summary,
     '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,vsRK\n' + positions.map((pos, i) => `1,${i + 1},${pos},BUF,5,1,20,30`).join('\n'),
   });
@@ -86,7 +90,7 @@ test('Rosters profile and recorded/future weekly ranks match the breakdown All G
 
 test('missing, invalid and failed FPFA ranks never fall back to DRK or CSV ranks or block recorded results', async () => {
   for (const value of ['', '0', '-1', '33', '1.5', '19 pts', 'NA']) {
-    const window = createLoader({ DH: season, DRK: defense,
+    const window = createLoader({ '2026_Season.csv': season, DRK: defense,
       FPFA: `TM,QBrk,RBrk,WRrk,TErk\nHOU,${value},1,2,3`,
       '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,vsRK\n1,4984,QB,BUF,5,1,30',
     });
@@ -96,7 +100,7 @@ test('missing, invalid and failed FPFA ranks never fall back to DRK or CSV ranks
     assert.equal(snapshot.weeklyStats[1]['4984'].fpt_ppr, 5);
   }
   for (const [csv, failure] of [['', 503], ['', new Error('Network unavailable')], ['<html>Sign in</html>']]) {
-    const window = createLoader({ DH: season, DRK: defense, FPFA: csv }, { FPFA: failure });
+    const window = createLoader({ '2026_Season.csv': season, DRK: defense, FPFA: csv }, { FPFA: failure });
     const snapshot = await window.activateRosters2026GameLogs();
     assert.ok(snapshot.matchupRankError);
     assert.equal(snapshot.weeklyStats[1]['4984'].opponent_rank, undefined);
@@ -109,7 +113,7 @@ test('projection-only players use FPFA ranks whether projections finish before o
     let release;
     const held = new Promise(resolve => { release = resolve; });
     const rows = 'WK,SLPR_ID,POS,TM,PROJ\n4,99999,RB,BUF,OUT';
-    const window = createLoader({ DH: season, DRK: defense,
+    const window = createLoader({ '2026_Season.csv': season, DRK: defense,
       FPFA: 'TM,QBrk,RBrk,WRrk,TErk\nHOU,4,7,1,32',
       '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P\n1,4984,QB,BUF,5,1',
       WK4: late ? held.then(() => rows) : rows,
@@ -146,7 +150,7 @@ test('Rosters 2026 ranks split the three-game PPG pool from the reduced position
     }
     cases.push({ ids, stat });
   }
-  const window = createLoader({ DH: 'SZN,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,GM_P,paATT,CAR,RR\n' + rows.join('\n'), DRK: defense,
+  const window = createLoader({ '2026_Season.csv': 'SZN,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,GM_P,paATT,CAR,RR\n' + rows.join('\n'), DRK: defense,
     '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP\n' + [1, 2, 3, 4].map(week => `${week},10000,QB,BUF,1,1,20`).join('\n') });
   const snapshot = await window.activateRosters2026GameLogs();
   assert.equal(snapshot.rankQualifierWeeks, 4);
@@ -166,7 +170,7 @@ test('Rosters 2026 ranks split the three-game PPG pool from the reduced position
 
 test('Rosters Overview comparison retains literal DH totals, rates and age without deriving missing fields', async () => {
   const window = createLoader({
-    DH: season.replace('\n', ',TD(t),OPP,IMP/OPP,AGE\n') + ',0,31,0%,30.3',
+    '2026_Season.csv': season.replace('\n', ',TD(t),OPP,IMP/OPP,AGE\n') + ',0,31,0%,30.3',
     DRK: defense,
     '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP\n1,4984,QB,BUF,35.66,1,58',
   });
@@ -184,7 +188,7 @@ test('Rosters Overview comparison retains literal DH totals, rates and age witho
 test('Rosters accepts spaced DRK rank headers before activating the league card snapshot', async () => {
   for (const headers of ['QB RK,RB RK,WR RK,TE RK', 'qb rk,rb rk,wr rk,te rk', 'QB\u00a0RK,RB\u202fRK,WR RK,TE RK']) {
     const window = createLoader({
-      DH: season,
+      '2026_Season.csv': season,
       DRK: `Team,TM,${headers}\nHouston Texans,HOU,2,11,8,19\nDetroit Lions,DET,6,12,9,20`,
       '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP\n1,4984,QB,BUF,35.66,1,58',
     });
@@ -199,7 +203,7 @@ test('Rosters accepts spaced DRK rank headers before activating the league card 
 
 test('DRK header adaptation preserves explicit compact cells and rejects missing rank columns', async () => {
   const tables = {
-    DH: season,
+    '2026_Season.csv': season,
     DRK: 'TM,QBRK,QB RK,RBRK,RB RK,WRRK,WR RK,TERK,TE RK\nHOU,,2,7,11,8,13,19,21\nDET,6,5,12,10,9,7,20,17',
     '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP\n1,4984,QB,BUF,35.66,1,58',
   };
@@ -217,7 +221,7 @@ test('Rosters preserves share values and ranks across DH/weekly CSV header renam
   const legacyHeaders = 'TMS,YMS,ruTMS,ruYMS,recTMS,recYMS';
   for (const headers of [newHeaders, legacyHeaders]) {
     const window = createLoader({
-      DH: season.replace('\n', `,${headers}\n`) + ',0.125,12.5%,25,0,1%,NA',
+      '2026_Season.csv': season.replace('\n', `,${headers}\n`) + ',0.125,12.5%,25,0,1%,NA',
       DRK: defense,
       '2026_AllWKs.csv': `WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,${headers}\n1,4984,QB,BUF,35.66,1,58,0.125,12.5%,25,0,1%,NA`,
     });
@@ -240,7 +244,7 @@ test('Rosters preserves share values and ranks across DH/weekly CSV header renam
 test('Rosters groups WK and legacy SZN combined CSVs without changing stats or statuses', async () => {
   for (const header of ['WK', 'SZN']) {
     const window = createLoader({
-      DH: season,
+      '2026_Season.csv': season,
       DRK: defense,
       '2026_AllWKs.csv': `${header},SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n2,4984,"Allen, Josh",QB,BUF,0,0,0,OUT\n1,4984,"Allen, Josh",QB,BUF,-2,1,30,22.5`,
     });
@@ -269,7 +273,7 @@ test('Rosters keeps season totals and blank weeks if the combined CSV fails vali
     ['', 404, /could not load \(404\)/],
     ['', new Error('Network unavailable'), /Network unavailable/],
   ]) {
-    const window = createLoader({ DH: season, DRK: defense, '2026_AllWKs.csv': csv }, { '2026_AllWKs.csv': failure });
+    const window = createLoader({ '2026_Season.csv': season, DRK: defense, '2026_AllWKs.csv': csv }, { '2026_AllWKs.csv': failure });
     const snapshot = await window.activateRosters2026GameLogs();
     assert.match(snapshot.weekErrors[1], message);
     assert.equal(Object.keys(snapshot.weekErrors).length, 18);
@@ -284,7 +288,7 @@ test('Rosters keeps season totals and blank weeks if the combined CSV fails vali
 
 test('Rosters loads all CSV weeks in one request, retains projections and reuses its cached snapshot', async () => {
   const window = createLoader({
-    DH: season,
+    '2026_Season.csv': season,
     DRK: defense,
     '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n4,4984,QB,BUF,19.52,1,59,23.4\n1,4984,QB,BUF,35.66,1,58,19.4\n7,4984,QB,BUF,0,0,0,IR\n18,4984,QB,BUF,0,0,0,PUP',
   });
@@ -306,13 +310,13 @@ test('Rosters loads all CSV weeks in one request, retains projections and reuses
     assert.equal(snapshot.weeklyStats[week]['4984'].__hasRecordedStats, false);
   }
   assert.equal(window.requests.filter(({ pathname }) => pathname.endsWith('/2026_AllWKs.csv')).length, 1);
-  assert.deepEqual(window.requests.map(({ sheet }) => sheet).filter(Boolean).sort(), ['DH', 'DRK', 'FPFA']);
+  assert.deepEqual(window.requests.map(({ sheet }) => sheet).filter(Boolean).sort(), ['DRK', 'FPFA']);
   assert.equal(window.requests.length, 5);
 });
 
 test('Rosters parses the shipped combined weekly file through its existing stat mappings', async () => {
   const csv = fs.readFileSync(new URL('../DH_P2.53/data/NFL-2026_Stats/WeeklyStats/2026_AllWKs.csv', import.meta.url), 'utf8');
-  const window = createLoader({ DH: season, DRK: defense, '2026_AllWKs.csv': csv });
+  const window = createLoader({ '2026_Season.csv': season, DRK: defense, '2026_AllWKs.csv': csv });
   const snapshot = await window.activateRosters2026GameLogs();
   const allen = snapshot.weeklyStats[4]['4984'];
   assert.equal(allen.fpt_ppr, 19.52);
@@ -329,13 +333,79 @@ test('Rosters parses the shipped combined weekly file through its existing stat 
   assert.equal(Object.keys(snapshot.weekErrors).length, 0);
 });
 
-test('Rosters keeps DH season totals on the SZN year header', async () => {
-  const window = createLoader({ DH: season.replace('SZN,', 'WK,') });
-  await assert.rejects(window.ensureRosters2026SeasonRowsLoaded(), /DH has missing or invalid columns/);
+test('Rosters requires the season CSV SZN year header', async () => {
+  const window = createLoader({ '2026_Season.csv': season.replace('SZN,', 'WK,') });
+  await assert.rejects(window.ensureRosters2026SeasonRowsLoaded(), /2026_Season.csv has missing or invalid columns/);
+});
+
+test('Rosters Career and Game Logs share one concurrent local season read without activating a season', async () => {
+  let release;
+  const pending = new Promise(resolve => { release = resolve; });
+  const window = createLoader({ '2026_Season.csv': pending, DRK: defense });
+  const career = window.ensureRosters2026SeasonRowsLoaded();
+  const sameRows = window.ensureRosters2026SeasonRowsLoaded();
+  assert.equal(window.requests.length, 1, 'Career starts only the season CSV, independent of modal feeds');
+  assert.equal(window.state.activeRostersGameLogsSeason, undefined);
+  release(season);
+  const [rows, same] = await Promise.all([career, sameRows]);
+  assert.equal(rows, same);
+  assert.equal(await window.ensureRosters2026SeasonRowsLoaded(), rows);
+  assert.equal(window.state.playerSeasonStats, undefined);
+  const snapshot = await window.activateRosters2026GameLogs();
+  assert.equal(snapshot.seasonStats['4984'].fpts_ppr, Number(rows[0].FPT_PPR));
+  assert.equal(window.requests.filter(({ pathname }) => pathname.endsWith('/2026_Season.csv')).length, 1);
+  assert.ok(window.requests.every(({ sheet }) => sheet !== 'DH'));
+});
+
+test('Rosters rejects invalid season files without fallback and retries the local file after a failure', async () => {
+  for (const [csv, failure, message] of [
+    ['', 404, /could not load \(404\)/],
+    ['', new Error('Network unavailable'), /Network unavailable/],
+    ['', undefined, /missing or invalid columns/],
+    ['<html>Not found</html>', undefined, /missing or invalid columns/],
+    [season.replace('GM_P,', 'wrong,'), undefined, /missing or invalid columns/],
+    [season.replace('2026,', '2025,'), undefined, /different season/],
+    [season.replace('4984,', 'no-id,'), undefined, /no valid player rows/],
+  ]) {
+    const tables = { '2026_Season.csv': csv };
+    const failures = { '2026_Season.csv': failure };
+    const window = createLoader(tables, failures);
+    await assert.rejects(window.ensureRosters2026SeasonRowsLoaded(), message);
+    assert.equal(window.requests.length, 1, 'A bad season file cannot fetch another source');
+    assert.equal(window.requests[0].sheet, null);
+    assert.equal(window.state.playerSeasonStats, undefined);
+    tables['2026_Season.csv'] = season;
+    delete failures['2026_Season.csv'];
+    const rows = await window.ensureRosters2026SeasonRowsLoaded();
+    assert.equal(rows[0].FPT_PPR, '35.66');
+    assert.equal(window.requests.length, 2);
+  }
+});
+
+test('Rosters reads all maintained season CSV players with existing totals, rates, missing cells and ranks', async () => {
+  const csv = fs.readFileSync(new URL('../DH_P2.53/data/NFL-2026_Stats/SeasonStats/2026_Season.csv', import.meta.url), 'utf8');
+  const window = createLoader({ '2026_Season.csv': csv, DRK: defense });
+  const rows = await window.ensureRosters2026SeasonRowsLoaded();
+  const snapshot = await window.activateRosters2026GameLogs();
+  assert.ok(rows.length > 0);
+  assert.equal(Object.keys(snapshot.seasonStats).length, rows.length);
+  for (const row of rows) {
+    const stats = snapshot.seasonStats[row.SLPR_ID];
+    assert.equal(stats.fpts_ppr, Number(row.FPT_PPR));
+    assert.equal(stats.games_played, Number(row.GM_P));
+    assert.equal(stats.ppg, Number(row.GM_P) > 0 ? Number(row.FPT_PPR) / Number(row.GM_P) : 0);
+    assert.equal(stats.pos, row.POS);
+    for (const [header, key] of [['paYDS', 'pass_yd'], ['CAR', 'rush_att'], ['recYDS', 'rec_yd'], ['AYA', 'adjusted_ypa'],
+      ['TPRR', 'tprr'], ['EPA/DB', 'epa_per_db'], ['MTF/A', 'mtf_per_att'], ['TD(t)', 'td_total']]) {
+      const expected = Number(row[header]);
+      assert.equal(stats[key], Number.isFinite(expected) ? expected : undefined, `${row.SLPR_ID}: ${header}`);
+    }
+  }
+  assert.equal(window.requests.filter(({ pathname }) => pathname.endsWith('/2026_Season.csv')).length, 1);
 });
 
 test('a failed background 2025 CSV load cannot erase active Rosters 2026 data and can retry', async () => {
-  const window = createLoader({ DH: season, DRK: defense });
+  const window = createLoader({ '2026_Season.csv': season, DRK: defense });
   await window.activateRosters2026GameLogs();
   const state = window.state;
   const seasonStats = state.playerSeasonStats;
@@ -376,7 +446,7 @@ test('Rosters boot loads WK8-WK13 projections after the CSV cutoff without delay
   let release;
   const held = new Promise((resolve) => { release = resolve; });
   const projections = (week, proj) => `WK,SLPR_ID,POS,TM,PROJ,FPT_PPR,SNP\n${week},4984,QB,BUF,${proj},999,99`;
-  const window = createLoader({ DH: season, DRK: defense,
+  const window = createLoader({ '2026_Season.csv': season, DRK: defense,
     '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n7,4984,QB,BUF,19.52,1,59,23.4',
     WK8: held.then(() => projections(8, '22.0')), WK9: projections(9, '0'), WK10: projections(10, 'BYE'),
     WK11: projections(11, '21.2'), WK12: projections(12, 'OUT'), WK13: projections(13, '0'),
@@ -414,7 +484,7 @@ test('Rosters boot loads WK8-WK13 projections after the CSV cutoff without delay
 });
 
 test('Rosters future tabs preserve statuses, reject the wrong week and contain individual failures', async () => {
-  const window = createLoader({ DH: season, DRK: defense,
+  const window = createLoader({ '2026_Season.csv': season, DRK: defense,
     '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP\n4,4984,QB,BUF,19.52,1,59',
     WK5: 'SZN,SLPR_ID,POS,TM,PROJ\n5,4984,QB,BUF,OUT\n5,99999,RB,BUF,PUP',
     WK6: 'WK,SLPR_ID,POS,TM,PROJ\n5,4984,QB,BUF,22.0',

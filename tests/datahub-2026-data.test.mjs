@@ -109,27 +109,104 @@ test('weekly team changes and alias teams resolve without using another team or 
   assert.equal(data.weeklyRows[1][0].vsRK, '');
 });
 
-test('main season loader requests DH only, even when every modal source would fail', async () => {
+test('main season loader requests only the fresh local season CSV while modal sources are unavailable', async () => {
   const requests = [];
-  let dh = 'SZN,SLPR_ID,POS,TM,FPT_PPR,GM_P\n2026,4984,QB,BUF,35.66,2';
+  let csv = 'SZN,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,GM_P\n2026,4984,Josh Allen,QB,BUF,35.66,2';
   const fetchImpl = async (url, init) => {
     assert.equal(init.cache, 'no-store');
-    const sheet = new URL(url).searchParams.get('sheet');
-    requests.push(sheet);
-    if (sheet !== 'DH') throw new Error('Modal source unavailable');
-    return { ok: true, text: async () => dh };
+    const parsed = new URL(url);
+    assert.equal(parsed.search, '');
+    assert.equal(parsed.protocol, 'file:');
+    requests.push(parsed.pathname);
+    if (!parsed.pathname.endsWith('/SeasonStats/2026_Season.csv')) throw new Error('Modal source unavailable');
+    return { ok: true, text: async () => csv };
   };
   const options = { parseCsv, fetchImpl };
   const data = await load2026SourceData(options);
-  assert.deepEqual(requests, ['DH']);
+  assert.equal(requests.length, 1);
   assert.equal(data.rawRows[0].G, '2');
+  assert.equal(data.rawRows[0].NM, 'Josh Allen');
   assert.equal(data.rawRows[0].FPT_PPR, '35.66');
   assert.equal(data.weeksOfData, 2);
   assert.deepEqual(data.weeklyRows, {});
-  dh = '<html>Sign in</html>';
-  await assert.rejects(load2026SourceData(options), /DH has missing or invalid columns/);
-  dh = 'SZN,SLPR_ID,POS,TM,FPT_PPR,GM_P\n2025,4984,QB,BUF,350,17';
+  csv = '<html>Sign in</html>';
+  await assert.rejects(load2026SourceData(options), /2026_Season.csv has missing or invalid columns/);
+  csv = 'SZN,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,GM_P\n2025,4984,Josh Allen,QB,BUF,350,17';
   await assert.rejects(load2026SourceData(options), /different season/);
+});
+
+test('season CSV failures never request a Sheets fallback and a later reload reads updated totals', async () => {
+  for (const response of [
+    { ok: false, status: 404 },
+    { ok: true, text: async () => '' },
+    { ok: true, text: async () => 'SZN,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,GM_P\n2026,no-id,Empty,QB,BUF,0,0' },
+  ]) {
+    let requests = 0;
+    await assert.rejects(load2026SourceData({ parseCsv, fetchImpl: async url => {
+      requests++;
+      assert.ok(String(url).endsWith('/SeasonStats/2026_Season.csv'));
+      return response;
+    } }), /2026_Season.csv/);
+    assert.equal(requests, 1);
+  }
+  const load = (fpts, games) => load2026SourceData({ parseCsv, fetchImpl: async () => ({ ok: true,
+    text: async () => `SZN,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,GM_P\n2026,4984,Josh Allen,QB,BUF,${fpts},${games}` }) });
+  const first = await load('0', 13);
+  const refreshed = await load('-2', 14);
+  assert.equal(first.rawRows[0].FPT_PPR, '0');
+  assert.equal(refreshed.rawRows[0].FPT_PPR, '-2');
+  assert.equal(first.weeksOfData, 13);
+  assert.equal(refreshed.weeksOfData, 15);
+});
+
+test('DataHub preserves every column of the maintained season CSV for all downstream adapters', async () => {
+  const csv = fs.readFileSync(new URL('../DH_P2.53/data/NFL-2026_Stats/SeasonStats/2026_Season.csv', import.meta.url), 'utf8');
+  const original = parseCsv(csv);
+  const data = await load2026SourceData({ parseCsv, fetchImpl: async () => ({ ok: true, text: async () => csv }) });
+  assert.ok(original.length > 0);
+  assert.equal(data.rawRows.length, original.length);
+  original.forEach((row, index) => {
+    for (const [header, value] of Object.entries(row)) assert.equal(data.rawRows[index][header], value, `${row.SLPR_ID}: ${header}`);
+    assert.equal(data.rawRows[index].NM, row['PLAYER NAME']);
+    assert.equal(data.rawRows[index].G, row.GM_P);
+  });
+});
+
+test('DataHub table, detail and Career consumers share one in-flight season snapshot and retry failures', async () => {
+  let release;
+  const held = new Promise(resolve => { release = resolve; });
+  let requests = 0;
+  let rebuilds = 0;
+  let fail = false;
+  const ctx = vm.createContext({
+    parseCsv, state: { stats2026: { loaded: false } },
+    rebuildDataHubRows() { rebuilds++; },
+    load2026SourceData: async () => {
+      requests++;
+      if (fail) throw new Error('Season CSV unavailable');
+      await held;
+      return { rawRows: [player], weeksOfData: 1, weeklyRows: {} };
+    },
+  });
+  vm.runInContext(source.slice(source.indexOf('async function ensureDataHub2026Data()'),
+    source.indexOf('// Share only this page\'s background CSV/projection work')), ctx);
+  const pending = [ctx.ensureDataHub2026Data(), ctx.ensureDataHub2026Data(), ctx.ensureDataHub2026Data()];
+  assert.equal(requests, 1);
+  release();
+  const [table, detail, career] = await Promise.all(pending);
+  assert.equal(table, detail);
+  assert.equal(table, career);
+  assert.equal(await ctx.ensureDataHub2026Data(), table);
+  assert.equal(requests, 1);
+  assert.equal(rebuilds, 1);
+  ctx.state.stats2026 = { loaded: false };
+  fail = true;
+  await assert.rejects(ctx.ensureDataHub2026Data(), /Season CSV unavailable/);
+  assert.equal(ctx.state.stats2026.loaded, false);
+  assert.equal(ctx.state.stats2026Promise, null);
+  fail = false;
+  assert.equal((await ctx.ensureDataHub2026Data()).loaded, true);
+  assert.equal(requests, 3);
 });
 
 test('failed or malformed combined CSV keeps totals and schedule, with no Sheets fallback', async () => {

@@ -39,7 +39,7 @@
 </head>
 
 <body data-page="welcome" data-dashboard-loading class="p-2 sm:p-4">
-  <!-- Home-only boot screen: stages follow DH loading, qualified leader selection
+  <!-- Home-only boot screen: stages follow season CSV loading, qualified leader selection
        and chart rendering. The page is released on success or source failure. -->
   <div id="dashboard-boot" class="dh-boot" data-phase="0" role="region" aria-label="Loading Dynasty Hub">
     <div class="dh-boot__mesh" aria-hidden="true"></div>
@@ -198,7 +198,7 @@
         <div class="welcome-subtitle-row">
           <h3>2026 League Leaders Dashboard</h3>
         </div>
-        <!-- Home-only live DH status: keep source failures visible without blocking navigation. -->
+        <!-- Home-only season CSV status: keep source failures visible without blocking navigation. -->
         <p id="dashboard-data-status" role="status" aria-live="polite">Loading 2026 season stats…</p>
 
         <!-- Key Metrics Row -->
@@ -545,7 +545,7 @@
 
   <script defer src="scripts/app.js?v=DH3.49n-local-weekly-stats"></script>
   <script src="scripts/dh-scramble.js?v=DH3.23B-dashboard-branding"></script>
-  <script src="scripts/dashboard.js?v=DH3.61j-scatter-neighbor-clearance"></script>
+  <script src="scripts/dashboard.js?v=DH3.70-local-2026-season"></script>
 </body>
 
 </html>

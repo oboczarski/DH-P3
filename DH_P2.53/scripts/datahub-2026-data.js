@@ -1,9 +1,8 @@
-// DataHub-only 2026 sources: DH supplies season totals; the shipped combined
+// DataHub-only 2026 sources: 2026_Season.csv supplies season totals; the combined
 // weekly CSV supplies results. Background Sheets reads supply only future PROJ.
 // DRK remains the opponent-rank feed.
 import { get2026SheetCsvUrl, get2026ProjectionWeeks, get2026ProjectionCsvUrl } from './nfl-2026-sheets.js';
 
-export const DATAHUB_2026_WORKBOOK = '16fOWHEuPWkNz9AHLCiySjxwW_y4ulLemNaMVc3srE94';
 const POSITIONS = new Set(['QB', 'RB', 'WR', 'TE']);
 const DEFENSE_COLUMNS = { QB: 'QBRK', RB: 'RBRK', WR: 'WRRK', TE: 'TERK' };
 
@@ -23,7 +22,7 @@ export function has2026WeekResults(row) {
     || (Number.isFinite(Number(row.FPT_PPR)) && Number(row.FPT_PPR) !== 0);
 }
 
-// Qualifier progression belongs to DH totals, never to weekly CSV availability.
+// Qualifier progression belongs to season CSV totals, never to weekly availability.
 // G is the Overview alias of GM_P; after the last byes, 14 games = Week 15.
 export function get2026WeeksOfData(seasonRows) {
   const maxGames = seasonRows.filter(isPlayer).reduce((highest, row) => {
@@ -34,7 +33,7 @@ export function get2026WeeksOfData(seasonRows) {
 }
 
 export function build2026SourceData({ seasonRows, weeklyRows = {}, projectionRows = {}, scheduleRows = [], defenseRows = [] }) {
-  // Adapt the workbook's identity/game columns to the existing table contract.
+  // Adapt the season CSV's identity/game columns to the existing table contract.
   // Preserve every original stat field for the modal's header-based parser.
   const rawRows = seasonRows.filter(isPlayer).map((row) => ({ ...row, NM: row['PLAYER NAME'], G: row.GM_P }));
   const schedule = new Map(scheduleRows.map((row) => [normalize2026Team(row.TM), row]));
@@ -84,7 +83,7 @@ export function build2026SourceData({ seasonRows, weeklyRows = {}, projectionRow
     scheduleByTeam: Object.fromEntries(schedule), defenseByTeam: Object.fromEntries(defense) };
 }
 
-// Keep DH loading independent of every modal-only source. A malformed weekly CSV,
+// Keep season loading independent of every modal-only source. A malformed weekly CSV,
 // unavailable DRK feed or schedule must never prevent the main Stats grid opening.
 function createSheetReader(parseCsv, fetchImpl) {
   return async function sheet(name, requiredHeaders) {
@@ -101,11 +100,22 @@ function createSheetReader(parseCsv, fetchImpl) {
 }
 
 export async function load2026SourceData({ parseCsv, fetchImpl = fetch }) {
-  const sheet = createSheetReader(parseCsv, fetchImpl);
-  const seasonRows = await sheet('DH', ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR', 'GM_P']);
-  if (seasonRows.some((row) => isPlayer(row) && String(row.SZN) !== '2026')) throw new Error('DH contains a different season.');
+  // Stats, Trade Values' fantasy columns, Game Logs, Compare, Team and Career
+  // reuse this page's local season snapshot. Resolve from the module so clean
+  // routes work too; bypass HTTP cache on reload and never fall back to Sheets.
+  const url = new URL('../data/NFL-2026_Stats/SeasonStats/2026_Season.csv', import.meta.url);
+  const response = await fetchImpl(url, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`2026_Season.csv could not load (${response.status}).`);
+  const seasonRows = parseCsv(await response.text());
+  const requiredHeaders = ['SZN', 'SLPR_ID', 'PLAYER NAME', 'POS', 'TM', 'FPT_PPR', 'GM_P'];
+  if (!seasonRows.length || requiredHeaders.some((header) => !(header in seasonRows[0]))) {
+    throw new Error('2026_Season.csv has missing or invalid columns.');
+  }
+  const players = seasonRows.filter(isPlayer);
+  if (!players.length) throw new Error('2026_Season.csv has no valid player rows.');
+  if (players.some((row) => String(row.SZN) !== '2026')) throw new Error('2026_Season.csv contains a different season.');
   return {
-    rawRows: seasonRows.filter(isPlayer).map((row) => ({ ...row, NM: row['PLAYER NAME'], G: row.GM_P })),
+    rawRows: players.map((row) => ({ ...row, NM: row['PLAYER NAME'], G: row.GM_P })),
     weeklyRows: {},
     weeksOfData: get2026WeeksOfData(seasonRows),
   };

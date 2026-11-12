@@ -145,7 +145,7 @@ DH-P3/DH_P2.53
   - Section configuration (categories, order, and stat lists) is documented in `.ReferenceFolder/SZN_STATS_SECTIONS.md`.
 ---
 
-- **/DH_P2.53/scripts/dashboard.js**: Logic for the **Home / Fantasy Dashboard**. Contains the `HP_DATA` top-player dataset and:
+- **/DH_P2.53/scripts/dashboard.js**: Logic for the **Home / Fantasy Dashboard**. Loads `SeasonStats/2026_Season.csv` independently through `dashboard-data.js` and:
   - Builds summary metrics for dashboard cards.
   - Renders radar, bar, and consistency-vs-ceiling scatter charts using Chart.js (and D3 where applicable).
   - Manages player selection, position filters, and radar modal behavior.
@@ -301,7 +301,7 @@ DH-P3/DH_P2.53
   - `DH_P2.53/data/NFL-2025_Stats/SZN.csv`
   - `DH_P2.53/data/NFL-2025_Stats/SZN_RKs.csv`
   - `DH_P2.53/data/NFL-2025_Stats/WeeklyStats/WK1.csv` … `WK18.csv`
-- **2026 DataHub/Rosters:** season totals still use the live DH workbook tab; weekly stats use `DH_P2.53/data/NFL-2026_Stats/WeeklyStats/2026_AllWKs.csv`, grouped by `WK`. Opponent ranks remain on DRK; schedule/bye context uses `DH_P2.53/data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv`. Never request numbered weekly Sheets tabs or fall back to them.
+- **2026 Home/DataHub/Rosters:** all season player totals use `DH_P2.53/data/NFL-2026_Stats/SeasonStats/2026_Season.csv`, including Cards, Stats, Trade Values fantasy columns, Game Logs, Compare, Team player rows and Career. Page-owned loaders reuse their season snapshot and request fresh CSV on reload; no season Sheets fallback is permitted. `get2026SheetCsvUrl` rejects the retired `DH` tab. DataHub/Rosters weekly stats use `DH_P2.53/data/NFL-2026_Stats/WeeklyStats/2026_AllWKs.csv`, grouped by `WK`. Opponent ranks remain on DRK; schedule/bye context uses `DH_P2.53/data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv`. Completed results never request numbered weekly Sheets tabs or fall back to them. Background future projections may read only configured future weeks' `PROJ` cells; KTC/ADP, DRK, FPFA, TM_STAT and the Matchups feeds retain their existing Sheets integrations.
 - **Historical Rosters and the separate Stats page use the local 2025 CSVs** for these stats (Google Sheets loader still exists for easy re-enable next season).
 - **Stats page table** now uses `SZN.csv` for displayed stats, and augments with:
   - **KTC VALUE** + **RDP (pick) values** from `KTC_1QB` / `KTC_SFLX` in the Rosters KTC workbook (via `fetchDataFromGoogleSheet()` in `app.js`).

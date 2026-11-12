@@ -3443,7 +3443,7 @@ function applyPlayerStatsSnapshot(snapshot, season = null) {
 }
 async function activateRosters2025GameLogs() {
     // Rosters 2025 Game Logs source restoration:
-    // the 2026 workbook replaces the shared modal state, so restore the cached
+    // the 2026 season snapshot replaces shared modal state, so restore the cached
     // local-CSV snapshot and the previous league's matchups on every switch back.
     if (!state.rosters2025GameLogs) {
         await fetchPlayerStatsSheets();
@@ -3476,7 +3476,7 @@ async function fetchGameLogs(playerId) {
         await window.ensureRosters2026ProjectionsLoaded();
         await window.activateRosters2026GameLogs();
         // Sleeper matchup points are the authoritative league-specific source
-        // for the weekly table and summary totals. Keep workbook FPT_PPR in
+        // for the weekly table and summary totals. Keep weekly CSV FPT_PPR in
         // playerWeeklyStats for the consistency chart only.
         await ensureSleeperLiveStats();
         if (state.currentLeagueId) {
@@ -6935,7 +6935,7 @@ function buildCareerRows(historicalRows, season2025Rows, season2026Rows) {
 }
 
 async function ensureCareerStatsLoaded() {
-    // Career loads only local Career/SZN plus DH, independently of the selected
+    // Career loads only local Career/2025 SZN/2026 season CSV, independently of the selected
     // Game Logs year and without activating a snapshot or requiring WK/DRK.
     // Failed supplemental reads preserve history and retry on the next open.
     if (state.careerStatsByPlayer) return state.careerStatsByPlayer;

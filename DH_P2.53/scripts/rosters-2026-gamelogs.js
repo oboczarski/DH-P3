@@ -2,7 +2,7 @@
  * Rosters-only 2026 Game Logs
  *
  * This file intentionally does not import or call DataHub code. It owns the
- * season-workbook/weekly-CSV/schedule loading and converts into the shared roster
+ * season-CSV/weekly-CSV/schedule loading and converts into the shared roster
  * modal state shape exposed by app.js.
  */
 (() => {
@@ -108,7 +108,7 @@
     };
     const appRootUrl = (path) => new URL(`../${path}`, window.location.href).toString();
     const fetchRows = async (sheetName, requiredHeaders) => {
-        // Rosters owns its DH/DRK/FPFA loader; share only workbook URL configuration.
+        // Rosters owns its DRK/FPFA loader; share only workbook URL configuration.
         const { get2026SheetCsvUrl } = await import('./nfl-2026-sheets.js');
         const url = get2026SheetCsvUrl(sheetName);
         const response = await fetch(url, { cache: 'no-store' });
@@ -269,14 +269,28 @@
         })().catch((error) => { projectionsLoadPromise = null; throw error; });
         return projectionsLoadPromise;
     }
-    // Rosters Career needs only DH totals, even when the selected Game Logs
+    // Rosters Career needs only season CSV totals, even when the selected Game Logs
     // year is 2025. Reuse this read in the full loader without activating a year
     // or making Career depend on weekly CSV/DRK/schedule availability.
     async function ensureRosters2026SeasonRowsLoaded() {
         if (seasonRowsCache) return seasonRowsCache;
         if (!seasonRowsLoadPromise) {
-            seasonRowsLoadPromise = fetchRows('DH', ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR'])
-                .then((rows) => { seasonRowsCache = rows.filter(isPlayer); return seasonRowsCache; })
+            // Cards, Game Logs, Compare, Team and Career reuse one validated
+            // local read. A failed file can retry; it never activates a different
+            // season or falls back to Sheets, weekly results or Sleeper stats.
+            seasonRowsLoadPromise = (async () => {
+                const response = await fetch(appRootUrl('data/NFL-2026_Stats/SeasonStats/2026_Season.csv'), { cache: 'no-store' });
+                if (!response.ok) throw new Error(`Rosters 2026_Season.csv could not load (${response.status}).`);
+                const rows = parseCsv(await response.text());
+                if (!rows.length || ['SZN', 'SLPR_ID', 'PLAYER NAME', 'POS', 'TM', 'FPT_PPR', 'GM_P'].some((header) => !(header in rows[0]))) {
+                    throw new Error('Rosters 2026_Season.csv has missing or invalid columns.');
+                }
+                const players = rows.filter(isPlayer);
+                if (!players.length) throw new Error('Rosters 2026_Season.csv has no valid player rows.');
+                if (players.some((row) => String(row.SZN) !== '2026')) throw new Error('Rosters 2026_Season.csv contains a different season.');
+                seasonRowsCache = players;
+                return seasonRowsCache;
+            })()
                 .finally(() => { seasonRowsLoadPromise = null; });
         }
         return seasonRowsLoadPromise;

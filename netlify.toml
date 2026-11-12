@@ -110,6 +110,14 @@
 # HEADERS — Security & Caching
 # =============================================================================
 
+# Current-season totals are updated several times each week. Keep this exact
+# browser-cache rule before wildcard rules so its revalidation policy wins.
+# Netlify's static CDN still serves the current deploy without an origin round trip.
+[[headers]]
+  for = "/data/NFL-2026_Stats/SeasonStats/2026_Season.csv"
+  [headers.values]
+    Cache-Control = "public, no-cache, max-age=0, must-revalidate"
+
 # Default headers for all paths
 [[headers]]
   for = "/*"

@@ -46,9 +46,10 @@ test('Matchups maps the core live tabs and supplemental stats feed to native exp
     assert.equal(url.searchParams.get('gid'), gid);
     assert.equal(url.searchParams.get('sheet'), sheet);
   }
-  // Weekly stats moved to the local CSV; remaining workbook feeds stay live.
+  // Season/weekly stats use local CSVs; unrelated workbook feeds stay live.
   assert.throws(() => get2026SheetCsvUrl('WK1'), /2026_AllWKs\.csv/);
-  assert.ok(get2026SheetCsvUrl('DH').includes('/gviz/tq?'));
+  for (const retired of ['DH', 'dh', ' DH ']) assert.throws(() => get2026SheetCsvUrl(retired), /2026_Season\.csv/);
+  assert.ok(get2026SheetCsvUrl('DRK').includes('/gviz/tq?'));
   assert.ok(get2026SheetCsvUrl('TM_STAT').includes('/gviz/tq?'));
 });
 

@@ -149,7 +149,9 @@
 // Refresh Rosters matchup PPR gradient tags and current 2px table-edge gaps.
 // Refresh Rosters Game Logs header/weekly opponent ranks from the published FPFA summary.
 // Refresh Rosters' bounded Ownership scroll pane and its mobile-only height allowance.
-const CACHE_NAME = 'DH3.68a-rosters-ownership-bounds2';
+// Refresh all local 2026 season loaders together. Season CSV data remains
+// network-first at runtime, without an extra install-time dataset download.
+const CACHE_NAME = 'DH3.70-local-2026-season';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -219,7 +221,7 @@ const CORE_ASSET_PATHS = [
   '/scripts/vendor/echarts-6.0.0.min.js',
   '/styles/leaguehub-analysis.css',
   '/scripts/dashboard.js',
-  // Home DH adapter is page-owned; cache only its code, never the Google export.
+  // Home's season adapter is page-owned; preload code, then read fresh CSV at runtime.
   '/scripts/dashboard-data.js',
   '/scripts/dashboard-scatter-layout.js',
   '/scripts/syop.js',

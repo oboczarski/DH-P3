@@ -1,5 +1,6 @@
 // Shared URL configuration only: DataHub, Rosters and Matchups keep separate data/state
-// loaders. Weekly results live in 2026_AllWKs.csv; unfinished-week PROJ cells
+// loaders. Season totals live in 2026_Season.csv and weekly results in
+// 2026_AllWKs.csv; unfinished-week PROJ cells
 // have a separate, explicit export API so results never fall back to Sheets.
 const WORKBOOK_ID = '16fOWHEuPWkNz9AHLCiySjxwW_y4ulLemNaMVc3srE94';
 // Existing weekly tabs, verified against the live workbook. Add the gid when
@@ -41,6 +42,9 @@ const MATCHUPS_SHEET_GIDS = Object.freeze({
 });
 
 export function get2026SheetCsvUrl(sheetName) {
+    // The retired DH season feed must never be requested, including by a new
+    // indirect caller. Defense, team, matchup and future PROJ feeds stay live.
+    if (String(sheetName).trim().toUpperCase() === 'DH') throw new Error('2026 season stats use 2026_Season.csv.');
     // Prevent retired weekly-tab requests from silently reaching Google Sheets.
     if (/^WK\d+$/.test(sheetName)) throw new Error('2026 weekly stats use 2026_AllWKs.csv.');
     const gid = MATCHUPS_SHEET_GIDS[sheetName];

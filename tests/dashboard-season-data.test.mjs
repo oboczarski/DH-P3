@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {
   parseDashboardCsv, normalizeDashboardPlayer, loadDashboardPlayers,
   selectConsistencyRb, selectScatterPlayers, getScatterBounds,
@@ -9,7 +10,7 @@ import {
 const headers = 'SZN,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,GM_P,CSTY%,CL';
 const fixture = `${headers}\r\n2026,1,"Runner, \"\"One\"\"",RB,DET,120,4,100.0%,40\r\n2026,2,Runner Two,RB,SF,200,8,100.0%,30`;
 
-test('DH CSV adapter preserves quoted names, percentages, zeroes and missing cells', () => {
+test('season CSV adapter preserves quoted names, percentages, zeroes and missing cells', () => {
   const rows = parseDashboardCsv('\uFEFF' + fixture);
   const player = normalizeDashboardPlayer(rows[0]);
   assert.equal(player.name, 'Runner, "One"');
@@ -26,15 +27,16 @@ test('DH CSV adapter preserves quoted names, percentages, zeroes and missing cel
   assert.equal(normalizeDashboardPlayer({ ...rows[0], FPT_PPR: '0' }).stats.ppg, 0);
 });
 
-test('home requests only fresh DH season data and rejects stale seasons or bad exports', async () => {
+test('home requests only the fresh local season CSV and rejects stale seasons or bad files', async () => {
   const calls = [];
   const players = await loadDashboardPlayers(async (url, options) => {
     calls.push({ url, options });
     return { ok: true, text: async () => fixture };
   });
   assert.equal(calls.length, 1);
-  assert.equal(new URL(calls[0].url).searchParams.get('sheet'), 'DH');
-  assert.match(calls[0].url, /16fOWHEuPWkNz9AHLCiySjxwW_y4ulLemNaMVc3srE94/);
+  assert.ok(new URL(calls[0].url).pathname.endsWith('/data/NFL-2026_Stats/SeasonStats/2026_Season.csv'));
+  assert.equal(new URL(calls[0].url).search, '');
+  assert.doesNotMatch(String(calls[0].url), /google/);
   assert.equal(calls[0].options.cache, 'no-store');
   assert.deepEqual(players.map(player => player.id), ['2', '1']);
   for (const text of [fixture.replaceAll('2026,', '2025,'), '<html>Error</html>', headers]) {
@@ -42,6 +44,22 @@ test('home requests only fresh DH season data and rejects stale seasons or bad e
   }
   await assert.rejects(loadDashboardPlayers(async () => ({ ok: false, status: 503 })), /503/);
   assert.throws(() => parseDashboardCsv(fixture + '\n"unfinished'), /quoted cell/);
+});
+
+test('home adapts every maintained season CSV player without losing PPR totals, games or percentage units', async () => {
+  const csv = fs.readFileSync(new URL('../DH_P2.53/data/NFL-2026_Stats/SeasonStats/2026_Season.csv', import.meta.url), 'utf8');
+  const original = parseDashboardCsv(csv);
+  const players = await loadDashboardPlayers(async () => ({ ok: true, text: async () => csv }));
+  const byId = new Map(players.map(player => [player.id, player]));
+  assert.equal(players.length, original.length);
+  for (const row of original) {
+    const player = byId.get(row.SLPR_ID);
+    assert.ok(player);
+    assert.equal(player.stats.fpts, Number(row.FPT_PPR));
+    assert.equal(player.games, Number(row.GM_P));
+    assert.equal(player.stats.ppg, Number(row.GM_P) > 0 ? Number(row.FPT_PPR) / Number(row.GM_P) : null);
+    assert.equal(player.stats.csty, row['CSTY%'] === 'NA' ? null : Number(row['CSTY%'].replace('%', '')));
+  }
 });
 
 test('CSTY card picks largest FPTS among exactly 100% RBs, independently of PPG or input order', () => {

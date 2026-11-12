@@ -1,5 +1,5 @@
 (function() {
-// Dashboard season data is loaded independently from the live 2026 DH export.
+// Dashboard season data is loaded independently from the maintained 2026 season CSV.
 // === State ===
 let players = [];
 let scatterAll = [];
@@ -1304,7 +1304,7 @@ async function dismissDashboardBoot() {
   document.getElementById('legalFootnote')?.removeAttribute('inert');
 }
 
-// Initialize the home dashboard once from DH; failures stay explicit and never
+// Initialize the home dashboard once from its CSV; failures stay explicit and never
 // fall back to the retired 2025 snapshot or another page's loaded stats/state.
 window.initFantasyDashboard = function() {
   if (dashboardInitPromise) return dashboardInitPromise;
@@ -1318,7 +1318,7 @@ async function initializeDashboard() {
   try {
     setDashboardBootPhase(0, 'Connecting to the 2026 season');
     [dashboardData, dashboardLayout] = await Promise.all([
-      import('./dashboard-data.js?v=DH3.61g-dashboard-boot-labels'),
+      import('./dashboard-data.js?v=DH3.70-local-2026-season'),
       import('./dashboard-scatter-layout.js?v=DH3.61j-scatter-neighbor-clearance')
     ]);
     players = await dashboardData.loadDashboardPlayers();

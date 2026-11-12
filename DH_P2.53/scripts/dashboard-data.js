@@ -1,6 +1,5 @@
-// Home dashboard owns its DH season adapter. Share URL configuration and the
-// pure DataHub rank-qualification rule; no other page's state or data loader runs.
-import { get2026SheetCsvUrl } from './nfl-2026-sheets.js';
+// Home owns its local 2026 season CSV adapter. Only the pure DataHub qualification
+// rule is shared; no other page's state, data loader or Sheets configuration runs.
 import { isStatsSeasonRankQualified } from './datahub-stats-positional-ranks.js';
 
 const POSITIONS = new Set(['QB', 'RB', 'WR', 'TE']);
@@ -24,16 +23,16 @@ export function parseDashboardCsv(text) {
       }
     } else cell += char;
   }
-  if (quoted) throw new Error('Dashboard DH export contains an unfinished quoted cell.');
+  if (quoted) throw new Error('Dashboard 2026_Season.csv contains an unfinished quoted cell.');
   record.push(cell.trim());
   if (record.some(value => value !== '')) records.push(record);
   const [headers = [], ...rows] = records;
   const required = ['SZN', 'SLPR_ID', 'PLAYER NAME', 'POS', 'TM', 'FPT_PPR', 'GM_P', 'CSTY%', 'CL'];
-  if (required.some(header => !headers.includes(header))) throw new Error('Dashboard DH export has missing columns.');
+  if (required.some(header => !headers.includes(header))) throw new Error('Dashboard 2026_Season.csv has missing columns.');
   return rows.map(values => Object.fromEntries(headers.map((header, i) => [header, values[i] ?? ''])));
 }
 
-// DH publishes formatted percentages and NA cells. Keep missing values distinct
+// The season CSV retains formatted percentages and NA cells. Keep missing values distinct
 // from numeric zero, and do not multiply an explicit "1%" cell by 100.
 const toNum = value => {
   if (value === null || value === undefined || String(value).trim() === '') return null;
@@ -55,7 +54,7 @@ export function normalizeDashboardPlayer(row) {
     trend: 'stable', games,
     stats: {
       fpts,
-      // DH has no PPG column. Use its PPR total and recorded games at full
+      // The CSV has no PPG column. Use its PPR total and recorded games at full
       // precision so every dashboard PPG comparison uses the same denominator.
       ppg: games > 0 && fpts !== null ? fpts / games : null,
       // Summary cards use the same position volume fields as DataHub's ranks.
@@ -77,11 +76,14 @@ export function normalizeDashboardPlayer(row) {
 }
 
 export async function loadDashboardPlayers(fetchImpl = fetch) {
-  const response = await fetchImpl(get2026SheetCsvUrl('DH'), { cache: 'no-store' });
-  if (!response.ok) throw new Error(`Dashboard DH could not load (${response.status}).`);
+  // Read the maintained file once per dashboard initialization. Module-relative
+  // URLs support the root page; each reload gets fresh data without a Sheets fallback.
+  const url = new URL('../data/NFL-2026_Stats/SeasonStats/2026_Season.csv', import.meta.url);
+  const response = await fetchImpl(url, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`Dashboard 2026_Season.csv could not load (${response.status}).`);
   const rows = parseDashboardCsv(await response.text()).filter(row =>
     /^\d+$/.test(row.SLPR_ID) && POSITIONS.has(row.POS));
-  if (!rows.length || rows.some(row => row.SZN !== '2026')) throw new Error('Dashboard DH has no valid 2026 season data.');
+  if (!rows.length || rows.some(row => row.SZN !== '2026')) throw new Error('Dashboard 2026_Season.csv has no valid 2026 season data.');
   return rows.map(normalizeDashboardPlayer).sort((a, b) => (b.stats.fpts ?? -Infinity) - (a.stats.fpts ?? -Infinity));
 }
 

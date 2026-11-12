@@ -2,7 +2,9 @@ import { createDataHubGameLogsProfile, historicalSosSource } from "./datahub-gam
 import { get2026QualifierOptions } from "./datahub-stats-season.js";
 import { getDataHubStatsPeriodOptions, getDataHubWeeklyColumns, getDataHubWeeklyColumnGroups, getDataHubWeeklyTableSourceRows } from "./datahub-stats-period.js";
 import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSeasonRankQualified } from "./datahub-stats-positional-ranks.js";
-import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js";
+// Version the migrated loader too: standalone DataHub visits may not yet have
+// app.js's service worker to refresh an older unversioned module from HTTP cache.
+import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js?v=DH3.70-local-2026-season";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js?v=DH3.64a-air-yards-icon";
 import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js?v=DH3.62-datahub-gamelogs-parity";
 import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames, isConsistencyProductionStat, getConsistencyAverageLabelCenter } from "./datahub-gamelogs-controls.js?v=DH3.53-rosters-gamelogs";
@@ -2825,8 +2827,8 @@ const state = {
     WR: true,
     TE: true,
   },
-  // DataHub 2026 has its own live workbook snapshot. Keep historical 2025 rows
-  // separate, and derive qualifiers from the highest games played in DH.
+  // DataHub 2026 has its own maintained season CSV snapshot. Keep historical
+  // 2025 rows separate; season games played still drive qualifier progression.
   statsSeason: "2026",
   // A table-only week selection leaves the season snapshots used by Game Logs,
   // Compare and Trade Values intact. The boot-time CSV read supplies these rows.
@@ -3923,7 +3925,7 @@ function isElementVisible(element) {
 
 async function loadInitialData() {
   try {
-    // Load both sources independently. A workbook failure never substitutes
+    // Load both season CSVs independently. A failed 2026 file never substitutes
     // 2025 stats under a 2026 label; historical CSV data remains selectable.
     const results = await Promise.allSettled([
       fetchCsvText().then(applyCsvText),
@@ -3935,8 +3937,8 @@ async function loadInitialData() {
     hideOverlay();
 
     // DataHub startup enrichment:
-    // SZN.csv is enough to render the Stats grid and enable the lazy Compare
-    // modal. KTC, ADP, and rookie enrichments continue in the background and
+    // Season CSVs are enough to render the Stats grid and enable lazy Compare.
+    // KTC, ADP, and rookie enrichments continue in the background and
     // rebuild the same cached rows when those slower feeds finish.
     ensureDataHubSupplementalData()
       .then(() => {
@@ -3957,7 +3959,7 @@ async function loadInitialData() {
 }
 
 // Keep this request shared by the table, Game Logs and Compare. Each full page
-// refresh re-reads DH only; modal-only feeds are fetched lazily below.
+// refresh re-reads 2026_Season.csv only; modal-only feeds stay lazy below.
 async function ensureDataHub2026Data() {
   if (state.stats2026.loaded) return state.stats2026;
   if (!state.stats2026Promise) {
@@ -13901,7 +13903,7 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
       let seasonStats, seasonRanks, weeklyStats, profileSource;
       if (season === "2026") {
         const source = await ensureDataHub2026Data();
-        // Weekly CSV/DRK/schedule are modal-only dependencies. Reuse the DH snapshot so
+        // Weekly CSV/DRK/schedule are modal-only dependencies. Reuse the season CSV so
         // opening Game Logs or Compare does not change volume thresholds or
         // totals; recorded weeks refine only the Stats scoring exception.
         const weeklySource = await load2026WeeklySourceData({
@@ -14006,7 +14008,7 @@ async function fetchDataHubGameLogs(playerId, season = state.currentModalSeason)
 }
 
 function getDataHubCombinedWeeklyStats() {
-  // DH totals and the weekly CSV are authoritative for 2026; archived CSVs supply
+  // Season and weekly CSVs are authoritative for 2026; archived CSVs supply
   // 2025. Never overlay a different live Sleeper season onto either dataset.
   return state.weeklyStats;
 }
@@ -14383,7 +14385,7 @@ function buildDataHubCareerRows(historicalRows, season2025Rows, season2026Rows) 
 }
 
 async function ensureDataHubCareerStatsLoaded() {
-  // Read Career/SZN/DH independently of the selected modal year. A failed
+  // Read Career/2025 SZN/2026 season CSV independently of the modal year. A failed
   // supplemental source preserves historical rows and retries on the next open.
   if (state.careerStatsByPlayer) return state.careerStatsByPlayer;
   if (!dataHubCareerStatsLoadPromise) {
