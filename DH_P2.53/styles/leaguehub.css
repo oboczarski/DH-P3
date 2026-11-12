@@ -717,6 +717,38 @@ body[data-page="leaguehub"] .leaguehub-trades-select-option.is-selected {
   color: #fff;
 }
 
+/* Archive member multiselect: one name per option, a persistent selection
+   mark, and a two-owner cap. Other archive dropdowns keep their original UI. */
+body[data-page="leaguehub"] #leagueTradesMemberMenu .leaguehub-trades-select-option {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+}
+
+body[data-page="leaguehub"] #leagueTradesMemberMenu .leaguehub-trades-select-option span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="leaguehub"] #leagueTradesMemberMenu .leaguehub-trades-select-option::after {
+  content: '';
+  flex: 0 0 0.9rem;
+  color: var(--lh-trade-teal);
+  text-align: center;
+}
+
+body[data-page="leaguehub"] #leagueTradesMemberMenu .leaguehub-trades-select-option[aria-selected="true"]::after {
+  content: '✓';
+}
+
+body[data-page="leaguehub"] #leagueTradesMemberMenu .leaguehub-trades-select-option[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: transparent;
+}
+
 body[data-page="leaguehub"] .leaguehub-trades-search-wrap {
   gap: 0.48rem;
   padding: 0 0.7rem;
@@ -4024,6 +4056,22 @@ body[data-page="leaguehub"] .leaguehub-trades-select-button span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Keep both selected member names readable at mobile widths without changing
+   the single-line Season/Assets controls or expanding the toolbar's width. */
+body[data-page="leaguehub"] #leagueTradesMemberValue {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="leaguehub"] .leaguehub-trades-member-hint {
+  margin-left: auto;
+  color: var(--lh-trade-muted);
+  font-size: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-select-button i {

@@ -27,7 +27,7 @@
   <meta name="theme-color" content="#0D0E1B" />
   <link href="../styles/styles.css?v=20260902-leaguehub-user-switch" rel="stylesheet" />
   <!-- LeagueHub page-specific styles (extracted from styles.css) -->
-  <link rel="stylesheet" href="../styles/leaguehub.css?v=DH3.46g-analysis" />
+  <link rel="stylesheet" href="../styles/leaguehub.css?v=DH3.49o-trade-member-pair" />
   <link rel="stylesheet" href="../styles/leaguehub-analysis.css?v=DH3.48r-power-bars-refined" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
@@ -209,6 +209,7 @@
             <div class="leaguehub-trades-control leaguehub-trades-control--member">
               <span class="leaguehub-trades-control-label" id="leagueTradesMemberLabel">
                 <i class="fa-solid fa-people-arrows" aria-hidden="true"></i><span>League Members</span>
+                <span class="leaguehub-trades-member-hint">Up to 2</span>
               </span>
               <div class="leaguehub-trades-select" data-trade-select="member">
                 <button type="button" id="leagueTradesMemberButton" class="leaguehub-trades-select-button"
@@ -216,7 +217,8 @@
                   <span id="leagueTradesMemberValue">All League Members</span>
                   <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
                 </button>
-                <div id="leagueTradesMemberMenu" class="leaguehub-trades-select-menu hidden" role="listbox"
+                <!-- Member choices toggle independently; All Members clears both selections. -->
+                <div id="leagueTradesMemberMenu" class="leaguehub-trades-select-menu hidden" role="listbox" aria-multiselectable="true"
                   aria-labelledby="leagueTradesMemberLabel"></div>
               </div>
             </div>
@@ -495,7 +497,7 @@
   </div>
 
   <script src="../scripts/leaguehub-analysis.js?v=DH3.47w-playoff-gauge"></script>
-  <script src="../scripts/leaguehub.js?v=DH3.49n-local-weekly-stats"></script>
+  <script src="../scripts/leaguehub.js?v=DH3.49o-trade-member-pair"></script>
   <script defer src="../scripts/app.js?v=DH3.49n-local-weekly-stats"></script>
 </body>
 

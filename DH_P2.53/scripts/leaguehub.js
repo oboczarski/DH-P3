@@ -380,7 +380,7 @@
         requestToken: 0,
         isLoading: false,
         loadedLeagueId: null,
-        selectedMember: 'ALL',
+        selectedMembers: [],
         selectedSeason: 'ALL',
         selectedAssetType: 'ALL',
         searchTerm: '',
@@ -569,7 +569,8 @@
     // uses custom listbox controls so the archive avoids native dropdown styling
     // while keeping filter state local to this page.
     wireTradeSelect('member', (value) => {
-      state.trades.selectedMember = value || 'ALL';
+      toggleTradeMemberSelection(value);
+      syncTradeMemberSelection();
       renderTradeWorkspace();
     });
     wireTradeSelect('season', (value) => {
@@ -901,7 +902,7 @@
           const option = document.activeElement?.closest?.('[role="option"]');
           if (option) {
             commitTradeSelectOption(select, option, onSelect);
-            select.button.focus();
+            if (type !== 'member') select.button.focus();
           }
           return;
         }
@@ -918,8 +919,12 @@
       // Trade Archive custom dropdown commit:
       // synchronizes filter state, visible button text, and ARIA-selected state
       // because these controls are custom listboxes rather than native selects.
+      if (option.getAttribute('aria-disabled') === 'true') return;
       const value = option.dataset.value || 'ALL';
       onSelect(value);
+      // The member list stays open for a second selection or deselection;
+      // Season and Assets retain their existing single-selection behavior.
+      if (select === elements.tradeSelects.member) return;
       select.value.textContent = option.querySelector('span')?.textContent?.trim()
         || option.textContent?.trim()
         || '';
@@ -957,10 +962,11 @@
     function renderTradeSelectOptions(type, options, selectedValue) {
       const select = elements.tradeSelects?.[type];
       if (!select?.menu || !select?.value) return;
-      const selected = options.find((option) => option.value === selectedValue) || options[0];
-      select.value.textContent = selected?.label || '';
+      const selectedValues = Array.isArray(selectedValue) ? selectedValue : [selectedValue];
+      const selected = options.filter((option) => selectedValues.includes(option.value));
+      select.value.textContent = selected.map((option) => option.label).join(' & ') || options[0]?.label || '';
       select.menu.innerHTML = options.map((option) => {
-        const isSelected = option.value === selectedValue;
+        const isSelected = selectedValues.includes(option.value);
         return `
           <button type="button" class="leaguehub-trades-select-option${isSelected ? ' is-selected' : ''}"
             role="option" aria-selected="${isSelected ? 'true' : 'false'}" data-value="${escapeHtml(option.value)}"
@@ -976,17 +982,47 @@
     }
 
     function populateTradeMemberFilter() {
+      // Archive member options show their existing primary name once, without
+      // repeating the username underneath or adding a subtitle to All Members.
       const options = [
-        { value: 'ALL', label: 'All League Members', meta: 'Every completed trade' },
+        { value: 'ALL', label: 'All League Members' },
         ...state.trades.currentMembers.map((member) => ({
           value: member.ownerId,
           label: member.teamName,
-          meta: member.displayName,
         })),
       ];
       const validValues = new Set(options.map((option) => option.value));
-      if (!validValues.has(state.trades.selectedMember)) state.trades.selectedMember = 'ALL';
-      renderTradeSelectOptions('member', options, state.trades.selectedMember);
+      state.trades.selectedMembers = state.trades.selectedMembers.filter((value) => validValues.has(value));
+      renderTradeSelectOptions('member', options, state.trades.selectedMembers.length ? state.trades.selectedMembers : ['ALL']);
+      syncTradeMemberSelection();
+    }
+
+    // Trade Archive member selection supports zero, one, or two owners. An
+    // empty selection means everyone; selected owners can always be removed.
+    function toggleTradeMemberSelection(value) {
+      const selected = state.trades.selectedMembers;
+      if (!value || value === 'ALL') state.trades.selectedMembers = [];
+      else if (selected.includes(value)) state.trades.selectedMembers = selected.filter((ownerId) => ownerId !== value);
+      else if (selected.length < 2) state.trades.selectedMembers = [...selected, value];
+    }
+
+    function syncTradeMemberSelection() {
+      const select = elements.tradeSelects.member;
+      if (!select?.menu || !select?.value) return;
+      const selected = state.trades.selectedMembers;
+      const labels = selected.map((ownerId) => state.trades.currentMemberMap[ownerId]?.teamName).filter(Boolean);
+      select.value.textContent = labels.join(' & ') || 'All League Members';
+      select.button.title = select.value.textContent;
+      // Update options in place so touch and keyboard users keep their focus
+      // while choosing a second member. All Members remains available to reset.
+      select.menu.querySelectorAll('[role="option"]').forEach((option) => {
+        const value = option.dataset.value;
+        const isSelected = value === 'ALL' ? !selected.length : selected.includes(value);
+        const isDisabled = value !== 'ALL' && !isSelected && selected.length === 2;
+        option.classList.toggle('is-selected', isSelected);
+        option.setAttribute('aria-selected', String(isSelected));
+        option.setAttribute('aria-disabled', String(isDisabled));
+      });
     }
 
     function populateTradeSeasonFilter() {
@@ -1038,7 +1074,7 @@
       state.trades.requestToken += 1;
       state.trades.isLoading = false;
       state.trades.loadedLeagueId = null;
-      state.trades.selectedMember = 'ALL';
+      state.trades.selectedMembers = [];
       state.trades.selectedSeason = 'ALL';
       state.trades.selectedAssetType = 'ALL';
       state.trades.searchTerm = '';
@@ -1503,12 +1539,14 @@
     }
 
     function getFilteredTrades() {
-      const selectedOwnerId = state.trades.selectedMember;
+      const selectedOwnerIds = state.trades.selectedMembers;
       const selectedSeason = state.trades.selectedSeason;
       const selectedAssetType = state.trades.selectedAssetType;
       const searchTerm = (state.trades.searchTerm || '').trim().toLowerCase();
       return state.trades.allTrades.filter((trade) => {
-        if (selectedOwnerId && selectedOwnerId !== 'ALL' && !trade.participantOwnerIds.includes(String(selectedOwnerId))) {
+        // A pair is an intersection: both owners must participate in the same
+        // trade. One owner retains the existing all-of-their-trades view.
+        if (!selectedOwnerIds.every((ownerId) => trade.participantOwnerIds.includes(String(ownerId)))) {
           return false;
         }
         if (selectedSeason && selectedSeason !== 'ALL' && String(trade.season) !== String(selectedSeason)) {
@@ -1531,8 +1569,15 @@
         return;
       }
       elements.tradesAnalytics?.classList.remove('hidden');
-      if (state.trades.selectedMember && state.trades.selectedMember !== 'ALL') {
-        renderSelectedMemberTradeAnalytics(state.trades.selectedMember);
+      const selected = state.trades.selectedMembers;
+      if (selected.length === 1) {
+        renderSelectedMemberTradeAnalytics(selected[0]);
+      } else if (selected.length === 2) {
+        // Pair insights show both selected managers using the same filtered
+        // trades as the timeline, rather than unrelated league-wide activity.
+        const members = selected.map((ownerId) => state.trades.currentMemberMap[ownerId]).filter(Boolean);
+        renderAllMemberTradeAnalytics(members);
+        if (elements.tradesAnalysisHeading) elements.tradesAnalysisHeading.textContent = members.map((member) => member.teamName).join(' & ');
       } else {
         renderAllMemberTradeAnalytics(currentMembers);
       }
@@ -1971,8 +2016,8 @@
 
     function renderTradeFeed() {
       if (!elements.tradesFeed || !elements.tradesFeedMeta) return;
-      const selectedMember = state.trades.selectedMember !== 'ALL'
-        ? state.trades.currentMemberMap[state.trades.selectedMember]
+      const selectedMember = state.trades.selectedMembers.length === 1
+        ? state.trades.currentMemberMap[state.trades.selectedMembers[0]]
         : null;
       const filteredTrades = getFilteredTrades();
       const bundles = state.trades.seasonBundles
@@ -2108,19 +2153,18 @@
     }
 
     function getTradeRenderSides(trade) {
-      const selectedOwnerId = state.trades.selectedMember;
-      if (!selectedOwnerId || selectedOwnerId === 'ALL') return trade.sides;
-      const selectedIndex = trade.sides.findIndex((side) => side.ownerId === String(selectedOwnerId));
-      if (selectedIndex <= 0) return trade.sides;
+      const selected = state.trades.selectedMembers;
+      if (!selected.length) return trade.sides;
+      // Put selected owners first, in selection order, while preserving any
+      // other sides of a multi-team transaction in the archive card.
       return [
-        trade.sides[selectedIndex],
-        ...trade.sides.filter((side, index) => index !== selectedIndex),
+        ...selected.map((ownerId) => trade.sides.find((side) => side.ownerId === ownerId)).filter(Boolean),
+        ...trade.sides.filter((side) => !selected.includes(side.ownerId)),
       ];
     }
 
     function renderTradeSide(side, index, trade, hasGreaterReceivedValue = false) {
-      const selectedOwnerId = state.trades.selectedMember;
-      const isSelected = selectedOwnerId !== 'ALL' && side.ownerId === String(selectedOwnerId);
+      const isSelected = state.trades.selectedMembers.includes(side.ownerId);
       const visibleAssets = getVisibleAssetsForSide(side);
       const completeIncomingAssets = side?.incomingAssets || [];
       const avgPpg = averageNumbers(completeIncomingAssets
