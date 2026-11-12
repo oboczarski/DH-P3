@@ -10272,10 +10272,7 @@ body[data-page="datahub"] .ownership-league-owner {
 
 body[data-page="datahub"] .owner-you {
   background: linear-gradient(180deg, rgba(23, 37, 60, 0.94), rgba(11, 19, 36, 0.98)) padding-box, var(--datahub-gamelogs-accent-border) border-box;
-  box-shadow:
-    var(--datahub-gamelogs-control-shadow),
-    var(--datahub-gamelogs-accent-glow),
-    inset 0 0 16px rgba(91, 127, 255, 0.08);
+  box-shadow: 0 10px 20px rgba(1, 6, 18, 0.34), 0 0 0 1px rgba(115, 244, 255, 0.08),    0 0 10px rgba(91, 127, 255, 0.2),    0 0 15px rgba(219, 109, 255, 0.13),    inset 0 0 16px rgba(91, 127, 255, 0.08);
 }
 
 body[data-page="datahub"] .owner-you .ownership-league-owner {
@@ -12978,7 +12975,7 @@ body[data-page="datahub"] .weekly-chart-x-axis > span.axis-week-missed {
     justify-content: center !important;
     gap: 1.15rem !important;
     flex-wrap: nowrap !important;
-    margin: 0.45rem auto 0.45rem !important;
+    margin: 0.3rem auto 0.45rem !important;
     margin-right: 0 !important;
     padding: 0 0.15rem !important;
   }
@@ -14067,7 +14064,7 @@ body[data-page="datahub"] #game-logs-modal .gl-ownership-exposure-card {
   justify-content: center;
   gap: 0.42rem;
   width: fit-content;
-  max-width: 310px;
+  max-width: 350px;
   margin: 0rem auto 0.42rem;
   padding: 0.42rem 1.1rem;
   border: 1px solid rgba(156, 170, 242, 0.2);
@@ -16756,7 +16753,7 @@ body[data-page="datahub"] #game-logs-modal.is-team-view .team-modal-pane {
 }
 
 @media (max-width: 868px) {
-  body[data-page="datahub"] #game-logs-modal #gamelogs-tab-pane { --gamelogs-body-height: 355px; }
+  body[data-page="datahub"] #game-logs-modal #gamelogs-tab-pane {--gamelogs-body-height: 395px;}
 }
 
 @media (max-width: 680px) {
