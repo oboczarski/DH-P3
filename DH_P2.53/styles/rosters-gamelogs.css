@@ -7056,7 +7056,7 @@ body[data-page="rosters"] #game-logs-modal.is-team-view .team-modal-pane {
 }
 
 @media (max-width: 868px) {
-  body[data-page="rosters"] #game-logs-modal #gamelogs-tab-pane { --gamelogs-body-height: 355px; }
+  body[data-page="rosters"] #game-logs-modal #gamelogs-tab-pane {--gamelogs-body-height: 405px;}
 }
 
 @media (max-width: 680px) {
