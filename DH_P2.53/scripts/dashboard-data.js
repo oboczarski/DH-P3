@@ -65,6 +65,9 @@ export function normalizeDashboardPlayer(row) {
       pa_ypg: toNum(row.paYPG), pass_rtg: toNum(row.paRTG),
       cmp_pct: toPct(row['CMP%']), ttt: toNum(row.TTT),
       yds_total: toNum(row['YDS(t)']), imp_per_g: toNum(row['IMP/G']),
+      // Ground / Air uses recorded rushing and receiving yards only. Missing
+      // components stay null; they are never treated as a zero-yard result.
+      rushing_yards: toNum(row.ruYDS), receiving_yards: toNum(row.recYDS),
       snp_pct: toPct(row['SNP%']), ypc: toNum(row.YPC), rec_tgt: toNum(row.TGT),
       mtf_per_att: toNum(row['MTF/A']), yco_per_att: toNum(row['YCO/A']),
       rec: toNum(row.REC), rec_ypg: toNum(row.recYPG),
@@ -104,14 +107,7 @@ export function getDashboardQualifierWeeks(players) {
 }
 
 export function selectSummaryLeaders(players) {
-  const weeks = getDashboardQualifierWeeks(players);
-  // All four home cards use DataHub's default positional-ranking eligibility,
-  // including its half-season/20-PPR-PPG exception. Use the complete DH pool;
-  // the Performance Map's top-100 picker is unrelated to minimum qualification.
-  const qualified = players.filter(player => isStatsSeasonRankQualified({
-    POS: player.position, GM_P: player.games, FPTS: player.stats.fpts,
-    paATT: player.stats.pass_att, CAR: player.stats.rush_att, RR: player.stats.rr
-  }, '2026', weeks, weeks));
+  const qualified = selectDashboardQualifiedPlayers(players);
   const leader = (key, position) => qualified
     .filter(player => (!position || player.position === position) && Number.isFinite(player.stats[key]))
     .sort((a, b) => b.stats[key] - a.stats[key])[0] ?? null;
@@ -121,6 +117,79 @@ export function selectSummaryLeaders(players) {
     topCstyRB: selectConsistencyRb(qualified),
     topTSWR: leader('ts', 'WR')
   };
+}
+
+// Home summary cards, the Player Lens and Ground / Air share the maintained
+// DataHub qualification rule without importing DataHub's application state.
+export function selectDashboardQualifiedPlayers(players) {
+  const weeks = getDashboardQualifierWeeks(players);
+  // All four home cards use DataHub's default positional-ranking eligibility,
+  // including its half-season/20-PPR-PPG exception. Use the complete DH pool;
+  // the Performance Map's top-100 picker is unrelated to minimum qualification.
+  return players.filter(player => isStatsSeasonRankQualified({
+    POS: player.position, GM_P: player.games, FPTS: player.stats.fpts,
+    paATT: player.stats.pass_att, CAR: player.stats.rush_att, RR: player.stats.rr
+  }, '2026', weeks, weeks));
+}
+
+// Twelve PPG rows stay consistent across mobile/desktop and position switches.
+// The three-game gate is independent of the other stats' volume qualifiers.
+export function selectPpgLeaders(players, position = 'all', limit = 12) {
+  return players.filter(player => player.games >= 3 && Number.isFinite(player.stats.ppg)
+    && (position === 'all' || player.position === position))
+    .sort((a, b) => b.stats.ppg - a.stats.ppg || b.stats.fpts - a.stats.fpts || a.name.localeCompare(b.name))
+    .slice(0, limit);
+}
+
+// The distribution is rebuilt from this season's recorded total PPR points.
+// Each prefix must sum to its overall rank; no reference/snapshot counts enter it.
+export function buildPositionalDistribution(players, limit = 60) {
+  const leaders = players.filter(player => player.games > 0 && POSITIONS.has(player.position)
+    && Number.isFinite(player.stats.fpts))
+    .sort((a, b) => b.stats.fpts - a.stats.fpts || a.name.localeCompare(b.name))
+    .slice(0, limit);
+  const counts = { QB: 0, RB: 0, WR: 0, TE: 0 };
+  const rows = [{ rank: 0, ...counts }];
+  leaders.forEach((player, index) => {
+    counts[player.position] += 1;
+    rows.push({ rank: index + 1, ...counts, player });
+  });
+  return { rows, counts: { ...counts }, total: leaders.length };
+}
+
+export function selectYardageLeaders(players, limit = 6) {
+  return selectDashboardQualifiedPlayers(players)
+    .filter(player => ['RB', 'WR', 'TE'].includes(player.position)
+      && Number.isFinite(player.stats.rushing_yards) && Number.isFinite(player.stats.receiving_yards))
+    .map(player => ({ ...player, totalYards: player.stats.rushing_yards + player.stats.receiving_yards }))
+    .sort((a, b) => b.totalYards - a.totalYards || b.stats.fpts - a.stats.fpts)
+    .slice(0, limit);
+}
+
+// Player Lens ranks preserve missing/unqualified values and competition ties.
+// Only PPG uses its separate 3-game pool; TTT is the sole inverted radar metric.
+export function rankDashboardPlayers(players) {
+  const qualified = new Set(selectDashboardQualifiedPlayers(players));
+  const keys = ['fpts', 'ppg', 'pass_rtg', 'cmp_pct', 'yds_total', 'ttt', 'epa_db', 'cpoe',
+    'snp_pct', 'ypc', 'rec_tgt', 'mtf_per_att', 'yco_per_att', 'rec', 'rec_ypg',
+    'ts_per_rr', 'yprr', 'first_down_rec_rate', 'imp_per_g', 'cl', 'csty'];
+  players.forEach(player => { player.ranks = { posRank: null, ppgPosRank: null }; player.statRanks = {}; });
+  for (const position of POSITIONS) {
+    for (const key of keys) {
+      const pool = players.filter(player => player.position === position
+        && Number.isFinite(player.stats[key]) && (key === 'ppg' ? player.games >= 3 : qualified.has(player)))
+        .sort((a, b) => key === 'ttt' ? a.stats[key] - b.stats[key] : b.stats[key] - a.stats[key]);
+      let previous = null, rank = 0;
+      pool.forEach((player, index) => {
+        if (player.stats[key] !== previous) rank = index + 1;
+        previous = player.stats[key];
+        if (key === 'fpts') player.ranks.posRank = rank;
+        else if (key === 'ppg') player.ranks.ppgPosRank = rank;
+        else player.statRanks[key] = rank;
+      });
+    }
+  }
+  return players;
 }
 
 export function selectScatterPlayers(players) {

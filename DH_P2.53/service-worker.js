@@ -153,7 +153,8 @@
 // network-first at runtime, without an extra install-time dataset download.
 // Refresh Rosters Start/Sit's undistorted preview charts, shaded matchups,
 // compact comparison chart gutters and suffix-aware season panel headings.
-const CACHE_NAME = 'DH3.71-start-sit-layout';
+// Refresh Prism's page-owned artwork, gradient charts and complete scatter labels.
+const CACHE_NAME = 'DH3.72-dashboard-prism';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -179,6 +180,8 @@ const CORE_ASSET_PATHS = [
   '/styles/datahub-gamelogs-profile.css',
   '/styles/datahub-gamelogs-desktop.css',
   '/styles/dashboard.css',
+  '/assets/welcome/prism-flow.svg',
+  '/assets/welcome/prism-hero.png',
   '/styles/rosters.css',
   // Rosters Game Logs owns its modal styling without loading DataHub.css.
   '/styles/rosters-gamelogs.css',
@@ -223,6 +226,8 @@ const CORE_ASSET_PATHS = [
   '/scripts/vendor/echarts-6.0.0.min.js',
   '/styles/leaguehub-analysis.css',
   '/scripts/dashboard.js',
+  // Home charts stay available without a third-party chart CDN request.
+  '/scripts/vendor/d3-7.9.0.min.js',
   // Home's season adapter is page-owned; preload code, then read fresh CSV at runtime.
   '/scripts/dashboard-data.js',
   '/scripts/dashboard-scatter-layout.js',

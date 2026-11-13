@@ -1,551 +1,210 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
   <meta charset="utf-8" />
-  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <title>Dynasty Hub</title>
-  <link href="https://fonts.googleapis.com" rel="preconnect" />
-  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@200;300;400;500;600;700&amp;display=swap"
-    rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@100;200;300;400;500;700;900&amp;display=swap"
-    rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css?family=Google+Sans:100,200,300,400,500,600,700" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=MuseoModerno:ital,wght@0,100..900;1,100..900&amp;display=swap" 
-  rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Bruno+Ace+SC&display=swap" 
-  rel="stylesheet">
-  <!-- Dashboard header branding: preload the existing welcome logo using the app-relative path so embedded launches resolve it correctly. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0d1537" />
+  <meta name="description" content="Your read on the 2026 fantasy football season. Explore league leaders, player performance, positional trends, and your Sleeper leagues with Dynasty Hub." />
+  <title>Dynasty Hub — Your Next Edge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Home typography: retain every previous font import for future swaps, while
+       the rebuilt dashboard uses Barlow Condensed, DM Sans and IBM Plex Mono. -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@200;300;400;500;600;700&amp;display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@100;200;300;400;500;700;900&amp;display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans:100,200,300,400,500,600,700" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=MuseoModerno:ital,wght@0,100..900;1,100..900&amp;display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bruno+Ace+SC&amp;display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&amp;family=DM+Sans:wght@400;450;500;550;600;650;700;750;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" />
   <link rel="preload" as="image" href="assets/welcome/welcome-logo-256.png" />
-  <link href="manifest.webmanifest?v=20250827002411?v=20250826235225" rel="manifest" />
-  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon-180.png?v=20250926r5c" />
-  <meta content="#0D0E1B" name="theme-color" />
-  <link href="styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preload" as="image" href="assets/welcome/prism-hero.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png?v=20250926r5c" />
   <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png?v=20250926r5c" />
-  <link rel="shortcut icon" href="assets/icons/favicon.ico?v=20250926r5c" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <!-- Let the home loading screen paint while the chart library downloads. -->
-  <script defer src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
-  <link rel="stylesheet" href="styles/dashboard.css?v=DH3.61h-scatter-gentle-labels">
-  <!-- Cloudflare Web Analytics: tracks visits for the current Dynasty Hub Cloudflare property; kept deferred so it does not block app rendering. -->
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon-180.png?v=20250926r5c" />
+  <link rel="manifest" href="manifest.webmanifest?v=20250827002411" />
+  <!-- This page owns its visual system and navigation; no shared app styles,
+       Tailwind runtime, DataHub bundle or shared app.js are needed. -->
+  <link rel="stylesheet" href="styles/dashboard.css?v=DH3.72-prism" />
+  <script defer src="scripts/vendor/d3-7.9.0.min.js"></script>
+  <script defer src="scripts/dashboard.js?v=DH3.72-prism"></script>
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
-    data-cf-beacon='{"token": "0a02235754b046f389fb57f26b46f13a"}'></script>
-
+    data-cf-beacon='{"token":"0a02235754b046f389fb57f26b46f13a"}'></script>
 </head>
-
-<body data-page="welcome" data-dashboard-loading class="p-2 sm:p-4">
-  <!-- Home-only boot screen: stages follow season CSV loading, qualified leader selection
-       and chart rendering. The page is released on success or source failure. -->
-  <div id="dashboard-boot" class="dh-boot" data-phase="0" role="region" aria-label="Loading Dynasty Hub">
-    <div class="dh-boot__mesh" aria-hidden="true"></div>
-    <div class="dh-boot__content">
-      <div class="dh-boot__eyebrow"><span></span> DYNASTY HUB <span class="dh-boot__season">2026 SEASON</span></div>
-      <div class="dh-boot__orbit" aria-hidden="true">
-        <div class="dh-boot__orbit-ring dh-boot__orbit-ring--outer"></div>
-        <div class="dh-boot__orbit-ring dh-boot__orbit-ring--inner"></div>
-        <div class="dh-boot__sweep"></div>
-        <div class="dh-boot__core"><img src="assets/welcome/welcome-logo-256.png" width="128" height="128" alt="" fetchpriority="high" /></div>
-        <span class="dh-boot__position dh-boot__position--qb">QB</span>
-        <span class="dh-boot__position dh-boot__position--rb">RB</span>
-        <span class="dh-boot__position dh-boot__position--wr">WR</span>
-        <span class="dh-boot__position dh-boot__position--te">TE</span>
-      </div>
-      <h2 class="dh-boot__title">Bring the season<br /><span>into focus.</span></h2>
-      <p class="dh-boot__description">The numbers. The leaders. Your next edge.</p>
-      <div class="dh-boot__progress" aria-hidden="true"><span></span></div>
-      <p id="dashboard-boot-status" class="dh-boot__status" role="status" aria-live="polite">Connecting to the 2026 season</p>
-      <div class="dh-boot__steps" aria-hidden="true">
-        <span data-boot-step="0" data-state="current"><i></i> Season data</span>
-        <span data-boot-step="1"><i></i> League leaders</span>
-        <span data-boot-step="2"><i></i> Dashboard</span>
-      </div>
-    </div>
-    <div class="dh-boot__signature" aria-hidden="true">BUILT FOR THE LONG GAME <span>✦</span></div>
-  </div>
-  <!-- Glass-refraction SVG filter defs — hidden, referenced by backdrop-filter: url(#glass-refract).
-       Two strengths: subtle (scale 8) for cards/pills, strong (scale 16) for dense/header tiers. -->
-  <svg class="glass-svg-defs" aria-hidden="true" width="0" height="0"
-    style="position:absolute;width:0;height:0;overflow:hidden" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <filter id="glass-refract" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency="0.015 0.012" numOctaves="2" seed="42" result="noise" />
-        <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G" />
-      </filter>
-      <filter id="glass-refract-strong" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency="0.015 0.012" numOctaves="2" seed="42" result="noise" />
-        <feDisplacementMap in="SourceGraphic" in2="noise" scale="16" xChannelSelector="R" yChannelSelector="G" />
-      </filter>
-      <filter id="glass-refract-extrastrong" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
-            <feTurbulence type="fractalNoise" baseFrequency="0.015 0.012" numOctaves="2" seed="42" result="noise" />
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="42" xChannelSelector="R" yChannelSelector="G" />
-      </filter>
-    <filter id="glass-rim-light" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
-  <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
-  <feColorMatrix
-    in="blur"
-    type="matrix"
-    values="
-      1 0 0 0 0
-      0 1 0 0 0
-      0 0 1 0 0
-      0 0 0 0.45 0"
-    result="softGlow"
-  />
-  <feBlend in="SourceGraphic" in2="softGlow" mode="screen" />
-</filter>
-    </defs>
+<body data-page="welcome">
+  <a class="dh-skip" href="#dashboard">Skip to dashboard</a>
+  <!-- Home icons are code-native SVGs; their symbols never enter another page. -->
+  <svg class="dh-symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13 5l7 7-7 7" /></symbol>
+    <symbol id="icon-up-right" viewBox="0 0 24 24"><path d="M5 19 19 5M5 5h14v14" /></symbol>
+    <symbol id="icon-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><rect x="14" y="14" width="6" height="6" rx="1" /></symbol>
+    <symbol id="icon-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="4" /><path d="M12 1v4m0 14v4M1 12h4m14 0h4" /></symbol>
+    <symbol id="icon-repeat" viewBox="0 0 24 24"><path d="M4 11a8 8 0 0 1 14-5l2 2m0-5v5h-5M20 13a8 8 0 0 1-14 5l-2-2m0 5v-5h5" /></symbol>
+    <symbol id="icon-share" viewBox="0 0 24 24"><path d="M12 21V9m0 4L4 5m8 8 8-8M4 10V4h6m4 0h6v6" /></symbol>
+    <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" /></symbol>
   </svg>
-  <!-- Replaced Background: Starfield -->
-  <div aria-hidden="true" id="starfield">
-    <div id="stars"></div>
-    <div id="stars1"></div>
-    <div id="stars2"></div>
-    <div id="stars3"></div>
-  </div>
-  <div id="noise-overlay"></div>
-  <!-- EDITED: Added a class for layout control -->
-  <main class="container mx-auto" id="content" inert>
-    <div id="fc-dashboard-root" class="fc-dashboard">
-      <main class="fc-main">
-        <div class="welcome-header-group">
-          <!-- Branding Panel: Logo + App Name (scrolls with content, not frozen) -->
-          <div class="welcome-branding-panel fc-glass--dense" id="welcome-branding">
-            <div class="branding-top-row">
-              <picture class="welcome-logo">
-                <!-- Dashboard header branding: use a dedicated class/id so CSS + JS can recover the logo if an external webview skips the initial paint. -->
-                <img
-                  id="dashboardBrandLogo"
-                  class="dashboard-brand-logo"
-                  data-logo-src="assets/welcome/welcome-logo-256.png"
-                  alt="App logo"
-                  decoding="async"
-                  fetchpriority="high"
-                  height="128"
-                  loading="eager"
-                  src="assets/welcome/welcome-logo-256.png"
-                  width="128"
-                />
-              </picture>
-              <!-- Dashboard scramble title: keep the initial text hidden until Bruno Ace SC is ready so no fallback face flashes before the effect. -->
-              <h2><span id="dh-scramble" class="dh-scramble--font-pending">Dynasty Hub</span></h2>
-            </div>
-          </div>
 
-          <div id="header-container">
-            <header class="app-header glass-panel fc-glass--dense">
-              <h3 class="welcome-header-title">Welcome! Enter Sleeper Username to Sync Your Leagues, and Get Started
-              </h3>
-              <div class="header-row" id="primary-header-row">
-                <!-- Menu toggle on the left for mobile/compact navigation -->
-                <div class="home-menu-slot">
-                  <button id="homeMenuToggle" class="menu-toggle" aria-expanded="false" aria-haspopup="true"
-                    aria-label="Open menu">
-                    <i class="fa-solid fa-bars" aria-hidden="true"></i>
-                  </button>
-                  <div id="homeMenu" class="home-menu hidden" role="menu" aria-hidden="true">
-                    <button class="home-menu-item" data-page="home"><i
-                        class="fa-solid fa-house"></i><span>Home</span></button>
-                    <button class="home-menu-item" data-page="rosters"><i
-                        class="fa-solid fa-clipboard-list"></i><span>Rosters</span></button>
-                    <!-- Dashboard menu: route DataHub like the other internal pages via its lowercase page file inside /datahub. -->
-                    <button class="home-menu-item" data-page="datahub"><i
-                        class="fa-solid fa-chart-column"></i><span>DataHub</span></button>
-                    <button class="home-menu-item" data-page="leaguehub"><i
-                        class="fa-solid fa-square-poll-vertical"></i><span>LeagueHub</span></button>
-                    <button class="home-menu-item" data-page="research"><i
-                        class="fa-solid fa-flask"></i><span>Research</span></button>
-                    <button class="home-menu-item" data-page="ownership"><i
-                        class="fa-solid fa-percent"></i><span>Ownership</span></button>
-                    <button class="home-menu-item" data-page="home"
-                      data-url="https://trophyroom.dynastyhub.pro/"><i
-                        class="fa-solid fa-trophy"></i><span>Trophy Room</span></button>
-                    <!-- Matchups opens its self-contained DH page from this shared desktop/mobile menu. -->
-                    <button class="home-menu-item" data-page="home"
-                      data-url="matchups/index.html"><i
-                        class="fa-solid fa-table-columns"></i><span>Matchups</span></button>
-                    <button class="home-menu-item" data-page="contact"><i
-                        class="fa-solid fa-envelope"></i><span>Contact</span></button>
-                  </div>
-                </div>
-
-                <!-- Username input -->
-                <div class="username-area">
-                  <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput"
-                    inputmode="text" name="username" placeholder="SLPR Username..." type="text" value="The_Oracle" />
-                </div>
-
-                <!-- Single enter button on the right (reuses rostersButton id so existing JS still works) -->
-                <div class="home-enter-slot">
-                  <button class="enter-button nav-button" id="rostersButton" data-nav="rosters"
-                    aria-label="Pull Rosters">
-                    <span class="enter-circle" aria-hidden="true"><i class="fa-solid fa-share fa-rotate-180"></i></span>
-                    <span class="enter-label">Enter</span>
-                  </button>
-                </div>
-              </div>
-              <p class="welcome-header-footer">✦ No Username? Access Stats Database and Research through the drop down
-                menu.</p>
-            </header>
-          </div>
-        </div>
-
-        <!-- Page Subtitle -->
-        <div class="welcome-subtitle-row">
-          <h3>2026 League Leaders Dashboard</h3>
-        </div>
-        <!-- Home-only season CSV status: keep source failures visible without blocking navigation. -->
-        <p id="dashboard-data-status" role="status" aria-live="polite">Loading 2026 season stats…</p>
-
-        <!-- Key Metrics Row -->
-        <div class="fc-grid-metrics">
-          <!-- Total PPR FPTS -->
-          <div class="fc-summary-card fc-card fc-glass fc-card--hover fc-card--purple">
-            <div class="fc-card__glow"></div>
-            <div class="fc-card__header">
-              <div class="fc-card__subtitle-row">
-                <p class="fc-card__subtitle"><span class="fc-card-tag fc-card-tag--purple fc-card-tag--mini">PPR</span> •
-                  Production</p>
-              </div>
-              <div class="fc-card__title-row">
-                <h3 class="fc-card__title">FPTS</h3>
-                <div class="fc-badge fc-badge--purple">Output</div>
-              </div>
-            </div>
-            <div class="fc-metric-row">
-              <div id="total-points-value" class="fc-metric-value fc-text-glow">—</div>
-              <div class="fc-metric-sub fc-text-purple">
-                <svg class="fc-icon-xs fc-icon-value" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                </svg>
-              </div>
-            </div>
-            <div class="fc-progress-bg">
-              <div id="total-points-bar" class="fc-progress-bar fc-bg-purple" style="width: 0%"></div>
-            </div>
-            <div class="fc-card__footer">
-              <span id="total-points-name" class="fc-text-purple fc-footer-name">Player</span>
-            </div>
-          </div>
-
-          <!-- QB EPA/DB -->
-          <div class="fc-summary-card fc-card fc-glass fc-card--hover fc-card--pink">
-            <div class="fc-card__glow"></div>
-            <div class="fc-card__header">
-              <div class="fc-card__subtitle-row">
-                <p class="fc-card__subtitle"><span class="fc-card-tag fc-card-tag--pink fc-card-tag--mini">QB</span> •
-                  Efficiency</p>
-              </div>
-              <div class="fc-card__title-row">
-                <h3 class="fc-card__title">EPA/DB</h3>
-                <div class="fc-badge fc-badge--pink">Impact</div>
-              </div>
-            </div>
-            <div class="fc-metric-row">
-              <div id="ppg-value" class="fc-metric-value fc-text-glow">—</div>
-              <div class="fc-metric-sub fc-text-pink">
-                <i class="fa-solid fa-crosshairs fc-icon-value fc-icon-target" aria-hidden="true"></i>
-              </div>
-            </div>
-            <div class="fc-progress-accent fc-progress-accent--pink"></div>
-            <div class="fc-card__footer">
-              <span id="ppg-name" class="fc-text-pink-light fc-footer-name">Player</span>
-            </div>
-          </div>
-
-          <!-- Consistency Rate(RB) -->
-          <div class="fc-summary-card fc-card fc-glass fc-card--hover fc-card--emerald">
-            <div class="fc-card__glow"></div>
-            <div class="fc-card__header">
-              <div class="fc-card__subtitle-row">
-                <p class="fc-card__subtitle"><span class="fc-card-tag fc-card-tag--emerald fc-card-tag--mini">RB</span> •
-                  Consistency %</p>
-              </div>
-              <div class="fc-card__title-row">
-                <h3 class="fc-card__title">CSTY%</h3>
-                <div class="fc-badge fc-badge--emerald">Floor</div>
-              </div>
-            </div>
-            <div class="fc-metric-row">
-              <div id="consistency-value" class="fc-metric-value fc-text-glow">—</div>
-              <div class="fc-metric-sub fc-text-emerald">
-                <i class="fa-solid fa-repeat fc-icon-value fc-icon-consistency" aria-hidden="true"></i>
-              </div>
-            </div>
-            <div class="fc-progress-bg">
-              <div id="consistency-bar" class="fc-progress-bar fc-bg-emerald" style="width: 0%"></div>
-            </div>
-            <div class="fc-card__footer">
-              <span id="consistency-name" class="fc-text-emerald fc-footer-name">Player</span>
-            </div>
-          </div>
-
-          <!-- Target Share -->
-          <div class="fc-summary-card fc-card fc-glass fc-card--hover fc-card--cyan">
-            <div class="fc-card__glow"></div>
-            <div class="fc-card__header">
-              <div class="fc-card__subtitle-row">
-                <p class="fc-card__subtitle"><span class="fc-card-tag fc-card-tag--cyan fc-card-tag--mini">WR</span>
-                  • Usage</p>
-              </div>
-              <div class="fc-card__title-row">
-                <h3 class="fc-card__title">TS%</h3>
-                <div class="fc-badge fc-badge--cyan">Volume</div>
-              </div>
-            </div>
-            <div class="fc-metric-row">
-              <div id="share-value" class="fc-metric-value fc-text-glow">—</div>
-              <div class="fc-metric-sub fc-text-cyan">Share</div>
-            </div>
-            <div class="fc-progress-accent fc-progress-accent--cyan"></div>
-            <div class="fc-card__footer">
-              <span id="share-name" class="fc-text-cyan fc-footer-name">Player</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Charts Section -->
-        <div class="fc-grid-charts">
-          <!-- Radar Chart -->
-          <div class="fc-card fc-glass fc-chart-panel fc-radar-panel">
-            <div class="fc-chart-header fc-chart-header--radar">
-              <div class="fc-chart-header-top">
-                <div class="fc-radar-title-line">
-                  <h3 class="fc-card__title">Performance Map &#8211;</h3>
-                  <p class="fc-card__subtitle-text fc-chart-subtitle fc-subtitle-radar">Stat Snapshot (Top 100)</p>
-                </div>
-              </div>
-              <!-- Performance Map player selector: moved below title/subtitle row per dashboard header layout update -->
-              <div class="fc-custom-select" id="player-select-container">
-                <div class="fc-select-trigger" id="player-select-trigger">
-                  <span id="player-select-label">Select Player</span>
-                  <svg class="fc-icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                  </svg>
-                </div>
-                <div class="fc-select-dropdown" id="player-select-dropdown">
-                  <div class="fc-search-wrapper">
-                    <svg class="fc-icon-xs fc-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    <input type="text" class="fc-select-search" id="player-select-search" placeholder="Search..."
-                      autocomplete="off">
-                  </div>
-                  <ul class="fc-select-options" id="player-select-options">
-                    <!-- Options injected via JS -->
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div class="fc-chart-container fc-radar-container">
-              <div id="radar-chart" class="fc-chart-canvas"></div>
-              <div class="fc-radar-center">
-                <div id="rating-label-top" class="fc-radar-label">POS RK</div>
-                <div id="rating-value" class="fc-radar-score">0</div>
-                <div id="rating-meta" class="fc-radar-meta"></div>
-              </div>
-            </div>
-
-            <p class="fc-chart-helper fc-chart-helper--radar">✦ Tap Center for Stat Values &amp; Pos. Rankings</p>
-
-            <div class="fc-legend">
-              <div class="fc-legend-item"><span class="fc-dot fc-bg-red"></span><span
-                  class="fc-legend-full">FPTS</span><span class="fc-legend-abbr">FPTS</span></div>
-              <div class="fc-legend-item"><span class="fc-dot fc-bg-orange"></span><span
-                  class="fc-legend-full">PPG</span><span class="fc-legend-abbr">PPG</span></div>
-              <div class="fc-legend-item"><span class="fc-dot fc-bg-yellow"></span><span
-                  class="fc-legend-full">REC</span><span class="fc-legend-abbr">REC</span></div>
-              <div class="fc-legend-item"><span class="fc-dot fc-bg-cyan"></span><span
-                  class="fc-legend-full">recYPG</span><span class="fc-legend-abbr">rYPG</span></div>
-              <div class="fc-legend-item"><span class="fc-dot fc-bg-violet"></span><span class="fc-legend-full">TS
-                  %</span><span class="fc-legend-abbr">TS%</span></div>
-              <div class="fc-legend-item"><span class="fc-dot fc-bg-emerald"></span><span
-                  class="fc-legend-full">YPRR</span><span class="fc-legend-abbr">YPRR</span></div>
-              <div class="fc-legend-item"><span class="fc-dot fc-bg-pink"></span><span
-                  class="fc-legend-full">1DRR</span><span class="fc-legend-abbr">1DRR</span></div>
-              <div class="fc-legend-item"><span class="fc-dot fc-bg-purple"></span><span
-                  class="fc-legend-full">IMP/G</span><span class="fc-legend-abbr">IMP</span></div>
-            </div>
-          </div>
-
-          <!-- Bar Chart -->
-          <div class="fc-card fc-glass fc-chart-panel fc-bar-panel">
-            <div class="fc-chart-header fc-chart-header--bar">
-              <div class="fc-chart-header-top fc-chart-header-top--bar">
-                <div class="fc-bar-title-line">
-                  <h3 class="fc-card__title">PPG Leaders &#8211;</h3>
-                  <p class="fc-card__subtitle-text fc-chart-subtitle fc-subtitle-bar">Positional Leaders (Top 8)</p>
-                </div>
-                <!-- Dashboard PPG Leaders filters: seed the contact-inspired glass rail with
-                     the All button active by default so the mobile header-style treatment
-                     renders correctly before dashboard.js reapplies the live filter state. -->
-                <div class="fc-filter-group" id="filter-buttons" role="group" aria-label="PPG leader position filters">
-                  <button type="button" data-filter="all" data-position="ALL" class="filter-btn active fc-filter-btn--active" aria-pressed="true">All</button>
-                  <button type="button" data-filter="QB" data-position="QB" class="filter-btn" aria-pressed="false">QB</button>
-                  <button type="button" data-filter="RB" data-position="RB" class="filter-btn" aria-pressed="false">RB</button>
-                  <button type="button" data-filter="WR" data-position="WR" class="filter-btn" aria-pressed="false">WR</button>
-                  <button type="button" data-filter="TE" data-position="TE" class="filter-btn" aria-pressed="false">TE</button>
-                </div>
-              </div>
-              <!-- PPG Leaders subtitle moved inline with title per header layout update -->
-            </div>
-            <div class="fc-chart-container">
-              <div id="bar-chart" class="fc-chart-canvas"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Scatter Plot Section (Replaces Leaderboard) -->
-        <div class="fc-card fc-glass fc-chart-panel fc-scatter-panel">
-          <div class="fc-chart-header fc-chart-header--scatter">
-            <div class="fc-chart-header-top fc-chart-header-top--scatter">
-              <h3 class="fc-card__title">Consistency Rate vs. Ceiling Grid</h3>
-              <div class="fc-legend-inline fc-scatter-legend" role="group" aria-label="Scatter position filter">
-                <button class="fc-legend-item" type="button" data-pos="QB"><span
-                    class="fc-dot fc-pos-qb-dot"></span>QB</button>
-                <button class="fc-legend-item" type="button" data-pos="RB"><span
-                    class="fc-dot fc-pos-rb-dot"></span>RB</button>
-                <button class="fc-legend-item" type="button" data-pos="WR"><span
-                    class="fc-dot fc-pos-wr-dot"></span>WR</button>
-                <button class="fc-legend-item" type="button" data-pos="TE"><span
-                    class="fc-dot fc-pos-te-dot"></span>TE</button>
-              </div>
-            </div>
-            <div class="fc-scatter-subline">
-              <p class="fc-card__subtitle-text fc-subtitle-scatter">CSTY % vs. CL — Landscape across Top 8 in PPG at
-                each position</p>
-              <span class="fc-chart-helper fc-chart-helper--scatter">✦ Tap Data Points for Values &amp; Pos.
-                Rankings</span>
-            </div>
-          </div>
-          <div class="fc-chart-container">
-            <div id="scatter-chart" class="fc-chart-canvas"></div>
-          </div>
-        </div>
-      </main>
-    </div>
-
-    <div id="welcome-screen">
-      <!-- Panel: Instructions + Install -->
-      <div class="welcome-info-panel">
-
-        <section aria-label="Install as a web app" class="panel install-panel" id="install-webapp">
-          <h3 class="panel-title">Set up as a Web App</h3>
-
-          <details class="install-details">
-            <summary>iPhone, iPad, Android, and Mac</summary>
-
-            <div class="install-columns">
-
-              <div class="install-card">
-                <h4>iPhone (Safari)</h4>
-                <ol>
-                  <li>Open this site in Safari.</li>
-                  <li>Tap Share.</li>
-                  <li>Scroll and tap Add to Home Screen.</li>
-                </ol>
-                <p class="hint">
-                  Tip: If you don't see it, tap Edit Actions and enable Add to Home Screen.
-                </p>
-              </div>
-
-              <div class="install-card">
-                <h4>iPad (Safari)</h4>
-                <ol>
-                  <li>Open this site in Safari.</li>
-                  <li>Tap Share in the toolbar.</li>
-                  <li>Tap Add to Home Screen.</li>
-                </ol>
-              </div>
-
-              <div class="install-card">
-                <h4>Android (Chrome)</h4>
-                <ol>
-                  <li>Open this site in Chrome.</li>
-                  <li>Tap the ⋮ menu.</li>
-                  <li>Choose Add to Home screen or Install app.</li>
-                </ol>
-              </div>
-
-              <div class="install-card">
-                <h4>Mac (Safari)</h4>
-                <ol>
-                  <li>Open this site in Safari.</li>
-                  <li>Choose File → Add to Dock (or Share → Add to Dock).</li>
-                </ol>
-              </div>
-
-            </div>
-          </details>
-        </section>
-        <div class="install-footnote" id="installFootnote">• A Dynasty-Hub© App •</div>
-      </div>
-
-      <!-- hidden SVG mask for the glow -->
-      <svg width="0" height="0" style="position:absolute;left:-9999px;top:-9999px" aria-hidden="true">
-        <defs>
-          <!-- Upside-down T made from two rounded rects -->
-          <mask id="welcomeGlowT" maskUnits="objectBoundingBox">
-            <!-- Black = transparent (hide), White = visible (show glow) -->
-            <rect x="0" y="0" width="1" height="1" fill="black" />
-            <!-- Horizontal bar (near bottom) -->
-            <rect x="0.11" y="0.80" width="0.78" height="0.16" rx="0.08" ry="0.08" fill="white" />
-            <!-- Vertical stem (centered) -->
-            <rect x="0.39" y="0.10" width="0.22" height="0.70" rx="0.08" ry="0.08" fill="white" />
-          </mask>
-        </defs>
-      </svg>
-
-      <!-- External footnote (below card) -->
-    </div>
-    <div id="loading" class="hidden">
-      <div class="loading-overlay" role="alert" aria-live="polite">
-        <div class="loading-spinner" aria-hidden="true"></div>
-        <div class="loading-body">
-          <img
-            src="assets/welcome/welcome-logo-256.png"
-            alt="Dynasty Hub"
-            width="216"
-            height="216"
-            decoding="async"
-            loading="eager"
-            class="loading-logo"
-          />
-          <div class="loading-text">
-            <span class="loading-message">Loading…</span>
-          </div>
+  <header class="dh-topbar">
+    <div class="dh-topbar__inner">
+      <a class="dh-brand" href="index.html" aria-label="Dynasty Hub home">
+        <img id="dashboardBrandLogo" src="assets/welcome/welcome-logo-256.png" alt="" width="48" height="48" fetchpriority="high" />
+        <span>DYNASTY<span class="dh-brand__hub">HUB</span><small>BUILT FOR THE LONG GAME</small></span>
+      </a>
+      <nav class="dh-primary-nav" aria-label="Primary">
+        <a href="index.html" aria-current="page">Overview</a>
+        <a href="datahub/datahub.html">DataHub <span>↗</span></a>
+        <a href="matchups/index.html">Matchups <span>↗</span></a>
+      </nav>
+      <div class="dh-topbar__right">
+        <span class="dh-season-tag"><i></i> 2026 SEASON</span>
+        <div class="dh-menu-wrap">
+          <button id="homeMenuToggle" class="dh-menu-toggle" type="button" aria-expanded="false" aria-controls="homeMenu" aria-label="Open navigation menu">
+            <span></span><span></span>
+          </button>
+          <nav id="homeMenu" class="dh-menu" aria-label="All pages" hidden>
+            <span class="dh-menu__label">EXPLORE DYNASTY HUB</span>
+            <a href="index.html" aria-current="page"><span>01</span>Home</a>
+            <a href="rosters/rosters.html" data-user-link="rosters"><span>02</span>Rosters</a>
+            <a href="datahub/datahub.html"><span>03</span>DataHub</a>
+            <a href="leaguehub/leaguehub.html" data-user-link="leaguehub"><span>04</span>LeagueHub</a>
+            <a href="research/research.html" data-user-link="research"><span>05</span>Research</a>
+            <a href="ownership/ownership.html" data-user-link="ownership"><span>06</span>Ownership</a>
+            <a href="https://trophyroom.dynastyhub.pro/" data-user-link="trophy"><span>07</span>Trophy Room <b>↗</b></a>
+            <a href="matchups/index.html"><span>08</span>Matchups</a>
+            <a href="contact/contact.html" data-user-link="contact"><span>09</span>Contact</a>
+          </nav>
         </div>
       </div>
     </div>
+  </header>
+
+  <main id="content" class="dh-shell">
+    <section class="dh-intro" aria-labelledby="welcome-title">
+      <div class="dh-intro__copy">
+        <p class="dh-eyebrow"><span class="dh-cross">✳</span> FANTASY FOOTBALL, IN FOCUS</p>
+        <h1 id="welcome-title">Your next move.<br /><span>Your next edge.</span></h1>
+        <p class="dh-intro__description">The numbers. The leaders. Your next edge.</p>
+      </div>
+      <!-- Custom Prism artwork is decorative; copy and league controls remain
+           live HTML and readable at every width. The asset belongs to this page. -->
+      <div class="dh-field-art" aria-hidden="true">
+        <img src="assets/welcome/prism-hero.png" alt="" width="1536" height="1024" decoding="async" />
+      </div>
+      <div class="dh-sync">
+        <div class="dh-sync__heading"><span class="dh-sync__icon"><svg><use href="#icon-grid" /></svg></span><div><h2>Your leagues. One hub.</h2><p>Enter your Sleeper username to get started.</p></div></div>
+        <form id="league-sync-form" class="dh-sync__form">
+          <label for="usernameInput" class="dh-visually-hidden">Sleeper username</label>
+          <span class="dh-sync__at" aria-hidden="true">@</span>
+          <input id="usernameInput" name="username" type="text" placeholder="Sleeper username" value="The_Oracle" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" />
+          <button id="rostersButton" type="submit">Enter <svg aria-hidden="true"><use href="#icon-arrow" /></svg></button>
+        </form>
+        <p class="dh-sync__hint">No username needed for <a href="datahub/datahub.html">DataHub</a> &amp; <a href="research/research.html">Research <span>↗</span></a></p>
+      </div>
+    </section>
+
+    <section id="dashboard" class="dh-dashboard" aria-labelledby="dashboard-title" aria-busy="true">
+      <div class="dh-section-heading">
+        <div><p class="dh-eyebrow">01 / THE SEASON AT A GLANCE</p><h2 id="dashboard-title">2026 league leaders<span>.</span></h2></div>
+        <div class="dh-season-meta"><span>PPR SCORING</span><span id="season-progress">2026 SNAPSHOT</span></div>
+      </div>
+      <p id="dashboard-data-status" class="dh-data-status" role="status" aria-live="polite">Loading the 2026 season…</p>
+      <!-- All four summary cards retain the original qualified leader metrics. -->
+      <div class="dh-metrics">
+        <article class="dh-metric" data-metric="fpts" style="--metric-color:#76b9ff">
+          <div class="dh-metric__top"><span>THE POINTS LEADER</span><svg aria-hidden="true"><use href="#icon-up-right" /></svg></div>
+          <div class="dh-metric__number"><strong id="total-points-value">—</strong><span>FPTS<small>PPR production</small></span></div>
+          <div class="dh-metric__player"><img id="total-points-logo" width="28" height="28" alt="" hidden /><div><b id="total-points-name">Loading…</b><span id="total-points-meta">2026 season leader</span></div><span class="dh-metric__rank">01</span></div>
+        </article>
+        <article class="dh-metric" data-metric="epa" style="--metric-color:#f48ec4">
+          <div class="dh-metric__top"><span>QUARTERBACK IMPACT</span><svg aria-hidden="true"><use href="#icon-target" /></svg></div>
+          <div class="dh-metric__number"><strong id="ppg-value">—</strong><span>EPA/DB<small>Passing efficiency</small></span></div>
+          <div class="dh-metric__player"><img id="ppg-logo" width="28" height="28" alt="" hidden /><div><b id="ppg-name">Loading…</b><span id="ppg-meta">Qualified quarterbacks</span></div><span class="dh-metric__rank">01</span></div>
+        </article>
+        <article class="dh-metric" data-metric="csty" style="--metric-color:#72dfff">
+          <div class="dh-metric__top"><span>THE RELIABLE RUNNER</span><svg aria-hidden="true"><use href="#icon-repeat" /></svg></div>
+          <div class="dh-metric__number"><strong id="consistency-value">—</strong><span>CSTY%<small>RB consistency</small></span></div>
+          <div class="dh-metric__player"><img id="consistency-logo" width="28" height="28" alt="" hidden /><div><b id="consistency-name">Loading…</b><span id="consistency-meta">100% consistency club</span></div><span class="dh-metric__rank">01</span></div>
+        </article>
+        <article class="dh-metric" data-metric="share" style="--metric-color:#bd98ff">
+          <div class="dh-metric__top"><span>THE TARGET MAGNET</span><svg aria-hidden="true"><use href="#icon-share" /></svg></div>
+          <div class="dh-metric__number"><strong id="share-value">—</strong><span>TS%<small>WR target share</small></span></div>
+          <div class="dh-metric__player"><img id="share-logo" width="28" height="28" alt="" hidden /><div><b id="share-name">Loading…</b><span id="share-meta">Qualified wide receivers</span></div><span class="dh-metric__rank">01</span></div>
+        </article>
+      </div>
+
+      <div class="dh-chart-heading"><p class="dh-eyebrow">02 / READ THE FIELD</p><a href="datahub/datahub.html">Explore the full database <svg aria-hidden="true"><use href="#icon-up-right" /></svg></a></div>
+      <div class="dh-charts">
+        <article class="dh-panel dh-panel--ppg" aria-labelledby="ppg-title">
+          <div class="dh-panel__header"><div><p class="dh-eyebrow">THE LEADERBOARD</p><h3 id="ppg-title">Points per game<span>.</span></h3></div><span class="dh-panel__index">01</span></div>
+          <div id="filter-buttons" class="dh-filters" role="group" aria-label="PPG leader position filters">
+            <button type="button" data-filter="all" aria-pressed="true">ALL</button><button type="button" data-filter="QB" aria-pressed="false">QB</button><button type="button" data-filter="RB" aria-pressed="false">RB</button><button type="button" data-filter="WR" aria-pressed="false">WR</button><button type="button" data-filter="TE" aria-pressed="false">TE</button>
+          </div>
+          <div class="dh-leader-columns" aria-hidden="true"><span>RK / PLAYER</span><span>PPG</span></div>
+          <div id="bar-chart" class="dh-ppg-chart"><p class="dh-chart-placeholder">Finding the leaders…</p></div>
+          <div class="dh-panel__foot"><span id="ppg-caption">TOP 12 · MIN. 3 GAMES</span><span>PPR / GAME</span></div>
+        </article>
+
+        <article class="dh-panel dh-panel--distribution" aria-labelledby="distribution-title">
+          <div class="dh-panel__header"><div><p class="dh-eyebrow">PPR · TOP 60</p><h3 id="distribution-title">Positional distribution<span>.</span></h3></div><span class="dh-panel__index">02</span></div>
+          <p class="dh-panel__description">Where each position lands among the season’s top scorers.</p>
+          <div id="distribution-chart" class="dh-plot dh-distribution-chart"><p class="dh-chart-placeholder">Mapping the top 60…</p></div>
+          <div id="distribution-summary" class="dh-distribution-summary" aria-label="Position counts in the top 60"></div>
+          <p class="dh-panel__note">Cumulative player count by overall PPR points rank.</p>
+        </article>
+
+        <article class="dh-panel dh-panel--performance" aria-labelledby="performance-title">
+          <div class="dh-panel__header"><div><p class="dh-eyebrow">THE PLAYER LENS</p><h3 id="performance-title">Performance map<span>.</span></h3></div><span class="dh-panel__index">03</span></div>
+          <label for="player-select" class="dh-visually-hidden">Select a player from the top 100 PPR scorers</label>
+          <div class="dh-player-select"><select id="player-select" aria-describedby="player-select-help"><option>Loading players…</option></select><svg aria-hidden="true"><use href="#icon-chevron" /></svg></div>
+          <span id="player-select-help" class="dh-visually-hidden">Top 100 by PPR points. Type a player’s name to jump to them.</span>
+          <div class="dh-performance-plot"><div id="radar-chart" class="dh-plot"></div><button id="radar-details" class="dh-radar-center" type="button" aria-label="View selected player statistics and positional ranks"><span>FPTS RANK</span><strong id="rating-value">—</strong><small id="rating-meta">VIEW STATS ↗</small></button></div>
+          <div id="radar-legend" class="dh-radar-legend"></div>
+          <p class="dh-panel__note">Position ranks · tap the center for all stats</p>
+        </article>
+
+        <article class="dh-panel dh-panel--yardage" aria-labelledby="yardage-title">
+          <div class="dh-panel__header"><div><p class="dh-eyebrow">TWO PATHS TO PRODUCTION</p><h3 id="yardage-title">Ground / Air<span>.</span></h3></div><span class="dh-panel__index">04</span></div>
+          <div class="dh-yardage-key"><span><i></i> RUSHING</span><span>RECEIVING <i></i></span></div>
+          <div id="yardage-chart" class="dh-plot dh-yardage-chart"><p class="dh-chart-placeholder">Reading the yardage leaders…</p></div>
+          <div class="dh-panel__foot"><span>TOP 6 SKILL PLAYERS</span><span>SEASON YARDS</span></div>
+        </article>
+
+        <article class="dh-panel dh-panel--scatter" aria-labelledby="scatter-title">
+          <div class="dh-panel__header"><div><p class="dh-eyebrow">FIND THE SWEET SPOT</p><h3 id="scatter-title">Consistency / Ceiling<span>.</span></h3></div><div id="scatter-filters" class="dh-filters dh-filters--positions" role="group" aria-label="Consistency and ceiling position filters"><button type="button" data-pos="ALL" aria-pressed="true">ALL</button><button type="button" data-pos="QB" aria-pressed="false">QB</button><button type="button" data-pos="RB" aria-pressed="false">RB</button><button type="button" data-pos="WR" aria-pressed="false">WR</button><button type="button" data-pos="TE" aria-pressed="false">TE</button></div></div>
+          <p class="dh-panel__description">Consistency rate vs. ceiling · Top 8 in PPG at each position · Tap a player for values &amp; ranks</p>
+          <div id="scatter-chart" class="dh-plot dh-scatter-chart"><p class="dh-chart-placeholder">Plotting consistency and ceiling…</p></div>
+          <div class="dh-panel__foot"><span>STEADIER FLOORS →</span><span>↑ HIGHER CEILINGS</span></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Installation instructions retain all four platforms in a compact disclosure. -->
+    <section id="install-webapp" class="dh-install" aria-labelledby="install-title">
+      <details id="install-details">
+        <summary><span class="dh-install__icon" aria-hidden="true">↙</span><span><strong id="install-title">Keep your edge close.</strong><small>Set up Dynasty Hub as a web app · iPhone, iPad, Android &amp; Mac</small></span><span class="dh-install__action">INSTALL GUIDE <svg aria-hidden="true"><use href="#icon-chevron" /></svg></span></summary>
+        <div class="dh-install__grid">
+          <div><h3>01 / iPhone <span>Safari</span></h3><ol><li>Open this site in Safari.</li><li>Tap Share.</li><li>Scroll and tap Add to Home Screen.</li></ol><p>Don’t see it? Tap Edit Actions and enable Add to Home Screen.</p></div>
+          <div><h3>02 / iPad <span>Safari</span></h3><ol><li>Open this site in Safari.</li><li>Tap Share in the toolbar.</li><li>Tap Add to Home Screen.</li></ol></div>
+          <div><h3>03 / Android <span>Chrome</span></h3><ol><li>Open this site in Chrome.</li><li>Tap the ⋮ menu.</li><li>Choose Add to Home screen or Install app.</li></ol></div>
+          <div><h3>04 / Mac <span>Safari</span></h3><ol><li>Open this site in Safari.</li><li>Choose File → Add to Dock, or Share → Add to Dock.</li></ol></div>
+        </div>
+      </details>
+    </section>
+    <footer id="legalFootnote" class="dh-footer">
+      <div class="dh-footer__brand"><span>DYNASTY HUB<span class="dh-cross">✳</span></span><p>A Dynasty-Hub© App · Built for the long game.</p></div>
+      <p>This App uses KTC player values and Sleeper roster data (updated daily). Data is owned by their respective providers. This App is not affiliated with or endorsed by KTC or Sleeper.</p>
+      <a href="contact/contact.html" data-user-link="contact">Get in touch ↗</a>
+    </footer>
   </main>
-  <footer id="legalFootnote" class="page-footnote" role="contentinfo" aria-label="Data & affiliation disclaimer" inert>
-    This App uses KTC player values and Sleeper roster data (updated daily). Data is owned by their respective
-    providers. This App is not affiliated with or endorsed by KTC or Sleeper.
-  </footer>
-  </div>
 
-  <!-- Radar Stats Modal - Direct child of body for page-relative positioning -->
-  <div id="radar-modal" class="fc-modal" aria-hidden="true">
-    <div class="fc-modal-overlay"></div>
-    <div class="fc-modal-content fc-glass">
-      <button class="fc-modal-close" aria-label="Close modal">&times;</button>
-      <h3 id="radar-modal-title" class="fc-modal-title">Player Stats</h3>
-      <div id="radar-modal-body" class="fc-modal-body">
-        <!-- Stats injected via JS -->
-      </div>
-    </div>
-  </div>
-
-  <script defer src="scripts/app.js?v=DH3.49n-local-weekly-stats"></script>
-  <script src="scripts/dh-scramble.js?v=DH3.23B-dashboard-branding"></script>
-  <script src="scripts/dashboard.js?v=DH3.70-local-2026-season"></script>
+  <dialog id="radar-modal" class="dh-dialog" aria-labelledby="radar-modal-title">
+    <div class="dh-dialog__top"><p class="dh-eyebrow">THE PLAYER LENS / 2026</p><button type="button" id="radar-modal-close" aria-label="Close player statistics"><svg><use href="#icon-close" /></svg></button></div>
+    <h2 id="radar-modal-title">Player statistics</h2><p id="radar-modal-description"></p>
+    <div id="radar-modal-body" class="dh-stat-list"></div>
+    <p class="dh-dialog__note">Positional ranks use qualified 2026 season statistics. PPG ranks require at least 3 recorded games. Unqualified ranks remain unavailable.</p>
+  </dialog>
+  <div id="chart-tooltip" class="dh-tooltip" role="status" hidden></div>
+  <noscript><p class="dh-no-script">Enable JavaScript to explore the charts. You can still visit <a href="datahub/datahub.html">DataHub</a> or <a href="rosters/rosters.html">Rosters</a>.</p></noscript>
 </body>
-
 </html>

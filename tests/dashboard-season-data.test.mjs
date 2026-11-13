@@ -4,7 +4,8 @@ import fs from 'node:fs';
 import {
   parseDashboardCsv, normalizeDashboardPlayer, loadDashboardPlayers,
   selectConsistencyRb, selectScatterPlayers, getScatterBounds,
-  getDashboardQualifierWeeks, selectSummaryLeaders
+  getDashboardQualifierWeeks, selectSummaryLeaders, selectPpgLeaders,
+  buildPositionalDistribution, selectYardageLeaders, rankDashboardPlayers
 } from '../DH_P2.53/scripts/dashboard-data.js';
 
 const headers = 'SZN,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,GM_P,CSTY%,CL';
@@ -158,4 +159,71 @@ test('summary volume minimums derive from all DH games and advance after 14 game
   const boundary = summaryPlayer('QB', 'boundary', { pass_att: 225, fpts: 100 });
   const below = summaryPlayer('QB', 'below', { pass_att: 224, fpts: 150 });
   assert.equal(selectSummaryLeaders([clock, boundary, below]).topFpts.id, 'boundary');
+});
+
+test('expanded PPG leaderboard returns twelve and keeps the independent three-game gate', () => {
+  const players = Array.from({ length: 15 }, (_, index) => ({
+    ...summaryPlayer(index % 2 ? 'WR' : 'RB', String(index), { ppg: 40 - index, fpts: 200 - index, rush_att: 0, rr: 0 }),
+    name: 'Player ' + index
+  }));
+  players.push({ ...players[0], id: 'too-early', games: 2, stats: { ...players[0].stats, ppg: 100 } });
+  assert.equal(selectPpgLeaders(players).length, 12);
+  assert.equal(selectPpgLeaders(players)[0].id, '0');
+  assert.equal(selectPpgLeaders(players, 'WR').length, 7);
+  assert.ok(selectPpgLeaders(players, 'WR').every(player => player.position === 'WR'));
+  assert.equal(selectPpgLeaders([{ ...players[0], stats: { ppg: 0, fpts: 0 } }])[0].stats.ppg, 0);
+  assert.equal(selectPpgLeaders([{ ...players[0], stats: { ppg: null, fpts: 0 } }]).length, 0);
+});
+
+test('Top 60 distribution uses current PPR order and each cumulative prefix conserves players', () => {
+  const players = Array.from({ length: 65 }, (_, index) => ({
+    ...summaryPlayer(['QB','RB','WR','TE'][index % 4], String(index), { fpts: 200 - index }),
+    name: 'Player ' + String(index).padStart(2, '0')
+  }));
+  players.push({ ...players[0], id: 'future', games: 0, stats: { fpts: 10000 } });
+  players.push({ ...players[0], id: 'missing', stats: { fpts: null } });
+  const model = buildPositionalDistribution(players.reverse());
+  assert.equal(model.total, 60);
+  assert.deepEqual(model.counts, { QB: 15, RB: 15, WR: 15, TE: 15 });
+  assert.equal(model.rows[1].player.id, '0');
+  assert.equal(model.rows[60].player.id, '59');
+  for (const row of model.rows) {
+    assert.equal(row.QB + row.RB + row.WR + row.TE, row.rank);
+    for (const position of ['QB','RB','WR','TE']) {
+      assert.ok(Number.isInteger(row[position]));
+      if (row.rank) assert.ok(row[position] >= model.rows[row.rank - 1][position]);
+    }
+  }
+  const short = buildPositionalDistribution(players.filter(player => ['0','1','2'].includes(player.id)));
+  assert.equal(short.total, 3);
+  assert.equal(Object.values(short.counts).reduce((a, b) => a + b), 3);
+});
+
+test('Ground / Air sums recorded components, preserves zero, and excludes missing or unqualified results', () => {
+  const wr = { ...summaryPlayer('WR', 'receiver', { rushing_yards: 0, receiving_yards: 1000 }), name: 'Receiver' };
+  const rb = { ...summaryPlayer('RB', 'runner', { rushing_yards: 800, receiving_yards: 300 }), name: 'Runner' };
+  const missing = { ...wr, id: 'missing', stats: { ...wr.stats, rushing_yards: null, receiving_yards: 2000 } };
+  const unqualified = { ...rb, id: 'unqualified', games: 1, stats: { ...rb.stats, rush_att: 0, fpts: 1, rushing_yards: 10000 } };
+  const qb = { ...rb, id: 'qb', position: 'QB', stats: { ...rb.stats, rushing_yards: 2000 } };
+  assert.deepEqual(selectYardageLeaders([wr, missing, unqualified, rb, qb]).map(player => [player.id, player.totalYards]),
+    [['runner', 1100], ['receiver', 1000]]);
+  const normalized = normalizeDashboardPlayer({ ruYDS: '0', recYDS: 'NA' });
+  assert.equal(normalized.stats.rushing_yards, 0);
+  assert.equal(normalized.stats.receiving_yards, null);
+});
+
+test('Player Lens ranks use volume/scoring qualification, competition ties and lower TTT', () => {
+  const players = [
+    summaryPlayer('QB', 'a', { epa_db: .4, ppg: 15, fpts: 120, ttt: 2.8 }),
+    summaryPlayer('QB', 'b', { epa_db: .4, ppg: 15, fpts: 120, ttt: 2.5 }),
+    summaryPlayer('QB', 'c', { epa_db: .3, ppg: 12, fpts: 96, ttt: null }),
+    summaryPlayer('QB', 'unqualified', { pass_att: 0, epa_db: 1, fpts: 80, ppg: 10 }),
+    summaryPlayer('QB', 'early', { pass_att: 0, epa_db: 2, fpts: 80, ppg: 40 }, 2)
+  ];
+  rankDashboardPlayers(players);
+  assert.deepEqual(players.map(player => player.statRanks.epa_db), [1, 1, 3, undefined, undefined]);
+  assert.deepEqual(players.map(player => player.statRanks.ttt), [2, 1, undefined, undefined, undefined]);
+  assert.deepEqual(players.map(player => player.ranks.ppgPosRank), [1, 1, 3, 4, null]);
+  assert.equal(players[3].stats.epa_db, 1);
+  assert.equal(players[3].ranks.posRank, null);
 });

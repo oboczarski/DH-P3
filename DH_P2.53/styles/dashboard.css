@@ -1,3364 +1,458 @@
-/* Scoped Dashboard Styles */
-/* Home boot experience: a fixed, page-owned orbital scene while DH and the
-   dashboard charts prepare. Every animation has a reduced-motion alternative. */
-body[data-page="welcome"][data-dashboard-loading] { overflow: hidden; }
-body[data-page="welcome"] .dh-boot {
-  --boot-progress: 12%;
-  position: fixed;
-  inset: 0;
-  z-index: 100000;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  padding: 28px 24px;
-  background:
-    radial-gradient(ellipse at 50% 38%, #5540a32e 0%, transparent 48%),
-    radial-gradient(ellipse at 17% 80%, #087b8f15, transparent 40%),
-    radial-gradient(ellipse at 85% 18%, #b8387a12, transparent 35%), #090d19;
-  color: #edf2ff;
-  font-family: 'Product Sans', system-ui, sans-serif;
-  text-align: center;
+/* Welcome page / Prism: a page-owned visual system. No shared selectors
+   or app-wide variables are changed. Mobile starts compact; larger screens gain
+   a composed five-chart grid rather than additional vertical whitespace. */
+@font-face {
+  font-family: "Google Sans Flex";
+  font-style: normal;
+  font-weight: 100 1000;
+  font-display: swap;
+  src: url("../assets/fonts/google-sans-flex/latin.woff2") format("woff2");
 }
-body[data-page="welcome"] .dh-boot[hidden] { display: none; }
-body[data-page="welcome"] .dh-boot * { box-sizing: border-box; }
-.dh-boot__mesh {
-  position: absolute;
-  inset: -20%;
-  opacity: 0.3;
-  background-image: linear-gradient(#9d9acf0a 1px, transparent 1px), linear-gradient(90deg, #9d9acf0a 1px, transparent 1px);
-  background-size: 60px 60px;
-  transform: perspective(650px) rotateX(28deg);
-  mask-image: radial-gradient(ellipse, #000 15%, transparent 65%);
-}
-.dh-boot__content { position: relative; width: min(100%, 490px); }
-.dh-boot__eyebrow {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  color: #d8def4;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.23em;
-}
-.dh-boot__eyebrow > span:first-child {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #70e8d0;
-  box-shadow: 0 0 12px #70e8d0aa;
-}
-.dh-boot__season { padding-left: 12px; border-left: 1px solid #c2c9e929; color: #8a93b4; font-size: 9px; letter-spacing: 0.13em; }
-.dh-boot__orbit { position: relative; width: 280px; height: 280px; margin: 28px auto 16px; }
-.dh-boot__orbit::before {
-  content: '';
-  position: absolute;
-  inset: 17%;
-  border-radius: 50%;
-  background: #6747df;
-  filter: blur(48px);
-  opacity: 0.17;
-  animation: dh-boot-breathe 3.5s ease-in-out infinite;
-}
-.dh-boot__orbit-ring { position: absolute; border-radius: 50%; border: 1px solid #a9b9fa1c; }
-.dh-boot__orbit-ring--outer { inset: 0; border-style: dashed; border-color: #bdc8ff1c; animation: dh-boot-orbit 36s linear infinite; }
-.dh-boot__orbit-ring--inner { inset: 20px; border-top-color: #9d8dffb3; border-right-color: #5ddfe66b; animation: dh-boot-orbit 8s linear infinite reverse; }
-.dh-boot__orbit-ring--inner::after {
-  content: '';
-  position: absolute;
-  top: 31px;
-  right: 31px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #a3f3ff;
-  box-shadow: 0 0 13px 3px #57c6ef66;
-}
-.dh-boot__sweep { position: absolute; inset: 23px; border-radius: 50%; background: conic-gradient(from 0deg, transparent 70%, #9b83ff15 95%, #9b83ff55); animation: dh-boot-orbit 5s linear infinite; }
-.dh-boot__core {
-  position: absolute;
-  inset: 62px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #c4b3ff30;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 25%, #a8a4fa18, #1a203529 65%);
-  box-shadow: 0 0 50px #8d66ff12, inset 0 0 24px #ad9eff0d;
-  backdrop-filter: blur(10px);
-}
-.dh-boot__core img { width: 118px; height: 118px; object-fit: contain; filter: drop-shadow(0 0 14px #b8b0ff26); }
-.dh-boot__position {
-  position: absolute;
-  display: grid;
-  place-items: center;
-  width: 33px;
-  height: 27px;
-  border: 1px solid currentColor;
-  border-radius: 8px;
-  background: #101626;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  box-shadow: 0 0 25px #080b1599;
-  animation: dh-boot-float 3s ease-in-out infinite;
-}
-.dh-boot__position--qb { top: 23px; right: 28px; color: #ed8ac4; }
-.dh-boot__position--rb { right: -5px; bottom: 69px; color: #6ad6b3; animation-delay: -0.7s; }
-.dh-boot__position--wr { bottom: -1px; left: 74px; color: #65cfe5; animation-delay: -1.4s; }
-.dh-boot__position--te { left: -8px; top: 84px; color: #e7b079; animation-delay: -2.1s; }
-body[data-page="welcome"] .dh-boot__title { margin: 0; font-size: clamp(32px, 5vw, 48px); font-weight: 500; line-height: 1.06; letter-spacing: -0.04em; }
-.dh-boot__title span { color: #aaa5e7; }
-.dh-boot__description { margin: 16px 0 28px; color: #8792b0; font-size: 13px; letter-spacing: 0.015em; }
-.dh-boot__progress { position: relative; width: min(100%, 320px); height: 3px; margin: 0 auto; overflow: hidden; border-radius: 3px; background: #bfcaff12; }
-.dh-boot__progress > span { display: block; width: var(--boot-progress); height: 100%; border-radius: inherit; background: linear-gradient(90deg, #7b68db, #a696ff, #70dfdd); box-shadow: 0 0 12px #a696ff66; transition: width 0.5s ease; }
-.dh-boot__progress::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, #fff8, transparent); transform: translateX(-100%); animation: dh-boot-scan 2s ease-in-out infinite; }
-.dh-boot__status { margin: 14px 0 18px; color: #bec7df; font-size: 12px; font-weight: 400; letter-spacing: 0.015em; }
-.dh-boot__steps { display: flex; justify-content: center; gap: 20px; color: #606b89; font-size: 10px; }
-.dh-boot__steps > span { display: inline-flex; align-items: center; gap: 6px; transition: color 0.3s; }
-.dh-boot__steps i { width: 4px; height: 4px; border-radius: 50%; border: 1px solid currentColor; }
-.dh-boot__steps [data-state="current"] { color: #c8c3f5; }
-.dh-boot__steps [data-state="current"] i { background: #b5a9ff; box-shadow: 0 0 8px #b5a9ff99; }
-.dh-boot__steps [data-state="complete"] { color: #6dbaa9; }
-.dh-boot__steps [data-state="complete"] i { background: currentColor; }
-.dh-boot__signature { position: absolute; bottom: max(22px, env(safe-area-inset-bottom)); color: #586280; font-size: 8px; letter-spacing: 0.22em; }
-.dh-boot__signature span { color: #9c8ac7; margin-left: 8px; }
-body[data-page="welcome"] .dh-boot[data-phase="1"] { --boot-progress: 60%; }
-body[data-page="welcome"] .dh-boot[data-phase="2"] { --boot-progress: 85%; }
-body[data-page="welcome"] .dh-boot[data-phase="3"] { --boot-progress: 100%; }
-@keyframes dh-boot-orbit { to { transform: rotate(360deg); } }
-@keyframes dh-boot-breathe { 50% { opacity: 0.32; transform: scale(1.12); } }
-@keyframes dh-boot-float { 50% { transform: translateY(-5px); } }
-@keyframes dh-boot-scan { to { transform: translateX(100%); } }
-@media (max-width: 520px) {
-  .dh-boot__orbit { width: 236px; height: 236px; margin-top: 28px; margin-bottom: 20px; }
-  .dh-boot__core { inset: 52px; }
-  .dh-boot__core img { width: 102px; height: 102px; }
-  .dh-boot__steps { gap: 15px; }
-}
-@media (max-height: 650px) {
-  .dh-boot__orbit { width: 190px; height: 190px; margin: 18px auto 14px; }
-  .dh-boot__core { inset: 42px; }
-  .dh-boot__core img { width: 84px; height: 84px; }
-  body[data-page="welcome"] .dh-boot__title { font-size: 30px; }
-  .dh-boot__description { margin: 12px 0 20px; }
-  .dh-boot__signature { display: none; }
-}
-/* Short phone windows retain the complete loading scene; landscape uses the
-   orbit beside the copy so neither the logo nor loading status gets clipped. */
-@media (max-height: 500px) and (max-width: 599px) {
-  .dh-boot__orbit { width: 150px; height: 150px; margin: 12px auto 10px; }
-  .dh-boot__core { inset: 32px; }
-  .dh-boot__core img { width: 72px; height: 72px; }
-  body[data-page="welcome"] .dh-boot__title { font-size: 27px; }
-  .dh-boot__description { margin: 10px 0 16px; font-size: 11px; }
-  .dh-boot__status { margin: 10px 0; }
-}
-@media (max-height: 500px) and (min-width: 600px) {
-  .dh-boot__content { display: grid; grid-template-columns: 210px 1fr; column-gap: 30px; width: min(100%, 650px); text-align: left; }
-  .dh-boot__content > :not(.dh-boot__orbit) { grid-column: 2; }
-  .dh-boot__orbit { grid-column: 1; grid-row: 1 / span 6; width: 210px; height: 210px; margin: 0; }
-  .dh-boot__eyebrow, .dh-boot__steps { justify-content: flex-start; }
-  body[data-page="welcome"] .dh-boot__title { font-size: 32px; margin-top: 14px; }
-  .dh-boot__description { margin: 10px 0 18px; }
-  .dh-boot__progress { width: 100%; }
-  .dh-boot__status { margin: 12px 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  body[data-page="welcome"] .dh-boot *, body[data-page="welcome"] .dh-boot *::before, body[data-page="welcome"] .dh-boot *::after { animation: none; transition: none; }
-}
-
-.fc-dashboard {
-  /* Colors */
-  --bg-deep: #0f172a;
-  --bg-gradient-start: #020617;
-  --bg-gradient-mid: #1e1b4b;
-  --bg-gradient-end: #020617;
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --color-cyan: #06b6d4;
-  --color-cyan-light: #22d3ee;
-  --color-cyan-bg: rgba(6, 182, 212, 0.1);
-  --color-purple: #a855f7;
-  --color-purple-light: #c084fc;
-  --color-purple-bg: rgba(168, 85, 247, 0.1);
-  --color-pink: #ec4899;
-  --color-pink-light: #f472b6;
-  --color-pink-bg: rgba(236, 72, 153, 0.1);
-  --color-emerald: #10b981;
-  --color-emerald-light: #34d399;
-  --color-emerald-bg: rgba(16, 185, 129, 0.1);
-  --color-red: #ef4444;
-  --color-orange: #f97316;
-  --color-yellow: #eab308;
-  --color-violet: #8b5cf6;
-
-  /* ── Glass-Refraction Design System (dashboard-scoped) ──
-     Three tiers: dense (.fc-glass--dense), card (.fc-glass), pill (.fc-glass--pill).
-     Namespaced --fc-gr-* to avoid collision with any future global glass vars. */
-
-  /* Blur / Saturation per tier */
-  --fc-gr-blur: 1px;
-  --fc-gr-blur-card: 4px;
-  --fc-gr-blur-chart: 3px;
-  --fc-gr-blur-pill: 2px;
-  --fc-gr-saturation: 1.5;
-  --fc-gr-saturation-card: 1.3;
-  --fc-gr-saturation-chart: 1.2;
-  --fc-gr-saturation-pill: 1.1;
-
-  /* Border radius per tier */
-  --fc-gr-radius: 18px;
-  --fc-gr-radius-card: 14px;
-  --fc-gr-radius-pill: 10px;
-
-  /* Translucent base colors */
-  --fc-gr-bg-start: rgba(18, 22, 35, 0.48);
-  --fc-gr-bg-end: rgba(12, 16, 28, 0.42);
-
-  /* Chromatic dispersion colors */
-  --fc-gr-chromatic-blue: rgba(0, 180, 255, 0.04);
-  --fc-gr-chromatic-violet: rgba(120, 80, 255, 0.1);
-  --fc-gr-chromatic-pink: rgba(255, 100, 200, 0.04);
-  --fc-gr-chromatic-green: rgba(100, 255, 180, 0.041);
-
-  /* Specular highlight config — diagonal linear-gradient (158deg).
-     Two non-connecting arcs: top-left and bottom-right, with dark gaps between.
-     Ring width controls the visible border thickness via content-box XOR mask. */
-  --fc-gr-specular-ring-width: 0.75px;
-  --fc-gr-specular-ring-width-card: 1px;
-  --fc-gr-specular-ring-width-chart: 1.25px;
-  --fc-gr-specular-ring-width-pill: 0.75px;
-
-  /* Animation timing */
-  --fc-gr-specular-duration: 5s;
-
-  /* Legacy glass vars (kept for any remaining references) */
-  --glass-bg: rgb(166 189 245 / 3%);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  --glass-blur: 2px;
-
-  /* Spacing & Sizing */
-  --radius-lg: 2.5em;
-  --radius-md: 0.75em;
-  --radius-sm: 0.5em;
-  --radius-full: 9999px;
-  --font-family: 'Product Sans', system-ui, -apple-system, sans-serif;
-
-  /* Base Styles for Dashboard Context */
-  font-family: var(--font-family);
-  background-color: transparent;
-  color: var(--text-primary);
-  line-height: 1.5;
+body[data-page="welcome"] {
+  --dh-bg: #080d22;
+  --dh-panel: #131b3c;
+  --dh-panel-soft: #1d2853;
+  --dh-border: #ffffff15;
+  --dh-ink: #f1f4ff;
+  --dh-secondary: #b0bde0;
+  --dh-muted: #8194bf;
+  --dh-accent: #80b4ff;
+  --dh-qb: #ff6aaf;
+  --dh-rb: #2ae5da;
+  --dh-wr: #53caff;
+  --dh-te: #ffa469;
+  --dh-sans: "Google Sans Flex", "DM Sans", system-ui, sans-serif;
+  --dh-display: "Google Sans Flex", "DM Sans", sans-serif;
+  --dh-mono: "IBM Plex Mono", ui-monospace, monospace;
+  margin: 0;
+  color: var(--dh-ink);
+  background: radial-gradient(ellipse at 10% 0%,#1e3678 0%,transparent 42%),radial-gradient(ellipse at 90% 14%,#4b1d7466 0%,transparent 40%),#080d22;
+  isolation: isolate;
+  font: 450 13px/1.5 var(--dh-sans);
   -webkit-font-smoothing: antialiased;
-  
-  /* Layout */
-  min-height: auto;
-  width: 100%;
-  background: none;
-  position: relative;
-  overflow: visible;
-
-  /* Default Font Size (Locked to 1114px view) */
-  font-size: 12.81px;
+  color-scheme: dark;
 }
-
-/* Reset & Base within Dashboard */
-.fc-dashboard *, .fc-dashboard *::before, .fc-dashboard *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* Atmospheric ribbons are decorative and fixed behind the page. The large
+   color fields and fine contour lines remain visible between the dense cards. */
+body[data-page="welcome"]::before {
+  content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background: radial-gradient(ellipse at 0 30%,#154bec55,transparent 57%),radial-gradient(ellipse at 100% 80%,#8a1bce55,transparent 58%),linear-gradient(135deg,#121c45,#0b1130 50%,#170d31);
 }
-
-/* 
-   Aggressive scaling to maintain desktop layout on all screens.
-   We scale the dashboard's font-size based on viewport width (vw).
-   Only applies below 1114px width.
-*/
-@media (max-width: 1114px) {
-  .fc-dashboard {
-    font-size: 1.15vw;
-  }
+body[data-page="welcome"]::after {
+  content: ""; position: fixed; inset: -12% -8%; z-index: -1; pointer-events: none;
+  background: url("../assets/welcome/prism-flow.svg") center 15% / cover no-repeat,url("../assets/welcome/prism-hero.png") 50% 20% / cover no-repeat;
+  opacity: .3;
 }
-
-.fc-main {
-  position: relative;
-  z-index: 10;
-  padding: 0.7em 1.5em 1.5em 1.5em;
-  max-width: 1114px; /* Locked width */
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.95em;
+body[data-page="welcome"] *,
+body[data-page="welcome"] *::before,
+body[data-page="welcome"] *::after { box-sizing: border-box; }
+body[data-page="welcome"] :where(h1,h2,h3,p) { margin: 0; }
+body[data-page="welcome"] :where(button,input,select) { font: inherit; }
+body[data-page="welcome"] :where(button,a,input,select,summary) { -webkit-tap-highlight-color: transparent; }
+body[data-page="welcome"] :where(button,a,input,select,summary):focus-visible { outline: 2px solid var(--dh-accent); outline-offset: 4px; }
+body[data-page="welcome"] button { cursor: pointer; }
+body[data-page="welcome"] a { color: inherit; text-decoration: none; }
+body[data-page="welcome"] svg { display: block; }
+body[data-page="welcome"] button svg,
+body[data-page="welcome"] a svg,
+.dh-metric__top svg,
+.dh-sync__icon svg,
+.dh-player-select > svg,
+.dh-install__action svg {
+  width: 19px; height: 19px; fill: none; stroke: currentColor;
+  stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
 }
+body[data-page="welcome"] [hidden] { display: none !important; }
+body[data-page="welcome"] ::selection { color: var(--dh-bg); background: var(--dh-accent); }
+.dh-symbols { position: absolute; width: 0; height: 0; overflow: hidden; }
+.dh-visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.dh-skip { position: fixed; z-index: 100; top: 8px; left: 8px; padding: 10px 16px; background: var(--dh-accent); color: #080d22 !important; transform: translateY(-160%); }
+.dh-skip:focus { transform: translateY(0); }
+.dh-eyebrow { font: 500 9px/1.4 var(--dh-mono); letter-spacing: .12em; color: var(--dh-secondary); }
+.dh-cross { color: var(--dh-accent); font: 22px/1 var(--dh-sans); }
+.dh-topbar { position: relative; z-index: 30; border-bottom: 1px solid #9c9dff24; background: linear-gradient(110deg,#192b5a90,#20173970); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+.dh-topbar__inner { max-width: 1440px; margin: auto; min-height: 66px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.dh-brand { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+.dh-brand img { width: 37px; height: 37px; object-fit: contain; }
+.dh-brand > span { font: 600 17px/1 "MuseoModerno",var(--dh-sans); letter-spacing: -.05em; }
+.dh-brand__hub { background: linear-gradient(120deg,#4dd6ff,#a588ff 56%,#f390e8); background-clip: text; -webkit-text-fill-color: transparent; margin-left: 3px; }
+.dh-brand small { display: block; color: var(--dh-secondary); font: 400 6px/1 var(--dh-mono); letter-spacing: .14em; padding-top: 6px; }
+.dh-primary-nav { display: none; }
+.dh-topbar__right { display: flex; align-items: center; gap: 12px; }
+.dh-season-tag { font: 500 8px/1.3 var(--dh-mono); letter-spacing: .05em; white-space: nowrap; color: var(--dh-secondary); display: flex; align-items: center; gap: 6px; }
+.dh-season-tag i { width: 5px; height: 5px; border-radius: 50%; background: #71dcff; box-shadow: 0 0 9px #458fff; }
+.dh-menu-wrap { position: relative; }
+.dh-menu-toggle { display: grid; align-content: center; gap: 5px; width: 38px; height: 38px; border: 1px solid #98a5ff50; border-radius: 12px; background: linear-gradient(140deg,#687bf42b,#ac5bf215); color: var(--dh-ink); box-shadow: inset 0 1px #ffffff12; }
+.dh-menu-toggle span { display: block; width: 15px; height: 1px; background: currentColor; margin: 0 auto; transition: transform .2s; }
+.dh-menu-toggle[aria-expanded="true"] span:first-child { transform: translateY(3px) rotate(45deg); }
+.dh-menu-toggle[aria-expanded="true"] span:last-child { transform: translateY(-3px) rotate(-45deg); }
+.dh-menu { position: absolute; top: calc(100% + 12px); right: 0; width: min(280px, calc(100vw - 28px)); z-index: 50; background: linear-gradient(145deg,#263c66f7,#241938fa); padding: 10px; border: 1px solid #9c9dff50; border-radius: 16px; box-shadow: 0 20px 80px #050b34b3,inset 0 1px #ffffff14; backdrop-filter: blur(24px); }
+.dh-menu__label { display: block; padding: 8px 9px 12px; color: var(--dh-muted); font: 9px var(--dh-mono); letter-spacing: .12em; }
+.dh-menu a { display: flex; align-items: center; gap: 13px; min-height: 40px; border-radius: 5px; padding: 8px 10px; font-weight: 550; }
+.dh-menu a > span { font: 9px var(--dh-mono); color: var(--dh-muted); }
+.dh-menu a > b { margin-left: auto; font-weight: 400; }
+.dh-menu a:hover,.dh-menu a:focus-visible,.dh-menu a[aria-current] { color: var(--dh-accent); background: #80b4ff0c; }
+.dh-shell { width: min(100% - 24px, 1360px); margin: 0 auto; }
 
-/* Home dashboard DH loading/failure text stays within the dashboard's type scale. */
-body[data-page="welcome"] #dashboard-data-status {
-  color: var(--text-secondary);
-  font-size: max(11px, 1.1em);
-  text-align: center;
+/* The welcome banner stays short on phones, including a fully usable sync form.
+   The drawn playbook appears only when it has room beside actual content. */
+.dh-intro { position: relative; display: grid; grid-template-columns: minmax(0,1fr); gap: 16px; padding: 20px 16px 16px; margin: 16px 0; border-radius: 20px; border: 1px solid #9995ff3d; background: radial-gradient(ellipse at 105% 0%,#8548d744,transparent 62%),linear-gradient(130deg,#142958bf,#161334b8); box-shadow: 0 14px 60px #080d271f,inset 0 1px #ffffff14; overflow: hidden; }
+.dh-intro__copy { position: relative; z-index: 1; min-width: 0; }
+.dh-intro .dh-eyebrow { display: flex; align-items: center; gap: 8px; font-size: 8px; letter-spacing: .1em; }
+.dh-intro .dh-cross { font-size: 17px; }
+.dh-intro h1 { font: 550 clamp(27px,7.4vw,44px)/1.08 "MuseoModerno",var(--dh-sans); letter-spacing: -.065em; margin: 11px 0 9px; }
+.dh-intro h1 > span { background: linear-gradient(105deg,#47d8ff 0%,#7c9dff 36%,#b58aff 64%,#f18ce4 100%); background-clip: text; -webkit-text-fill-color: transparent; padding-right: 3px; }
+.dh-intro__description { color: var(--dh-secondary); font-size: 11px; }
+.dh-field-art { position: absolute; display: block; width: 270px; height: 210px; right: -75px; top: -12px; pointer-events: none; opacity: .7; mask-image: radial-gradient(ellipse,#000 15%,transparent 74%); }
+.dh-field-art img { width: 100%; height: 100%; object-fit: cover; mix-blend-mode: screen; mask-image: radial-gradient(ellipse,#000 25%,transparent 72%); }
+.dh-sync { position: relative; z-index: 1; min-width: 0; padding: 14px; background: linear-gradient(135deg,#24417785,#2b255a9c); border: 1px solid #a9b7ff30; border-radius: 14px; box-shadow: 0 10px 25px #050a231f,inset 0 1px #ffffff14; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); }
+.dh-sync__heading { display: flex; align-items: center; gap: 9px; margin-bottom: 11px; }
+.dh-sync__icon { width: 32px; height: 32px; display: grid; place-items: center; color: #c1c7ff; background: linear-gradient(135deg,#458aff88,#aa49e84d); border: 1px solid #c3c6ff35; border-radius: 10px; box-shadow: 0 3px 14px #6553ff28; }
+.dh-sync h2 { font-size: 15px; font-weight: 650; letter-spacing: -.03em; }
+.dh-sync__heading p { color: var(--dh-secondary); font-size: 10px; margin-top: 2px; }
+.dh-sync__form { display: flex; align-items: center; gap: 8px; border: 1px solid #a6b9f438; border-radius: 10px; padding: 4px; background: #080e2c80; box-shadow: inset 0 2px 9px #030c2338; }
+.dh-sync__at { color: var(--dh-muted); padding-left: 7px; font-size: 16px; }
+.dh-sync input { min-width: 0; flex: 1; border: 0; outline-offset: 0; background: transparent; color: var(--dh-ink); padding: 6px 0; font-size: 16px; }
+.dh-sync input::placeholder { color: var(--dh-muted); font-size: 12px; }
+.dh-sync button { min-height: 36px; display: flex; align-items: center; gap: 14px; border: 1px solid #c9c2ff40; border-radius: 7px; padding: 0 13px; color: #f5f6ff; background: linear-gradient(115deg,#2587ff,#645bfc 53%,#9d4fe8); font-size: 12px; font-weight: 650; box-shadow: 0 3px 14px #4c4bf638,inset 0 1px #ffffff3b; transition: filter .15s; }
+.dh-sync button:hover { filter: brightness(1.2); }
+.dh-sync button svg { width: 15px; height: 15px; }
+.dh-sync__hint { font-size: 9px; color: var(--dh-secondary); margin-top: 9px; line-height: 1.6; }
+.dh-sync__hint a { color: var(--dh-ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: #ffffff35; }
+.dh-sync__hint a:hover { color: var(--dh-accent); }
+.dh-dashboard { scroll-margin-top: 20px; }
+.dh-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; padding: 14px 0; border-top: 1px solid var(--dh-border); }
+.dh-section-heading .dh-eyebrow { font-size: 7px; letter-spacing: .1em; }
+.dh-section-heading h2 { font: 600 23px/1.15 var(--dh-display); margin-top: 4px; letter-spacing: -.05em; }
+.dh-section-heading h2 > span,.dh-panel h3 > span { color: var(--dh-accent); }
+.dh-season-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; font: 7px/1.4 var(--dh-mono); color: var(--dh-secondary); white-space: nowrap; }
+.dh-season-meta > span:first-child { color: var(--dh-accent); }
+.dh-data-status { color: var(--dh-secondary); border: 1px dashed #80b4ff38; border-radius: 6px; padding: 9px 12px; font-size: 11px; margin-bottom: 10px; }
+.dh-data-status[data-error] { color: #ffc4a5; border-color: #ff6aaf40; }
+.dh-data-status button { margin-left: 10px; padding: 4px 9px; border: 1px solid currentColor; border-radius: 3px; background: transparent; color: inherit; font-size: 10px; }
+.dh-metrics { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.dh-metric { min-width: 0; position: relative; overflow: hidden; background: radial-gradient(ellipse at 100% 0%,color-mix(in srgb,var(--metric-color) 24%,transparent),transparent 70%),linear-gradient(135deg,#1d2c58c9,#171b3acc); border: 1px solid color-mix(in srgb,var(--metric-color) 30%,transparent); border-radius: 15px; padding: 12px 10px; box-shadow: 0 8px 25px #04092526,inset 0 1px #d5d9ff1c; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.dh-metric::before { content: ""; position: absolute; left: 15px; right: 15px; top: 0; height: 1px; background: linear-gradient(90deg,transparent,var(--metric-color),transparent); opacity: .9; }
+.dh-metric__top { display: flex; justify-content: space-between; align-items: center; gap: 4px; color: var(--dh-secondary); font: 500 7px/1.4 var(--dh-mono); letter-spacing: .03em; }
+.dh-metric__top svg { width: 15px; height: 15px; color: var(--metric-color); flex-shrink: 0; }
+.dh-metric__number { display: flex; align-items: flex-end; gap: 6px; padding: 5px 0 10px; }
+.dh-metric__number strong { background: linear-gradient(135deg,#e7efff,var(--metric-color) 62%,color-mix(in srgb,var(--metric-color),#c362ff 45%)); background-clip: text; -webkit-text-fill-color: transparent; font: 550 clamp(25px,6.7vw,36px)/1.05 var(--dh-display); letter-spacing: -.07em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dh-metric__number > span { font: 500 8px/1.2 var(--dh-mono); padding-bottom: 2px; color: var(--dh-ink); }
+.dh-metric__number small { display: none; }
+.dh-metric__player { display: flex; align-items: center; gap: 6px; border-top: 1px solid var(--dh-border); padding-top: 8px; }
+.dh-metric__player img { width: 23px; height: 23px; object-fit: contain; flex-shrink: 0; }
+.dh-metric__player > div { min-width: 0; }
+.dh-metric__player b { display: block; font-size: 11px; font-weight: 550; line-height: 1.25; letter-spacing: -.025em; }
+.dh-metric__player div > span { display: block; font: 7px/1.4 var(--dh-mono); color: var(--dh-muted); margin-top: 3px; }
+.dh-metric__rank { display: none; }
+.dh-chart-heading { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 19px 0 10px; }
+.dh-chart-heading .dh-eyebrow { font-size: 8px; }
+.dh-chart-heading a { display: flex; align-items: center; gap: 5px; font-size: 8px; color: var(--dh-secondary); }
+.dh-chart-heading a:hover { color: var(--dh-accent); }
+.dh-chart-heading a svg { width: 11px; height: 11px; }
+
+/* Panels all use the same editorial hierarchy; plot dimensions vary by the
+   information they contain. PPG keeps twelve rows at every viewport width. */
+.dh-charts { display: grid; gap: 10px; }
+.dh-panel { min-width: 0; position: relative; background: radial-gradient(ellipse at 100% 0%,#7453b81c,transparent 55%),linear-gradient(135deg,#172748d9,#121631e6); border: 1px solid #9aa3ff30; border-radius: 18px; padding: 15px; overflow: hidden; box-shadow: 0 8px 40px #04091f2e,inset 0 1px #dee1ff0f; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+.dh-panel--ppg { background: radial-gradient(ellipse at 0 0,#1e87df22,transparent 50%),linear-gradient(145deg,#15233fdb,#21153fdb); }
+.dh-panel--distribution { background: radial-gradient(ellipse at 75% 0,#964fee1a,transparent 60%),linear-gradient(135deg,#1e2645e8,#191630db); }
+.dh-panel--performance { background: radial-gradient(ellipse at 50% 55%,#6036d82b,transparent 75%),linear-gradient(130deg,#142749d9,#1d153bde); }
+.dh-panel--yardage { background: radial-gradient(ellipse at 90% 40%,#a626b71f,transparent 65%),linear-gradient(145deg,#202145e3,#161a3be0); }
+.dh-panel--scatter { padding: 12px; background: radial-gradient(ellipse at 10% 0%,#415a8c26,transparent 50%),radial-gradient(ellipse at 90% 100%,#a527ae21,transparent 60%),linear-gradient(145deg,#141f39e6,#17142ee8); }
+.dh-panel__header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.dh-panel__header .dh-eyebrow { font-size: 8px; letter-spacing: .08em; color: var(--dh-muted); }
+.dh-panel h3 { font: 600 21px/1.15 var(--dh-display); letter-spacing: -.05em; margin-top: 5px; }
+.dh-panel__index { color: #b1b8ed; font: 9px/1.2 var(--dh-mono); padding: 6px 8px; border: 1px solid #a695ec20; background: linear-gradient(130deg,#628cff18,#ba54e817); border-radius: 8px; }
+.dh-panel__description { color: var(--dh-secondary); font-size: 9px; margin-top: 8px; }
+.dh-panel__foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-top: 1px solid var(--dh-border); padding-top: 10px; font: 8px/1.3 var(--dh-mono); letter-spacing: .03em; color: var(--dh-muted); }
+.dh-panel__note { font-size: 9px; color: var(--dh-muted); margin-top: 8px; }
+.dh-filters { display: flex; align-items: center; gap: 3px; border: 1px solid #a4b5ff22; padding: 3px; border-radius: 10px; background: linear-gradient(110deg,#131b3d88,#30194855); box-shadow: inset 0 1px 7px #06092433; }
+.dh-filters button { flex: 1; border: 0; background: transparent; color: var(--dh-secondary); font: 500 9px var(--dh-mono); min-height: 30px; min-width: 33px; padding: 4px 9px; border-radius: 3px; transition: background .15s,color .15s; }
+.dh-filters button[aria-pressed="true"] { color: #fff; background: linear-gradient(120deg,#317ff4,#7850ee 60%,#a451ce); box-shadow: 0 2px 10px #6b53ff45,inset 0 1px #d9caff40; border-radius: 7px; }
+.dh-filters button:hover:not([aria-pressed="true"]) { background: #ffffff0b; color: var(--dh-ink); }
+.dh-panel--ppg > .dh-filters { margin-top: 13px; }
+.dh-leader-columns { display: flex; justify-content: space-between; margin: 14px 0 4px; color: var(--dh-muted); font: 7px var(--dh-mono); letter-spacing: .08em; }
+.dh-ppg-chart { display: grid; gap: 0; min-height: 360px; }
+.dh-ppg-row { display: grid; grid-template-columns: 18px minmax(101px,1.15fr) minmax(35px,1fr) 34px; align-items: center; gap: 7px; position: relative; width: 100%; min-height: 31px; padding: 3px 0; border: 0; border-bottom: 1px solid #ffffff06; text-align: left; background: transparent; color: var(--dh-ink); }
+.dh-ppg-row:hover,.dh-ppg-row:focus-visible { background: #ffffff05; }
+.dh-ppg-row__rank { color: var(--dh-muted); font: 8px var(--dh-mono); }
+.dh-ppg-row:first-child .dh-ppg-row__rank { color: var(--dh-accent); }
+.dh-ppg-row__player { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.dh-ppg-row__player img { width: 19px; height: 19px; object-fit: contain; }
+.dh-ppg-row__player > span { display: block; min-width: 0; }
+.dh-ppg-row__name { display: block; font-size: 10px; letter-spacing: -.02em; font-weight: 550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dh-ppg-row__meta { display: block; color: var(--dh-muted); font: 7px/1.4 var(--dh-mono); letter-spacing: .02em; }
+.dh-ppg-row__track { width: 100%; height: 15px; background: #708cdd0c; border-radius: 3px 7px 7px 3px; }
+.dh-ppg-row__bar { display: block; height: 100%; width: var(--bar-width); background: linear-gradient(100deg,var(--bar-start),var(--bar-mid) 52%,var(--bar-end)); border: 1px solid color-mix(in srgb,var(--bar-end) 75%,#fff); border-radius: inherit; box-shadow: 0 0 9px color-mix(in srgb,var(--bar-mid) 26%,transparent),inset 0 1px 2px #ffffff4a; transform-origin: left; animation: dh-bar-reveal .6s ease-out both; }
+.dh-ppg-row__value { font: 600 12px var(--dh-mono); text-align: right; color: var(--bar-end); letter-spacing: -.05em; }
+.dh-panel--ppg .dh-panel__foot { margin-top: 9px; }
+.dh-plot { position: relative; min-width: 0; }
+.dh-plot > svg { width: 100%; height: 100%; overflow: visible; }
+.dh-chart-placeholder { display: grid; place-items: center; min-height: 90px; height: 100%; color: var(--dh-muted); text-align: center; font-size: 11px; }
+.dh-distribution-chart { height: 185px; margin: 7px 0 6px; }
+.dh-distribution-summary { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); border: 1px solid var(--dh-border); border-radius: 5px; overflow: hidden; }
+.dh-distribution-summary button { position: relative; min-width: 0; color: var(--dh-ink); background: #0a123033; padding: 9px 8px 8px; border: 0; border-right: 1px solid var(--dh-border); text-align: left; }
+.dh-distribution-summary button:last-child { border-right: 0; }
+.dh-distribution-summary button::before { position: absolute; content: ""; left: 0; right: 0; top: 0; height: 2px; background: linear-gradient(90deg,var(--line-start),var(--line-end)); }
+.dh-distribution-summary button[aria-pressed="true"] { background: #ffffff09; }
+.dh-distribution-summary button[aria-pressed="false"] { opacity: .5; }
+.dh-distribution-summary__key { color: var(--dh-secondary); font: 8px var(--dh-mono); }
+.dh-distribution-summary__count { font: 600 25px/1 var(--dh-display); display: block; margin-top: 4px; }
+.dh-distribution-summary__count small { font: 7px var(--dh-mono); margin-left: 6px; color: var(--dh-secondary); }
+.dh-axis { color: var(--dh-muted); font: 9px var(--dh-mono); }
+.dh-axis .domain { display: none; }
+.dh-axis .tick line { stroke: #ffffff10; }
+.dh-grid .domain { display: none; }
+.dh-grid line { stroke: #ffffff0b; stroke-dasharray: 2 4; }
+.dh-grid text { display: none; }
+.dh-axis-label { fill: var(--dh-muted); font: 7px var(--dh-mono); letter-spacing: .05em; }
+.dh-distribution-line { fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.dh-chart-hit { fill: transparent; touch-action: pan-y; }
+.dh-player-select { display: flex; position: relative; margin-top: 12px; }
+.dh-player-select select { width: 100%; appearance: none; border: 1px solid #ffffff20; border-radius: 4px; padding: 8px 31px 8px 10px; background: #0a123080; color: var(--dh-ink); font-size: 11px; text-overflow: ellipsis; }
+.dh-player-select > svg { position: absolute; right: 9px; top: 10px; width: 13px; height: 13px; color: var(--dh-secondary); pointer-events: none; }
+.dh-performance-plot { position: relative; margin: 4px auto 0; max-width: 330px; }
+.dh-performance-plot > .dh-plot { height: 180px; }
+.dh-radar-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); border: 1px solid #b8a1ff5e; background: radial-gradient(circle at 30% 0%,#6875ba6b,transparent 65%),linear-gradient(140deg,#233567,#261c49); color: #daeaff; border-radius: 50%; width: 68px; height: 68px; display: flex; align-items: center; flex-direction: column; justify-content: center; padding: 0; box-shadow: 0 0 26px #9656ff20,inset 0 1px #ffffff40; }
+.dh-radar-center > span { font: 5px var(--dh-mono); letter-spacing: .08em; color: var(--dh-secondary); }
+.dh-radar-center strong { font: 600 26px/1.1 var(--dh-display); }
+.dh-radar-center small { font: 5px var(--dh-mono); color: var(--dh-secondary); }
+.dh-radar-label { fill: var(--dh-secondary); font: 8px var(--dh-mono); }
+.dh-radar-legend { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 7px 4px; }
+.dh-radar-legend > span { display: flex; align-items: center; gap: 4px; font: 7px var(--dh-mono); color: var(--dh-secondary); white-space: nowrap; }
+.dh-radar-legend i { width: 4px; height: 4px; border-radius: 50%; background: var(--dh-accent); flex-shrink: 0; }
+.dh-yardage-key { display: flex; justify-content: space-between; gap: 8px; font: 7px var(--dh-mono); color: var(--dh-secondary); margin-top: 16px; }
+.dh-yardage-key > span { display: flex; align-items: center; gap: 6px; }
+.dh-yardage-key i { width: 10px; height: 5px; display: inline-block; background: linear-gradient(90deg,#04cfff,#6972ff); border-radius: 2px; box-shadow: 0 0 6px #237cff45; }
+.dh-yardage-key > span:last-child i { background: linear-gradient(90deg,#9856ff,#f767bd); box-shadow: 0 0 6px #c951f945; }
+.dh-yardage-chart { height: 190px; margin-top: 8px; }
+.dh-yardage-name { font: 9px var(--dh-sans); fill: var(--dh-ink); }
+.dh-yardage-total { font: 8px var(--dh-mono); fill: var(--dh-secondary); }
+.dh-filters--positions { flex-shrink: 0; width: max-content; }
+.dh-filters--positions button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+.dh-filters--positions [data-pos="QB"] { --filter-color: var(--dh-qb); }
+.dh-filters--positions [data-pos="RB"] { --filter-color: var(--dh-rb); }
+.dh-filters--positions [data-pos="WR"] { --filter-color: var(--dh-wr); }
+.dh-filters--positions [data-pos="TE"] { --filter-color: var(--dh-te); }
+.dh-filters--positions button:not([data-pos="ALL"])::before { content: ""; width: 4px; height: 4px; border-radius: 50%; background: var(--filter-color); flex-shrink: 0; }
+.dh-panel--scatter .dh-panel__header { flex-wrap: wrap; gap: 12px; }
+.dh-panel--scatter h3 { font-size: 30px; }
+.dh-panel--scatter .dh-panel__description { font-size: 8px; line-height: 1.65; }
+.dh-scatter-chart { height: 345px; margin-top: 12px; }
+.dh-scatter-dot { cursor: pointer; stroke-width: .7; }
+.dh-scatter-dot:hover,.dh-scatter-dot:focus { stroke: var(--dh-ink); stroke-width: 2; outline: 0; }
+.dh-scatter-label { fill: #f3f5ff; font: 550 8px var(--dh-sans); paint-order: stroke; stroke: #0d1431d9; stroke-width: 2.6px; stroke-linejoin: round; cursor: pointer; filter: drop-shadow(0 1px 2px #060a21); }
+.dh-scatter-zone { fill: #80b4ff; font: 7px var(--dh-mono); letter-spacing: .1em; opacity: .55; }
+
+/* Native disclosures and dialog keep installation and player detail accessible,
+   with no page-relative offsets or manually emulated focus trapping. */
+.dh-install { margin-top: 15px; border-top: 1px solid var(--dh-border); border-bottom: 1px solid var(--dh-border); }
+.dh-install summary { display: flex; gap: 11px; align-items: center; padding: 15px 0; cursor: pointer; list-style: none; }
+.dh-install summary::-webkit-details-marker { display: none; }
+.dh-install__icon { display: grid; place-items: center; width: 33px; height: 33px; background: #80b4ff0c; border: 1px solid #80b4ff30; border-radius: 50%; color: var(--dh-accent); font-size: 24px; flex-shrink: 0; }
+.dh-install summary > span:nth-child(2) { flex: 1; min-width: 0; }
+.dh-install summary strong { font-size: 13px; font-weight: 550; }
+.dh-install summary small { display: block; color: var(--dh-secondary); font-size: 8px; margin-top: 3px; max-width: 230px; }
+.dh-install__action { display: flex; align-items: center; gap: 8px; font: 0 var(--dh-mono); color: var(--dh-secondary); }
+.dh-install__action svg { width: 15px; height: 15px; transition: transform .2s; }
+.dh-install details[open] .dh-install__action svg { transform: rotate(180deg); }
+.dh-install__grid { display: grid; grid-template-columns: 1fr; gap: 17px; padding: 4px 0 18px; }
+.dh-install__grid > div { padding-left: 12px; border-left: 1px solid #80b4ff30; }
+.dh-install__grid h3 { font: 500 9px var(--dh-mono); color: var(--dh-ink); }
+.dh-install__grid h3 > span { color: var(--dh-muted); margin-left: 4px; }
+.dh-install__grid ol { margin: 8px 0 0; padding-left: 16px; font-size: 10px; color: var(--dh-secondary); line-height: 1.8; }
+.dh-install__grid p { font-size: 9px; color: var(--dh-muted); margin-top: 6px; }
+.dh-footer { display: grid; grid-template-columns: 1fr auto; align-items: flex-start; gap: 15px; padding: 21px 0 25px; }
+.dh-footer__brand > span { display: flex; align-items: center; gap: 8px; font: 600 22px var(--dh-display); }
+.dh-footer__brand .dh-cross { font-size: 17px; }
+.dh-footer__brand > p { font-size: 7px; color: var(--dh-muted); margin-top: 3px; }
+.dh-footer > p { grid-column: 1/-1; grid-row: 2; max-width: 600px; font-size: 8px; color: var(--dh-muted); line-height: 1.7; }
+.dh-footer > a { margin-top: 7px; font-size: 9px; color: var(--dh-secondary); }
+.dh-footer > a:hover { color: var(--dh-accent); }
+.dh-dialog { width: min(460px, calc(100vw - 28px)); max-height: min(700px,calc(100dvh - 40px)); padding: 23px; border: 1px solid #a98aff50; border-radius: 20px; background: radial-gradient(ellipse at 0 0,#4171cd38,transparent 65%),linear-gradient(140deg,#202e52,#211733); color: var(--dh-ink); box-shadow: 0 30px 100px #0009,inset 0 1px #ffffff25; }
+.dh-dialog::backdrop { background: #05091db8; backdrop-filter: blur(5px); }
+.dh-dialog__top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.dh-dialog__top button { width: 32px; height: 32px; display: grid; place-items: center; border: 1px solid var(--dh-border); border-radius: 50%; color: var(--dh-ink); background: transparent; }
+.dh-dialog h2 { font: 600 36px/1 var(--dh-display); margin-top: 12px; }
+.dh-dialog > p { color: var(--dh-secondary); font-size: 10px; margin-top: 6px; }
+.dh-stat-list { margin-top: 20px; }
+.dh-stat-row { display: grid; grid-template-columns: 1fr auto 65px; align-items: center; gap: 12px; border-bottom: 1px solid var(--dh-border); padding: 11px 0; }
+.dh-stat-row > span { font: 10px var(--dh-mono); color: var(--dh-secondary); }
+.dh-stat-row > strong { font: 500 15px var(--dh-mono); }
+.dh-stat-row > small { font: 9px var(--dh-mono); color: var(--dh-accent); text-align: right; }
+.dh-dialog .dh-dialog__note { font-size: 9px; line-height: 1.7; margin-top: 17px; }
+.dh-tooltip { position: fixed; z-index: 1000; max-width: min(300px,calc(100vw - 20px)); padding: 12px 14px; color: var(--dh-ink); background: linear-gradient(135deg,#233b62f5,#2b1d48f5); border: 1px solid #a8a3ff55; border-radius: 12px; box-shadow: 0 8px 30px #0007,inset 0 1px #ffffff17; pointer-events: none; font-size: 11px; backdrop-filter: blur(15px); }
+.dh-tooltip strong { display: block; font-weight: 650; margin-bottom: 5px; }
+.dh-tooltip-row { display: flex; justify-content: space-between; gap: 20px; font: 9px/1.8 var(--dh-mono); color: var(--dh-secondary); }
+.dh-tooltip-row b { color: var(--dh-ink); font-weight: 500; }
+.dh-no-script { padding: 18px; text-align: center; color: var(--dh-accent); }
+@keyframes dh-bar-reveal { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (min-width: 400px) {
+  .dh-metric { padding: 12px; }
+  .dh-metric__top { font-size: 7px; }
+  .dh-metric__player b { font-size: 11px; }
+  .dh-metric__number { gap: 8px; }
+  .dh-ppg-row { grid-template-columns: 19px minmax(123px,1.1fr) minmax(35px,1fr) 35px; }
+  .dh-ppg-row__name { font-size: 10px; }
+  .dh-ppg-row__meta { font-size: 7px; }
 }
-
-@media (max-width: 819px) {
-  .fc-main {
-    gap: 1.25em;
-  }
+@media (min-width: 600px) {
+  .dh-shell { width: min(100% - 40px,1360px); }
+  .dh-topbar__inner { padding: 0 22px; }
+  .dh-intro { grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: center; gap: 25px; padding: 24px; }
+  .dh-intro h1 { font-size: 34px; }
+  .dh-intro__description { font-size: 12px; }
+  .dh-section-heading h2 { font-size: 28px; }
+  .dh-section-heading .dh-eyebrow { font-size: 9px; }
+  .dh-season-meta { font-size: 8px; }
+  .dh-metrics { gap: 10px; }
+  .dh-metric { padding: 15px; }
+  .dh-metric__top { font-size: 8px; }
+  .dh-metric__number strong { font-size: 39px; }
+  .dh-metric__number small { display: block; margin-top: 5px; color: var(--dh-muted); font: 9px var(--dh-sans); }
+  .dh-metric__rank { display: block; margin-left: auto; color: var(--metric-color); opacity: .18; font: 600 29px var(--dh-display); }
+  .dh-metric__player b { font-size: 12px; }
+  .dh-metric__player img { width: 27px; height: 27px; }
+  .dh-metric__player div > span { font-size: 8px; }
+  .dh-chart-heading a { font-size: 10px; }
+  .dh-charts { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+  .dh-panel--ppg,.dh-panel--distribution,.dh-panel--scatter { grid-column: 1/-1; }
+  .dh-panel { padding: 17px; }
+  .dh-ppg-chart { min-height: 388px; }
+  .dh-ppg-row { min-height: 33px; grid-template-columns: 25px minmax(150px,.75fr) minmax(100px,1.4fr) 42px; gap: 10px; }
+  .dh-ppg-row__name { font-size: 11px; }
+  .dh-ppg-row__rank { font-size: 10px; }
+  .dh-ppg-row__value { font-size: 14px; }
+  .dh-distribution-chart { height: 220px; }
+  .dh-distribution-summary__count { font-size: 30px; }
+  .dh-panel--scatter h3 { max-width: none; }
+  .dh-scatter-chart { height: 380px; }
+  .dh-scatter-label { font-size: 10px; }
+  .dh-install__grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .dh-install__action { font-size: 9px; }
+  .dh-install summary small { max-width: none; }
 }
-
-/* Dashboard welcome header branding: keep the logo paint path simple and page-scoped.
-   The home dashboard is the only page that shows this logo in the hero header, and
-   removing the inline mask here avoids the intermittent blank-logo render seen after
-   sister-app link handoffs in mobile webviews. */
-.fc-dashboard .welcome-branding-panel {
-  position: relative;
+@media (min-width: 1000px) {
+  .dh-topbar__inner { min-height: 78px; padding: 0 40px; }
+  .dh-brand { gap: 10px; }
+  .dh-brand img { width: 45px; height: 45px; }
+  .dh-brand > span { font-size: 25px; }
+  .dh-brand small { font-size: 7px; }
+  .dh-primary-nav { display: flex; align-self: stretch; gap: 34px; margin-right: 70px; }
+  .dh-primary-nav > a { position: relative; display: flex; align-items: center; gap: 9px; font-size: 12px; color: var(--dh-secondary); }
+  .dh-primary-nav > a[aria-current] { color: var(--dh-ink); }
+  .dh-primary-nav > a[aria-current]::after { content: ""; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: linear-gradient(90deg,#2bbaff,#a76aff); box-shadow: 0 -2px 9px #626cff42; }
+  .dh-primary-nav > a:hover { color: var(--dh-accent); }
+  .dh-primary-nav > a > span { color: var(--dh-muted); }
+  .dh-season-tag { font-size: 10px; gap: 8px; }
+  .dh-topbar__right { gap: 22px; }
+  .dh-shell { width: min(100% - 80px,1360px); }
+  .dh-intro { grid-template-columns: 1.45fr 1fr; gap: 50px; padding: 28px 26px; min-height: 240px; border-radius: 24px; margin: 22px 0; }
+  .dh-intro .dh-eyebrow { font-size: 9px; }
+  .dh-intro h1 { font-size: clamp(43px,4.2vw,59px); margin: 13px 0 11px; }
+  .dh-intro__description { font-size: 12px; }
+  .dh-field-art { width: 660px; height: 420px; left: 22%; right: auto; top: -85px; opacity: .95; pointer-events: none; }
+  .dh-field-art img { object-position: 75% center; mask-image: radial-gradient(ellipse at 55% 50%,#000 10%,transparent 70%); }
+  .dh-sync { padding: 19px; max-width: 445px; width: 100%; justify-self: end; }
+  .dh-sync h2 { font-size: 19px; }
+  .dh-sync__heading p { font-size: 11px; }
+  .dh-sync__heading { margin-bottom: 14px; }
+  .dh-sync__hint { font-size: 10px; margin-top: 12px; }
+  .dh-sync button { min-height: 40px; padding: 0 17px; }
+  .dh-section-heading { padding: 17px 0; }
+  .dh-section-heading h2 { font-size: 30px; }
+  .dh-season-meta { flex-direction: row; gap: 16px; font-size: 9px; padding-bottom: 4px; }
+  .dh-season-meta > span + span { border-left: 1px solid var(--dh-border); padding-left: 16px; }
+  .dh-metrics { grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; }
+  .dh-metric { padding: 15px 17px; border-radius: 17px; }
+  .dh-metric::before { left: 17px; right: 17px; }
+  .dh-metric__top { font-size: 7px; }
+  .dh-metric__number { padding: 7px 0 12px; gap: 9px; }
+  .dh-metric__number strong { font-size: 40px; }
+  .dh-metric__number > span { font-size: 8px; padding-bottom: 4px; }
+  .dh-metric__number small { font-size: 8px; }
+  .dh-metric__player { padding-top: 9px; gap: 8px; }
+  .dh-metric__player b { font-size: 11px; }
+  .dh-metric__player img { width: 26px; height: 26px; }
+  .dh-metric__rank { font-size: 27px; }
+  .dh-chart-heading { padding-top: 25px; padding-bottom: 12px; }
+  .dh-chart-heading .dh-eyebrow { font-size: 9px; }
+  .dh-charts { grid-template-columns: repeat(24,minmax(0,1fr)); gap: 14px; align-items: stretch; }
+  .dh-panel { padding: 20px; border-radius: 20px; }
+  .dh-panel--ppg { grid-column: span 10; grid-row: span 2; display: flex; flex-direction: column; }
+  .dh-panel--distribution { grid-column: span 14; }
+  .dh-panel--performance { grid-column: span 7; padding: 17px; }
+  .dh-panel--yardage { grid-column: span 7; padding: 17px; }
+  .dh-panel--scatter { grid-column: 1/-1; padding: 20px; }
+  .dh-panel h3 { font-size: 27px; }
+  .dh-panel__header .dh-eyebrow { font-size: 8px; }
+  .dh-panel__description { font-size: 10px; }
+  .dh-panel__note { font-size: 8px; }
+  .dh-panel--performance h3,.dh-panel--yardage h3 { font-size: 22px; }
+  .dh-panel--ppg > .dh-filters { margin-top: 16px; }
+  .dh-filters button { min-height: 31px; font-size: 10px; }
+  .dh-leader-columns { margin-top: 19px; margin-bottom: 6px; font-size: 8px; }
+  .dh-ppg-chart { flex: 1; min-height: 450px; align-content: stretch; }
+  .dh-ppg-row { grid-template-columns: 22px minmax(115px,1.1fr) minmax(45px,1fr) 37px; gap: 8px; min-height: 39px; }
+  .dh-ppg-row__player img { width: 22px; height: 22px; }
+  .dh-ppg-row__name { font-size: 10px; }
+  .dh-ppg-row__value { font-size: 13px; }
+  .dh-ppg-row__track { height: 17px; }
+  .dh-panel__foot { font-size: 8px; padding-top: 12px; }
+  .dh-panel--ppg .dh-panel__foot { margin-top: 12px; }
+  .dh-distribution-chart { height: 174px; margin-top: 8px; }
+  .dh-distribution-summary button { padding: 8px 12px; }
+  .dh-distribution-summary__count { font-size: 26px; }
+  .dh-distribution-summary__count small { font-size: 8px; }
+  .dh-axis { font-size: 9px; }
+  .dh-performance-plot > .dh-plot { height: 185px; }
+  .dh-radar-center { width: 61px; height: 61px; }
+  .dh-radar-center strong { font-size: 25px; }
+  .dh-radar-legend { gap: 7px 3px; }
+  .dh-radar-legend > span { font-size: 6px; }
+  .dh-radar-label { font-size: 6px; }
+  .dh-yardage-chart { height: 231px; }
+  .dh-yardage-name { font-size: 7px; }
+  .dh-yardage-total { font-size: 7px; }
+  .dh-panel--scatter .dh-panel__header { align-items: center; }
+  .dh-panel--scatter h3 { font-size: 29px; }
+  .dh-panel--scatter .dh-panel__description { font-size: 10px; margin-top: 7px; }
+  .dh-scatter-chart { height: 430px; margin-top: 16px; }
+  .dh-scatter-label { font-size: 12px; }
+  .dh-scatter-zone { font-size: 9px; }
+  .dh-install { margin-top: 22px; }
+  .dh-install summary { padding: 18px 0; gap: 14px; }
+  .dh-install summary strong { font-size: 16px; }
+  .dh-install summary small { font-size: 10px; }
+  .dh-install__icon { width: 40px; height: 40px; }
+  .dh-install__grid { grid-template-columns: repeat(4,minmax(0,1fr)); padding-bottom: 24px; gap: 20px; }
+  .dh-install__grid h3 { font-size: 10px; }
+  .dh-install__grid ol { font-size: 11px; }
+  .dh-footer { grid-template-columns: 1fr 1.4fr auto; align-items: center; gap: 40px; padding: 25px 0 30px; }
+  .dh-footer > p { grid-column: auto; grid-row: auto; font-size: 9px; }
+  .dh-footer > a { font-size: 10px; }
 }
-
-.fc-dashboard .dashboard-brand-logo {
-  display: block;
-  width: 100%;
-  height: auto;
-  object-fit: contain;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-  filter: drop-shadow(2px 1px 2px #5900ffed) drop-shadow(0 0 16px #7300ff48);
+@media (min-width: 1250px) {
+  .dh-metric__top { font-size: 9px; }
+  .dh-metric__number strong { font-size: 49px; }
+  .dh-metric__number > span { font-size: 9px; }
+  .dh-metric__number small { font-size: 9px; }
+  .dh-metric__player b { font-size: 12px; }
+  .dh-metric__player img { width: 30px; height: 30px; }
+  .dh-ppg-row { grid-template-columns: 25px minmax(152px,1.1fr) minmax(60px,1fr) 41px; gap: 9px; }
+  .dh-ppg-row__name { font-size: 12px; }
+  .dh-ppg-row__meta { font-size: 8px; }
+  .dh-ppg-row__value { font-size: 15px; }
+  .dh-ppg-row__player { gap: 8px; }
+  .dh-ppg-row__player img { width: 25px; height: 25px; }
+  .dh-performance-plot > .dh-plot { height: 200px; }
+  .dh-radar-label { font-size: 7px; }
+  .dh-radar-legend > span { font-size: 7px; }
+  .dh-yardage-chart { height: 245px; }
+  .dh-yardage-name { font-size: 9px; }
+  .dh-yardage-total { font-size: 8px; }
 }
-
-/* Dashboard-only responsive background assignment: desktop uses Mercurial Fold,
-   while the independently tunable mobile branch switches to Medallion Fold. */
-body[data-page="welcome"] {
-  background-color: #07111f;
-  --dashboard-background-image: url('../assets/welcome/background-lab/mercurial-fold.png');
-  --dashboard-background-brightness: 0.5;
-  --dashboard-background-contrast: 1.05;
-}
-
-/* Dashboard mobile background selection remains local to dashboard.css so the same
-   breakpoint and assets can be adjusted without changing any sister-page styling. */
-@media (max-width: 819px) {
-  body[data-page="welcome"] {
-    --dashboard-background-image: url('../assets/welcome/background-lab/medallion-fold.png');
-    --dashboard-background-brightness: 0.56;
-    --dashboard-background-contrast: 1.05;
-  }
-}
-
-/* Dashboard starfield host: keep the fixed full-viewport background container in place,
-   but swap its old hex/noise art for the reference infographic composition. The stars
-   remain separate DOM layers above this backdrop so their animation logic is untouched. */
-body[data-page="welcome"] #starfield {
-  isolation: isolate;
-  background: #07111f;
-}
-
-/* Dashboard welcome background gradient: reuse the mobile home backdrop on every
-   viewport so desktop keeps the exact same gradient pattern/design the user already
-   sees on mobile. This remains welcome-page scoped and sits underneath the star layers. */
-body[data-page="welcome"] #starfield::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: radial-gradient(600px 560px at 12% 8%, rgba(90, 160, 255, 0.1), transparent 42%), radial-gradient(980px 680px at 88% 10%, rgba(70, 190, 255, 0.12), transparent 38%), radial-gradient(800px 320px at 99% 52%, rgba(250, 60, 38, 0.07), transparent 36%), radial-gradient(900px 620px at 96% 28%, rgba(170, 0, 255, 0.13), transparent 34%), radial-gradient(1160px 1140px at 92% 80%, rgba(255, 20, 140, 0.1), transparent 30%), radial-gradient(980px 800px at 25% 52%, rgba(90, 0, 250, 0.13), transparent 29%), radial-gradient(980px 800px at 1% 88%, rgba(0, 220, 220, 0.06), transparent 28%), linear-gradient(180deg, #262a3c00 0%, #091522 36%, #07111b 68%, #050c14 100%);
-  background-repeat: no-repeat;
-  filter: grayscale(0.2);
-}
-
-/* Dashboard fixed image stage: the responsive page-local variable chooses the raster,
-   while every existing animated star DOM layer remains independently above it. */
-body[data-page="welcome"] #starfield::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background-color: #03070d;
-  background-image:
-    linear-gradient(180deg, rgba(1, 4, 9, 0.08), transparent 24% 70%, rgba(1, 4, 9, 0.3)),
-    var(--dashboard-background-image);
-  background-position: center center;
-  background-size: cover;
-  background-repeat: no-repeat;
-  filter:
-    brightness(var(--dashboard-background-brightness))
-    contrast(var(--dashboard-background-contrast));
-  opacity: 0.04;
-  transform: translateZ(0);
-  transition: opacity 180ms ease, filter 180ms ease;
-  will-change: opacity;
-}
-
-/* Dashboard welcome background cleanup: disable the shared noise film on the home page
-   because the reference infographic does not use it and the new grid overlay replaces
-   the old texture treatment. */
-body[data-page="welcome"] #noise-overlay {
-  display: none;
-}
-
-/* Dashboard animated star particles: keep every existing DOM star layer above the new
-   infographic-style backdrop so the home page still has the same motion and density. */
-body[data-page="welcome"] #stars,
-body[data-page="welcome"] #stars1,
-body[data-page="welcome"] #stars2,
-body[data-page="welcome"] #stars3 {
-  z-index: 2;
-  filter: brightness(1.6) saturate(1.2);
-}
-
-/* Dashboard extra small stars: additional 1 px white/accent stars layered via ::after
-   on #stars (250 s drift) so the dashboard feels denser without touching shared CSS. */
-body[data-page="welcome"] #stars::after {
-  content: "";
-  position: absolute;
-  top: 2000px;
-  width: 1px;
-  height: 1px;
-  background: transparent;
-  border-radius: 20px;
-  box-shadow:
-    47px 23px #FFF, 183px 141px #FFF, 267px 89px #7300FF, 412px 167px #FFF,
-    531px 52px #FFF, 678px 198px #FFF, 789px 11px #FFF, 923px 145px #FFF,
-    1042px 76px #00DFFF, 1189px 182px #FFF, 1321px 43px #FFF, 1456px 199px #7300FF,
-    1567px 92px #FFF, 1703px 157px #FFF, 1845px 28px #FFF, 1967px 184px #FFF,
-    89px 267px #FFF, 234px 341px #FFF, 356px 289px #FF4089, 501px 378px #FFF,
-    623px 214px #FFF, 756px 356px #FFF, 887px 298px #7300FF, 1009px 267px #FFF,
-    1156px 389px #FFF, 1278px 234px #00DFFF, 1401px 312px #FFF, 1534px 267px #FFF,
-    1667px 398px #FFF, 1789px 223px #7300FF, 1912px 345px #FFF, 1045px 321px #FFF,
-    123px 456px #FFF, 278px 534px #FFF, 401px 478px #FFF, 534px 523px #7300FF,
-    667px 401px #FFF, 789px 567px #FFF, 912px 489px #FFF, 1034px 512px #FF4089,
-    1167px 445px #FFF, 1289px 578px #FFF, 1412px 423px #00DFFF, 1534px 556px #FFF,
-    1667px 498px #FFF, 1789px 534px #7300FF, 1912px 467px #FFF, 56px 589px #FFF,
-    167px 634px #FFF, 312px 712px #FFF, 445px 678px #7300FF, 578px 723px #FFF,
-    701px 656px #FFF, 834px 789px #FFF, 956px 634px #00DFFF, 1078px 767px #FFF,
-    1201px 689px #FFF, 1334px 756px #FFF, 1456px 612px #FFF, 1578px 798px #FF4089,
-    1701px 645px #FFF, 1834px 723px #7300FF, 1956px 678px #FFF, 89px 767px #FFF,
-    201px 834px #FFF, 345px 912px #FFF, 478px 867px #FFF, 612px 945px #7300FF,
-    734px 823px #FFF, 867px 978px #FFF, 989px 856px #FFF, 1112px 934px #00DFFF,
-    1234px 878px #FFF, 1367px 956px #FFF, 1489px 812px #FFF, 1612px 978px #7300FF,
-    1745px 834px #FFF, 1867px 923px #FF4089, 1989px 867px #FFF, 134px 956px #FFF,
-    234px 1023px #FFF, 378px 1112px #FFF, 512px 1067px #7300FF, 645px 1145px #FFF,
-    767px 1034px #FFF, 901px 1178px #FFF, 1023px 1089px #00DFFF, 1156px 1167px #FFF,
-    1278px 1023px #FFF, 1401px 1189px #FFF, 1523px 1078px #FFF, 1656px 1156px #FF4089,
-    1778px 1034px #7300FF, 1901px 1178px #FFF, 67px 1123px #FFF, 178px 1189px #FFF,
-    289px 1234px #FFF, 423px 1312px #FFF, 556px 1267px #FFF, 689px 1345px #7300FF,
-    812px 1234px #FFF, 945px 1378px #FFF, 1067px 1289px #FFF, 1189px 1356px #00DFFF,
-    1312px 1234px #FFF, 1445px 1378px #FFF, 1567px 1267px #FFF, 1701px 1345px #7300FF,
-    1823px 1289px #FFF, 1945px 1356px #FFF, 112px 1312px #FF4089, 1845px 1223px #FFF,
-    178px 1445px #FFF, 312px 1523px #7300FF, 445px 1478px #FFF, 578px 1534px #FFF,
-    701px 1456px #FFF, 834px 1567px #00DFFF, 956px 1489px #FFF, 1089px 1534px #FFF,
-    1212px 1456px #FFF, 1334px 1578px #7300FF, 1467px 1423px #FFF, 1589px 1567px #FFF,
-    1723px 1489px #FF4089, 1845px 1534px #FFF, 1967px 1456px #FFF, 45px 1534px #FFF,
-    223px 1645px #FFF, 356px 1723px #FFF, 489px 1678px #7300FF, 623px 1756px #FFF,
-    745px 1634px #FFF, 878px 1789px #FFF, 1001px 1678px #00DFFF, 1134px 1756px #FFF,
-    1256px 1634px #FFF, 1389px 1789px #7300FF, 1512px 1678px #FFF, 1645px 1756px #FFF,
-    1767px 1634px #FF4089, 1889px 1789px #FFF, 78px 1723px #FFF, 1501px 1645px #FFF,
-    189px 1845px #FFF, 323px 1923px #FFF, 456px 1878px #FFF, 589px 1956px #7300FF,
-    712px 1834px #FFF, 845px 1967px #FFF, 967px 1889px #00DFFF, 1101px 1934px #FFF,
-    1223px 1845px #FFF, 1356px 1967px #FFF, 1478px 1834px #7300FF, 1612px 1956px #FFF,
-    1734px 1878px #FFF, 1867px 1934px #FF4089, 1989px 1845px #FFF, 34px 1923px #FFF;
-  animation: animStar 250s linear infinite;
-}
-
-/* Dashboard extra accent stars: additional 1 px colored stars on #stars1 (75 s drift)
-   to boost the colorful sparkle density on the dashboard. */
-body[data-page="welcome"] #stars1::after {
-  content: "";
-  position: absolute;
-  top: 2000px;
-  width: 1px;
-  height: 1px;
-  background: transparent;
-  border-radius: 20px;
-  box-shadow:
-    345px 78px #FF4089, 789px 234px #008CD1, 1234px 156px #ee22ff,
-    1678px 312px #6300FF, 156px 445px #7300FF, 567px 512px #00DFFF,
-    1012px 389px #FF00FF, 1456px 478px #9900FF, 1867px 534px #008CD1,
-    234px 667px #ee22ff, 678px 723px #FF4089, 1123px 656px #7300FF,
-    1534px 789px #55FFAA, 1945px 678px #c900ff, 89px 834px #008CD1,
-    456px 912px #FF4089, 901px 867px #6300FF, 1312px 945px #00DFFF,
-    1723px 834px #ee22ff, 178px 1067px #9900FF, 589px 1134px #FF4089,
-    1001px 1078px #008CD1, 1412px 1156px #7300FF, 1823px 1023px #55FFAA,
-    312px 1234px #c900ff, 723px 1312px #FF4089, 1134px 1267px #00DFFF,
-    1545px 1345px #ee22ff, 1934px 1289px #6300FF, 145px 1445px #FF4089,
-    534px 1523px #7300FF, 945px 1467px #008CD1, 1356px 1534px #9900FF,
-    1767px 1467px #00DFFF, 267px 1634px #ee22ff, 678px 1712px #FF4089,
-    1089px 1667px #c900ff, 1478px 1745px #7300FF, 1889px 1634px #55FFAA,
-    412px 1823px #008CD1, 823px 1912px #FF4089, 1234px 1867px #6300FF,
-    1645px 1934px #00DFFF, 1978px 1878px #ee22ff, 78px 1956px #FF4089;
-  animation: animStar 75s linear infinite;
-}
-
-/* Dashboard background motion preference remains page-scoped even though the
-   tester's transient loading animation has been removed. */
 @media (prefers-reduced-motion: reduce) {
-  body[data-page="welcome"] #starfield::after {
-    transition: none;
-  }
-}
-
-/* Background Blobs */
-.fc-blob {
-  position: absolute;
-  width: 31.25em; /* 500px */
-  height: 31.25em;
-  border-radius: 50%;
-  filter: blur(7.5em); /* 120px */
-  opacity: 0.2;
-  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-.fc-blob--blue {
-  top: 0;
-  left: 0;
-  background-color: #2563eb;
-  mix-blend-mode: screen;
-}
-.fc-blob--purple {
-  bottom: 0;
-  right: 0;
-  background-color: #9333ea;
-  mix-blend-mode: screen;
-  animation-delay: 2s;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.25; }
-}
-
-/* Glass-refraction specular breathe animation (dense tier only) */
-@keyframes fc-specular-breathe {
-  0%, 100% { opacity: 0.78; }
-  50%      { opacity: 1; }
-}
-
-/* Header Styles Removed */
-
-.fc-avatar-sm {
-  width: 2.5em;
-  height: 2.5em;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  cursor: pointer;
-  transition: border-color 0.2s;
-}
-.fc-avatar-sm:hover {
-  border-color: var(--color-cyan-light);
-}
-
-/* Icons */
-.fc-icon { width: 1.5em; height: 1.5em; color: white; }
-.fc-icon-sm { width: 1.25em; height: 1.25em; }
-.fc-icon-xs { width: 0.75em; height: 0.75em; }
-
-/* Grid Systems */
-.fc-grid-metrics {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1em;
-}
-
-.fc-grid-charts {
-  display: grid;
-  grid-template-columns: 1.15fr 1.35fr; /* Bar chart slightly wider than radar */
-  gap: 1.25em;
-}
-
-/* Cards — base structural class (layout only, no visual glass treatment) */
-.fc-card {
-  position: relative;
-  border-radius: var(--radius-lg);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* Cards & Glassmorphism — Tier 2 Glass Card (glass-refraction system)
-   Applies to: summary cards, chart panels, modal content, dropdowns.
-   Uses backdrop-filter blur + saturate, dual-gradient translucent base,
-   ring-border + inset highlight + depth shadow stack. */
-.fc-glass {
-  position: relative;
-  isolation: isolate;
-  border-radius: var(--radius-lg);
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 36%, transparent 58%),
-    linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(15,18,30,0.22) 100%);
-  -webkit-backdrop-filter:  url(#glass-refract-extrastrong) url(#glass-rim-light) blur(1px) saturate(var(--fc-gr-saturation-chart));
-  backdrop-filter: url(#glass-refract-extrastrong) url(#glass-rim-light) blur(1px) saturate(var(--fc-gr-saturation-chart));
-  border: none;
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.06),
-    inset 0 1px 0 rgba(255,255,255,0.08),
-    0 2px 12px -4px rgba(0,0,0,0.3);
-  transition:
-    transform 0.35s cubic-bezier(0.4,0,0.2,1),
-    box-shadow 0.35s cubic-bezier(0.4,0,0.2,1);
-}
-
-/* Glass card specular edge lighting — two non-connecting arcs.
-   Top-left arc and bottom-right arc with wide dark gaps between.
-   Thin 1px ring, crisp bright peaks. */
-.fc-dashboard .fc-glass::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 2.3em;
-  pointer-events: none;
-  padding: var(--fc-gr-specular-ring-width-card);
-  background: linear-gradient(
-    158deg,
-    rgba(246, 242, 218, 0.45) 0%,
-    rgba(246, 236, 191, 0.25) 7%,
-    rgba(255,255,255,0.15) 12%,
-    rgba(255,255,255,0.05) 24%,
-    rgba(255,255,255,0.0) 28%,
-    rgba(255,255,255,0.0) 72%,
-    rgba(255,255,255,0.05) 76%,
-    rgba(255,255,255,0.10) 88%,
-    rgba(255,255,255,0.15) 93%,
-    rgba(255, 249, 223, 0.2) 100%
-  );
-  z-index: 3;
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
-}
-
-/* Glass card chromatic edges — subtle color-shifted inset shadows,
-   visible on hover for a prismatic refraction effect. */
-.fc-dashboard .fc-glass::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow:
-    inset  1px  0 0 0 rgba(0,180,255,0.05),
-    inset -1px  0 0 0 rgba(255,100,200,0.05),
-    inset  0  1px 0 0 rgba(100,255,180,0.03),
-    inset  0 -1px 0 0 rgba(255,200,50,0.03);
-  opacity: 0;
-  transition: opacity 0.35s ease;
-  pointer-events: none;
-  z-index: 2;
-}
-
-/* Hover: show chromatic edges */
-.fc-dashboard .fc-glass:hover::after {
-  opacity: 1;
-}
-
-/* Hover: lift + enhanced shadow (summary cards only — chart panels opt out below) */
-.fc-card--hover,
-.fc-card--hover:hover,
-.fc-card--hover:focus,
-.fc-card--hover:active {
-  transform: translateY(-2px);
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.14),
-    inset 0 1px 0 rgba(255,255,255,0.18),
-    0 8px 32px -8px rgba(0,0,0,0.45);
-}
-
-/* ── Chart Panel Glass — Fully Independent from Summary Cards ──
-   Chart panels (.fc-chart-panel) get their own glass surface, specular,
-   and chromatic settings. They do NOT inherit from .fc-glass for these
-   visual properties — only structural (position, isolation, border-radius). */
-
-/* Chart panel glass surface — independent background, blur, shadow */
-.fc-dashboard .fc-chart-panel {
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.012) 36%, transparent 58%),
-    linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(15,18,30,0.28) 100%);
-  -webkit-backdrop-filter: url(#glass-refract-extrastrong) url(#glass-rim-light) blur(2px) saturate(var(--fc-gr-saturation-chart));
-  backdrop-filter: url(#glass-refract-extrastrong) url(#glass-rim-light) blur(2px) saturate(var(--fc-gr-saturation-chart));
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.05),
-    inset 0 1px 0 rgba(255,255,255,0.06),
-    0 2px 12px -4px rgba(0,0,0,0.3);
-  transition: none;
-}
-
-/* Chart panel specular — independent ring width and gradient.
-   Desktop defaults; mobile override below tightens arcs further. */
-.fc-dashboard .fc-chart-panel.fc-glass::before {
-  padding: var(--fc-gr-specular-ring-width-chart);
-  background: linear-gradient(
-    158deg,
-    rgba(255,255,255,0.95) 0%,
-    rgba(255,255,255,0.15) 2%,
-    rgba(255,255,255,0.10) 12%,
-    rgba(255,255,255,0.05) 24%,
-    rgba(255,255,255,0.0) 28%,
-    rgba(255,255,255,0.0) 72%,
-    rgba(255,255,255,0.03) 80%,
-    rgba(255,255,255,0.08) 90%,
-    rgba(255,255,255,0.12) 98%,
-    rgba(255,255,255,0.50) 100%
-  );
-}
-
-/* Chart panel chromatic edges — permanently hidden (static containers) */
-.fc-dashboard .fc-chart-panel.fc-glass::after {
-  opacity: 0;
-}
-
-/* Chart panel hover — no lift, no glow, no chromatic */
-.fc-dashboard .fc-chart-panel:hover {
-  transform: none;
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.05),
-    inset 0 1px 0 rgba(255,255,255,0.06),
-    0 2px 12px -4px rgba(0,0,0,0.3);
-}
-
-/* Chart panel specular override — MOBILE ONLY.
-   Chart containers are tall/narrow on mobile, so desktop arcs (4%→28%)
-   stretch too far along the long edges. Tighten to short corner accents. */
-@media (max-width: 819px) {
-  .fc-dashboard .fc-chart-panel {
-  -webkit-backdrop-filter: blur(1px) saturate(var(--fc-gr-saturation-chart));
-  backdrop-filter: blur(1px) saturate(var(--fc-gr-saturation-chart));
-  }
-  .fc-dashboard .fc-chart-panel.fc-glass::before {
-    background: linear-gradient(
-      158deg,
-      rgba(251, 237, 188, 0.25) 0%,
-      rgba(255,255,255,0.2) 4%,
-      rgba(255,255,255,0.1) 14%,
-      rgba(255,255,255,0.05) 20%,
-      rgba(255,255,255,0.0) 30%,
-      rgba(255,255,255,0.0) 63%,
-      rgba(255,255,255,0.05) 70%,
-      rgba(255,255,255,0.1) 84%,
-      rgba(255,255,255,0.15) 96%,
-      rgba(255,255,255,0.20) 100%
-    );
-  }
-}
-
-/* Ensure card content renders above glass pseudo-element layers
-   (::before at z:3, ::after at z:2 → content needs z:4+).
-   Exclude .fc-card__glow which must remain position:absolute. */
-.fc-dashboard .fc-glass > *:not(.fc-card__glow) {
-  position: relative;
-  z-index: 4;
-}
-
-/* ── Tier 1 — Dense Glass (.fc-glass--dense) ──
-   Used for: dashboard header (.app-header), branding panel (.welcome-branding-panel).
-   Strongest blur/saturation/brightness of the three tiers, with animated specular highlight
-   and always-visible chromatic dispersion. */
-
-.fc-dashboard .fc-glass--dense {
-  position: relative;
-  isolation: isolate;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),
-    linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end));
-  -webkit-backdrop-filter: url(#glass-refract-strong) blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
-  backdrop-filter: url(#glass-refract-strong) blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
-  border: none;
-  box-shadow: 0 0 0 0.5px rgba(255,255,255,0.20),
-    inset 0 1px 0 rgba(255,255,255,0.12),
-    0 4px 24px -4px rgba(0,0,0,0.50);
-}
-
-/* Dense specular edge lighting — two non-connecting arcs.
-   Slightly brighter peaks for the heavier glass surface.
-   Subtle breathe animation on the heavy tier only.
-   width/height/filter reset: neutralize the styles.css purple glow ::before
-   which sets width:6em, height:6em, filter:blur(2.5em) at lower specificity —
-   those properties leak through because the dense rule didn't originally set them. */
-.fc-dashboard .fc-glass--dense::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  width: auto;
-  height: auto;
-  border-radius: inherit;
-  pointer-events: none;
-  filter: none;
-  padding: var(--fc-gr-specular-ring-width);
-  background: linear-gradient(
-    158deg,
-    rgba(255,255,255,0.3) 0%,
-    rgba(255,255,255,0.2) 8%,
-    rgba(255,255,255,0.15) 14%,
-    rgba(255,255,255,0.1) 24%,
-    rgba(255,255,255,0) 36%,
-    rgba(255,255,255,0) 64%,
-    rgba(255,255,255,0.05) 74%,
-    rgba(255,255,255,0.10) 84%,
-    rgba(255,255,255,0.15) 92%,
-    rgba(255,255,255,0.20) 100%
-  );
-  animation: fc-specular-breathe var(--fc-gr-specular-duration) ease-in-out infinite;
-  z-index: 3;
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
-}
-
-/* Dense chromatic dispersion — always visible (not hover-gated).
-   Four cardinal radial gradients simulate prismatic light splitting. */
-.fc-dashboard .fc-glass--dense::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background:
-    radial-gradient(ellipse 55% 50% at 12% 50%, var(--fc-gr-chromatic-blue) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 55% at 50% 12%, var(--fc-gr-chromatic-violet) 0%, transparent 70%),
-    radial-gradient(ellipse 55% 50% at 88% 50%, var(--fc-gr-chromatic-pink) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 55% at 50% 88%, var(--fc-gr-chromatic-green) 0%, transparent 70%);
-  box-shadow:
-    inset  1px  0 0 0 rgba(0,180,255,0.07),
-    inset -1px  0 0 0 rgba(255,100,200,0.07),
-    inset  0  1px 0 0 rgba(100,255,180,0.05),
-    inset  0 -1px 0 0 rgba(255,200,50,0.05);
-  opacity: 0.8;
-  pointer-events: none;
-  z-index: 2;
-}
-
-/* Dense glass content z-index lift */
-.fc-dashboard .fc-glass--dense > * {
-  position: relative;
-  z-index: 4;
-}
-
-/* The styles.css purple glow on .welcome-branding-panel::before is overridden by
-   .fc-dashboard .fc-glass--dense::before (higher specificity). The dense rule explicitly
-   resets width/height/filter to neutralize properties the purple glow sets that
-   would otherwise leak through (width:6em, height:6em, filter:blur(2.5em)). */
-
-/* Override the shared .glass-panel treatment on the dashboard header.
-   The .glass-panel class in styles.css is shared across all pages, so we
-   override it here via scoped selector instead of modifying the global rule. */
-.fc-dashboard .app-header.glass-panel {
-  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),    linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end));
-  -webkit-backdrop-filter: url(#glass-refract-strong) blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
-  backdrop-filter: url(#glass-refract-strong) blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
-  border: none;
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.10),
-    inset 0 1px 0 rgba(255,255,255,0.12),
-    0 4px 24px -4px rgba(0,0,0,0.30);
-}
-
-/* Dashboard username-area::before — darker gradient and extra inset glow
-   compared to the shared rule in styles.css (which uses much lighter values).
-   Scoped so other pages keep their original treatment. */
-body[data-page="welcome"] .username-area::before {
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.14), rgb(66 75 128 / 32%));
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), inset 0 0px 1px rgba(255, 255, 255, 0.1);
-}
-
-/* ── Tier 3 — Glass Pill (.fc-glass--pill) ──
-   Used for: badges, filter buttons, select trigger, position tags, menu items,
-   enter button, scatter legend items. Lightest blur/saturation of the three tiers. */
-
-.fc-dashboard .fc-glass--pill {
-  position: relative;
-  isolation: isolate;
-  -webkit-backdrop-filter: url(#glass-refract) blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
-  backdrop-filter: url(#glass-refract) blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 40%, transparent 68%),
-    rgba(255,255,255,0.05);
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.08);
-  transition:
-    background 0.25s ease,
-    box-shadow 0.25s ease,
-    opacity 0.25s ease;
-}
-
-/* Pill specular edge lighting — two non-connecting arcs.
-   Shorter arcs for smaller containers, no animation. */
-.fc-dashboard .fc-glass--pill::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  padding: var(--fc-gr-specular-ring-width-pill);
-  background: linear-gradient(
-    158deg,
-    rgba(255,255,255,0.0) 0%,
-    rgba(255,255,255,0.45) 5%,
-    rgba(255,255,255,0.55) 13%,
-    rgba(255,255,255,0.45) 21%,
-    rgba(255,255,255,0) 30%,
-    rgba(255,255,255,0) 70%,
-    rgba(255,255,255,0.45) 79%,
-    rgba(255,255,255,0.55) 87%,
-    rgba(255,255,255,0.45) 95%,
-    rgba(255,255,255,0.0) 100%
-  );
-  z-index: 2;
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
-}
-
-/* Pill hover — slightly brighter surface + rim */
-.fc-dashboard .fc-glass--pill:hover {
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.028) 42%, transparent 70%),
-    rgba(255,255,255,0.09);
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.14),
-    inset 0 1px 0 rgba(255,255,255,0.12);
-}
-
-/* ── Pill treatment applied to dashboard controls via CSS selectors ──
-   (No HTML class additions needed — applied by descendant selectors) */
-
-/* Badges: glass-pill surface + preserve accent text colors */
-.fc-dashboard .fc-badge {
-  position: relative;
-  isolation: isolate;
-  -webkit-backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
-  backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 40%, transparent 68%),
-    rgba(255,255,255,0.05);
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.08);
-  border: none;
-}
-/* Preserve badge accent text colors over glass-pill background */
-.fc-dashboard .fc-badge--cyan { color: var(--color-cyan-light); }
-.fc-dashboard .fc-badge--purple { color: var(--color-purple-light); }
-.fc-dashboard .fc-badge--pink { color: var(--color-pink-light); }
-.fc-dashboard .fc-badge--emerald { color: var(--color-emerald-light); }
-
-/* ══════════════════════════════════════════════════════════════════════
-   Dashboard PPG Leaders filter rail
-   - Targets the home-page bar-chart position filters only.
-   - Rebuilds the control in dashboard.css so shared styles.css filter rules
-     do not leak into the dashboard.
-   - Uses the Contact page's mobile header pattern: one dense glass rail,
-     transparent inactive segments, and a lightly tinted active capsule.
-   ══════════════════════════════════════════════════════════════════════ */
-.fc-dashboard .fc-bar-panel .fc-filter-group {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0;
-  padding: 0.12rem 0.14rem;
-  border-radius: 1.5rem;
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  flex-wrap: nowrap;
-  flex-shrink: 0;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0) 34%, transparent 52%),
-    linear-gradient(135deg, rgba(28, 32, 56, 0.2), rgba(0, 10, 24, 0.2));
-  -webkit-backdrop-filter: url(#glass-refract-strong) blur(12px) saturate(1.34) brightness(1.04);
-  backdrop-filter: url(#glass-refract-strong) blur(12px) saturate(1.34) brightness(1.04);
-  box-shadow: 1px 1px 14px 2px rgba(3, 7, 20, 0.1);
-}
-
-.fc-dashboard .fc-bar-panel .fc-filter-group::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: 2;
-  padding: 1px;
-  background: linear-gradient(
-    158deg,
-    rgba(255, 255, 255, 0.22) 0%,
-    rgba(255, 255, 255, 0.12) 8%,
-    rgba(255, 255, 255, 0.07) 18%,
-    rgba(255, 255, 255, 0.01) 26%,
-    rgba(255, 255, 255, 0) 32%,
-    rgba(255, 255, 255, 0) 64%,
-    rgba(255, 255, 255, 0.05) 74%,
-    rgba(255, 255, 255, 0.06) 84%,
-    rgba(255, 255, 255, 0.10) 92%,
-    rgba(255, 255, 255, 0.18) 100%
-  );
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
-}
-
-.fc-dashboard .fc-bar-panel .fc-filter-group::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 58% 52% at 10% 50%, rgba(99, 213, 255, 0.08) 0%, transparent 72%),
-    radial-gradient(ellipse 54% 56% at 90% 50%, rgba(255, 108, 168, 0.07) 0%, transparent 72%);
-  opacity: 0.72;
-}
-
-/* Dashboard PPG filter pills: flatten inactive buttons into the shared rail so the
-   mobile contact-header look comes from the track, not from individual button boxes. */
-.fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn {
-  all: unset;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  z-index: 1;
-  cursor: pointer;
-  min-width: 0;
-  min-height: 2.58rem;
-  padding: 0.48rem 0.82rem 0.44rem;
-  border: none;
-  border-radius: 0;
-  box-sizing: border-box;
-  background: transparent;
-  box-shadow: none;
-  color: rgb(134 144 175 / 80%);
-  font-size: 0.82rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  line-height: 1;
-  text-shadow: none;
-  white-space: nowrap;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  transition:
-    color 0.22s ease,
-    background 0.22s ease,
-    box-shadow 0.22s ease,
-    transform 0.22s ease;
-}
-
-.fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn::after {
-  content: none !important;
-  display: none !important;
-}
-
-.fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn:hover,
-.fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn:focus-visible {
-  color: rgba(236, 241, 255, 0.96);
-  background: transparent;
-  box-shadow: none;
-  transform: none;
-}
-
-/* Active dashboard PPG filter pill: keep the current position-colored text, but add
-   only a light accent tint so the capsule still reads like the Contact mobile header. */
-.fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn.active {
-  --fc-filter-active-tint: rgba(132, 148, 205, 0.2);
-  --fc-filter-active-ring: rgba(216, 226, 255, 0.12);
-  color: rgba(240, 245, 255, 0.96);
-  border-radius: 1.18rem;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 45%, transparent 100%),
-    linear-gradient(135deg, var(--fc-filter-active-tint) 0%, rgba(43, 49, 87, 0.24) 78%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 12px 24px rgba(6, 10, 24, 0.24),
-    0 0 0 0.5px var(--fc-filter-active-ring);
-}
-
-.fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn.active[data-position="ALL"] {
-  color: rgba(240, 245, 255, 0.96);
-  --fc-filter-active-tint: rgba(140, 154, 205, 0.18);
-  --fc-filter-active-ring: rgba(216, 226, 255, 0.12);
-}
-
-.fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn.active[data-position="QB"] {
-  color: #FF3A75da;
-  --fc-filter-active-tint: rgba(255, 58, 117, 0.18);
-  --fc-filter-active-ring: rgba(255, 58, 117, 0.12);
-}
-
-.fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn.active[data-position="RB"] {
-  color: #00EBC7da;
-  --fc-filter-active-tint: rgba(0, 235, 199, 0.16);
-  --fc-filter-active-ring: rgba(0, 235, 199, 0.11);
-}
-
-.fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn.active[data-position="WR"] {
-  color: #58A7FF;
-  --fc-filter-active-tint: rgba(88, 167, 255, 0.18);
-  --fc-filter-active-ring: rgba(88, 167, 255, 0.12);
-}
-
-.fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn.active[data-position="TE"] {
-  color: #B469FF;
-  --fc-filter-active-tint: rgba(180, 105, 255, 0.2);
-  --fc-filter-active-ring: rgba(180, 105, 255, 0.12);
-}
-
-/* Player select trigger: glass-pill surface */
-.fc-dashboard .fc-select-trigger {
-  position: relative;
-  isolation: isolate;
-  -webkit-backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
-  backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
-  background: linear-gradient(to bottom, rgb(9 10 15 / 24%), rgb(50 57 102 / 32%));
-  box-shadow: inset 0 0px 1px rgba(255, 255, 255, 0.15), inset 0 0px 1px rgba(255, 255, 255, 0.1);
-  border: 0px solid rgba(255, 255, 255, 0.05);
-}
-.fc-dashboard .fc-select-trigger:hover {
-  background: linear-gradient(180deg, rgb(158 163 214 / 8%) 0%, rgba(255, 255, 255, 0.028) 42%, transparent 70%), rgb(43 53 77 / 10%);
-  border-color: rgba(255,255,255,0.12);
-}
-
-/* Scatter legend filter items: glass-pill surface */
-.fc-dashboard .fc-scatter-legend .fc-legend-item {
-  -webkit-backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
-  backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
-  border-radius: var(--fc-gr-radius-pill);
-}
-
-/* Summary card color glows — additive on top of glass-card shadow stack.
-   Each card gets its accent color glow as an outer spread shadow. */
-.fc-summary-card.fc-card--cyan {
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.06),
-    inset 0 1px 0 rgba(255,255,255,0.08),
-    0 2px 12px -4px rgba(0,0,0,0.3),
-    0 0 1em rgba(6, 182, 212, 0.26);
-}
-.fc-summary-card.fc-card--pink {
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.06),
-    inset 0 1px 0 rgba(255,255,255,0.08),
-    0 2px 12px -4px rgba(0,0,0,0.3),
-    0 0 1em rgba(236, 72, 153, 0.26);
-}
-.fc-summary-card.fc-card--purple {
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.06),
-    inset 0 1px 0 rgba(255,255,255,0.08),
-    0 2px 12px -4px rgba(0,0,0,0.3),
-    0 0 1em rgba(168, 85, 247, 0.26);
-}
-.fc-summary-card.fc-card--emerald {
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.06),
-    inset 0 1px 0 rgba(255,255,255,0.08),
-    0 2px 12px -4px rgba(0,0,0,0.3),
-    0 0 1em rgba(16, 185, 129, 0.26);
-}
-
-/* Summary card accent glow:
-   - targets the decorative top-right orb inside the dashboard summary cards,
-   - keeps the glow source truly circular so mobile/WebKit does not reveal a sharp
-     source-box corner when the blur spills against the rounded glass shell,
-   - and promotes the orb to its own layer so the highlight stays soft. */
-.fc-card__glow {
-  position: absolute;
-  top: -1.5em;
-  right: -1.5em;
-  width: 6em;
-  height: 6em;
-  border-radius: 999px;
-  filter: blur(2.5em);
-  opacity: 0.24;
-  pointer-events: none;
-  transform: translate3d(0, 0, 0);
-}
-
-.fc-card--cyan .fc-card__glow { background-color: var(--color-cyan); }
-.fc-card--purple .fc-card__glow { background-color: var(--color-purple); }
-.fc-card--pink .fc-card__glow { background-color: var(--color-pink); }
-.fc-card--emerald .fc-card__glow { background-color: var(--color-emerald); }
-
-/* Card Content */
-.fc-card__header {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  align-items: stretch;
-}
-
-.fc-card__subtitle-row {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-}
-
-.fc-card__title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75em;
-}
-
-.fc-card__subtitle {
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0em;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.fc-card__title {
-  font-weight: 700;
-  color: white;
-  margin-top: 0.1em;
-  margin-bottom: 0.05em;
-  margin-left: 0px;
-}
-
-/* Inline tags in summary titles */
-.fc-card-tag {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 0.15em;
-  margin-left: 0.2em;
-  font-size: 0.9em;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  line-height: 1;
-  background: transparent;
-  border: none;
-}
-.fc-card-tag--cyan {color: #4ce7ffd4;}
-.fc-card-tag--pink {color: #bd6694;}
-.fc-card-tag--purple {color: var(--color-purple-light);} 
-.fc-card-tag--emerald {color: var(--color-emerald-light);} 
-
-.fc-card-tag--mini {
-  font-size: 1em;
-  margin-left: 0;
-  margin-right: 0em;
-}
-.fc-card-tag--emerald {color: var(--color-emerald-light);} 
-
-@media (max-width: 768px) {
-  .fc-card-tag {
-    padding: 0 0.15em;
-    font-size: 1em;
-    margin-left: 0.2em;
-  }
-}
-
-.fc-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.5em;
-  font-weight: 700;
-  border: 1px solid transparent;
-  line-height: 1;
-  gap: 0.3em;
-  flex-shrink: 0;
-}
-.fc-badge--cyan { background: var(--color-cyan-bg); color: var(--color-cyan-light); border-color: rgba(6, 182, 212, 0.2); }
-.fc-badge--purple { background: var(--color-purple-bg); color: var(--color-purple-light); border-color: rgba(168, 85, 247, 0.2); }
-.fc-badge--pink { background: var(--color-pink-bg); color: var(--color-pink-light); border-color: rgba(236, 72, 153, 0.2); }
-.fc-badge--emerald { background: var(--color-emerald-bg); color: var(--color-emerald-light); border-color: rgba(16, 185, 129, 0.2); }
-
-.fc-metric-row {
-  display: flex;
-  align-items: flex-end;
-  gap: 1em;
-  justify-content: flex-start;
-  margin: 0px 0px -2px 9px;
-}
-
-.fc-metric-value {
-  font-weight: 700;
-  color: white;
-  line-height: 1;
-}
-
-.fc-text-glow {
-  text-shadow: 0 0 0.625em rgba(255, 255, 255, 0.3);
-}
-
-.fc-metric-sub {
-  display: flex;
-  align-items: center;
-}
-
-.fc-text-cyan { color: var(--color-cyan-light); }
-.fc-text-purple { color: var(--color-purple-light); }
-.fc-text-pink { color: var(--color-pink-light); }
-.fc-text-emerald { color: var(--color-emerald-light); }
-.fc-text-pink-light { color: #f9a8d4; font-weight: 600; }
-.fc-text-emerald-light { color: #6ee7b7; font-weight: 600; }
-
-.fc-progress-bg {
-  width: 100%;
-  height: 0.375em;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: var(--radius-full);
-  margin-top: 1em;
-  overflow: hidden;
-}
-
-.fc-progress-bar {
-  height: 100%;
-  border-radius: var(--radius-full);
-  transition: width 1s ease-out;
-}
-.fc-bg-cyan { background-color: var(--color-cyan); }
-.fc-bg-purple { background-color: var(--color-purple); }
-.fc-bg-emerald { background-color: var(--color-emerald); }
-
-.fc-card__footer {
-  color: var(--text-secondary);
-  margin-top: 0.6em;
-  text-align: center;
-}
-.fc-footer-name {font-weight: 500;}
-
-.fc-progress-accent {
-  width: 100%;
-  height: 0.46em;
-  border-radius: var(--radius-full);
-  margin-top: 0.9em;
-  margin-bottom: 0em;
-  position: relative;
-  overflow: hidden;
-  background: rgba(255,255,255,0.04);
-}
-.fc-progress-accent--pink {
-  box-shadow: 0 0 8px rgba(236,72,153,0.22);
-  background-image: linear-gradient(90deg, rgba(236,72,153,0.22), rgba(236,72,153,0.03));
-}
-.fc-progress-accent--emerald {
-  box-shadow: 0 0 8px rgba(16,185,129,0.2);
-  background-image: linear-gradient(90deg, rgba(16,185,129,0.22), rgba(16,185,116,0.03));
-}
-.fc-progress-accent--cyan {
-  box-shadow: 0 0 8px rgba(6,182,212,0.22);
-  background-image: linear-gradient(90deg, rgba(6,182,212,0.22), rgba(6,182,212,0.03));
-}
-
-.fc-icon-value {width: 1.7em;height: 1.8em;}
-.fc-icon-consistency {width: 1.75em;height: 1.5em;display: inline-flex;align-items: center;justify-content: center;font-size: 1.1em;}
-.fc-icon-target {width: 1.8em;height: 1.45em;display: inline-flex;align-items: center;justify-content: center;font-size: 1.3em;}
-.fc-metric-sub {display: flex;align-items: center;gap: 0.35em;}
-
-/* Charts */
-.fc-chart-panel {
-  min-height: 62em;
-  display: flex;
-  flex-direction: column;
-}
-
-.fc-chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-shrink: 0;
-  z-index: 20;
-}
-
-.fc-chart-header--bar {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.35em;
-}
-
-.fc-chart-header-top--bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-around !important;
-  gap: 2.75em !important;
-  width: 100%;
-}
-
-.fc-chart-subtitle {
-  margin: 0;
-}
-
-.fc-chart-header--radar {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.05em;
-}
-
-.fc-chart-header--scatter {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0em;
-}
-
-.fc-chart-header-top--scatter {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  gap: 0.75em;
-  font-size: 1.1em;
-}
-
-.fc-chart-header-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75em;
-}
-
-/* Performance Map header: keep title + subtitle on one line in radar panel */
-.fc-radar-panel .fc-radar-title-line {
-  display: flex;
-  align-items: baseline;
-  gap: 0em;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-  margin-bottom: -1px;
-  margin-left: 3px;
-}
-.fc-radar-panel .fc-radar-title-line .fc-card__title,
-.fc-radar-panel .fc-radar-title-line .fc-subtitle-radar {
-  white-space: nowrap;
-}
-
-/* PPG Leaders header: keep title + subtitle on one line in bar panel */
-.fc-bar-panel .fc-bar-title-line {
-  display: flex;
-  align-items: baseline;
-  gap: 0.25em;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-}
-.fc-bar-panel .fc-bar-title-line .fc-card__title,
-.fc-bar-panel .fc-bar-title-line .fc-subtitle-bar {
-  white-space: nowrap;
-}
-.fc-bar-panel .fc-bar-title-line .fc-subtitle-bar {
-  /* PPG Leaders inline subtitle: remove block margins so it stays aligned */
-  margin: 0;
-  margin-top: 0px;
-}
-
-.fc-chart-subtitle {
-  margin: 0.31em 0.31em;
-  text-align: center;
-}
-
-.fc-chart-helper {
-  color: #d7e2f2;
-  font-weight: 400;
-  letter-spacing: 0.03em;
-}
-
-.fc-chart-helper--radar {
-  text-align: center;
-  margin: 0.25em 0 0.35em;
-}
-
-.fc-scatter-subline {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.35em;
-  margin-top: 0.3em;
-}
-
-.fc-chart-helper--scatter {
-  white-space: nowrap;
-}
-
-.fc-card__subtitle-text {
-  color: var(--text-secondary);
-}
-
-.fc-select {
-  background: rgba(0, 0, 0, 0.4);
-  color: var(--text-secondary);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.5em;
-  padding: 0.25em 0.5em;
-  font-size: 0.75em;
-  outline: none;
-  cursor: pointer;
-}
-.fc-select:focus { border-color: var(--color-cyan); }
-
-.fc-chart-container {
-  flex: 1;
-  width: 100%;
-  min-height: 23em;
-  position: relative;
-}
-
-.fc-radar-panel .fc-chart-container { min-height: 26em; }
-.fc-bar-panel .fc-chart-container {min-height: 26em;}
-
-/* Allow bar chart labels to overflow into padding */
-.fc-bar-panel {
-  overflow: visible;
-}
-.fc-bar-panel .fc-chart-container {
-  overflow: visible;
-}
-.fc-bar-panel .fc-chart-container svg {
-  overflow: visible;
-}
-
-.fc-chart-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-/* Radar Specifics */
-.fc-radar-panel {
-  position: relative;
-  /* Performance Map panel only: allow the player picker dropdown to extend past the
-     panel body instead of getting clipped by the shared card overflow treatment. */
-  overflow: visible;
-}
-@media (min-width: 769px) {
-  .fc-radar-panel {
-    padding: 1em 1.89em 1em 1.39em !important;
-  }
-}
-/* Performance Map selector layering: keep the player picker header/select stack above
-   the radar chart content. The shared glass child z-index rule applies to every direct
-   child inside the panel, so this direct-child override must out-specific it to keep
-   both the dropdown visuals and click targets above the radial chart only here. */
-.fc-dashboard .fc-radar-panel.fc-glass > .fc-chart-header--radar {
-  position: relative;
-  z-index: 12;
-}
-
-.fc-radar-panel #player-select-container {
-  z-index: 13;
-}
-
-.fc-radar-panel #player-select-dropdown {
-  z-index: 14;
-}
-
-.fc-radar-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 26em;
-}
-
-.fc-radar-center {
-  position: relative;
-  z-index: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  pointer-events: auto; /* Changed from none to auto */
-  cursor: pointer;      /* Added cursor pointer */
-  transition: transform 0.2s ease;
-}
-.fc-radar-center:hover {
-  transform: scale(1.05);
-}
-
-.fc-radar-label {
-  font-size: 1.6em;
-  font-weight: 700;
-  color: #fe9d9d;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: -0.3em;
-}
-
-.fc-radar-score {
-  font-size: 2.75em;
-  font-weight: 900;
-  color: white;
-  line-height: 1;
-  filter: drop-shadow(0 0 0.9375em rgba(255, 255, 255, 0.2));
-}
-
-.fc-radar-suffix {
-  font-size: 0.6em;
-  vertical-align: baseline;
-  position: relative;
-  top: -0.05em;
-  margin-left: 0.04em;
-}
-
-.fc-radar-meta {
-  font-size: 1.2em;
-  color: var(--text-secondary);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-top: -0.2em;
-}
-
-.fc-legend {
-  margin-top: 0em;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  letter-spacing: 0.1em;
-  color: #afb9c8;
-  font-weight: 700;
-  text-align: center;
-  flex-shrink: 0;
-  z-index: 1;
-  justify-items: center;
-}
-
-.fc-legend-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25em;
-}
-
-.fc-dot {width: 0.8em;height: 0.8em;border-radius: 14px;}
-.fc-bg-red { background-color: var(--color-red); }
-.fc-bg-orange { background-color: var(--color-orange); }
-.fc-bg-yellow { background-color: var(--color-yellow); }
-.fc-bg-emerald { background-color: var(--color-emerald); }
-.fc-bg-pink { background-color: var(--color-pink); }
-.fc-bg-violet { background-color: var(--color-violet); }
-
-/* Radar legend: uniform dot sizing + new neon gradients (scoped to radar legend only) */
-.fc-legend .fc-dot {
-  width: 0.96em;
-  height: 0.96em;
-  aspect-ratio: 1;
-  border-radius: 999px;
-  flex: 0 0 0.96em;
-  display: inline-block;
-  box-sizing: border-box;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 0 2px rgba(255, 255, 255, 0.08);
-}
-.fc-legend .fc-bg-red {
-  background-color: #7c5cff;
-  background-image: linear-gradient(135deg, #b9a7ff, #7c5cff 55%, #3d2bff);
-}
-.fc-legend .fc-bg-orange {
-  background-color: #4f6bff;
-  background-image: linear-gradient(135deg, #a3b7ff, #4f6bff 55%, #2436ff);
-}
-.fc-legend .fc-bg-yellow {
-  background-color: #2b97ff;
-  background-image: linear-gradient(135deg, #86cfff, #2b97ff 55%, #006bff);
-}
-.fc-legend .fc-bg-cyan {
-  background-color: #00d6ff;
-  background-image: linear-gradient(135deg, #7defff, #00d6ff 55%, #009dff);
-}
-.fc-legend .fc-bg-violet {
-  background-color: #00e6c3;
-  background-image: linear-gradient(135deg, #6fffe9, #00e6c3 55%, #00b8a9);
-}
-.fc-legend .fc-bg-emerald {
-  background-color: #32ffad;
-  background-image: linear-gradient(135deg, #7dffd1, #32ffad 55%, #00d98c);
-}
-.fc-legend .fc-bg-pink {
-  background-color: #7dffd9;
-  background-image: linear-gradient(135deg, #b9fff1, #7dffd9 55%, #35f7c0);
-}
-.fc-legend .fc-bg-purple {
-  background-color: #bff6ff;
-  background-image: linear-gradient(135deg, #e6ffff, #bff6ff 55%, #8debff);
-}
-
-/* ══════════════════════════════════════════════════════════════════════
-   iOS SEGMENTED CONTROL — Desktop overrides (≥769px)
-   Sizing, spacing, and layout tweaks for the PPG Leaders filter bar
-   on wider viewports. Base rules live above near line ~755.
-   ══════════════════════════════════════════════════════════════════════ */
-@media (min-width: 769px) {
-  .fc-dashboard .fc-bar-panel .fc-filter-group {
-    gap: 0px;
-    padding: 0.12rem 0.14rem;
-    border-radius: 1.45rem;
-  }
-  .fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn {
-    padding: 0.62rem 0.92rem 0.56rem;
-    font-size: 0.84rem;
-    min-height: 1.42rem;
-  }
-  .fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn.active {
-    border-radius: 1.12rem;
-  }
-}
-
-/* ══════════════════════════════════════════════════════════════════════
-   iOS SEGMENTED CONTROL — Mobile overrides (≤768px)
-   Larger touch targets, tighter container, bigger font for thumbs.
-   ══════════════════════════════════════════════════════════════════════ */
-@media (max-width: 768px) {
-  .fc-dashboard .fc-bar-panel .fc-filter-group {
-    gap: 0px;
-    width: 100%;
-    padding: 0.11rem 0.11rem 0.15rem;
-    border-radius: 12px;
-  }
-  .fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn {
-    flex: 1 1 0;
-    padding: 0.25rem 0.24rem;
-    font-size: 0.67rem;
-    font-weight: 500;
-    min-height: 1rem;
-    line-height: 1.1;
-  }
-  .fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn.active {
-    border-radius: 11px;
-  }
-}
-
-/* Table */
-.fc-table-card {
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-}
-
-.fc-table-header {
-  padding: 1.5em;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(to right, rgba(255, 255, 255, 0.05), transparent);
-}
-
-.fc-link-btn {
-  font-size: 0.75em;
-  color: var(--color-cyan-light);
-  background: none;
-  border: none;
-  font-weight: 500;
-  cursor: pointer;
-}
-.fc-link-btn:hover { color: #67e8f9; }
-
-.fc-table-wrapper {
-  overflow-x: auto;
-}
-
-.fc-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-.fc-th {
-  padding: 1em 1.5em;
-  font-size: 0.75em;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background: rgba(0, 0, 0, 0.2);
-  font-weight: 600;
-}
-
-.fc-text-center { text-align: center; }
-.fc-text-right { text-align: right; }
-
-.fc-tr {
-  transition: background-color 0.2s;
-}
-.fc-tr:hover { background-color: rgba(255, 255, 255, 0.05); }
-
-.fc-td {
-  padding: 1em 1.5em;
-  color: var(--text-secondary);
-  font-size: 0.875em;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.fc-td-rank { font-family: monospace; color: var(--text-muted); }
-.fc-td-player { display: flex; align-items: center; gap: 0.75em; }
-.fc-player-name { font-weight: 500; color: white; transition: color 0.2s; }
-.fc-tr:hover .fc-player-name { color: var(--color-cyan-light); }
-.fc-player-team { font-size: 0.75em; color: var(--text-muted); }
-.fc-td-val { font-weight: 700; color: white; }
-.fc-td-sub { color: #cbd5e1; }
-
-.fc-pos-badge {
-  padding: 0.25em 0.5em;
-  border-radius: 0.25em;
-  font-size: 0.625em;
-  font-weight: 700;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-.fc-pos-wr { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border-color: rgba(59, 130, 246, 0.2); }
-.fc-pos-rb { background: rgba(34, 197, 94, 0.1); color: #4ade80; border-color: rgba(34, 197, 94, 0.2); }
-.fc-pos-qb { background: rgba(236, 72, 153, 0.1); color: #f472b6; border-color: rgba(236, 72, 153, 0.2); }
-.fc-pos-te { background: rgba(249, 115, 22, 0.1); color: #fb923c; border-color: rgba(249, 115, 22, 0.2); }
-
-/* Scrollbar */
-.fc-dashboard ::-webkit-scrollbar { width: 0.5em; height: 0.5em; }
-.fc-dashboard ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
-.fc-dashboard ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 0.25em;
-}
-.fc-dashboard ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
-
-.fc-dashboard button:focus-visible, .fc-dashboard select:focus-visible {
-  outline: 2px solid var(--color-cyan-light);
-  outline-offset: 2px;
-}
-
-/* Scatter Plot Specifics */
-.fc-scatter-panel {
-  display: flex;
-  flex-direction: column;
-  --glass-blur: 5px;
-  background: rgb(104 61 162 / 7%);
-}
-
-.fc-scatter-panel .fc-chart-container,
-.fc-scatter-panel .fc-chart-container svg {
-  overflow: visible;
-}
-
-.scatter-svg {
-  border-radius: var(--radius-lg);
-}
-
-.fc-legend-inline {
-  display: flex;
-  gap: 1em;
-  font-weight: 700;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.fc-scatter-legend {
-  flex-wrap: nowrap;
-}
-
-.fc-scatter-legend .fc-legend-item {
-  background: transparent;
-  border: none;
-  padding: 0.15em 0.35em;
-  color: inherit;
-  font: inherit;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25em;
-  cursor: pointer;
-  transition: color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
-  box-shadow: none;
-  opacity: 1;
-}
-
-.fc-scatter-legend .fc-legend-item.is-active {
-  color: #e2e8f0;
-  box-shadow: none;
-  opacity: 1;
-}
-
-.fc-scatter-legend.has-filter .fc-legend-item { opacity: 0.35; }
-.fc-scatter-legend.has-filter .fc-legend-item.is-active { opacity: 1; }
-
-.fc-scatter-legend .fc-legend-item:focus-visible {
-  outline: 2px solid var(--color-cyan-light);
-  outline-offset: 2px;
-}
-
-.fc-pos-qb-dot { background-color: var(--color-pink-light); box-shadow: 0 0 8px var(--color-pink); }
-.fc-pos-rb-dot { background-color: var(--color-emerald-light); box-shadow: 0 0 8px var(--color-emerald); }
-.fc-pos-wr-dot { background-color: var(--color-cyan-light); box-shadow: 0 0 8px var(--color-cyan); }
-.fc-pos-te-dot { background-color: var(--color-orange); box-shadow: 0 0 8px var(--color-orange); }
-
-/* D3 Scatter Styles */
-.scatter-grid line {
-  stroke: rgba(255, 255, 255, 0.02);
-}
-.scatter-grid path {
-  display: none;
-}
-
-.scatter-axis text {
-  fill: var(--text-muted);
-  font-family: var(--font-family);
-  /* Font size handled by JS or specific class overrides below */
-}
-.scatter-axis-label {
-  /* Base style for axis labels */
-  font-size: 12px; 
-}
-
-.scatter-axis line, .scatter-axis path {
-  stroke: rgba(255, 255, 255, 0.1);
-  stroke-width: 1px;
-}
-
-.scatter-label {
-  fill: white;
-  font-size: 11px;
-  font-weight: 500;
-  pointer-events: none;
-  text-shadow: 0 0px 4px #000, 0 0px 3px #000, 0 0px 3px #000, 0 0px 3px #000;
-}
-
-.scatter-dot {
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-.scatter-dot:hover {
-  stroke: white;
-  stroke-width: 2px;
-  filter: drop-shadow(0 0 8px white) !important; /* Override specific color glow on hover */
-}
-
-/* Specific Dot Styles to match Legend - glow handled by SVG filters for iOS compatibility */
-.scatter-dot-qb { fill: var(--color-pink-light); }
-.scatter-dot-rb { fill: var(--color-emerald-light); }
-.scatter-dot-wr { fill: var(--color-cyan-light); }
-.scatter-dot-te { fill: var(--color-orange); }
-
-/* Scatter tooltip: glass-pill surface for a cohesive look with the design system */
-.scatter-tooltip {
-  position: fixed;
-  pointer-events: none;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 40%, transparent 68%),
-    linear-gradient(145deg, rgba(40,55,80,0.92), rgba(50,65,90,0.88));
-  -webkit-backdrop-filter: blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
-  backdrop-filter: blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
-  color: #e5e7eb;
-  padding: 6px 8px;
-  border: none;
-  border-radius: var(--fc-gr-radius-pill);
-  font-size: 12px;
-  line-height: 1.4;
-  z-index: 9999;
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.08),
-    0 8px 20px rgba(0,0,0,0.35);
-}
-
-.scatter-tooltip-label { font-weight: 800; letter-spacing: 0.03em; }
-
-/* =========================================
-   RESPONSIVE SIZING & LAYOUT RULES
-   Separated for thorough implementation
-   ========================================= */
-
-/* Keep side-by-side layout; no column stacking */
-
-.fc-legend-abbr { display: none; } /* Default hidden */
-
-/* --- GLOBAL HEADINGS (Desktop) --- */
-@media (min-width: 769px) {
-  /* .fc-title removed */
-}
-
-/* --- GLOBAL HEADINGS (Mobile) --- */
-@media (max-width: 768px) {
-  /* .fc-title removed */
-}
-
-/* Desktop-only dashboard scale-down on the home page to match the requested 90% zoom-out. */
-@media (min-width: 769px) {
-  .fc-dashboard { font-size: calc(12.81px * 0.9); }
-}
-@media (min-width: 769px) and (max-width: 1114px) {
-  .fc-dashboard { font-size: calc(1.15vw * 0.9); }
-}
-
-/* --- SUMMARY CARDS (Desktop) --- */
-@media (min-width: 769px) {
-  .fc-summary-card {padding: 0.51em 1.25em 0.3em;}
-  .fc-summary-card .fc-card__header {margin-bottom: 0em;}
-  .fc-summary-card .fc-card__title {font-size: 1.55em;margin-left: 4px;}
-  .fc-summary-card .fc-card__subtitle {font-size: 1.25em;}
-  .fc-summary-card .fc-badge {padding: 0.25em 0.5em;font-size: 1.05em;}
-  .fc-summary-card .fc-metric-value {font-size: 2.25em;margin-left: 30px;}
-  .fc-summary-card .fc-metric-sub {margin-bottom: 0.025em;font-size: 1.2em;}
-  .fc-summary-card .fc-card__footer {margin-top: 0.1em;font-size: 1.55em;}
-
-  .fc-chart-helper { font-size: 0.95em; }
-  .fc-chart-helper--scatter {font-size: 1em;align-self: end;font-weight: 400;font-style: italic;margin-right: 3em;}
-  .fc-chart-helper--radar {font-size: 0.92em;font-style: italic;text-shadow: 0 0 6px #7310ff;}
-  .fc-scatter-subline {gap: 0em;}
-}
-
-/* --- SUMMARY CARDS (Mobile) --- */
-@media (max-width: 768px) {
-  .fc-summary-card {padding: 0.8em 1em 0.3em 0.6em;border-radius: 2.3em;}
-  .fc-summary-card .fc-card__header {margin-bottom: 0.25em;}
-  .fc-summary-card .fc-card__title {font-size: 2em;margin-left: 4px;}
-  .fc-summary-card .fc-card__subtitle {font-size: 1.55em;text-wrap-mode: nowrap;margin-bottom: -1px;}
-  .fc-summary-card .fc-badge {padding: 0.3em 0.5em;font-size: 1.45em;}
-  .fc-summary-card .fc-metric-value {font-size: 2.85em;}
-  .fc-summary-card .fc-metric-sub {margin-bottom: -0.1em;font-size: 1.6em;}
-  .fc-summary-card .fc-card__footer {margin-top: 0.17em;font-size: 1.6em;}
-  /* Mobile summary-card glow cleanup:
-     tighten the decorative orb slightly so the accent still blooms, but does not
-     read as a squared-off patch at the upper-right corner on mobile screens. */
-  .fc-summary-card .fc-card__glow {
-    top: -1.25em;
-    right: -1.25em;
-    width: 5.4em;
-    height: 5.4em;
-    filter: blur(2.2em);
-    opacity: 0.21;
-  }
-}
-
-/* --- CHART PANELS (Desktop) --- */
-@media (min-width: 769px) {
-  .fc-chart-panel {padding: 1em 1.65em;min-height: 43em;}
-  .fc-chart-panel .fc-card__title {font-size: 1.4em;}
-  .fc-chart-panel .fc-card__subtitle-text {}
-  .fc-subtitle-radar {font-size: 1.1em !important;}
-  .fc-subtitle-bar {font-size: 1.2em;}
-  .fc-subtitle-scatter {font-size: 1.2em;}
-
-  .fc-radar-label {
-    font-size: 1.2em;
-    font-weight: 700;
-    color: #fe9d9d;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: -0.15em;
-  }
-  .fc-radar-meta {
-    font-size: 1em;
-    color: var(--text-secondary);
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    margin-top: -0.05em;
-  }
-
-  /* Legends */
-  .fc-legend {font-size: 0.9em;gap: 0.5em;}
-  .fc-legend-inline {font-size: 1.22em;margin-right: 2.4em;}
-
-  /* Performance Map desktop header: keep selector inline to the right of title/subtitle. */
-  .fc-radar-panel .fc-chart-header--radar {
-    flex-direction: row;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 0.8em;
-    flex-wrap: nowrap;
-  }
-  .fc-radar-panel .fc-chart-header-top {
-    flex: 1 1 auto;
-    min-width: 0;
-    justify-content: flex-start;
-    margin-bottom: 3px;
-  }
-  .fc-radar-panel .fc-radar-title-line {
-    align-items: flex-end;
-    gap: 0.2em;
-    margin-bottom: 0;
-  }
-  .fc-radar-panel #player-select-container {
-    width: 14.5em;
-    flex: 0 0 auto;
-    align-self: flex-end;
-    margin: 0;
-  }
-  .fc-radar-panel #player-select-trigger {
-    font-size: 1.2em;
-    padding: 0.5em 0.58em;
-  }
-  .fc-radar-panel #player-select-dropdown {
-    width: 22.5em;
-  }
-
-  /* Desktop-only dropdown legibility + uniform option spacing. */
-  .fc-radar-panel #player-select-options {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2em;
-    padding: 0.3em;
-  }
-  .fc-radar-panel #player-select-options .fc-option {
-    font-size: 1em;
-    margin: 0;
-    padding: 0.42em 0.6em;
-  }
-  .fc-radar-panel #player-select-options .fc-option-team {
-    font-size: 0.98em;
-  }
-  
-  /* Home scatter: add about 69px of desktop plotting space at the default scale.
-     Grow the host and outer panel together so D3 measures the taller graph. */
-  body[data-page="welcome"] .fc-scatter-panel {min-height: 57em;backdrop-filter: blur(3px);-webkit-backdrop-filter: blur(3px);}
-  body[data-page="welcome"] .fc-scatter-panel .fc-chart-container { min-height: 41em; }
-  /* Desktop-only scatter label bump for readability. */
-  .fc-scatter-panel .scatter-label { font-size: 12.5px; }
-}
-
-/* --- CHART PANELS (Mobile) --- */
-@media (max-width: 768px) {
-  .fc-chart-panel {padding: 1.15em 1.15em 0.05em 1.15em;}
-  .fc-chart-panel .fc-card__title {font-size: 2em;align-self: center;}
-  .fc-chart-panel .fc-card__subtitle-text {
-    margin-left: 9px;
-}
-  .fc-subtitle-radar {font-size: 1.85em !important;margin-top: 4px;}
-  .fc-subtitle-bar {font-size: 1.85em !important;padding: 1px !important;margin: 0px -2px -2px -2px;}
-  .fc-subtitle-scatter {font-size: 1.65em;}
-
-  /* Mobile-only panel subtitle alignment:
-     lock subtitle bottoms to title bottoms in radar and bar headers. */
-  .fc-radar-panel .fc-radar-title-line {
-    align-items: flex-end;
-    gap: 0.2em;
-    margin: 6px 0px 3px 0px;
-  }
-  .fc-radar-panel .fc-radar-title-line .fc-card__title,
-  .fc-radar-panel .fc-radar-title-line .fc-subtitle-radar {
-    line-height: 1.1;
-    margin: 0;
-    align-self: auto;
-  }
-  .fc-radar-panel .fc-radar-title-line .fc-subtitle-radar {
-    margin-bottom: 0em;
-  }
-  .fc-bar-panel .fc-bar-title-line {
-    align-items: flex-end;
-    gap: 0.2em;
-    margin: 5px 0px 2px 0px;
-  }
-  .fc-bar-panel .fc-bar-title-line .fc-card__title,
-  .fc-bar-panel .fc-bar-title-line .fc-subtitle-bar {
-    line-height: 1.1;
-    align-self: auto;
-  }
-  .fc-bar-panel .fc-bar-title-line .fc-card__title {
-    margin: 0;
-  }
-  .fc-bar-panel .fc-bar-title-line .fc-subtitle-bar {
-    margin: 0em !important;
-    padding: 0 !important;
-  }
-
-  /* Radial dropdown sizing */
-  .fc-custom-select { width: 14em; }
-  .fc-select-dropdown { width: 90vw; max-width: 22em; }
-  .fc-search-wrapper { padding: 1em; }
-  .fc-search-icon { width: 1.1em; height: 1.1em; left: 1em; }
-  .fc-select-search { font-size: 16px; padding: 0.8em 0.8em 0.8em 2.7em; }
-  /* Radar selector width increase on mobile for rank + name + team columns. */
-  #player-select-container { width: 39em; }
-  #player-select-dropdown {width: 98vw;max-width: 38em;padding: 0px;}
-
-  /* Keep dropdown to the right of the title on mobile */
-  .fc-chart-header-top {flex-direction: row;align-items: center;justify-content: space-around;gap: 3.75em;}
-  .fc-chart-header-top .fc-custom-select {min-width: 19em;}
-  /* PPG bar panel header: stack filter buttons below title on mobile */
-  .fc-chart-header-top--bar {
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25em !important;
-    margin-left: 0px;
-  }
-  /* PPG Leaders inline subtitle: keep visible on mobile (no wrapping handled above) */
-  .fc-subtitle-bar { display: inline; }
-
-  /* Grid ratio: give radar panel more horizontal space, shrink bar panel */
-  .fc-grid-charts {
-    grid-template-columns: 1.45fr 0.95fr;
-  }
-
-  /* Radar panel: taller container to match wider panel */
-  .fc-radar-panel .fc-chart-container { min-height: 38em; }
-  .fc-radar-container { min-height: 38em; }
-  .fc-bar-panel .fc-chart-container { min-height: 28em; }
-
-  .fc-chart-panel.fc-radar-panel {
-    padding: 0.05em 0.65em 0.75em 0.4em;
-  }
-
-  /* Radar center content: proportionally larger to match bigger chart */
-  .fc-radar-label {
-    font-size: 2.1em;
-  }
-  .fc-radar-score {
-    font-size: 3.1em;
-  }
-  .fc-radar-suffix {
-    font-size: 0.6em;
-  }
-  .fc-radar-meta {
-    font-size: 1.55em;
-  }
-
-  .fc-bar-panel .fc-chart-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.3em;
-    width: 100%;
-    margin-top: -4px;
-  }
-  /* Dashboard PPG mobile filter rail: keep the Contact mobile-header pattern centered
-     under the title and let the shared glass track stretch cleanly edge to edge. */
-  .fc-bar-panel .fc-filter-group {
-    width: 100%;
-    flex: 0 0 auto;
-    align-self: stretch;
-  }
-
-  /* Home scatter: a small mobile increase (about 13px at 390px wide), with
-     the flex chart host taking the extra room rather than adding empty padding. */
-  body[data-page="welcome"] .fc-scatter-panel {min-height: 71em;backdrop-filter: blur(4px);-webkit-backdrop-filter: blur(4px);}
-
-
-  /* Radar Legend: Bigger & Abbreviated */
-  .fc-legend {
-    font-size: 1.8em;
-    gap: 0.6em;
-    margin: 1px 2px 1px 4px;
-    justify-items: baseline;
-  }
-  .fc-legend-full { display: none; }
-  .fc-legend-abbr { display: inline; }
-
-  /* Scatter Legend: Bigger */
-  .fc-legend-inline {
-    font-size: 1.8em;
-  }
-
-  .fc-chart-helper {font-size: 1.25em;}
-  .fc-chart-helper--scatter {white-space: normal;line-height: 1.35;align-self: end;color: #abd;font-weight: 400;font-style: italic;font-size: 1.35em;}
-  .fc-chart-helper--radar {font-size: 1.8em;margin: 0.15em 0 0.45em;margin-top: 0.5em;font-weight: 400;font-style: italic;text-shadow: 0 0 4px #7310ff8a;color: #ffd2c6;}
-  .fc-scatter-subline {gap: 0;}
-
-  /* Scatter Data Labels: Smaller */
-  .scatter-label {
-    font-size: 8px !important;
-  }
-
-  /* Scatter Axis Labels: Smaller */
-  .scatter-axis-label {
-    font-size: 7px !important;
-  }
-}
-
-/* Custom Select Styles */
-.fc-custom-select {
-  position: relative;
-  width: 14.5em; /* Slightly wider to support rank + player + team columns */
-  font-family: var(--font-family);
-  align-self: center;
-}
-
-.fc-select-trigger {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text-primary);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 1.5em;
-  padding: 0.5em 0.75em;
-  font-size: 1.1em;
-  cursor: pointer;
-  transition: all 0.2s;
-  user-select: none;
-}
-
-.fc-select-trigger:hover {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.fc-select-trigger.is-open {
-  border-color: var(--color-cyan);
-  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
-}
-
-/* Player select dropdown: glass-card treatment with stronger backdrop
-   for legibility when overlaying chart content. */
-.fc-select-dropdown {
-  position: absolute;
-  top: calc(100% + 0.5em);
-  right: 0;
-  width: 21.5em;
-  background: linear-gradient(180deg, rgba(255,255,255,0.155) 0%, rgba(255,255,255,0.048) 36%, transparent 58%),
-    linear-gradient(160deg, rgba(30,32,55,0.99) 0%, rgba(15,18,30,0.98) 100%);
-  -webkit-backdrop-filter: blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
-  backdrop-filter: blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
-  border: none;
-  border-radius: var(--fc-gr-radius-card);
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.06),
-    inset 0 1px 0 rgba(255,255,255,0.08),
-    0 10px 25px -5px rgba(0,0,0,0.5),
-    0 8px 10px -6px rgba(0,0,0,0.5);
-  z-index: 100;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-0.5em);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.fc-custom-select.is-open .fc-select-dropdown {
-  opacity: 0.97;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-.fc-search-wrapper {
-  padding: 0.25em;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.fc-search-icon {
-  position: absolute;
-  left: 0.3em;
-  color: var(--text-muted);
-  pointer-events: none;
-  font-size: 1.62em;
-  padding: 0px 1px 2px 1px;
-}
-
-.fc-select-search {
-  width: 100%;
-  background: rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.45em;
-  padding: 0.05em 0.5em 0.05em 1.9em; /* Space for icon */
-  color: white;
-  font-size: 16px;
-  font-weight: 200;
-  outline: none;
-  font-family: inherit;
-}
-.fc-select-search::placeholder { color: rgba(255,255,255,0.35); }
-
-.fc-select-search:focus {
-  border-color: var(--color-cyan);
-}
-
-.fc-select-options {
-  list-style: none;
-  max-height: 38em;
-  overflow-y: auto;
-  padding: 0.25em 0.05em 0.25em 0.5em;
-}
-
-/* Custom Scrollbar for options */
-.fc-select-options::-webkit-scrollbar {
-  width: 4px;
-}
-.fc-select-options::-webkit-scrollbar-track {
-  background: transparent;
-}
-.fc-select-options::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
-}
-
-.fc-option {
-  padding: 0.5em 0.75em;
-  font-size: 0.85em;
-  color: var(--text-secondary);
-  cursor: pointer;
-  border-radius: 0.25em;
-  transition: background 0.1s;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #abc2;
-  margin: 1px;
-}
-
-/* Performance Map option row structure:
-   rank (left), player name (middle), position/team (right). */
-#player-select-options .fc-option {
-  display: grid;
-  grid-template-columns: 2.35em minmax(0, 1fr) auto;
-  column-gap: 0.55em;
-  align-items: center;
-}
-#player-select-options .fc-option-rank {
-  /* Keep rank numerals centered within the dedicated rank column. */
-  text-align: center;
-  /* Keep rank text visually neutral (no special numeric/opacity styling). */
-  font-variant-numeric: normal;
-  color: inherit;
-  opacity: 1;
-}
-#player-select-options .fc-option-name {
-  /* Player name column should anchor left while rank/team retain their column alignment. */
-  text-align: left;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-#player-select-options .fc-option-team {
-  margin-left: 0;
-  white-space: nowrap;
-}
-
-.fc-option:hover, .fc-option.is-focused {
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-}
-
-.fc-option.is-selected {
-  background: rgb(93 98 129);
-  color: #33ccff;
-  font-weight: 700;
-}
-
-.fc-option-team {
-  font-size: 1em;
-  color: var(--text-muted);
-  margin-left: 0.5em;
-}
-
-/* Position accent colors for custom select */
-.fc-option-pos {font-weight: 400;}
-.fc-option-pos-qb { color: var(--color-pink-light); }
-.fc-option-pos-rb { color: var(--color-emerald-light); }
-.fc-option-pos-wr { color: var(--color-cyan-light); }
-.fc-option-pos-te { color: var(--color-orange); }
-
-/* Mobile Adjustments for Dropdown */
-@media (max-width: 768px) {
-  .fc-custom-select {
-    width: 37em; /* Let it shrink/grow */
-    min-width: 2em;
-    align-self: center;
-  }
-  
-  .fc-select-dropdown {
-    width: 97vw; /* Wide on mobile */
-    max-width: 35em;
-    right: -1px; /* Align with right edge */
-    border-radius: 10px;
-  }
-  
-  .fc-select-trigger {
-    padding: 0.2rem 0.84em 0.18rem;
-    font-size: 2.5em;
-    margin-bottom: 3px;
-    margin-left: 8px;
-    margin-right: 7px;
-    border-radius: 1rem;
-  }
-
-  .fc-search-icon {
-    position: absolute;
-    left: 0.5em;
-    color: var(--text-muted);
-    pointer-events: none;
-    font-size: 3em;
-    padding-bottom: 1px;
-  }
-
-  .fc-search-icon {
-    position: absolute;
-    left: 0.6em;
-    color: var(--text-muted);
-    pointer-events: none;
-    font-size: 3.5em;
-    padding-bottom: 2px;
-  }
-  
-  .fc-option {
-    padding: 0.15em 0.3em;
-    font-size: 2.2em;
-    border: 1px solid #fff1;
-  }
-}
-
-/* Radar Modal Styles - Page-relative positioning (scrolls with content) */
-.fc-modal {
-  position: absolute;   /* Relative to the document/page, NOT viewport */
-  z-index: 1000;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-  /* Horizontal position set via JS to center over radar chart */
-  top: 745px;           /* Distance from TOP of the page */
-  left: 0;              /* Will be set by JS */
-  transform: translateX(-50%); /* Center the modal on the left position */
-}
-.fc-modal.is-visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.fc-modal-overlay {
-  display: none;  /* No overlay needed for inline modal */
-}
-
-/* Radar modal: glass-card treatment with higher opacity base for
-   text readability over chart content. Inherits .fc-glass class. */
-.fc-modal-content {
-  position: relative;
-  isolation: isolate;
-  width: auto;
-  max-width: 400px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 36%, transparent 58%),
-    linear-gradient(160deg, rgba(45,52,72,0.94) 0%, rgba(20,25,40,0.90) 100%);
-  -webkit-backdrop-filter: blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation));
-  backdrop-filter: blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation));
-  border: none;
-  border-radius: 1.5em;
-  padding: 1em 1.5em 0.8em;
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.10),
-    0 20px 25px -5px rgba(0,0,0,0.5),
-    0 8px 10px -6px rgba(0,0,0,0.5);
-  transform: scale(0.95);
-  transition: transform 0.3s ease;
-}
-.fc-modal.is-visible .fc-modal-content {
-  transform: scale(1);
-}
-
-/* Desktop-only: Make modal wider */
-@media (min-width: 769px) {
-  .fc-modal-content {
-    min-width: 350px;
-  }
-}
-
-.fc-modal-close {
-  position: absolute;
-  top: 0.75em;
-  right: 0.75em;
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-size: 1.5em;
-  cursor: pointer;
-  line-height: 1;
-  padding: 0.2em;
-  transition: color 0.2s;
-}
-.fc-modal-close:hover {
-  color: white;
-}
-
-/* New Modal Title Styles */
-#radar-modal-title {
-    text-align: center;
-    margin-bottom: 0.5rem;
-    font-size: 1.2rem;
-    font-weight: 300;
-    color: white;
-    letter-spacing: 0.05em;
-}
-
-.fc-modal-title-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    white-space: nowrap;
-    margin-left: 10px;
-}
-
-/* Position Tags - Inherited from global styles.css */
-/* .player-tag styles removed to use global definition */
-
-.fc-stat-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5em 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-.fc-stat-row:last-child {
-  border-bottom: none;
-}
-
-.fc-stat-label {
-  color: var(--text-secondary);
-  font-weight: 400;
-  font-size: 1em;
-  display: flex;
-  align-items: center;
-  gap: 0.4em;
-}
-
-.fc-stat-dot {
-  width: 0.6em;
-  height: 0.6em;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.fc-stat-values {
-  display: flex;
-  align-items: center;
-  gap: 1em;
-}
-
-.fc-stat-val {
-  color: white;
-  font-weight: 400;
-  font-size: 1.1em;
-}
-
-.fc-stat-rank {
-  font-size: 0.85em;
-  font-weight: 600;
-  padding: 0.15em 0.5em;
-  border-radius: 0.25em;
-  background: rgba(255, 255, 255, 0.05);
-  min-width: 3em;
-  text-align: center;
-}
-
-.fc-modal-body {
-  max-height: 70vh;
-  overflow-y: auto;
-  padding-right: 0.2em; /* Avoid scrollbar overlap */
-}
-
-/* Mobile Modal Optimizations */
-@media (max-width: 768px) {
-  /* Mobile: Horizontal position still set by JS, just adjust top */
-  .fc-modal {
-    top: 474px;         /* Distance from TOP of page */
-    /* left is set by JS for centering over radar chart */
-    /* translateX(-50%) is inherited from base styles for centering */
-    width: 12rem;
-  }
-
-  .fc-modal-content {
-    padding: 0.5em 0.58em 0.19em 0.8em;
-    border-radius: 1em;
-    max-width: 221px;
-    transform: scale(0.8);
-    transform-origin: top center;
-  }
-  
-  .fc-modal.is-visible .fc-modal-content {
-    transform: scale(0.9);
-  }
-  
-  #radar-modal-title {
-    font-size: 0.8em;
-    margin-bottom: 0.1em;
-    padding-right: 2.5em; /* Space for close button */
-    padding-bottom: 0.4em;
-    border-bottom: 1px solid #FFF2;
-  }
-
-  .fc-modal-close {
-    font-size: 1.5em;
-    top: -0.2em;
-    right: 0em;
-    color: var(--text-secondary);
-  }
-
-  .fc-stat-row {
-    padding: 0.25em 0;
-  }
-
-  .fc-stat-label {
-    font-size: 0.75em;
-  }
-
-  .fc-stat-val {
-    font-size: 0.8em;
-    margin-right: 1px;
-  }
-
-  .fc-stat-rank {
-    font-size: 0.6em;
-    min-width: 3.4em;
-    max-width: 3.4em;
-    min-height: 2.1em;
-    max-height: 2.1em;
-    padding: 0.15em 0.5em;
-    border-radius: 5px;
-  }
-  
-  .fc-modal-body {
-    max-height: 40.6vh;
-  }
-}
-
-/* Radar Modal Position Tags - Ported from styles.css */
-.fc-modal-pos-tag {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    position: relative;
-    line-height: 0.5rem;
-    font-size: 0.8rem;
-    padding: 6px 5px;
-    background: rgba(255, 255, 255, 0.005);
-    backdrop-filter: blur(1px) saturate(180%);
-    border: 1px solid rgba(250, 250, 250, 0.12);
-    border-radius: 6px;
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05);
-}
-
-.fc-modal-pos-tag::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.01);
-    border-radius: 7px;
-    backdrop-filter: blur(1px);
-    box-shadow: inset 11px 8px 0px -10px rgba(255, 255, 255, .1),
-    inset 0px 8px 0px -5px rgba(255, 255, 255, .1);
-    opacity: 0.34;
-    z-index: -1;
-    filter: blur(1px) drop-shadow(10px 4px 6px black) brightness(115%);
-    pointer-events: none;
-}
-
-.fc-modal-pos-tag.QB {
-    color: #FF3A75c0;
-    box-shadow: inset 0 0 11px #ff3a7529;
-}
-
-.fc-modal-pos-tag.RB {
-    color: #00EBC7c0;
-    box-shadow: inset 0 0 6px #00EBC715;
-}
-
-.fc-modal-pos-tag.WR {
-    color: #58A7FFca;
-    box-shadow: inset 0 0 4px #58A7FF25;
-}
-
-.fc-modal-pos-tag.TE {
-    color: #B469FFca;
-    box-shadow: inset 0 0 10px #B469FF26;
-}
-
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   RELOCATED FROM styles.css — Dashboard-only rules scoped by
-   body[data-page="welcome"].  Moved here so they only load on the Dashboard,
-   which is the only page that includes dashboard.css.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-/* --- Block A: Welcome page uniform control heights & tighter mobile spacing --- */
-
-/* Welcome page: enforce uniform control heights and tighter mobile spacing */
-body[data-page="welcome"] {
-  /* single source of truth for header control sizing on the welcome page */
-  --welcome-header-control-height: 36px;
-  /* slightly smaller for a tighter header */
-}
-
-/* Make menu slot, username area and enter control share a single height */
-body[data-page="welcome"] #primary-header-row .menu-container,
-body[data-page="welcome"] .username-area,
-body[data-page="welcome"] .enter-button,
-body[data-page="welcome"] .menu-button,
-body[data-page="welcome"] .home-menu-slot {
-  height: var(--welcome-header-control-height) !important;
-  min-height: var(--welcome-header-control-height) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-}
-
-/* Ensure the input fills the shared height and has balanced paddings */
-body[data-page="welcome"] #usernameInput {
-  padding-top: 0.18rem !important;
-  padding-bottom: 0.18rem !important;
-  padding-left: 0.6rem !important;
-  padding-right: 0.6rem !important;
-  font-size: 17px !important;
-  line-height: calc(var(--welcome-header-control-height) - 0.36rem);
-}
-
-/* Keep the enter button vertically centered and same height */
-body[data-page="welcome"] .enter-button {
-  height: var(--welcome-header-control-height) !important;
-  min-height: var(--welcome-header-control-height) !important;
-  align-items: center;
-}
-
-/* Reduce vertical gap on small screens so elements sit closer */
-@media (max-width: 520px) {
-  body[data-page="welcome"] #primary-header-row {
-    gap: 0.65rem !important;
-  }
-
-  body[data-page="welcome"] .nav-buttons-container {
-    gap: 0.25rem !important;
-  }
-}
-
-/* Small tweak: ensure the hamburger/menu button matches sizing */
-body[data-page="welcome"] .menu-button,
-body[data-page="welcome"] #homeMenuToggle {
-  height: 108% !important;
-  width: 44px !important;
-  /* fixed square for consistent visual */
-  min-width: 40px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-/* Make the enter label a touch-friendly height on mobile while keeping it short */
-body[data-page="welcome"] .enter-label {
-  line-height: 1;
-}
-
-/* --- Block B: Mobile Sticky Header Fix --- */
-
-body[data-page="welcome"] #header-container {
-  padding: 0.1rem 0rem 0.1rem 0rem;
-  position: sticky;
-  /* Ensure sticky on mobile */
-  top: 0;
-  z-index: 1000;
-  border-radius: 18px;
-}
-
-body[data-page="welcome"] .app-header.glass-panel {
-  -webkit-backdrop-filter: blur(14px) saturate(100%) brightness(100%);
-  backdrop-filter: blur(4px) saturate(100%) brightness(100%);
-  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),    linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end))linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),
-    linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end));
-  border-radius: 18px;
-}
-
-body[data-page="welcome"] .app-header {
-  display: flex !important;
-  flex-direction: column;
-  /* Stack title and controls */
-  align-items: center;
-  justify-content: center;
-  /* center header on desktop */
-  padding: 0.3rem 0.15rem;
-  gap: 0.2rem;
-}
-
-/* --- Block C (welcome-only portion): Desktop ≥820px welcome-scoped rules --- */
-
-@media (min-width: 820px) {
-
-  /* Adjust Branding Panel on Desktop */
-  body[data-page="welcome"] .welcome-branding-panel {
-    flex: 1;
-    /* Take up equal space */
-    width: auto;
-    margin: 0;
-    padding: 0 1rem;
-    /* Reduced padding */
-    max-width: none;
-    /* Remove max-width restriction */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .branding-top-row {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    width: 100%;
-  }
-
-  /* Scale down branding content */
-  body[data-page="welcome"] .welcome-logo img {
-    height: 5rem;
-    width: 5.6rem;
-  }
-
-  body[data-page="welcome"] .welcome-branding-panel h2 {
-    font-size: 3.2rem;
-    font-family: "Bruno Ace SC";
-    letter-spacing: -0.05em;
-    font-weight: 600;
-    -webkit-text-stroke: 0px #16254394;
-    text-shadow: 0 0 9px #5300ffaa, 2px 2px 0px #eef4, 4px 5px 3px #0005;
-  }
-
-  /* Adjust Header Container on Desktop */
-  body[data-page="welcome"] #header-container {
-    flex: 1;
-    /* Take up equal space */
-    width: auto;
-    position: static;
-    /* Unfreeze on desktop */
-    padding: 0;
-    background: none;
-    max-width: none;
-    /* Remove max-width restriction */
-    display: flex;
-    align-items: center;
-    /* Center content vertically */
-  }
-
-  body[data-page="welcome"] .app-header {
-    width: 100%;
-    /* Fill the container */
-    margin: 0;
-    height: 100%;
-    /* Match container height */
-    padding: 0.3rem 0.5rem;
-    /* Reduced vertical padding further */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border-radius: 1.5em;
-    /* Match branding panel radius */
-    gap: 0.2rem;
-    /* Tighter gap */
-  }
-
-  /* Scale up header content */
-  body[data-page="welcome"] .menu-toggle {
-    height: 48px;
-    font-size: 1.2rem;
-  }
-
-  body[data-page="welcome"] .enter-button {
-    height: 44px;
-  }
-
-  body[data-page="welcome"] #usernameInput {
-    font-size: 1.1rem;
-    padding: 0.5rem 0.8rem;
-    width: 100%;
-  }
-
-  body[data-page="welcome"] .username-area {
-    flex-grow: 1;
-    max-width: none;
-    width: auto;
-  }
-
-  body[data-page="welcome"] .welcome-header-title {
-    font-size: 0.7rem;
-    margin-bottom: 0;
-    font-weight: 300;
-    /* Lighter weight */
-  }
-
-  body[data-page="welcome"] .welcome-header-footer {
-    font-size: 0.55rem;
-    margin-top: 0;
-  }
-
-  body[data-page="welcome"] #primary-header-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* keep the group centered */
-    gap: 1.2rem;
-    /* small gap between controls */
-    width: 100%;
-    padding-left: 8px;
-    padding-right: 8px;
-  }
-
-  /* Reduce gaps on desktop for welcome page */
-  body[data-page="welcome"] #welcome-screen {
-    gap: 0.5rem;
-  }
-
-  body[data-page="welcome"] .fc-grid-metrics {
-    gap: 0.75rem;
-  }
-
-  body[data-page="welcome"] .fc-grid-charts {
-    gap: 0.75rem;
-  }
-}
-
-/* --- Block D: Mobile ≤819px hamburger / branding panel layout --- */
-
-/* For narrow viewports, keep a compact grid to allow wrapping.
-   Hamburger is JS-moved to branding panel on mobile, so grid is now 2-col: [username] [enter]. */
-@media (max-width: 819px) {
-  body[data-page="welcome"] #primary-header-row {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 0.5rem;
-    align-items: center;
-    width: 100%;
-    padding-left: 8px;
-    padding-right: 8px;
-  }
-  .branding-top-row {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    gap: 0rem;
-    width: 100%;
-    margin: 3px 12px 3px 5px !important;
-}
-
-  /* --- Hamburger in branding panel (mobile only) --- */
-  /* Push button to the far right without inflating the gap between logo+title */
-  body[data-page="welcome"] .branding-top-row .home-menu-slot {
-    margin-left: auto;
-    margin-right: 0;
-    display: flex;
-    align-items: center;
-    position: relative;
-    flex-shrink: 0;
-  }
-
-  /* Size the hamburger button proportionally to the branding panel */
-  body[data-page="welcome"] .branding-top-row .menu-toggle {
-    height: 44px;
-    padding: 0 12px;
-    border-radius: 10px;
-    margin-top: -1px;
-  }
-
-  /* Slightly larger icon to match panel scale */
-  body[data-page="welcome"] .branding-top-row .menu-toggle i {
-    font-size: 1.5rem;
-  }
-
-  /* Home dropdown is portaled to <body> on mobile (JS) to escape the branding
-     panel's stacking context.  These styles target the portaled state to ensure
-     it renders above all page content with position: fixed (set by JS). */
-  body[data-page="welcome"] > #homeMenu {
-    position: fixed;
-    z-index: 9999;
-    background: rgb(30 29 52 / 98%);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(128, 138, 189, 0.18);
-  }
-}
-
-/* Dashboard mobile content gutter: replace the body's Tailwind p-2/sm:p-4
-   spacing with the requested compact 0.3rem edge on mobile only. */
-@media (max-width: 819px) {
-  body[data-page="welcome"] {
-    padding: 0.3rem;
-  }
-}
-
-/* Dashboard scramble typography: keep both the initial title and every animated
-   dud character in Bruno Ace SC. The pending state prevents a fallback-font flash
-   while the externally hosted face finishes loading. */
-body[data-page="welcome"] #dh-scramble,
-body[data-page="welcome"] #dh-scramble .dh-dud {
-  font-family: "Bruno Ace SC", sans-serif;
-}
-
-body[data-page="welcome"] #dh-scramble.dh-scramble--font-pending {
-  visibility: hidden;
-}
-
-/* Dashboard mobile title sizing: use independent literal bands so changing one
-   phone-width range cannot shift the logo, title, or menu geometry in another. */
-@media (max-width: 379px) {
-  body[data-page="welcome"] .welcome-branding-panel h2 {
-    font-size: 1.84rem;
-  }
-}
-
-@media (min-width: 380px) and (max-width: 409px) {
-  body[data-page="welcome"] .welcome-branding-panel h2 {
-    font-size: 1.94rem;
-  }
-}
-
-@media (min-width: 410px) and (max-width: 429px) {
-  body[data-page="welcome"] .welcome-branding-panel h2 {
-    font-size: 2.14rem;
-  }
-}
-
-@media (min-width: 430px) and (max-width: 819px) {
-  body[data-page="welcome"] .welcome-branding-panel h2 {
-    font-size: 2.22rem;
-  }
-}
-
-/* --- Block E: Home-page header, controls, enter button, menu --- */
-
-/* make sure only for home: hide any leftover contextual controls */
-body[data-page="welcome"] #contextual-controls {
-  display: none !important;
-}
-
-/* Username field sizing for home */
-body[data-page="welcome"] .username-area {
-  min-width: 0;
-  max-width: 520px;
-  width: 100%;
-  border-radius: 11px;
-}
-
-body[data-page="welcome"] #usernameInput {
-  font-size: 0.96rem;
-  padding: 0.36rem 0.65rem;
-}
-
-/* Enter button styling — styled to match the other nav buttons with a circular icon inside */
-body[data-page="welcome"] .home-enter-slot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-body[data-page="welcome"] .enter-button {
-  display: inline-flex;
-  flex-direction: row;
-  /* label left of icon */
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  /* larger gap so label and circle don't butt up against each other */
-  padding: 0 9px;
-  /* more horizontal breathing room */
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.15), rgb(66 75 128 / 32%));
-  color: var(--color-text-secondary);
-  border-radius: 11px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.02);
-  cursor: pointer;
-  transition: transform 110ms ease, box-shadow 110ms ease, background 110ms ease;
-  align-self: center;
-  height: 40px;
-  /* uniform control height */
-  min-width: 78px;
-  /* ensure the control doesn't shrink too small */
-  white-space: nowrap;
-  /* prevent enter label wrapping */
-}
-
-body[data-page="welcome"] .enter-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  color: var(--color-text-primary);
-  background: rgba(13, 14, 35, 0.32);
-}
-
-/* Circular icon inside the button — keep perfectly round */
-body[data-page="welcome"] .enter-circle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px !important;
-  height: 28px;
-  border-radius: 50%;
-  background: linear-gradient(125deg, rgba(118, 109, 255, .14), rgba(118, 109, 255, 0.07));
-  font-size: 0.88rem;
-  box-shadow: 0 3px 6px rgba(91, 76, 255, 0.08);
-}
-
-/* allow the Font Awesome rotation class to apply; keep inline-block for sizing */
-body[data-page="welcome"] .enter-circle i {
-  display: inline-block;
-  line-height: 1;
-  text-shadow: 2px 1px 1px #5800ff;
-  font-size: 0.85rem !important;
-}
-
-body[data-page="welcome"] .enter-label {
-  font-size: 0.95rem;
-  /* larger label font */
-  color: #cfc7ffdb;
-  text-transform: none;
-  margin: 0;
-  line-height: 1;
-  font-weight: 400;
-  order: 0;
-  /* ensure label is left of icon */
-}
-
-body[data-page="welcome"] .enter-circle {
-  order: 1;
-}
-
-/* Home menu dropdown */
-body[data-page="welcome"] .home-menu-slot {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  position: relative;
-  margin-right: 4px;
-}
-
-body[data-page="welcome"] .menu-toggle {
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
-  border: 1px solid rgba(128, 138, 189, 0.22);
-  color: var(--color-text-secondary);
-  padding: 0 10px;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  height: 44px;
-  /* match control height */
-}
-
-body[data-page="welcome"] .menu-toggle:hover {
-  color: var(--color-text-primary);
-  border-color: rgba(128, 138, 189, 0.24);
-}
-
-body[data-page="welcome"] .home-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  min-width: 144px;
-  /* Increased slightly */
-  width: max-content;
-  /* Ensure it expands to fit text */
-  background: rgb(47 46 72 / 94%);
-  border: 1px solid rgba(128, 138, 189, 0.14);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
-  padding: 4px 3px;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  z-index: 1200;
-  max-height: 60vh;
-  overflow: auto;
-}
-
-body[data-page="welcome"] .home-menu.hidden {
-  display: none !important;
-}
-
-body[data-page="welcome"] .home-menu-item {
-  background: #85a2cf1f;
-  color: var(--color-text-secondary);
-  border: none;
-  text-align: left;
-  text-decoration: none;
-  padding: 4px 12px;
-  /* Increased padding for better touch targets */
-  display: flex;
-  gap: 9px;
-  /* Increased gap */
-  align-items: center;
-  cursor: pointer;
-  border-radius: 6px;
-  white-space: nowrap;
-  /* Prevent text wrapping */
-  font-size: 0.95rem;
-  /* Ensure readable font size */
-  width: 100%;
-}
-
-body[data-page="welcome"] .home-menu-item:hover {
-  background: rgba(255, 255, 255, 0.02);
-  color: var(--color-text-primary);
-}
-
-body[data-page="welcome"] .home-menu-item i {
-  width: 16px;
-  text-align: center;
-  color: #99a3e5;
-}
-
-/* Fix for tiny hamburger icon */
-body[data-page="welcome"] .menu-toggle i {
-  font-size: 1.45rem;
-}
-
-/* --- Block F: Mobile ≤520px enter button tweaks --- */
-
-/* Mobile tweaks: keep button compact and inline.
-   Hamburger moved to branding panel, so grid is 2-col: [username] [enter]. */
-@media (max-width: 520px) {
-  body[data-page="welcome"] #primary-header-row {
-    grid-template-columns: 1fr auto;
-    gap: 0.4rem;
-    padding-left: 8px;
-    padding-right: 8px;
-  }
-
-  body[data-page="welcome"] .enter-button {
-    min-width: 104px;
-    height: 38px;
-    padding: 0.2rem 0.85rem;
-    gap: 0.6rem;
-  }
-
-  body[data-page="welcome"] .enter-label {
-    font-size: 0.95rem;
-  }
-
-  body[data-page="welcome"] .enter-circle {
-    width: 25px !important;
-    height: 24px;
-    font-size: 0.92rem;
-  }
-
-  body[data-page="welcome"] #usernameInput {
-    font-size: 0.94rem;
-    padding: 0.34rem 0.5rem;
-  }
-}
-
-/* --- Block G: Home-page-only header rules (hiding filters, secondary header) --- */
-
-/* --- HOME-PAGE ONLY HEADER RULES --- */
-body[data-page="welcome"] #filters-row,
-body[data-page="welcome"] #secondary-header-row .view-switcher {
-  display: none !important;
-}
-
-body[data-page="welcome"] #secondary-header-row {
-  justify-content: center;
-  /* Center the remaining items */
-  gap: 0.75rem;
-  /* Add some space between them */
-}
-
-/* Make the inputs take up more space on mobile */
-@media (max-width: 520px) {
-
-  body[data-page="welcome"] #secondary-header-row .username-area,
-  body[data-page="welcome"] #secondary-header-row .custom-select-wrapper {
-    flex: 1;
-    /* Allow them to grow equally */
-    max-width: 50%;
-    /* Each takes up half the space */
-  }
+  body[data-page="welcome"] *,body[data-page="welcome"] *::before,body[data-page="welcome"] *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }

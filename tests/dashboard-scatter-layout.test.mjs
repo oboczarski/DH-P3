@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { arrangeScatterLabels, formatScatterName } from '../DH_P2.53/scripts/dashboard-scatter-layout.js';
+import { arrangeScatterLabels, formatScatterName, settleScatterLabels } from '../DH_P2.53/scripts/dashboard-scatter-layout.js';
 
 test('scatter names retain surnames, compound surnames and suffixes after the first-name initial', () => {
   for (const [name, expected] of [
@@ -9,6 +9,29 @@ test('scatter names retain surnames, compound surnames and suffixes after the fi
     ['Amon-Ra St. Brown', 'A. St. Brown'], ['Jaxon Smith-Njigba', 'J. Smith-Njigba'],
     ['  Kenneth   Walker  III  ', 'K. Walker III'], ['Cher', 'Cher'], ['', '']
   ]) assert.equal(formatScatterName(name), expected);
+});
+
+test('complete scatter labels resolve a three-player edge cluster without hiding or clipping any name', () => {
+  const boxes = [
+    { x: 211, y: 30, width: 34, height: 10, alternateX: 245 },
+    { x: 234, y: 25, width: 65, height: 10 },
+    { x: 218, y: 21, width: 40, height: 10, alternateX: 258 },
+    { x: 100, y: 120, width: 50, height: 10, alternateX: 50 }
+  ];
+  const placed = settleScatterLabels(boxes, 300, 310, true);
+  assert.equal(placed.length, boxes.length);
+  placed.forEach((label, index) => {
+    assert.ok(label.x >= 0 && label.x + label.width <= 310);
+    assert.ok(label.top >= 0 && label.top + label.height <= 300);
+    assert.ok(Math.abs(label.top - boxes[index].y) <= 16);
+    for (const other of placed.slice(index + 1)) {
+      const overlapWidth = Math.min(label.x + label.width, other.x + other.width) - Math.max(label.x, other.x);
+      const overlapHeight = Math.min(label.top + label.height, other.top + other.height) - Math.max(label.top, other.top);
+      assert.ok(overlapWidth <= .5 || overlapHeight <= .5);
+    }
+  });
+  assert.equal(placed[3].x, boxes[3].x);
+  assert.equal(placed[3].top, boxes[3].y);
 });
 
 test('a colliding pair moves by equal, opposite small amounts', () => {

@@ -120,3 +120,58 @@ export function arrangeScatterLabels(boxes, plotHeight, gap = 1, maxNudge = 6) {
   }
   return layout;
 }
+
+// Home scatter's complete label set can contain new three-player clusters as
+// the season CSV changes. Start with the original small-nudge placement, then
+// repair remaining intersections locally. Flips remain attached to the same
+// marker; vertical movement is capped and the renderer adds short leaders.
+export function settleScatterLabels(boxes, plotHeight, plotWidth, mobile = false) {
+  const layout = arrangeScatterLabels(boxes, plotHeight, 1, mobile ? 4 : 6);
+  const maxShift = mobile ? 16 : 12;
+  const area = (a, b) => {
+    const width = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
+    const height = Math.min(a.top + a.height + 1, b.top + b.height + 1) - Math.max(a.top, b.top);
+    return width > .5 && height > .5 ? width * height : 0;
+  };
+  const score = (index, x, top) => {
+    const candidate = { ...layout[index], x, top };
+    let count = 0, overlap = 0;
+    layout.forEach((other, j) => {
+      if (j === index) return;
+      const intersection = area(candidate, other);
+      if (intersection) { count += 1; overlap += intersection; }
+    });
+    return { count, overlap, distance: Math.abs(top - boxes[index].y) + (x === boxes[index].x ? 0 : 3) };
+  };
+  const better = (a, b) => a.count !== b.count ? a.count < b.count
+    : Math.abs(a.overlap - b.overlap) > .1 ? a.overlap < b.overlap
+    : a.distance < b.distance - .1;
+  for (let pass = 0; pass < 6; pass += 1) {
+    let changed = false;
+    layout.forEach((label, index) => {
+      if (!score(index, label.x, label.top).count) return;
+      const box = boxes[index];
+      const lower = Math.max(0, box.y - maxShift);
+      const upper = Math.min(plotHeight - box.height, box.y + maxShift);
+      const candidates = [box.y, label.top, lower, upper];
+      for (let delta = 2; delta <= maxShift; delta += 2) candidates.push(box.y - delta, box.y + delta);
+      layout.forEach((other, j) => {
+        if (j !== index) candidates.push(other.top - box.height - 1, other.top + other.height + 1);
+      });
+      let bestX = label.x, bestTop = label.top, best = score(index, bestX, bestTop);
+      [box.x, box.alternateX].filter(Number.isFinite).forEach(x => {
+        if (x < 0 || x + box.width > plotWidth) return;
+        candidates.forEach(value => {
+          const top = Math.max(lower, Math.min(upper, value));
+          const trial = score(index, x, top);
+          if (better(trial, best)) { best = trial; bestX = x; bestTop = top; }
+        });
+      });
+      if (Math.abs(label.top - bestTop) > .1 || label.x !== bestX) {
+        label.top = bestTop; label.x = bestX; changed = true;
+      }
+    });
+    if (!changed) break;
+  }
+  return layout;
+}
