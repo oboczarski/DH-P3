@@ -110,7 +110,7 @@ body[data-page="rosters"] .ss-empty-signal { height: 12px; display: flex; align-
 body[data-page="rosters"] .ss-empty-signal i { display: block; height: 2px; width: 5px; border-radius: 2px; background: linear-gradient(#9ce9eb44,#8387ed33); }
 body[data-page="rosters"] .ss-empty-signal i:nth-child(2n) { height: 6px; }
 body[data-page="rosters"] .ss-empty-signal i:nth-child(3n) { height: 10px; }
-body[data-page="rosters"] .ss-preview-player {border: 1px solid #bddaff24;border-radius: 13px;padding: 2px 8px 0px;min-width: 0;overflow: hidden;background: radial-gradient(ellipse at 0 0, rgba(var(--ss-player-rgb),.1), transparent 63%), linear-gradient(155deg, #23334077, #131b2877 60%, #24203988);box-shadow: inset 0 1px 0 #c2efff0a;}
+body[data-page="rosters"] .ss-preview-player {--ss-preview-inset: 8px;display: flex;flex-direction: column;border: 1px solid #bddaff24;border-radius: 13px;padding: 2px var(--ss-preview-inset) 0px;min-width: 0;overflow: hidden;background: radial-gradient(ellipse at 0 0, rgba(var(--ss-player-rgb),.1), transparent 63%), linear-gradient(155deg, #23334077, #131b2877 60%, #24203988);box-shadow: inset 0 1px 0 #c2efff0a;}
 /* Season FPTS rank/total can wrap within the header on narrow phones without
    crowding the remove control or changing selectable roster cards. */
 body[data-page="rosters"] .ss-preview-player-top { display: flex; justify-content: space-between; align-items: center; min-height: 24px; gap: 3px; }
@@ -143,13 +143,19 @@ body[data-page="rosters"] .ss-preview-numbers small {font-size: 9px;color: #91a2
 body[data-page="rosters"] .ss-preview-numbers .ss-projection-matchup {margin-top: 0px;font-size: 10px;line-height: 0.9;overflow-wrap: anywhere;font-weight: 600;}
 body[data-page="rosters"] .ss-preview-projection.ss-leading strong {color: #b0e2cb;text-shadow: 0 0 12px #91cbb61c;}
 body[data-page="rosters"] .ss-preview-projection.ss-trailing strong {color: #c5a6b5;text-shadow: none;}
-body[data-page="rosters"] .ss-mini-timeline {position: relative;margin: 4px -6px 1px;}
+/* Give the preview plot just 2px more width; its measured SVG keeps the same
+   48px height and uniform text/marker scale on phones and desktop. */
+body[data-page="rosters"] .ss-mini-timeline {position: relative;margin: 4px -7px 1px;}
 /* Keep the title out of the plot so all five point and week labels stay clear. */
 body[data-page="rosters"] .ss-spark { display: block; width: 100%; height: 48px; overflow: visible; }
-body[data-page="rosters"] .ss-spark-value {font-size: 10px;font-weight: 500;}
-body[data-page="rosters"] .ss-spark-week {font-size: 8px;fill: #8fa4be;}
+body[data-page="rosters"] .ss-spark-value {font-size: 7.3px;font-weight: 500;}
+body[data-page="rosters"] .ss-spark-week {font-size: 5.8px;fill: #8fa4be;}
 body[data-page="rosters"] .ss-mini-timeline > span {display: block;color: #8fa4be;font-size: 7px;letter-spacing: .5px;font-weight: 500;text-align: center;border-top: 1px solid #a0c6ef17;padding: 1px 0 0 0;}
 body[data-page="rosters"] .ss-spark-empty { min-height: 35px; display: flex; align-items: center; color: #8899b4; font-size: 9px; }
+/* Shade the complete preview matchup area from its divider through the button
+   with that player's assigned color, extending to the card's clipped edges. */
+body[data-page="rosters"] .ss-preview-matchup {flex: 1;margin-inline: calc(-1 * var(--ss-preview-inset));padding-inline: var(--ss-preview-inset);border-top: 1px solid #a0c6ef17;background: linear-gradient(135deg,rgba(var(--ss-player-rgb),.09),rgba(var(--ss-player-rgb),.04));}
+body[data-page="rosters"] .ss-preview-matchup .ss-opponent {border-top: 0;}
 body[data-page="rosters"] .ss-opponent {display: flex;justify-content: space-between;align-items: center;gap: 4px;border-top: 1px solid #a0c6ef17;padding: 3px 0;min-width: 0;}
 body[data-page="rosters"] .ss-opponent > span:first-child {display: flex;flex-wrap: wrap;align-items: center;gap: 6px;margin-left: 8px;}
 body[data-page="rosters"] .ss-opponent .ss-logo { width: 17px; height: 17px; }
@@ -233,7 +239,11 @@ body[data-page="rosters"] .ss-hero-baseline > div {display: flex;flex-direction:
 body[data-page="rosters"] .ss-hero-baseline span {color: #a3b7d0;font-size: 7.5px;letter-spacing: 0.1px;}
 body[data-page="rosters"] .ss-hero-baseline b { color: #d5dfed; font-size: 13px; font-weight: 500; }
 body[data-page="rosters"] .ss-hero-vs { position: absolute; left: 50%; top: 45%; transform: translate(-50%,-50%); display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #8296c855; background: radial-gradient(ellipse at 20% 30%,#334a5f,#211c37 80%); box-shadow: 0 0 0 4px #17213099,0 0 18px #6d82d128; color: #c9d4eb; font-size: 7px; letter-spacing: .5px; }
-body[data-page="rosters"] .ss-hero .ss-opponent { padding: 8px 0; }
+/* Keep each hero's opponent, position and rank together on one line. Removing
+   preview-only side insets frees the space already available in these cards. */
+body[data-page="rosters"] .ss-hero .ss-opponent { padding: 8px 0;gap: 3px; }
+body[data-page="rosters"] .ss-hero .ss-opponent > span:first-child {flex-wrap: nowrap;white-space: nowrap;gap: 3px;margin-left: 0;}
+body[data-page="rosters"] .ss-hero .ss-rank-pill {flex: 0 0 auto;margin-right: 0;padding-inline: 2px;}
 body[data-page="rosters"] .ss-projection-insight {display: flex;align-items: center;gap: 7px;padding: 4px 6px;color: #a3b4cd;font-size: 10px;}
 body[data-page="rosters"] .ss-projection-insight > .ss-icon { width: 15px; height: 15px; color: #8aaac8; }
 body[data-page="rosters"] .ss-projection-insight b { color: var(--ss-player); font-weight: 500; }
@@ -389,6 +399,12 @@ body[data-page="rosters"] .ss-loading-footnote {font-size: 9px;color: #8096b2;le
   body[data-page="rosters"] .ss-hero-player { padding-inline: 9px; }
   body[data-page="rosters"] .ss-dashboard .ss-hero h2 { font-size: 17px; }
   body[data-page="rosters"] .ss-hero-score strong { font-size: 34px; }
+  /* Compact the same single matchup row on the narrowest phones. */
+  body[data-page="rosters"] .ss-hero .ss-opponent .ss-logo {width: 15px;height: 15px;}
+  body[data-page="rosters"] .ss-hero .ss-opponent b {font-size: 11px;}
+  body[data-page="rosters"] .ss-hero .ss-opponent-pos {font-size: 10px;}
+  body[data-page="rosters"] .ss-hero .ss-rank-pill {font-size: 10px;}
+  body[data-page="rosters"] .ss-hero .ss-rank-pill small {font-size: 7.5px;}
   body[data-page="rosters"] .ss-panel-header { padding-inline: 10px; }
   body[data-page="rosters"] .ss-panel-header h3 { font-size: 10px; }
   body[data-page="rosters"] .ss-chart-toggle button { padding-inline: 6px; font-size: 7px; }
@@ -415,8 +431,8 @@ body[data-page="rosters"] .ss-loading-footnote {font-size: 9px;color: #8096b2;le
   body[data-page="rosters"] .ss-preview-grid { gap: 11px; }
   body[data-page="rosters"] .ss-preview-empty { min-height: 130px; }
   body[data-page="rosters"] .ss-preview-intro { padding-block: 10px; font-size: 12px; }
-  body[data-page="rosters"] .ss-preview-player { padding-inline: 15px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; }
-  body[data-page="rosters"] .ss-preview-player > :is(.ss-preview-player-top,.ss-preview-identity,.ss-opponent,.ss-defense-grid,.ss-defense-footer) { grid-column: 1/-1; }
+  body[data-page="rosters"] .ss-preview-player { --ss-preview-inset: 15px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; }
+  body[data-page="rosters"] .ss-preview-player > :is(.ss-preview-player-top,.ss-preview-identity,.ss-preview-matchup) { grid-column: 1/-1; }
   body[data-page="rosters"] .ss-preview-identity h4 { font-size: 18px; }
   body[data-page="rosters"] .ss-preview-identity { min-height: 30px; }
   body[data-page="rosters"] .ss-preview-numbers { grid-column: 1/2; padding-block: 5px; }

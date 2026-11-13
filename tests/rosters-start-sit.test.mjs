@@ -30,7 +30,7 @@ function harness(season = '2026') {
     + slice('function getOpponentDefenseRank(', 'let tableCoreLoaderPromise')
     + slice('function buildRostersDecisionPlayer(input) {', 'async function openRostersDecisionComparison(')
     // Test the actual private renderers without expanding the production API.
-    + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, metricRow, sparkline, projectionMatchup, projectionState, timelineOption, sizeTrajectory, playerHero'), context);
+    + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, metricRow, sparkline, shortName, projectionMatchup, projectionState, timelineOption, sizeTrajectory, playerHero'), context);
   return context;
 }
 
@@ -202,6 +202,16 @@ test('preview sparkline labels the last five games, skipping gaps while keeping 
   assert.match(sparkline([{ week: 1, points: null }], 'empty'), /No recorded games/);
 });
 
+test('comparison headings retain surnames with suffixes and ordinary last names', () => {
+  const { shortName } = harness().window.RostersStartSit;
+  for (const [name, expected] of [['Brian Robinson Jr.', 'Robinson Jr.'], ['Michael Pittman Jr', 'Pittman Jr'],
+    ['Marvin Harrison Jr.', 'Harrison Jr.'], ['Kenneth Walker III', 'Walker III'], ['John Metchie II', 'Metchie II'],
+    ['Chris Olave', 'Olave'], ['Amon-Ra St. Brown', 'Brown'], ['  Brian   Robinson Jr.  ', 'Robinson Jr.'], ['', '']]) {
+    assert.equal(shortName({ name }), expected);
+    assert.equal(shortName({ label: name }), expected);
+  }
+});
+
 test('comparison values and bars agree on better/worse for higher/lower stats and stay neutral for ties/gaps/context', () => {
   const { metricRow } = harness().window.RostersStartSit;
   const players = [{ pos: 'QB', labels: {}, metrics: {} }, { pos: 'QB', labels: {}, metrics: {} }];
@@ -331,8 +341,8 @@ test('full-season trajectory reserves readable slots for both weekly and cumulat
   const node = { style: {} }, echarts = { graphic: { LinearGradient: class {} } };
   for (const mode of ['weekly', 'cumulative']) {
     sizeTrajectory(node, players, mode);
-    assert.ok(Number.parseInt(node.style.minWidth) >= 678);
     const option = timelineOption(players, mode, echarts, true);
+    assert.ok((Number.parseInt(node.style.minWidth) - option.grid.left - option.grid.right) / 17 >= 34);
     assert.equal(option.xAxis.axisLabel.interval, 0);
     assert.equal(option.series[0].label.formatter({ dataIndex: 17 }), mode === 'weekly' ? '30.0' : '540.0');
     assert.equal(option.series[0].data[17].label.position, 'top');

@@ -12,6 +12,7 @@
     { main: '#76e8ef', light: '#d0fcff', mid: '#389ed7', deep: '#235777', muted: '#a2b7bb', rgb: '102,224,239' },
     { main: '#9bc5ff', light: '#dfe3ff', mid: '#5493fa', deep: '#517fb2', muted: '#a5b1c1', rgb: '84,147,250' },
   ];
+  const TIMELINE_GUTTERS = { left: 30, right: 18 };
   const OVERVIEW = [
     { id: 'info', label: 'PLAYER INFO', stats: ['overall_rank', 'player_name', 'position', 'team', 'age'] },
     { id: 'fantasy', label: 'FANTASY', stats: ['fpts', 'ppg'] },
@@ -57,7 +58,12 @@
   const number = value => value == null || String(value).trim() === '' ? null : Number.isFinite(Number(value)) ? Number(value) : null;
   const fmt = (value, digits = 1) => number(value) === null ? '—' : Number(value).toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
   const sign = (value, digits = 1) => `${value > 0 ? '+' : value < 0 ? '−' : ''}${fmt(Math.abs(value), digits)}`;
-  const shortName = player => (player.name || player.label || '').split(' ').filter(Boolean).slice(-1).join(' ');
+  // Start/Sit's panel headings and legends retain the surname with its suffix;
+  // the final word alone would turn Brian Robinson Jr. into just "Jr.".
+  const shortName = player => {
+    const parts = (player.name || player.label || '').trim().split(/\s+/);
+    return parts.slice(/^(?:jr\.?|sr\.?|ii|iii|iv|v)$/i.test(parts.at(-1)) ? -2 : -1).join(' ');
+  };
   const icon = (name, extra = '') => {
     const paths = {
       chart: '<path d="M3 17 8 11l4 3 8-10M15 4h5v5"/><path d="M3 3v18h18"/>',
@@ -80,21 +86,23 @@
   // Preview history is the last five played games this season, rather than
   // calendar weeks. BYE/DNP/missing results are skipped; zero/negative games
   // remain real appearances, with point labels and their original week numbers.
-  function sparkline(weekly, uid, side = 0) {
+  function sparkline(weekly, uid, side = 0, width = 180) {
     const data = weekly.filter(item => number(item.points) !== null).slice(-5);
     const values = data.map(item => number(item.points));
     if (!values.length) return '<div class="ss-spark-empty">No recorded games</div>';
     const min = Math.min(0, ...values), max = Math.max(1, ...values), span = max - min || 1;
-    const x = index => data.length === 1 ? 90 : 18 + index * 144 / (data.length - 1);
-    const y = value => 46 - (value - min) / span * 27;
+    // Draw in the preview's measured CSS pixels at the existing 48px height.
+    // Widening the plot moves its points rather than stretching text/circles.
+    const x = index => data.length === 1 ? width / 2 : 13 + index * (width - 26) / (data.length - 1);
+    const y = value => 34 - (value - min) / span * 20;
     const baseline = y(0);
     const points = data.map((item, index) => [x(index), y(item.points)]);
     const id = `ss-spark-${uid}`;
     const palette = PALETTES[side % 2];
-    const areas = `<path d="M${points[0][0]},${baseline} ${points.map(point => `L${point}`).join(' ')} L${points.at(-1)[0]},${baseline}Z" fill="url(#${id})"/><path d="M${points.map(point => point.join(',')).join(' L')}" fill="none" stroke="${palette.main}" stroke-width="1.7" stroke-linejoin="round"/>`;
-    const dots = points.map((point, index) => `<circle cx="${point[0]}" cy="${point[1]}" r="2.2" fill="${palette.light}" stroke="${palette.mid}" stroke-width="1.3"/><text class="ss-spark-value" x="${point[0]}" y="${point[1] - 6}" text-anchor="middle" fill="${palette.light}">${fmt(data[index].points)}</text><text class="ss-spark-week" x="${point[0]}" y="61" text-anchor="middle">W${data[index].week}</text>`).join('');
+    const areas = `<path d="M${points[0][0]},${baseline} ${points.map(point => `L${point}`).join(' ')} L${points.at(-1)[0]},${baseline}Z" fill="url(#${id})"/><path d="M${points.map(point => point.join(',')).join(' L')}" fill="none" stroke="${palette.main}" stroke-width="1.25" stroke-linejoin="round"/>`;
+    const dots = points.map((point, index) => `<circle cx="${point[0]}" cy="${point[1]}" r="1.6" fill="${palette.light}" stroke="${palette.mid}" stroke-width=".95"/><text class="ss-spark-value" x="${point[0]}" y="${point[1] - 4.5}" text-anchor="middle" fill="${palette.light}">${fmt(data[index].points)}</text><text class="ss-spark-week" x="${point[0]}" y="44" text-anchor="middle">W${data[index].week}</text>`).join('');
     const description = data.map(item => `Week ${item.week}: ${fmt(item.points)} points`).join('; ');
-    return `<svg class="ss-spark" viewBox="0 0 180 66" preserveAspectRatio="none" role="img" aria-label="Last ${data.length} games this season: ${escape(description)}"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0.15" y2="1"><stop stop-color="${palette.main}" stop-opacity=".32"/><stop offset=".5" stop-color="${palette.mid}" stop-opacity=".16"/><stop offset="1" stop-color="${palette.deep}" stop-opacity="0"/></linearGradient></defs><path d="M0 ${baseline}H180" stroke="#ffffff14" stroke-dasharray="2 4"/>${areas}${dots}</svg>`;
+    return `<svg class="ss-spark" viewBox="0 0 ${width} 48" role="img" aria-label="Last ${data.length} games this season: ${escape(description)}"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0.15" y2="1"><stop stop-color="${palette.main}" stop-opacity=".32"/><stop offset=".5" stop-color="${palette.mid}" stop-opacity=".16"/><stop offset="1" stop-color="${palette.deep}" stop-opacity="0"/></linearGradient></defs><path d="M0 ${baseline}H${width}" stroke="#ffffff14" stroke-dasharray="2 4"/>${areas}${dots}</svg>`;
   }
 
   // The schedule owns venue text. Both preview rank locations use the same
@@ -157,7 +165,7 @@
         <div class="ss-preview-identity"><h4>${playerNameButton(player)}</h4>${logo(player.team)}</div>
         <div class="ss-preview-numbers"><div class="ss-preview-projection${projectionState(player, players)}"><span>WEEK ${week || '—'} PROJ</span><strong>${escape(player.projectionDisplay || '—')}</strong>${projectionMatchup(player)}</div><div><span>SEASON PPG</span><b>${escape(player.metrics.ppg?.display || '—')}</b><small>${escape(player.pos)} · ${player.metrics.ppg?.rank ?? '—'}</small></div></div>
         <div class="ss-mini-timeline"><span>Last 5 Games</span>${sparkline(player.weekly, `preview-${player.id}`, index)}</div>
-        ${previewMatchup(player)}
+        <div class="ss-preview-matchup">${previewMatchup(player)}</div>
       </article>`;
     }).join('');
     mount.innerHTML = `<section class="ss-preview ss-frame" aria-label="Start/Sit preview"><header class="ss-preview-header"><div class="ss-title-lockup"><span class="ss-app-mark">${icon('layers')}</span><div><span class="ss-eyebrow">LINEUP WORKSPACE</span><h3>Start<span>/</span>Sit <span class="ss-season-pill">WK ${week || '—'}</span></h3></div></div><div class="ss-preview-tools"><button type="button" data-ss-clear aria-label="Clear selections" title="Clear selections"${players.length ? '' : ' disabled'}>${icon('clear')}</button><button type="button" data-ss-collapse aria-label="Collapse Start/Sit preview" title="Collapse preview">${icon('down')}</button><button type="button" data-ss-close aria-label="Exit Start/Sit" title="Exit Start/Sit">${icon('close')}</button></div></header>
@@ -173,7 +181,18 @@
     // Responsive tray height can change after font loading, rotation or a new
     // selection. Reserve its measured height so the last roster remains tappable.
     previewObserver?.disconnect();
-    previewObserver = new ResizeObserver(() => model.onResize?.(mount.offsetHeight));
+    const resizePreview = () => {
+      mount.querySelectorAll('.ss-mini-timeline').forEach((timeline, index) => {
+        const svg = timeline.querySelector('.ss-spark');
+        const width = svg?.getBoundingClientRect().width;
+        if (width && svg.viewBox.baseVal.width !== width) {
+          svg.outerHTML = sparkline(players[index].weekly, `preview-${players[index].id}`, index, width);
+        }
+      });
+      model.onResize?.(mount.offsetHeight);
+    };
+    resizePreview();
+    previewObserver = new ResizeObserver(resizePreview);
     previewObserver.observe(mount);
   }
   function disposePreview() { previewObserver?.disconnect(); previewObserver = null; }
@@ -317,13 +336,17 @@
   function sizeTrajectory(chartNode, players, mode) {
     const data = trajectoryPlot(players, mode);
     const labelWidth = Math.max(34, ...data.labels.flat().map(label => label.length * 5 + 14));
-    chartNode.style.minWidth = `${Math.max(0, data.weeks.length - 1) * labelWidth + 100}px`;
+    // Match the actual chart gutters so shorter histories fit on mobile while
+    // full seasons still reserve readable slots and scroll within the card.
+    chartNode.style.minWidth = `${Math.max(0, data.weeks.length - 1) * labelWidth + TIMELINE_GUTTERS.left + TIMELINE_GUTTERS.right}px`;
   }
   function timelineOption(players, mode, echarts, narrow) {
     const data = trajectoryPlot(players, mode);
     return {
       animation: false, backgroundColor: 'transparent', textStyle: { fontFamily: 'Google Sans, Arial, sans-serif' },
-      grid: { top: 28, left: 42, right: 24, bottom: 48 },
+      // Use the comparison card's width, keeping a smaller gutter for axis and
+      // endpoint labels. A single week stays centered rather than edge-aligned.
+      grid: { top: 28, ...TIMELINE_GUTTERS, bottom: 48 },
       tooltip: { trigger: 'axis', confine: true, transitionDuration: 0, backgroundColor: '#171f32f5', borderColor: '#8db9df55', padding: [10, 12], textStyle: { color: '#ebf4ff', fontSize: 11 }, axisPointer: { type: 'line', lineStyle: { color: '#d2e5ff66', type: 'dashed' } },
         formatter: items => {
           const index = items[0]?.dataIndex;
@@ -334,7 +357,7 @@
             return `<div style="display:flex;gap:20px;justify-content:space-between;margin:5px 0"><span style="color:${PALETTES[side].main}">${escape(player.name)}</span><b>${data.series[side][index] === null ? escape(item?.status || '—') : fmt(data.series[side][index])}</b></div>`;
           }).join('')}`;
         } },
-      xAxis: { type: 'category', data: data.weeks.map(week => `W${week}`), boundaryGap: true, axisTick: { show: false }, axisLine: { lineStyle: { color: '#ffffff13' } }, axisLabel: { color: '#8a9db7', fontSize: 10, interval: 0, margin: 26 }, splitLine: { show: true, lineStyle: { color: '#b5d3ff06', type: 'dotted' } } },
+      xAxis: { type: 'category', data: data.weeks.map(week => `W${week}`), boundaryGap: data.weeks.length < 2, axisTick: { show: false }, axisLine: { lineStyle: { color: '#ffffff13' } }, axisLabel: { color: '#8a9db7', fontSize: 10, interval: 0, margin: 26 }, splitLine: { show: true, lineStyle: { color: '#b5d3ff06', type: 'dotted' } } },
       yAxis: { type: 'value', scale: false, ...(!data.hasScores ? { min: -1, max: 1 } : {}), splitNumber: 4, axisLabel: { color: '#8a9db7', fontSize: 10 }, splitLine: { lineStyle: { color: '#b5d3ff10', type: 'dashed' } } },
       series: players.map((player, side) => {
         const p = PALETTES[side];

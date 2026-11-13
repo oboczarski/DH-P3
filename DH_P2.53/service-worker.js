@@ -151,7 +151,9 @@
 // Refresh Rosters' bounded Ownership scroll pane and its mobile-only height allowance.
 // Refresh all local 2026 season loaders together. Season CSV data remains
 // network-first at runtime, without an extra install-time dataset download.
-const CACHE_NAME = 'DH3.70-local-2026-season';
+// Refresh Rosters Start/Sit's undistorted preview charts, shaded matchups,
+// compact comparison chart gutters and suffix-aware season panel headings.
+const CACHE_NAME = 'DH3.71-start-sit-layout';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
