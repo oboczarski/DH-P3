@@ -1,7 +1,8 @@
 // DataHub-only 2026 sources: 2026_Season.csv supplies season totals; the combined
 // weekly CSV supplies results. Background Sheets reads supply only future PROJ.
-// DRK remains the opponent-rank feed.
-import { get2026SheetCsvUrl, get2026ProjectionWeeks, get2026ProjectionCsvUrl } from './nfl-2026-sheets.js';
+// Matchup ranks/SOS are calculated from the same recorded weekly CSV.
+import { get2026ProjectionWeeks, get2026ProjectionCsvUrl } from './nfl-2026-sheets.js';
+import { load2026WeeklyCsv, load2026ScheduleCsv, load2026MatchupData } from './nfl-2026-matchups.js';
 
 const POSITIONS = new Set(['QB', 'RB', 'WR', 'TE']);
 const DEFENSE_COLUMNS = { QB: 'QBRK', RB: 'RBRK', WR: 'WRRK', TE: 'TERK' };
@@ -32,12 +33,13 @@ export function get2026WeeksOfData(seasonRows) {
   return Math.max(1, maxGames >= 14 ? maxGames + 1 : maxGames);
 }
 
-export function build2026SourceData({ seasonRows, weeklyRows = {}, projectionRows = {}, scheduleRows = [], defenseRows = [] }) {
+export function build2026SourceData({ seasonRows, weeklyRows = {}, projectionRows = {}, scheduleRows = [], defenseRows = [], matchupRankRows = defenseRows }) {
   // Adapt the season CSV's identity/game columns to the existing table contract.
   // Preserve every original stat field for the modal's header-based parser.
   const rawRows = seasonRows.filter(isPlayer).map((row) => ({ ...row, NM: row['PLAYER NAME'], G: row.GM_P }));
   const schedule = new Map(scheduleRows.map((row) => [normalize2026Team(row.TM), row]));
   const defense = new Map(defenseRows.map((row) => [normalize2026Team(row.TM), row]));
+  const matchupRanks = new Map(matchupRankRows.map(row => [normalize2026Team(row.TM), row]));
   const players = new Map(rawRows.map((row) => [String(row.SLPR_ID), row]));
   Object.values(weeklyRows).flat().filter(isPlayer).forEach((row) => {
     if (!players.has(String(row.SLPR_ID))) players.set(String(row.SLPR_ID), row);
@@ -63,7 +65,7 @@ export function build2026SourceData({ seasonRows, weeklyRows = {}, projectionRow
       const pos = source?.POS || player.POS;
       const opponent = String(schedule.get(team)?.[week] || '').trim();
       const opponentTeam = normalize2026Team(opponent.replace(/^(?:@|vs\.?)\s*/i, ''));
-      const rawRank = defense.get(opponentTeam)?.[DEFENSE_COLUMNS[pos]];
+      const rawRank = matchupRanks.get(opponentTeam)?.[DEFENSE_COLUMNS[pos]];
       const rank = Number(rawRank);
       // Never copy season totals into a missing week's stat line. Schedule is
       // authoritative for all 18 weeks, including BYEs and weeks without a tab.
@@ -80,23 +82,7 @@ export function build2026SourceData({ seasonRows, weeklyRows = {}, projectionRow
   // The DataHub profile needs all 32 schedules for positional SOS. Expose the
   // already-read maps separately; raw ranks and completed CSV rows stay intact.
   return { rawRows, weeklyRows: resolvedWeeks, weeksWithResults, weeksOfData: get2026WeeksOfData(seasonRows),
-    scheduleByTeam: Object.fromEntries(schedule), defenseByTeam: Object.fromEntries(defense) };
-}
-
-// Keep season loading independent of every modal-only source. A malformed weekly CSV,
-// unavailable DRK feed or schedule must never prevent the main Stats grid opening.
-function createSheetReader(parseCsv, fetchImpl) {
-  return async function sheet(name, requiredHeaders) {
-    const url = get2026SheetCsvUrl(name);
-    const response = await fetchImpl(url, { cache: 'no-store' });
-    if (!response.ok) throw new Error(`2026 ${name} could not load (${response.status}).`);
-    const text = await response.text();
-    const rows = parseCsv(text);
-    if (!rows.length || requiredHeaders.some((header) => !(header in rows[0]))) {
-      throw new Error(`2026 ${name} has missing or invalid columns.`);
-    }
-    return rows;
-  };
+    scheduleByTeam: Object.fromEntries(schedule), defenseByTeam: Object.fromEntries(defense), matchupRanksByTeam: Object.fromEntries(matchupRanks) };
 }
 
 export async function load2026SourceData({ parseCsv, fetchImpl = fetch }) {
@@ -134,9 +120,10 @@ export async function load2026WeeklyCsvData({
   // week alias. Header-based stat mappings and literal PROJ labels stay intact.
   // Validate week identities before grouping so no row becomes another week.
   await (async () => {
-    const response = await fetchImpl(weeklyUrl, { cache: 'no-store' });
-    if (!response.ok) throw new Error(`2026_AllWKs.csv could not load (${response.status}).`);
-    const rows = parseCsv(await response.text());
+    // Reuse the same in-flight file read as Matchups and the lazy breakdown;
+    // DataHub owns its row adapters and never mutates the shared raw records.
+    const local = await load2026WeeklyCsv({ weeklyUrl, fetchImpl });
+    const rows = local.rows.map(row => ({ ...row }));
     rows.forEach((row) => { if ('WK' in row) row.SZN = row.WK; });
     if (!rows.length || ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR'].some((header) => !(header in rows[0]))) {
       throw new Error('2026_AllWKs.csv has missing or invalid columns.');
@@ -186,27 +173,29 @@ export async function load2026ProjectionSourceData({ weeklySource, parseCsv, fet
   return { projectionRows, projectionErrors };
 }
 
-// DRK/schedule remain modal-only. The page can supply the CSV/projection reads
-// already started at boot; opening a modal never repeats those network calls.
+// Schedule and matchup calculations remain modal-only. Reuse the background
+// weekly read; only future PROJ values can come from the workbook.
 export async function load2026WeeklySourceData({
   seasonRows, parseCsv, weeklySource, projectionSource,
   scheduleUrl = new URL('../data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv', import.meta.url),
   weeklyUrl, fetchImpl = fetch,
 }) {
-  const sheet = createSheetReader(parseCsv, fetchImpl);
-  const [defenseRows, scheduleRows, localSource] = await Promise.all([
-    sheet('DRK', ['TM', 'QBRK', 'RBRK', 'WRRK', 'TERK']),
-    fetchImpl(scheduleUrl, { cache: 'no-store' }).then(async (response) => {
-      if (!response.ok) throw new Error(`Schedule2026.csv could not load (${response.status}).`);
-      const rows = parseCsv(await response.text());
-      if (!rows.length || !('TM' in rows[0]) || !('18' in rows[0])) throw new Error('Invalid 2026 schedule.');
-      return rows;
-    }),
+  const [scheduleSource, localSource] = await Promise.all([
+    load2026ScheduleCsv({ scheduleUrl, fetchImpl }),
     weeklySource || load2026WeeklyCsvData({ parseCsv, weeklyUrl, fetchImpl }),
   ]);
+  let matchups = null, matchupRankError = null;
+  try {
+    if (Object.keys(localSource.weekErrors).length) throw new Error(Object.values(localSource.weekErrors)[0]);
+    matchups = await load2026MatchupData({ weeklyUrl, scheduleUrl, fetchImpl });
+  }
+  catch (error) { matchupRankError = error.message; }
+  const defenseRows = Object.entries(matchups?.defenseByTeam || {}).map(([TM, row]) => ({ TM, ...row }));
+  const matchupRankRows = Object.entries(matchups?.matchupRanksByTeam || {}).map(([TM, row]) => ({ TM, ...row }));
   return {
     ...build2026SourceData({ seasonRows, weeklyRows: localSource.weeklyRows,
-      projectionRows: projectionSource?.projectionRows, scheduleRows, defenseRows }),
+      projectionRows: projectionSource?.projectionRows, scheduleRows: scheduleSource.rows, defenseRows, matchupRankRows }),
+    matchupRankError,
     weekErrors: localSource.weekErrors, projectionErrors: projectionSource?.projectionErrors || {},
   };
 }

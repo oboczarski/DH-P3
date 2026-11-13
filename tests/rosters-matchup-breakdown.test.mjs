@@ -4,169 +4,78 @@ import { createRequire } from 'node:module';
 import { createMatchupStore, resolveMatchupSelection } from '../DH_P2.53/rosters/matchup-breakdown/data.js';
 import Data from '../DH_P2.53/rosters/matchup-breakdown/model.js';
 import { defenseMetric, rankColor, ordinalRank } from '../DH_P2.53/rosters/matchup-breakdown/rank-view.js';
-
-// The source model is used only as a test oracle. Rosters runtime files never
-// import it; a divergent summary/weekly fixture catches source-ownership drift.
+import { positions, schedule, weekly, fixtureFetch, response } from './fixtures/matchup-csv.mjs';
 const sourceData = createRequire(import.meta.url)('../DH_P2.53/matchups/data-model.js');
 const sourceView = createRequire(import.meta.url)('../DH_P2.53/matchups/chart-lab-model.js');
-const positions = ['QB', 'RB', 'WR', 'TE', 'ALL'];
-const balSosRanks = [1, 8, 13, 21, 32];
-const weekly = 'WK,SLPR_ID,PLAYER NAME,POS,TM,FPT_PPR,VS\n' + [
-  '1,1,"Quarter, One",QB,ARI,10.25,vs BAL',
-  '1,2,Runner,RB,ARI,0,vs BAL',
-  '1,3,Receiver,WR,ARI,-2,vs BAL',
-  '1,4,Tight End,TE,ARI,3.5,vs BAL',
-  '1,5,Other Quarter,QB,BAL,20.5,@ ARI',
-  '1,6,Other Runner,RB,BAL,8,@ ARI',
-  '1,7,Other Receiver,WR,BAL,9,@ ARI',
-  '1,8,Other Tight End,TE,BAL,1,@ ARI',
-  '2,1,"Quarter, One",QB,ARI,14.75,@ BAL',
-  '2,5,Other Quarter,QB,BAL,22.5,vs ARI',
-].join('\n');
-const summary = [
-  ['TM', 'w1', 'w2', ...positions.flatMap(pos => [pos, `${pos}x`, `${pos}rk`, `${pos}vs`, `${pos}vX`, `${pos}vRK`])].join(','),
-  ['BAL', 'ARI', 'ARI', ...positions.flatMap((pos, i) => ['90.1', '45', '7', '80.2', '40.1', balSosRanks[i]])].join(','),
-  ['ARI', 'BAL', 'BAL', ...positions.flatMap((pos, i) => ['70', '35', '13', '75', '37.5', [32, 21, 13, 8, 1][i]])].join(','),
-].join('\n');
-const offense = [
-  ['TM', ...positions.flatMap(pos => [pos, `${pos}RK`, `${pos}x`])].join(','),
-  ['ARI', ...positions.flatMap(() => ['33.3', '11', '11.1'])].join(','),
-  ['BAL', ...positions.flatMap(() => ['66.6', '3', '22.2'])].join(','),
-].join('\n');
-const bySheet = { FPA: weekly, FPFA: summary, FPF: offense, AllWKs: weekly };
-const response = text => ({ ok: true, text: async () => text });
-const fetchFixture = async url => response(bySheet[new URL(url).searchParams.get('sheet')]);
+const fetchFixture = fixtureFetch();
 
-test('Start/Sit preparation starts all live reads immediately and reuses one in-flight set', async () => {
-  const calls = [];
-  let release;
+test('Start/Sit prepares two local files once for concurrent consumers and all venue panels', async () => {
+  const calls = []; let release;
   const gate = new Promise(resolve => { release = resolve; });
   const store = createMatchupStore({ fetchImpl: async (url, options) => {
-    calls.push({ url, options });
-    await gate;
-    return fetchFixture(url);
+    calls.push(String(url)); await gate; return fetchFixture(url, options);
   } });
   const first = store.prepare();
-  const concurrent = store.prepare();
-  assert.equal(first, concurrent);
+  assert.equal(store.prepare(), first);
   assert.equal(store.status, 'loading');
-  assert.equal(calls.length, 4);
-  for (const { url, options } of calls) {
-    const parsed = new URL(url);
-    assert.equal(parsed.pathname, '/spreadsheets/d/16fOWHEuPWkNz9AHLCiySjxwW_y4ulLemNaMVc3srE94/export');
-    assert.equal(parsed.searchParams.get('format'), 'csv');
-    assert.equal(options.cache, 'no-store');
-  }
-  release();
-  await first;
+  assert.equal(calls.length, 2);
+  assert.ok(calls.every(url => !url.includes('google.com')));
+  release(); await first; await store.prepare();
   assert.equal(store.status, 'ready');
-  await store.prepare();
-  assert.equal(calls.length, 4);
-  assert.ok(['all', 'home', 'away'].every(venue => store.analysis(venue)));
-});
-
-test('the independently owned model matches every source metric, venue and player filter', async () => {
-  const store = createMatchupStore({ fetchImpl: fetchFixture });
-  await store.prepare();
-  const original = {
-    model: sourceData.readSource(weekly, { name: '2026-Wkly / FPA' }),
-    summary: sourceData.readFPFA(summary, { name: '2026-Wkly / FPFA' }),
-    offenses: sourceData.readOffenses(offense, { name: '2026-Wkly / FPF' }),
-  };
-  sourceData.attachPlayerStats(original.model, weekly);
+  assert.equal(calls.length, 2);
   for (const venue of ['all', 'home', 'away']) {
-    assert.deepEqual(store.analysis(venue), sourceData.matchupAnalysis(original.model, original.summary, { venue }, original.offenses));
+    const { model, summary, offenses } = store.snapshot;
+    assert.deepEqual(store.analysis(venue), sourceData.matchupAnalysis(model, summary, { venue }, offenses));
     for (const pos of positions) for (const hideZero of [true, false]) {
-      const scope = { team: 'BAL', pos, venue, hideZero, minPoints: hideZero ? 1 : null };
-      assert.deepEqual(Data.selectResults(store.snapshot.model, scope), sourceData.selectResults(original.model, scope));
+      const scope = { team: 'BAL', pos, venue, minPoints: hideZero ? 1 : null };
+      assert.deepEqual(Data.selectResults(model, scope), sourceData.selectResults(model, scope));
     }
   }
-  assert.equal(store.snapshot.model.audit.zeroResults, 1);
+});
+
+test('preview, filtered panels, player scores and SOS use one precise recorded snapshot', async () => {
+  const store = createMatchupStore({ fetchImpl: fixtureFetch() }); await store.prepare();
+  const preview = store.preview({ basePos: 'QB', pos: 'SUPER_FLEX', matchup: { opponent: 'vs BAL' } });
+  assert.equal(preview.actual.total, 25);
+  assert.equal(preview.actual.avg, 12.5);
+  assert.equal(preview.actualRank, 1);
+  assert.equal(preview.expectedAvg, 12.5);
+  assert.equal(preview.deltaPerGame, 0);
+  assert.equal(preview.sosRank, 1);
+  for (const pos of positions) for (const venue of ['all', 'home', 'away']) {
+    assert.equal(store.analysis(venue).byTeam.get('BAL').metrics[pos].sosRank,
+      store.snapshot.summary.byTeam.get('BAL').metrics[pos].expectedRank);
+  }
+  assert.equal(store.snapshot.model.audit.zeroResults, 2);
   assert.equal(store.snapshot.model.audit.negativeResults, 1);
+  assert.equal(store.snapshot.model.results[1].stats.CAR, 5);
+  assert.equal(store.snapshot.model.results[1].stats.RECYDS, -2);
 });
 
-test('Start/Sit prepares updated sources with bye weeks, later games and unused FPA formulas', async () => {
-  const lines = weekly.split('\n');
-  const week6 = lines.slice(1).filter(line => line.startsWith('1,')).map(line => line.replace(/^1,/, '6,'));
-  const updatedWeekly = [
-    `${lines[0]},VS_TM`, ...lines.slice(1).map(line => `${line},`),
-    `${','.repeat(7)}#VALUE!`, ...week6.map(line => `${line},`), `${','.repeat(7)}#VALUE!`,
-  ].join('\n');
-  const updatedSummary = summary.split('\n').map((line, index) => {
-    const cells = line.split(',');
-    cells.splice(3, 0, ...(index === 0 ? ['w5', 'w6'] : [' BYE ', cells[1]]));
-    return cells.join(',');
-  }).join('\n');
-  const sources = { ...bySheet, FPA: updatedWeekly, FPFA: updatedSummary };
-  const store = createMatchupStore({ fetchImpl: async url => response(sources[new URL(url).searchParams.get('sheet')]) });
-  await store.prepare();
-  assert.equal(store.status, 'ready');
-  assert.deepEqual(store.snapshot.summary.weeks, [1, 2, 5, 6]);
-  assert.equal(store.snapshot.model.audit.sourceRows, 18);
-  assert.equal(store.snapshot.model.audit.sourcePlayers, 8);
-  for (const venue of ['all', 'home', 'away']) {
-    assert.deepEqual(store.analysis(venue), sourceData.matchupAnalysis(
-      sourceData.attachPlayerStats(sourceData.readSource(updatedWeekly, { name: '2026-Wkly / FPA' }), weekly),
-      sourceData.readFPFA(updatedSummary, { name: '2026-Wkly / FPFA' }),
-      { venue }, sourceData.readOffenses(offense, { name: '2026-Wkly / FPF' })
-    ));
+test('failed, empty or malformed local inputs publish no partial panel and can retry', async () => {
+  for (const failure of ['network', 'empty', 'schema']) {
+    let broken = true;
+    const store = createMatchupStore({ fetchImpl: async (url, options) => {
+      if (broken && String(url).endsWith('2026_AllWKs.csv')) return failure === 'network'
+        ? response('', 503) : response(failure === 'empty' ? '' : 'bad');
+      return fetchFixture(url, options);
+    } });
+    await assert.rejects(store.prepare());
+    assert.equal(store.status, 'error'); assert.equal(store.snapshot, null);
+    assert.equal(store.analysis(), null);
+    assert.equal(store.preview({ pos: 'QB', matchup: { opponent: 'BAL' } }), null);
+    broken = false; await store.prepare(); assert.equal(store.status, 'ready');
   }
-  const metric = store.preview({ basePos: 'QB', matchup: { opponent: 'BAL' } });
-  assert.equal(metric.games, 3);
-  assert.deepEqual(metric.entries.map(game => game.week), [1, 2, 6]);
-  assert.equal(metric.actual.total, 90.1);
-  assert.equal(metric.actual.avg, 90.1 / metric.games);
-  assert.equal(metric.sosRank, 1);
-  assert.equal(metric.deltaPerGame, 9.9 / 3);
 });
 
-test('preview reverses the defensive rank while SOS and panel scoring comparisons remain unchanged', async () => {
-  const store = createMatchupStore({ fetchImpl: fetchFixture });
-  await store.prepare();
-  const metric = store.preview({ basePos: 'QB', pos: 'SUPER_FLEX', matchup: { opponent: 'vs BAL' } });
-  assert.equal(metric.actualRank, 26);
-  assert.equal(metric.actual.rank, 26);
-  assert.equal(metric.actual.rankOrder, 'ascending');
-  assert.equal(store.analysis().byTeam.get('BAL').metrics.QB.actual.rank, 7, 'cached source rank stays raw');
-  assert.equal(metric.sosRank, 1);
-  assert.equal(metric.actual.total, 90.1);
-  assert.equal(metric.expectedTotal, 80.2);
-  assert.equal(metric.delta, 9.9);
-  assert.equal(metric.deltaPerGame, 4.95);
-  assert.equal(metric.deltaPct, store.analysis().byTeam.get('BAL').metrics.QB.deltaPct);
-  assert.ok(Math.abs(metric.deltaPerGame - (metric.actual.avg - metric.expectedAvg)) < 1e-10,
-    'precise per-game averages agree with the original total difference');
-  const below = store.preview({ pos: 'WR', matchup: { opponent: '@ ARI' } });
-  assert.equal(below.deltaPerGame, -2.5);
-  assert.ok(below.deltaPct < 0);
-});
-
-test('Start/Sit resolves SOS from the player base position and retains season ranks in filtered panels', async () => {
-  const store = createMatchupStore({ fetchImpl: fetchFixture });
-  await store.prepare();
-  positions.forEach((pos, i) => {
-    for (const venue of ['all', 'home', 'away']) {
-      assert.equal(store.analysis(venue).byTeam.get('BAL').metrics[pos].sosRank, balSosRanks[i]);
-    }
-    if (pos !== 'ALL') {
-      const preview = store.preview({ basePos: pos, pos: 'FLEX', matchup: { opponent: '@ BAL' } });
-      assert.equal(preview.sosRank, balSosRanks[i]);
-      assert.equal(preview.actualRank, 26);
-    }
-  });
-  // QB SOS 1 is independent of the venue comparison's expected-total rank 2.
-  assert.equal(store.analysis('away').byTeam.get('BAL').metrics.QB.expectedRank, 2);
-  const missing = summary.split('\n').map((line, index) => {
-    if (index !== 1) return line;
-    const values = line.split(',');
-    values[summary.split('\n')[0].split(',').indexOf('QBvRK')] = '';
-    return values.join(',');
-  }).join('\n');
-  const blankStore = createMatchupStore({ fetchImpl: async url => response(new URL(url).searchParams.get('sheet') === 'FPFA' ? missing : bySheet[new URL(url).searchParams.get('sheet')]) });
-  await blankStore.prepare();
-  const preview = blankStore.preview({ pos: 'QB', matchup: { opponent: 'BAL' } });
-  assert.equal(preview.sosRank, null);
-  assert.equal(preview.actualRank, 26);
+test('a new page recalculates updated CSV scores, averages, ranks and player box scores', async () => {
+  const previous = createMatchupStore({ fetchImpl: fixtureFetch() }); await previous.prepare();
+  const next = createMatchupStore({ fetchImpl: fixtureFetch(weekly.replace('ARI,10.25,', 'ARI,20.25,')) }); await next.prepare();
+  assert.equal(previous.analysis().byTeam.get('BAL').metrics.QB.actual.total, 25);
+  assert.equal(next.analysis().byTeam.get('BAL').metrics.QB.actual.total, 35);
+  assert.equal(next.snapshot.offenses.byTeam.get('ARI').metrics.QB.avg, 17.5);
+  assert.equal(next.snapshot.model.results[0].pts, 20.25);
+  assert.equal(next.snapshot.model.results[0].stats.PAYDS, 234);
 });
 
 test('Rosters defense display matches Matchups for every rank, position and venue without mutating analysis', async () => {
@@ -208,56 +117,4 @@ test('opponent resolution preserves base positions and rejects byes or missing d
     assert.equal(resolveMatchupSelection({ pos: 'QB', matchup: { opponent } }), null);
   }
   assert.equal(resolveMatchupSelection({ pos: 'QB', matchup: { opponent: 'BAL', isBye: true } }), null);
-});
-
-test('failed or drifted sources publish no partial data and can be retried', async () => {
-  for (const failure of ['network', 'empty', 'schema']) {
-    let broken = true;
-    const store = createMatchupStore({ fetchImpl: async url => {
-      const sheet = new URL(url).searchParams.get('sheet');
-      if (broken && sheet === 'FPFA') {
-        if (failure === 'network') return { ok: false, status: 503 };
-        return response(failure === 'empty' ? '  ' : summary.replace('QBvRK', 'QBOtherRank'));
-      }
-      return fetchFixture(url);
-    } });
-    await assert.rejects(store.prepare());
-    assert.equal(store.status, 'error');
-    assert.equal(store.snapshot, null);
-    assert.equal(store.analysis(), null);
-    assert.equal(store.preview({ pos: 'QB', matchup: { opponent: 'BAL' } }), null);
-    broken = false;
-    await store.prepare();
-    assert.equal(store.status, 'ready');
-  }
-});
-
-test('a new document store loads updated Sheets instead of an earlier snapshot', async () => {
-  let updated = false, requests = 0;
-  const fetchImpl = async url => {
-    requests++;
-    const sheet = new URL(url).searchParams.get('sheet');
-    return response(sheet === 'FPFA' && updated ? summary.replaceAll('90.1', '100.1') : bySheet[sheet]);
-  };
-  const first = createMatchupStore({ fetchImpl });
-  await first.prepare();
-  updated = true;
-  const next = createMatchupStore({ fetchImpl });
-  await next.prepare();
-  assert.equal(first.analysis().byTeam.get('BAL').metrics.QB.actual.total, 90.1);
-  assert.equal(next.analysis().byTeam.get('BAL').metrics.QB.actual.total, 100.1);
-  assert.equal(requests, 8);
-});
-
-
-test('unavailable supplemental stats do not block the Rosters scoring panel', async () => {
-  const store = createMatchupStore({ fetchImpl: async url => {
-    if (new URL(url).searchParams.get('sheet') === 'AllWKs') throw new Error('stats offline');
-    return fetchFixture(url);
-  } });
-  await store.prepare();
-  assert.equal(store.status, 'ready');
-  assert.match(store.snapshot.model.playerStatsError, /stats offline/);
-  assert.equal(store.snapshot.model.results.length, 10);
-  assert.equal(store.analysis().byTeam.get('BAL').metrics.QB.actual.total, 90.1);
 });

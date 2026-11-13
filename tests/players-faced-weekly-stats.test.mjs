@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import Rosters from '../DH_P2.53/rosters/matchup-breakdown/model.js';
-import { load2026MatchupSources } from '../DH_P2.53/matchups/data/2026-sheets.js';
+import { load2026MatchupSources } from '../DH_P2.53/matchups/data/2026-csv.js';
 
 const Matchups = createRequire(import.meta.url)('../DH_P2.53/matchups/data-model.js');
 const read = path => fs.readFileSync(new URL(`../DH_P2.53/${path}`, import.meta.url), 'utf8');
@@ -121,15 +121,17 @@ for (const path of ['matchups/app.js', 'rosters/matchup-breakdown/modal.js']) {
   });
 }
 
-test('supplemental feed failures are isolated from the three required live matchup feeds', async () => {
-  const fetchImpl = async url => {
-    if (new URL(url).searchParams.get('sheet') === 'AllWKs') throw new Error('offline');
-    return { ok: true, text: async () => fpa };
-  };
-  const sources = await load2026MatchupSources({ fetchImpl });
-  assert.equal(sources.playerStats.csv, null);
-  assert.match(sources.playerStats.error, /offline/);
-  assert.equal(sources.weekly.csv, fpa);
+test('player scores and box-score cells share one local weekly read without a supplemental feed', async () => {
+  const { fixtureFetch } = await import('./fixtures/matchup-csv.mjs');
+  const calls = [], fixture = fixtureFetch();
+  const sources = await load2026MatchupSources({ fetchImpl: async (url, options) => {
+    calls.push(String(url)); return fixture(url, options);
+  } });
+  assert.equal(calls.length, 2);
+  assert.ok(calls.every(url => !url.includes('google.com')));
+  assert.equal(sources.model.results[0].pts, 10.25);
+  assert.equal(sources.model.results[0].stats.PAYDS, 234);
+  assert.equal(sources.model.results[1].stats.RECYDS, -2);
 });
 
 // Exercise actual profile badge rendering with a minimal heading DOM. This

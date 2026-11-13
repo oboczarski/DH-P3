@@ -1,10 +1,10 @@
-import { createDataHubGameLogsProfile, historicalSosSource } from "./datahub-gamelogs-profile.js?v=DH3.67-profile-weekly-stats";
+import { createDataHubGameLogsProfile, historicalSosSource } from "./datahub-gamelogs-profile.js?v=DH3.72-local-matchups";
 import { get2026QualifierOptions } from "./datahub-stats-season.js";
 import { getDataHubStatsPeriodOptions, getDataHubWeeklyColumns, getDataHubWeeklyColumnGroups, getDataHubWeeklyTableSourceRows } from "./datahub-stats-period.js";
 import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSeasonRankQualified } from "./datahub-stats-positional-ranks.js";
 // Version the migrated loader too: standalone DataHub visits may not yet have
 // app.js's service worker to refresh an older unversioned module from HTTP cache.
-import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js?v=DH3.70-local-2026-season";
+import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js?v=DH3.72-local-matchups";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js?v=DH3.64a-air-yards-icon";
 import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js?v=DH3.62-datahub-gamelogs-parity";
 import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames, isConsistencyProductionStat, getConsistencyAverageLabelCenter } from "./datahub-gamelogs-controls.js?v=DH3.53-rosters-gamelogs";
@@ -13903,7 +13903,7 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
       let seasonStats, seasonRanks, weeklyStats, profileSource;
       if (season === "2026") {
         const source = await ensureDataHub2026Data();
-        // Weekly CSV/DRK/schedule are modal-only dependencies. Reuse the season CSV so
+        // Weekly CSV/schedule are modal-only dependencies. Reuse the season CSV so
         // opening Game Logs or Compare does not change volume thresholds or
         // totals; recorded weeks refine only the Stats scoring exception.
         const weeklySource = await load2026WeeklySourceData({
@@ -13913,9 +13913,10 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
           scheduleUrl: new URL("../data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv", window.location.href),
         });
         source.weeklyRows = weeklySource.weeklyRows;
-        // Profile SOS retains the complete raw DRK/schedule maps from this same
+        // Profile SOS retains the complete calculated allowance/schedule maps from this same
         // read. Defense display reversal never changes these underlying ranks.
-        profileSource = { scheduleByTeam: weeklySource.scheduleByTeam, defenseByTeam: weeklySource.defenseByTeam };
+        profileSource = { scheduleByTeam: weeklySource.scheduleByTeam, defenseByTeam: weeklySource.defenseByTeam,
+          matchupRanksByTeam: weeklySource.matchupRanksByTeam };
         if (Object.keys(weeklySource.weekErrors).length) {
           console.warn("DataHub skipped unavailable or invalid 2026 weeks:", weeklySource.weekErrors);
         }

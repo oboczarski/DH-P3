@@ -1,31 +1,10 @@
-// Rosters owns this loader and its prepared state. Only DH's existing workbook
-// URL configuration is shared; no code or assets are read from the Matchups page.
-import { get2026SheetCsvUrl } from '../../scripts/nfl-2026-sheets.js';
-import Data from './model.js?v=DH3.67-profile-weekly-stats';
+// Rosters owns its prepared state and assets. Shared data-only calculations
+// reuse the local weekly/schedule reads; no Matchups page files are imported.
+import { load2026MatchupData } from '../../scripts/nfl-2026-matchups.js';
+import Data from './model.js?v=DH3.72-local-matchups';
 import { defenseMetric } from './rank-view.js?v=DH3.52r-rosters-defense-ranks';
 
-const SOURCES = Object.freeze([
-  ['offense', 'FPF'], ['summary', 'FPFA'], ['weekly', 'FPA'],
-  ['playerStats', 'AllWKs'],
-]);
-
-export async function loadMatchupSources({ fetchImpl = globalThis.fetch } = {}) {
-  const entries = await Promise.all(SOURCES.map(async ([key, sheet]) => {
-    try {
-      const response = await fetchImpl(get2026SheetCsvUrl(sheet), { cache: 'no-store' });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const csv = await response.text();
-      if (!csv.trim()) throw new Error('The sheet is empty.');
-      return [key, { name: `2026-Wkly / ${sheet}`, csv }];
-    } catch (error) {
-      // Box-score availability must not take down the existing live matchup
-      // sources. The table shows dashes and an explicit availability message.
-      if (key === 'playerStats') return [key, { csv: null, error: error.message }];
-      throw new Error(`2026 ${sheet} could not load: ${error.message}`, { cause: error });
-    }
-  }));
-  return { season: 2026, ...Object.fromEntries(entries) };
-}
+export const loadMatchupSources = options => load2026MatchupData(options);
 
 // Resolve the selected player's opponent without treating BYE/NA as a defense.
 // Opening starts on the player's base position and season-to-date/all-games
@@ -51,16 +30,9 @@ export function createMatchupStore({ fetchImpl = globalThis.fetch } = {}) {
       if (pending) return pending;
       error = null;
       pending = loadMatchupSources({ fetchImpl }).then(sources => {
-        // Validate the complete set before publishing it. Keep FPFA totals,
-        // averages and ranks, FPF offense baselines, and FPA player/week scores
-        // independent, including zeros, negatives, and source rounding.
-        const model = Data.readSource(sources.weekly.csv, { name: sources.weekly.name });
-        try {
-          if (!sources.playerStats?.csv) throw new Error(sources.playerStats?.error || 'Weekly box scores unavailable.');
-          Data.attachPlayerStats(model, sources.playerStats.csv);
-        } catch (error) { model.playerStatsError = error.message; }
-        const summary = Data.readFPFA(sources.summary.csv, { name: sources.summary.name });
-        const offenses = Data.readOffenses(sources.offense.csv, { name: sources.offense.name });
+        // Publish only a validated local snapshot. Box scores, actual/expected
+        // scoring and ranks now share the same recorded games and precision.
+        const { model, summary, offenses } = sources;
         for (const venue of ['all', 'home', 'away']) {
           analyses.set(venue, Data.matchupAnalysis(model, summary, { venue }, offenses));
         }

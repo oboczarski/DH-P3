@@ -106,8 +106,8 @@
   }
 
   // The schedule owns venue text. Both preview rank locations use the same
-  // FPFA positional defense-strength rank/color from the prepared display
-  // snapshot (1 = best defense). DRK remains the Game Logs rank source only.
+  // Calculated positional defense-strength rank/color from the prepared display
+  // snapshot (1 = best defense), shared with the Game Logs matchup ranks.
   function projectionMatchup(player) {
     const opponent = String(player.matchup?.opponent || player.matchupMetric?.team || '').trim();
     if (player.matchup?.isBye || opponent.toUpperCase() === 'BYE') return '<small class="ss-projection-matchup">BYE</small>';

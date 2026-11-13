@@ -2672,7 +2672,7 @@ function getRostersMatchupController() {
     if (pageType !== 'rosters') return Promise.reject(new Error('Matchup Breakdown belongs to Rosters.'));
     if (!rostersMatchupsModulePromise) {
         // Start/Sit and every Game Logs matchup shortcut share this owned panel.
-        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.67e-rosters-matchup-tags')
+        rostersMatchupsModulePromise = import('../rosters/matchup-breakdown/modal.js?v=DH3.72-local-matchups')
             .then(({ createMatchupBreakdown }) => {
                 rostersMatchups = createMatchupBreakdown({
                     getPlayerWeeks: getRostersPlayerMatchupWeeks,
@@ -2718,7 +2718,7 @@ async function handleStartSitButtonClick() {
     if (startSitButton?.getAttribute('aria-busy') === 'true') {
         return;
     }
-    // Begin fresh FPF/FPFA/FPA reads, parsing, venue analysis, panel/styles and
+    // Begin local CSV calculations, venue analysis, panel/styles and
     // image preparation immediately, in parallel with the existing projections.
     // An optional matchup failure does not prevent selecting Start/Sit players.
     void prepareRostersStartSitMatchups();

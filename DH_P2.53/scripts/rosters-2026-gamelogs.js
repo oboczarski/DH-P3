@@ -107,37 +107,6 @@
         return stats;
     };
     const appRootUrl = (path) => new URL(`../${path}`, window.location.href).toString();
-    const fetchRows = async (sheetName, requiredHeaders) => {
-        // Rosters owns its DRK/FPFA loader; share only workbook URL configuration.
-        const { get2026SheetCsvUrl } = await import('./nfl-2026-sheets.js');
-        const url = get2026SheetCsvUrl(sheetName);
-        const response = await fetch(url, { cache: 'no-store' });
-        if (!response.ok) throw new Error(`Rosters 2026 ${sheetName} could not load (${response.status}).`);
-        const text = await response.text();
-        const rows = parseCsv(text);
-        // Rosters' live DRK export now labels ranks as "QB RK", etc. Adapt
-        // only its four positional rank headers before validating the snapshot,
-        // preserving supplied cells and giving explicit compact headers priority.
-        if (sheetName === 'DRK') {
-            rows.forEach((row) => POSITIONS.forEach((pos) => {
-                const key = `${pos}RK`;
-                const header = Object.keys(row).find((name) => name.replace(/\s+/g, '').toUpperCase() === key);
-                if (!(key in row) && header) row[key] = row[header];
-            }));
-        }
-        // Game Logs matchup ranks use the same published FPFA positional
-        // ranks as the breakdown's All Games RANK card. Canonicalize its QBrk,
-        // RBrk, WRrk and TErk headers without importing any FPFA result totals.
-        if (sheetName === 'FPFA') {
-            rows.forEach((row) => POSITIONS.forEach((pos) => {
-                const key = `${pos}RK`;
-                const header = Object.keys(row).find((name) => name.toUpperCase() === key);
-                if (!(key in row) && header) row[key] = row[header];
-            }));
-        }
-        if (!rows.length || requiredHeaders.some((header) => !(header in rows[0]))) throw new Error(`Rosters 2026 ${sheetName} has missing or invalid columns.`);
-        return rows;
-    };
     const buildRanks = (rows, weeksOfData = 1, elapsedWeeks = weeksOfData, modal = true) => {
         const ranks = {};
         rows.forEach((row) => { ranks[String(row.SLPR_ID)] = {}; });
@@ -187,15 +156,17 @@
     let scheduleCache = new Map();
     let matchupRankCache = new Map();
     // Rosters starts this small local read at page boot to find completed
-    // weeks. The full modal loader reuses it, without preloading DRK/schedule.
+    // weeks. The full modal loader reuses it, without preloading the schedule.
     function ensureRosters2026WeeklyRowsLoaded() {
         if (!weeklyRowsLoadPromise) weeklyRowsLoadPromise = (async () => {
             const weeks = Array.from({ length: 18 }, () => []);
             const weekErrors = {};
             try {
-                const response = await fetch(appRootUrl('data/NFL-2026_Stats/WeeklyStats/2026_AllWKs.csv'), { cache: 'no-store' });
-                if (!response.ok) throw new Error(`Rosters 2026_AllWKs.csv could not load (${response.status}).`);
-                const rows = parseCsv(await response.text());
+                // The projection cutoff, Game Logs and breakdown reuse one
+                // no-store CSV read. Each page still owns its adapted state.
+                const { load2026WeeklyCsv } = await import('./nfl-2026-matchups.js');
+                const local = await load2026WeeklyCsv({ fetchImpl: fetch, weeklyUrl: appRootUrl('data/NFL-2026_Stats/WeeklyStats/2026_AllWKs.csv') });
+                const rows = local.rows.map(row => ({ ...row }));
                 rows.forEach((row) => { if ('WK' in row) row.SZN = row.WK; });
                 if (!rows.length || ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR'].some((header) => !(header in rows[0]))) {
                     throw new Error('Rosters 2026_AllWKs.csv has missing or invalid columns.');
@@ -229,8 +200,8 @@
                     const team = normalizeTeam(row.TM);
                     const opponent = String(scheduleCache.get(team)?.[week] || '').trim();
                     const opponentTeam = normalizeTeam(opponent.replace(/^(?:@|vs\.?)\s*/i, ''));
-                    // Projection-only players share the header/weekly FPFA rank;
-                    // a late PROJ merge must never restore a DRK/CSV rank.
+                    // Projection-only players share the calculated header/weekly rank;
+                    // a late PROJ merge must never restore a retired sheet rank.
                     const rank = Number(matchupRankCache.get(opponentTeam)?.[`${row.POS}RK`]);
                     snapshot.weeklyStats[week][id] = parseStats({ VS: opponent, vsRK: Number.isInteger(rank) && rank >= 1 && rank <= 32 ? rank : '', __hasRecordedStats: false }, true);
                 }
@@ -271,7 +242,7 @@
     }
     // Rosters Career needs only season CSV totals, even when the selected Game Logs
     // year is 2025. Reuse this read in the full loader without activating a year
-    // or making Career depend on weekly CSV/DRK/schedule availability.
+    // or making Career depend on weekly CSV/schedule availability.
     async function ensureRosters2026SeasonRowsLoaded() {
         if (seasonRowsCache) return seasonRowsCache;
         if (!seasonRowsLoadPromise) {
@@ -300,22 +271,26 @@
         if (state.rosters2026GameLogs) return state.rosters2026GameLogs;
         if (loadPromise) return loadPromise;
         loadPromise = (async () => {
-            const scheduleResponse = await fetch(appRootUrl('data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv'), { cache: 'no-store' });
-            if (!scheduleResponse.ok) throw new Error(`Rosters 2026 schedule could not load (${scheduleResponse.status}).`);
-            const scheduleRows = parseCsv(await scheduleResponse.text());
+            const { load2026ScheduleCsv, load2026MatchupData } = await import('./nfl-2026-matchups.js');
+            const scheduleUrl = appRootUrl('data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv');
+            const weeklyUrl = appRootUrl('data/NFL-2026_Stats/WeeklyStats/2026_AllWKs.csv');
+            const scheduleSource = await load2026ScheduleCsv({ fetchImpl: fetch, scheduleUrl });
+            const scheduleRows = scheduleSource.rows;
             if (!scheduleRows.length || !('TM' in scheduleRows[0]) || !('18' in scheduleRows[0])) throw new Error('Rosters 2026 schedule is invalid.');
             let matchupRankError = null;
-            const [seasonRows, defenseRows, local, matchupRankRows] = await Promise.all([
+            const localPromise = ensureRosters2026WeeklyRowsLoaded();
+            const [seasonRows, local, matchups] = await Promise.all([
                 ensureRosters2026SeasonRowsLoaded(),
-                fetchRows('DRK', ['TM', 'QBRK', 'RBRK', 'WRRK', 'TERK']),
-                ensureRosters2026WeeklyRowsLoaded(),
-                // Only FPFA's rank columns supplement Game Logs. Keep recorded
-                // stats/cutoffs on the local CSV and DRK on the existing SOS path.
-                // If FPFA fails, omit these ranks rather than substitute DRK.
-                fetchRows('FPFA', ['TM', 'QBRK', 'RBRK', 'WRRK', 'TERK']).catch((error) => {
+                localPromise,
+                // Derive every defense rank from recorded local results. A
+                // failed calculation leaves ranks unavailable, never stale.
+                localPromise.then(local => {
+                    if (Object.keys(local.weekErrors).length) throw new Error(Object.values(local.weekErrors)[0]);
+                    return load2026MatchupData({ fetchImpl: fetch, weeklyUrl, scheduleUrl });
+                }).catch((error) => {
                     matchupRankError = error.message;
                     console.warn('Rosters 2026 matchup ranks unavailable.', error);
-                    return [];
+                    return null;
                 })
             ]);
             const { weeks, weekErrors, latestRecordedWeek } = local;
@@ -326,8 +301,8 @@
             const weeksOfData = weeks.reduce((count, rows) => count + (rows.some(hasRecordedStats) ? 1 : 0), 0);
             const playersById = new Map(players.map((row) => [String(row.SLPR_ID), row]));
             const schedule = new Map(scheduleRows.map((row) => [normalizeTeam(row.TM), row]));
-            const defense = new Map(defenseRows.map((row) => [normalizeTeam(row.TM), row]));
-            const matchupRanks = new Map(matchupRankRows.map((row) => [normalizeTeam(row.TM),
+            const defense = new Map(Object.entries(matchups?.defenseByTeam || {}));
+            const matchupRanks = new Map(Object.entries(matchups?.matchupRanksByTeam || {}).map(([team, row]) => [team,
                 Object.fromEntries([...POSITIONS].map((pos) => [`${pos}RK`, row[`${pos}RK`]]))]));
             scheduleCache = schedule;
             matchupRankCache = matchupRanks;
@@ -341,7 +316,7 @@
                     const opponent = String(schedule.get(team)?.[week] || '').trim();
                     const opponentTeam = normalizeTeam(opponent.replace(/^(?:@|vs\.?)\s*/i, ''));
                     const rankKey = { QB: 'QBRK', RB: 'RBRK', WR: 'WRRK', TE: 'TERK' }[source?.POS || player.POS];
-                    // Weekly opponent tags use FPFA's published positional rank,
+                    // Weekly opponent tags use the calculated positional rank,
                     // reversed only by the existing renderer just like rankMetric.
                     const rank = Number(matchupRanks.get(opponentTeam)?.[rankKey]);
                     weeklyStats[week][playerId] = parseStats({ ...(source || {}), VS: opponent, vsRK: Number.isInteger(rank) && rank >= 1 && rank <= 32 ? rank : '', __hasRecordedStats: Boolean(source && hasRecordedStats(source)) }, true);
@@ -372,11 +347,11 @@
                 // Regular roster badges need the team's bye even for IR/rookie
                 // players who have no DH season row or recorded weekly result.
                 scheduleByTeam: Object.fromEntries(schedule),
-                // Header SOS averages the existing DRK positional rank columns
-                // (QBRK/RBRK/WRRK/TERK). Preserve raw cells; no new feed is loaded.
+                // Header SOS averages the calculated allowance rank columns
+                // (QBRK/RBRK/WRRK/TERK) over the local schedule.
                 defenseByTeam: Object.fromEntries(defense),
-                // Keep matchup rank authority separate from the DRK SOS map.
-                // Both the profile header and weekly tags read these FPFA cells.
+                // Keep display rank adaptation separate from the allowance SOS map.
+                // Both the profile header and weekly tags use this calculated map.
                 matchupRanksByTeam: Object.fromEntries(matchupRanks), matchupRankError,
                 latestRecordedWeek, rankQualifierWeeks: Math.max(1, weeksOfData), weekErrors, projectionWeeks };
             applyRosters2026Projections(snapshot);

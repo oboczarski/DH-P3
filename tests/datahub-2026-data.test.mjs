@@ -44,15 +44,15 @@ test('DataHub groups unsorted combined CSV rows with one weekly fetch and no wee
   assert.deepEqual(data.weeksWithResults, [1, 4]);
   assert.equal(data.weeklyRows[4][0].FPT_PPR, '19.52');
   assert.equal(data.weeklyRows[4][0].PROJ, '23.4');
-  assert.equal(data.weeklyRows[4][0].vsRK, '2');
+  assert.equal(data.weeklyRows[4][0].vsRK, '32');
   assert.equal(data.weeklyRows[7][0].PROJ, 'IR');
   assert.equal(data.weeklyRows[7][0].__hasRecordedStats, false);
   assert.deepEqual(data.weekErrors, {});
   assert.equal(data.weeklyRows[5][0].FPT_PPR, undefined);
   assert.equal(data.weeklyRows[18][0].FPT_PPR, undefined);
   assert.equal(data.weeklyRows[18][0].VS, 'vs NYJ');
-  assert.equal(fixture.requests.length, 3);
-  assert.deepEqual(fixture.requests.map(({ sheet }) => sheet).filter(Boolean), ['DRK']);
+  assert.equal(fixture.requests.length, 2);
+  assert.deepEqual(fixture.requests.map(({ sheet }) => sheet).filter(Boolean), []);
   assert.equal(fixture.requests.filter(({ pathname }) => pathname.endsWith('/NFL-2026_Stats/WeeklyStats/2026_AllWKs.csv')).length, 1);
   assert.ok(fixture.requests.some(({ pathname }) => pathname.endsWith('/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv')));
 });
@@ -215,7 +215,7 @@ test('failed or malformed combined CSV keeps totals and schedule, with no Sheets
     ['', new Error('Network unavailable'), /Network unavailable/],
     ['<html>Sign in</html>', undefined, /missing or invalid columns/],
     ['SLPR_ID,POS,TM,FPT_PPR\n4984,QB,BUF,99', undefined, /missing or invalid columns/],
-    ['', undefined, /missing or invalid columns/],
+    ['', undefined, /empty/],
     ['WK,SLPR_ID,POS,TM,FPT_PPR\n2026,4984,QB,BUF,99', undefined, /invalid week number/],
     ['WK,SLPR_ID,POS,TM,FPT_PPR\n1.5,4984,QB,BUF,99', undefined, /invalid week number/],
   ]) {
@@ -228,7 +228,7 @@ test('failed or malformed combined CSV keeps totals and schedule, with no Sheets
     assert.equal(data.weeklyRows[1][0].VS, '@ HOU');
     assert.equal(data.weeklyRows[1][0].FPT_PPR, undefined);
     assert.equal(data.weeklyRows[1][0].__hasRecordedStats, false);
-    assert.equal(fixture.requests.length, 3);
+    assert.equal(fixture.requests.length, 2);
   }
 });
 
@@ -283,7 +283,7 @@ test('projection URL configuration selects only published weeks after the CSV cu
   assert.equal(url.pathname.split('/').at(-1), 'export');
   assert.equal(url.searchParams.get('gid'), '749604963');
   assert.equal(url.searchParams.get('sheet'), 'WK5');
-  for (const [week, gid] of [[8, '1110983817'], [9, '102083848'], [10, '462792316'], [11, '1798954669'], [12, '1103756901'], [13, '1927039275']]) {
+  for (const [week, gid] of [[8, '1110983817'], [9, '102083848'], [10, '462792316'], [11, '993322654'], [12, '16052130'], [13, '1927039275']]) {
     const futureUrl = new URL(get2026ProjectionCsvUrl(week));
     assert.equal(futureUrl.searchParams.get('gid'), gid);
     assert.equal(futureUrl.searchParams.get('sheet'), `WK${week}`);

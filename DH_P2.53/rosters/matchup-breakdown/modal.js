@@ -1,7 +1,7 @@
 // Rosters-owned defense panel: isolate its renderer, responsive chart geometry,
 // tooltips, filters and player expansion in an isolated modal, with no Matchups imports.
-import Data from './model.js?v=DH3.67-profile-weekly-stats';
-import { createMatchupStore, resolveMatchupSelection } from './data.js?v=DH3.67-profile-weekly-stats';
+import Data from './model.js?v=DH3.72-local-matchups';
+import { createMatchupStore, resolveMatchupSelection } from './data.js?v=DH3.72-local-matchups';
 import { defenseMetric, rankColor as heatColor, ordinalRank } from './rank-view.js?v=DH3.53f-rosters-matchup-header';
 
 export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerContext = selection => selection,
@@ -210,7 +210,7 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
     $("defenseSubtitle").textContent = `vs. ${LABELS[state.pos]} · ${venueLabel()}`;
     $("selectedPosition").textContent = state.pos; $("selectedPosition").dataset.pos = state.pos;
     // The heading and RANK card use the same displayed defense rank under
-    // every position/venue filter. Only published matchup ranks are reversed.
+    // every position/venue filter. The shared calculator supplies direct strength ranks.
     $("defenseRank").textContent = `${ordinalRank(stat.rank)} vs.`;
     $("defenseRank").title = `Defense rank vs. ${LABELS[state.pos]} · ${venueLabel()} · Rank 1 = best defense / fewest FPA per game`;
     // Keep the defense heading's conditional color identical to the RANK
@@ -225,7 +225,7 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
     // the labels already supply the per-game unit, so do not repeat it.
     const sosColor = heatColor({ rank: c.sosRank, pool: Data.TEAMS.length, rankOrder: "descending" });
     // Actual scoring follows the defense's difficulty color; expected scoring
-    // follows the published SOS scale, matching the existing Start/Sit chips.
+    // follows the calculated SOS scale, matching the existing Start/Sit chips.
     // Color only the per-game main values; total footers keep their muted CSS color.
     // Missing values/ranks stay neutral, while a recorded zero stays colored.
     const actualColor = Number.isFinite(stat.avg) ? heatColor(stat) : '#7b81a5';
@@ -238,7 +238,7 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
       <div class="metric" id="actualMetric"><div class="metricLabel">FPA / G</div><div class="metricValue" style="color:${actualColor}">${fmt(stat.avg, 1)}</div><div class="metricSub"><span class="metricDesktop">${fmt(stat.total)} total</span><span class="metricMobile">${fmt(stat.total, 1)} total</span></div></div>
       <div class="metric" id="expectedMetric"><div class="metricLabel">OPP AVG PPG</div><div class="metricValue" style="color:${expectedColor}">${fmt(c.expectedAvg, 1)}</div><div class="metricSub">${fmt(c.expectedTotal, 1)} total</div></div>
       <div class="metric" id="deltaMetric"><div class="metricLabel">vs OPP AVG</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
-      <div class="metric metric--sos" id="sosMetric" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub">${sosLabel(c.sosRank)}</div></div>`;
+      <div class="metric metric--sos" id="sosMetric" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. Opponent offense scoring: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub">${sosLabel(c.sosRank)}</div></div>`;
   }
   function width(id) {
     const element = $(id), style = getComputedStyle(element);
@@ -352,7 +352,7 @@ export function createMatchupBreakdown({ onDataChange = () => {}, getPlayerConte
   }
   // Both player tables select columns from the active VIEW, never row.pos.
   // ALL deliberately uses only its four totals for QB/RB/WR/TE alike. Values
-  // are published per-game cells; no season averages or derived replacements.
+  // come from the same recorded CSV row; no season averages substitute for missing stats.
   function playerStatColumns() {
     const receiving = [["TGT", "TGT"], ["REC", "REC"], ["RECYDS", "recYDS"], ["RECTD", "recTD"], ["YAC", "YAC"]];
     return ({

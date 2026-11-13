@@ -300,6 +300,13 @@ const Data = (() => {
     for (const row of rows) {
       for (const pos of metrics) {
         const stat = row.metrics[pos];
+        // Local CSV venue views require a positional result for every recorded
+        // defense game. A missing game cannot become zero or a smaller-sample
+        // average; legacy comparison fixtures retain their source semantics.
+        if (model.strictPositionCoverage && stat.games !== row.games) {
+          stat.games = row.games;
+          continue;
+        }
         if (stat.games) {
           stat.total = teamCents.get(row.team)[pos] / 100;
           stat.avg = stat.total / stat.games;
@@ -402,8 +409,8 @@ const Data = (() => {
     const period = summary.weeks.length ? summary.weeks : model.weeks;
     const summaryAvailable = (scope.venue || "all") === "all" &&
       (scope.from ?? 1) <= period[0] && (scope.to ?? Infinity) >= period.at(-1);
-    const unavailableReason = summaryAvailable ? "FPFA summary values are missing for this matchup." :
-      "Expected FPA requires a supplied FPF offense average for every recorded game in this selection.";
+    const unavailableReason = summaryAvailable ? "Recorded matchup values are missing for this selection." :
+      "Expected FPA requires an offense average for every recorded game in this selection.";
     const teams = [...new Set([...model.defenses, ...summary.byTeam.keys()])].sort();
     const actualRows = teams.map(team => {
       const source = summary.byTeam.get(team), recorded = weekly.byTeam.get(team);
@@ -413,7 +420,10 @@ const Data = (() => {
           const supplied = source?.metrics[pos];
           return [pos, summaryAvailable ? { total: supplied?.total ?? null,
             avg: perGameAverage(supplied?.total, games, supplied?.avg ?? null),
-            rank: supplied?.rank ?? null, pool: 0, games, rankOrder: "descending" } :
+            // Local data provides a direct strength rank so tied best defenses
+            // remain #1. Legacy parity fixtures retain their source direction.
+            rank: supplied?.defenseRank ?? supplied?.rank ?? null, pool: 0, games,
+            rankOrder: supplied?.defenseRank != null ? "ascending" : "descending" } :
             { ...(recorded?.metrics[pos] ?? emptyMetric()) }];
         })) };
     });
@@ -433,12 +443,15 @@ const Data = (() => {
         });
         const eligible = entries.filter(entry => entry.actual !== null);
         const baselineComplete = eligible.length > 0 && eligible.every(entry => entry.expected !== null);
+        // Venue/weekly comparisons use the full calculated offense averages.
+        // Rounding each game's expectation first would bias both the totals
+        // and deltas relative to the season summary from the same CSV.
         const expectedTotal = summaryAvailable ? supplied?.expectedTotal ?? null : baselineComplete ?
-          eligible.reduce((sum, entry) => sum + Math.round(entry.expected * 100), 0) / 100 : null;
+          eligible.reduce((sum, entry) => sum + entry.expected, 0) : null;
         const expectedAvg = summaryAvailable ? perGameAverage(expectedTotal, stat.games, supplied?.expectedAvg ?? null)
           : expectedTotal === null ? null : expectedTotal / eligible.length;
         const complete = stat.total !== null && expectedTotal !== null;
-        const delta = complete ? (Math.round(stat.total * 100) - Math.round(expectedTotal * 100)) / 100 : null;
+        const delta = complete ? stat.total - expectedTotal : null;
         // SOS describes the season opponents already faced at this position.
         // Keep FPFA's ascending vRK unchanged, including under venue filters;
         // the selected-game expectedRank below serves a separate comparison.
@@ -455,8 +468,10 @@ const Data = (() => {
     if (!summaryAvailable) for (const pos of positions) {
       const comparable = rows.map(row => row.metrics[pos]).filter(c => c.actual.total !== null && c.expectedTotal !== null);
       for (const c of rows.map(row => row.metrics[pos])) {
-        c.actualRank = comparable.includes(c) ? 1 + comparable.filter(other => other.actual.total > c.actual.total).length : null;
-        c.expectedRank = comparable.includes(c) ? 1 + comparable.filter(other => other.expectedTotal > c.expectedTotal).length : null;
+        // Scoped rank fields must match the per-game defense rank shown by
+        // the heading/heatmap, even when venues have unequal game counts.
+        c.actualRank = comparable.includes(c) ? c.actual.rank : null;
+        c.expectedRank = comparable.includes(c) ? 1 + comparable.filter(other => other.expectedAvg < c.expectedAvg - 1e-10).length : null;
       }
     }
     rows.forEach(row => positions.forEach(pos => { row.metrics[pos].pool = pools[pos]; }));

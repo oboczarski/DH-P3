@@ -14,7 +14,7 @@ const PROJECTION_SHEET_GIDS = Object.freeze({
     8: '1110983817', 9: '102083848', 10: '462792316',
     // WK11–WK13 are published projection tabs, verified in 2026-Wkly.
     // Only their PROJ cells supplement future Game Logs on either page.
-    11: '1798954669', 12: '1103756901', 13: '1927039275'
+    11: '993322654', 12: '16052130', 13: '1927039275'
 });
 
 export function get2026ProjectionWeeks(latestCompletedWeek) {
@@ -29,26 +29,17 @@ export function get2026ProjectionCsvUrl(week) {
     if (!gid) throw new Error(`No 2026 projection tab configured for Week ${week}.`);
     return `https://docs.google.com/spreadsheets/d/${WORKBOOK_ID}/export?format=csv&gid=${gid}&sheet=WK${week}`;
 }
-// Matchups reads the three existing 2026-Wkly tabs by their verified gids.
-// Native CSV exports preserve the exact headers, literal opponents and scores;
-// this adds URL configuration only, without changing any other page's loader.
-const MATCHUPS_SHEET_GIDS = Object.freeze({
-    FPF: '2006116709',
-    FPFA: '1845231826',
-    FPA: '1398845421',
-    // Supplemental weekly box scores for Players Faced only. FPA continues
-    // to own player inclusion, scores, venues and every matchup calculation.
-    AllWKs: '731946850'
-});
-
 export function get2026SheetCsvUrl(sheetName) {
     // The retired DH season feed must never be requested, including by a new
-    // indirect caller. Defense, team, matchup and future PROJ feeds stay live.
+    // indirect caller. Separate team metadata and future PROJ feeds stay live.
     if (String(sheetName).trim().toUpperCase() === 'DH') throw new Error('2026 season stats use 2026_Season.csv.');
+    // Defense/offense summaries and Players Faced now derive from the weekly
+    // CSV. Reject indirect callers too, so a later feature cannot restore an
+    // unnecessary workbook request or a stale Sheets fallback.
+    if (['DRK', 'FPF', 'FPFA', 'FPA', 'ALLWKS'].includes(String(sheetName).trim().toUpperCase())) {
+        throw new Error('2026 matchup statistics use 2026_AllWKs.csv.');
+    }
     // Prevent retired weekly-tab requests from silently reaching Google Sheets.
     if (/^WK\d+$/.test(sheetName)) throw new Error('2026 weekly stats use 2026_AllWKs.csv.');
-    const gid = MATCHUPS_SHEET_GIDS[sheetName];
-    // gid selects the export; keep the tab name in the URL for diagnostics.
-    if (gid) return `https://docs.google.com/spreadsheets/d/${WORKBOOK_ID}/export?format=csv&gid=${gid}&sheet=${encodeURIComponent(sheetName)}`;
     return `https://docs.google.com/spreadsheets/d/${WORKBOOK_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(sheetName)}`;
 }

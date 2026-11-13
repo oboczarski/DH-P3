@@ -29,7 +29,7 @@ export function createDataHubGameLogsProfile({ modal, state, teamNames, loadTeam
 
   // The current-season profile uses the upcoming NFL week, with the recorded
   // CSV cutoff + 1 as a fallback. BYEs stay on that week rather than skipping
-  // to a later game. Read only schedule/DRK; projections never advance it.
+  // to a later game. Read only the local schedule and calculated ranks; projections never advance it.
   function upcomingProfileMatchup(source, team, pos, currentWeek) {
     const cutoff = source?.latestRecordedWeek;
     if (!Number.isInteger(cutoff) || cutoff < 0 || cutoff > 18) return null;
@@ -40,7 +40,7 @@ export function createDataHubGameLogsProfile({ modal, state, teamNames, loadTeam
     const match = /^(vs\.?|@)\s*([A-Z]{2,3})$/i.exec(opponent);
     if (!match) return { week, opponent: '—', rank: null };
     const opponentTeam = profileTeam(match[2]);
-    const rank = getOpponentDefenseRank(source.defenseByTeam?.[opponentTeam]?.[`${pos}RK`]);
+    const rank = getOpponentDefenseRank((source.matchupRanksByTeam || source.defenseByTeam)?.[opponentTeam]?.[`${pos}RK`]);
     return { week, opponent: `${match[1] === '@' ? '@' : 'vs'} ${opponentTeam}`, rank };
   }
 
@@ -60,7 +60,7 @@ export function createDataHubGameLogsProfile({ modal, state, teamNames, loadTeam
     rank.className = 'gl-profile-matchup-rank';
     rank.textContent = matchup.rank == null ? '(—)' : `(${ordinalSuffix(matchup.rank)})`;
     // Match the Weekly opponent tags: 1 is strongest, 32 weakest. Only the
-    // displayed rank is reversed; the source DRK and SOS directions stay intact.
+    // displayed rank is reversed; the source allowance and SOS directions stay intact.
     if (matchup.rank != null) rank.style.color = getOpponentRankColor(matchup.rank);
     rank.title = matchup.rank == null ? `Defense rank vs ${pos} unavailable`
       : `Defense vs ${pos}: ${matchup.rank} of 32 · 1 strongest, 32 weakest`;

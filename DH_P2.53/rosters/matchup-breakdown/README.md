@@ -15,43 +15,29 @@ Closing restores the prior scroll locks and focuses the clicked Weekly tag or
 that player's Breakdown action. The projection and selected-player snapshots
 remain Rosters-owned.
 
-Pressing Start/Sit starts preparation before awaiting its existing projection
-loader. Preparation mounts/styles the modal, loads fresh FPF/FPFA/FPA CSV exports
-in parallel, validates the complete source set, computes all/home/away analyses
-and warms its copied logos. Concurrent consumers reuse the same pending promise.
-Data is reused only within the current document; reloading reads current sheets.
-Failures display an error/retry state, without bundled or historical fallbacks.
-Weekly tags prepare this same panel on demand without requiring Start/Sit.
-Every valid tag selects its opponent defense and the player's base position;
-BYE and unknown opponents remain inert. The panel always uses the current 2026
-matchup sources, including when opened from a historical player log; it does
-not replace that log's CSV results, selected season, projections or ranks.
+Pressing Start/Sit or a valid Weekly opponent tag prepares the local weekly CSV
+and schedule through `scripts/nfl-2026-matchups.js`. Game Logs, projection cutoff
+preparation and this modal reuse those local requests within the page. The
+calculator validates recorded results and supplies scores, box scores, offense
+baselines, defense ranks and SOS together. All/home/away analyses and assets
+remain independently owned by this modal. Reloading reads updated local files;
+failed inputs expose the existing retry state without a Sheets fallback.
 
-The independently owned parser accepts `BYE` (case insensitive) in every FPFA
-`wN` opponent column without adding an opponent or played game. Later week
-columns remain automatic, and published totals, averages and ranks stay intact.
-Unused FPA rows with all columns blank except formula-generated `VS_TM` are
-ignored; populated rows still require the original result validation.
+The central data-only calculation groups player PPR scores by scoring team and
+opposing defense. Game counts include zero-point games and exclude BYEs/future
+placeholders. Offense ranks compare exact total cents; defense ranks compare
+points per recorded game. Expected scoring sums each recorded opponent's
+season offense average, including repeat meetings. Season SOS ranks average
+opponent scoring ascending (1 easiest) and stays fixed under venue filters.
+Full precision survives until display. Historical Game Logs retain their own
+2025 results and ranks; opening this current-season panel never replaces them.
 
-Only DH's existing `scripts/nfl-2026-sheets.js` workbook URL configuration is
-shared. FPFA totals and ranks remain the season-to-date authority; parsed source
-averages stay intact. Analysis divides actual/expected totals by non-BYE games
-for precise per-game values, rounding only when rendering. FPA records supply
-weekly actual scores/player results, and FPF offense averages
-supply weekly/venue expected scoring. `rank-view.js` independently copies the
-Matchups presentation helpers: displayed defense ranks reverse published FPFA
-matchup ranks (`33 - rank`), so 1 is the strongest defense/fewest FPA per game.
-Already-ascending venue ranks keep their number, pool, missing values and ties.
-The cached source analysis, SOS and FPF offense ranks remain unchanged. Both
-Start/Sit preview rank locations, the comparison hero, breakdown heading and
-RANK card use this defense-strength convention; their colors reverse with the
-number so the same defense keeps its difficulty color. Rosters 2026 Game Logs
-independently reads only FPFA's positional rank cells for the upcoming profile
-matchup and every weekly opponent tag, including future/projection-only players.
-Both displays reverse the published rank only when rendering, matching the
-breakdown's default All Games RANK card. Missing/failed FPFA ranks stay unavailable
-without a DRK/CSV fallback. DRK remains the Game Logs SOS source, and historical
-2025 Game Logs retain their CSV ranks; recorded results and other pages stay intact.
+Both current-season Game Logs pages use the same calculated defense strength
+for every weekly tag and upcoming header. Profile YTD/ROS/PLAYOFF SOS still
+averages defensive allowance ranks across the respective local schedule windows.
+That schedule measure remains distinct from the modal's opposing-offense SOS.
+No FPA, FPFA, FPF, AllWKs or DRK workbook feed is requested. Future PROJ reads
+remain independent and never contribute results to the matchup calculator.
 
 The preview keeps the opponent's positional defense rank inline to the right of
 the projected value. Its separate info strip
@@ -63,9 +49,9 @@ The preview's borderless chips have three internal dividers. FPA/G uses the exis
 matchup rank palette and Expected/G uses that palette with the published SOS rank;
 missing averages or ranks stay neutral. The Start/Sit footer explains
 `FPA • Fantasy Points Allowed`. SOS uses the player's
-base position's published `QBvRK`/`RBvRK`/`WRvRK`/`TEvRK`. Both defense panels add an SOS Ranking
+base position's calculated `QBvRK`/`RBvRK`/`WRvRK`/`TEvRK`. Both defense panels add an SOS Ranking
 card, including `ALLvRK` for all positions. These ranks are ascending difficulty:
-1 is the easiest schedule already faced, 32 the toughest. The published season
+1 is the easiest schedule already faced, 32 the toughest. The calculated season
 SOS rank stays unchanged under venue filters; selected-game expected ranks and
 all existing scoring comparisons keep their original calculations.
 
@@ -121,21 +107,17 @@ launch details stay fixed while the modal's defense/position/venue filters chang
 
 The modal's FPA / G chip shows the precise per-game average in the current
 defense-rank color. OPP AVG PPG shows the opponent per-game baseline in the
-published season SOS color, matching Start/Sit. Both labeled total footers retain
+calculated season SOS color, matching Start/Sit. Both labeled total footers retain
 their muted CSS color; the per-game unit is implied by the main labels. The
 comparison chip is labeled vs OPP AVG; the weekly legend uses OPP AVG;
 missing values/ranks stay neutral. The RANK footer uses
 Brutal (1–6), Tough (7–12), Moderate (13–16), Favorable (17–20), Great (21–26)
 or Prime (27–32) based on the displayed defense-strength rank. Missing ranks
-show a dash. Neither the published ranks nor the SOS footer are recomputed.
+show a dash. Ranks and the SOS footer use the shared local calculation.
 
-Players Faced additionally reads the live AllWKs native CSV export for weekly
-box-score stats only, matched to an existing FPA result by player ID, week,
-team, position, opponent and venue. Missing or ambiguous matches stay blank;
-zero and negative stats remain valid. This supplemental read cannot add FPA
-results or change scores, summary ranks, charts or game cutoffs. A failed
-AllWKs read leaves the three required matchup feeds usable and marks weekly
-stats unavailable. Column sets follow the active QB/RB/WR/TE/ALL view. PPR
+Players Faced uses the recorded weekly CSV for both scores and box-score stats.
+Missing stat cells remain unavailable; zero and negative stats remain valid.
+Column sets follow the active QB/RB/WR/TE/ALL view. PPR
 precedes the per-view stats; RB ends with REC, TGT, recYDS. Site
 shows the team or @ opponent without parentheses, e.g. BUF or @ BAL. Both table sizes
 center every header and all body cells except Player; mobile names ellipsize

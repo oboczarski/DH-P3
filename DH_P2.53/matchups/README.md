@@ -10,45 +10,37 @@ scoped to its `data-page="matchups"` document and individual
 also require the Matchups body marker. The branding links back to DH locally.
 The `/matchups` route redirects to `/matchups/` so relative files resolve.
 
-## Live sources
+## Local matchup data
 
-`data/2026-sheets.js` shares only DH's workbook URL configuration from
-`../scripts/nfl-2026-sheets.js`. It fetches all three tabs in parallel with
-`cache: 'no-store'` on each page load. There is no bundled CSV or saved-data fallback.
+`data/2026-csv.js` uses the data-only `scripts/nfl-2026-matchups.js` calculator.
+The inputs are `data/NFL-2026_Stats/WeeklyStats/2026_AllWKs.csv` and the local
+`NFL-Schedule/Schedule2026.csv`. All requests use `cache: no-store`; reads and
+calculations are reused within a page. Reloading starts a fresh snapshot.
+There are no FPA, FPFA, FPF, AllWKs or DRK workbook requests or fallbacks.
 
-| Original input | 2026-Wkly tab | Preserved ownership |
-| --- | --- | --- |
-| FPF.csv | FPF | Offense totals, published averages and ranks; weekly expected values and opponent context |
-| FPFA.csv | FPFA | Published actual/expected totals and ranks; precise season averages derived from totals/games |
-| FPAv2.csv | FPA | Individual player results, weekly games and defense venue selections |
+The weekly CSV supplies player results, historical team/position/opponent/venue,
+and Players Faced box scores. A game is recorded only when its rows contain
+participation or a nonzero fantasy score. Zero scores within a recorded game
+are retained. Future placeholders and PROJ values never advance coverage.
+Missing positional results remain unavailable rather than becoming zero.
 
-The existing parsers validate the complete source set before initializing any
-model or chart. They already normalize header capitalization and accept `WK`
-or `WEEK` in the player source. Zero and negative scores are retained, and the
-existing source-disagreement audit does not overwrite either source.
+Actual points allowed group recorded player PPR scores by defense and position.
+Offense totals group the same scores by the player's team; offense ranks use
+total points and offense averages divide by recorded team games. Expected FPA
+sums each recorded opponent's season-to-date offense average, counting repeat
+meetings separately. SOS ranks the average opponent baseline ascending (1 easiest).
+BYEs never add games. All four positions and ALL are calculated independently.
+Integer cents and exact rational comparisons preserve ties and ratio precision;
+UI values round only at display time. Direct defense-strength ranks (1 fewest
+points/game) preserve ties even at the best/worst boundary.
 
-The FPA sheet can pre-fill `VS_TM` formulas in unused rows, exporting `#VALUE!`
-after the last player. Matchups ignores rows only when every column except
-`VS_TM` is blank, including gaps between populated weeks. Those unused rows do
-not count as players or source records. Any populated row still receives the
-existing week, player, score, opponent and duplicate checks.
-
-Sheet gids and native CSV headers were checked against the live workbook during
-integration. Adding weekly rows or `wN` opponent columns uses the existing
-parsers without requiring a CSV rebuild. Reload the page to read Sheet updates.
-An inaccessible sheet or invalid schema appears in the existing load-error panel.
-
-FPFA discovers every `wN` opponent column dynamically. A `BYE` cell (case
-insensitive), blank, or another supported no-opponent marker is omitted from
-the team's opponents and games played; the week column remains part of the
-source period. Parsed totals, averages and ranks stay unchanged; analysis derives precise per-game values from totals and the non-BYE game count. Later
-opponents after a bye are parsed normally, and unrecognized team codes still
-produce a validation error.
-
-For Week 5, add the player results with `WK=5` to FPA, extend FPFA's opponent
-columns with `w5`, and update the published FPFA summaries and FPF offense
-averages/ranks. Weeks and coverage are discovered from the sources; no weekly
-gid or code change is needed for Matchups.
+To update a week, update the existing weekly CSV with its recorded rows.
+The next page load recalculates player tables, coverage, offense/defense
+statistics, expected scoring, ranks and every chart automatically through Week 18.
+No matchup sheet, opponent column, gid or hardcoded week cutoff needs updating.
+The same data-only model serves Game Logs and the Rosters-owned modal without
+sharing their rendering, CSS, assets or state. Future projection Sheets remain
+an independent Game Logs source, outside the matchup calculation.
 
 ## Editing one area at one screen size
 
@@ -105,25 +97,18 @@ team/position/venue rank as RANK and displays a dash when unavailable.
 Its `.defenseMatchup`, `.defenseRank`, and `.defenseHeaderCopy` styles belong
 to the separate `DEFENSE-HEADING` mobile and desktop blocks.
 
-`chart-lab-model.js` owns the page's read-only defense-rank presentation. Season
-defense ranks display `33 - published matchup rank` (1 = best, 32 = weakest),
-preserving supplied ties and missing ranks. Home/away defense ranks already order
-FPA per game ascending. Summary chips, headings, heatmap, scoring-bar tooltips,
-readouts and the scatter all use that same display conversion. Rank colors stay
-with the same defense after the displayed number reverses. Source models and the
-independent Rosters matchup modal retain their original ranks.
+`chart-lab-model.js` owns read-only rank/color presentation. The calculator
+provides direct defense-strength ranks (1 fewest points/game), including exact
+best-defense ties. Home/away ranks also order actual FPA/game ascending. Every
+summary, heading, chart, heatmap and tooltip uses the same rank convention.
+Legacy parser fixtures keep their original source ranks for migration checks.
 
-Every season per-game view derives actual/expected averages from the original
-FPFA totals and each defense's non-BYE game count. Summary main values, heatmap,
-stacked bars, dumbbells and FPA vs Expected share these precise analysis values.
-Home/away views retain their recorded-game calculations and supplied FPF baselines. This avoids the separately
-published average columns, which can already be rounded to whole numbers.
-It keeps full precision for plotting and displays one decimal in tooltips,
-differences and readouts, without counting BYEs as games. Each axis fits its
-own values with marker padding and readable ticks inside the padded range.
-In Ranks mode, season x values retain published SOS (1 = easiest schedule), venue
-x values rank expected averages lowest first, and y values use defense ranks
-(1 = best defense). The raw published SOS and offense ranks keep their meaning.
+Every per-game view uses the calculated actual/expected totals divided by its
+recorded-game count. Season and venue views use the same full-precision offense
+baselines, with one-decimal labels only at display time. BYEs never add games.
+In Ranks mode the season x-axis retains opposing-offense SOS (1 easiest); venue
+x-values rank the selected opponents' average baselines ascending. The y-axis
+shows defense strength. Offense ranks independently order total scoring.
 
 The weekly opponent chips omit visible W# labels and sit directly beneath the
 corresponding chart week ticks. `renderWeekly()` gives their grid the SVG's
@@ -143,8 +128,8 @@ EASY (7–12), FAVORABLE (13–16), MODERATE (17–20), HARD (21–26) or VERY H
 
 Dumbbells compare and sort by actual FPA per game against expected FPA per game.
 Their markers, labels, bounds, differences, tooltips and selected-defense readout
-all use the precise analysis averages, derived from FPFA totals/games for the
-season and the existing recorded-game calculations under venue filters. The legend contains Expected
+all use precise totals/game averages from the same recorded CSV for both the
+season and venue selections. The legend contains Expected
 and Actual. In `chart-lab.css`, `DUMBBELL — DESKTOP` owns `--am-x-grid-color` and
 `--am-x-grid-opacity` for vertical gridlines only; opacity defaults to `0.025`.
 Mobile retains its existing gridline treatment. Game Spokes is desktop-only:
@@ -169,22 +154,17 @@ consume that panel's `--am-*` typography variables. amCharts still owns their
 positions, hover tooltips, keyboard focus, and defense selection.
 
 FPA / G shows the precise per-game average in the current defense-rank color.
-OPP AVG PPG shows the opponent per-game baseline in the published season SOS
+OPP AVG PPG shows the opponent per-game baseline in the calculated season SOS
 color, matching Start/Sit. Both labeled total footers retain their muted CSS
 color; the per-game unit is implied by the main labels. The comparison chip is
 labeled vs OPP AVG, and the weekly chart legend calls its baseline OPP AVG;
 missing values or ranks stay neutral. The RANK footer describes the displayed
 rank as Brutal (1–6), Tough (7–12), Moderate (13–16), Favorable (17–20),
-Great (21–26) or Prime (27–32), with a dash when unavailable. Supplied defense,
-SOS and offense ranks are never recomputed from the more precise averages.
+Great (21–26) or Prime (27–32), with a dash when unavailable. Defense and SOS ranks use exact per-game ratios; offense ranks use total points.
 
-Players Faced additionally reads the live AllWKs native CSV export for weekly
-box-score stats only, matched to an existing FPA result by player ID, week,
-team, position, opponent and venue. Missing or ambiguous matches stay blank;
-zero and negative stats remain valid. This supplemental read cannot add FPA
-results or change scores, summary ranks, charts or game cutoffs. A failed
-AllWKs read leaves the three required matchup feeds usable and marks weekly
-stats unavailable. Column sets follow the active QB/RB/WR/TE/ALL view. PPR
+Players Faced uses the same recorded CSV rows for scores and box-score stats.
+Missing stat cells remain unavailable; zero and negative cells remain valid.
+Column sets follow the active QB/RB/WR/TE/ALL view. PPR
 precedes the per-view stats; RB ends with REC, TGT, recYDS. Site
 shows the team or @ opponent without parentheses, e.g. BUF or @ BAL. Both table sizes
 center every header and all body cells except Player; mobile names ellipsize

@@ -1,7 +1,7 @@
-// DataHub profile SOS only. For 2026, average the published DRK defensive ranks
+// DataHub profile SOS only. For 2026, average the calculated defensive allowance ranks
 // against the selected position, then compare all 32 schedules (1 = easiest).
-// Raw DRK ranks already run from easiest (1) to toughest (32); never mutate
-// them or reuse the reversed defense-display ranks / published FPFA SOS ranks.
+// Raw allowance ranks run from easiest (1) to toughest (32); never mutate
+// them or reuse the reversed defense-display ranks / opposing-offense SOS ranks.
 export const SOS_TEAMS = Object.freeze('ARI ATL BAL BUF CAR CHI CIN CLE DAL DEN DET GB HOU IND JAX KC LAC LAR LV MIA MIN NE NO NYG NYJ PHI PIT SEA SF TB TEN WAS'.split(' '));
 const POSITIONS = ['QB', 'RB', 'WR', 'TE'];
 export const canonicalSosTeam = value => {
@@ -25,7 +25,7 @@ export function rankPositionSchedules(source, position, basis = 'rank') {
   const schedules = Object.fromEntries(Object.entries(source.scheduleByTeam || {}).map(([team, row]) => [canonicalSosTeam(team), row]));
   const defenses = Object.fromEntries(Object.entries(source.defenseByTeam || {}).map(([team, row]) => [canonicalSosTeam(team), row]));
   // The historical CSV archive retains its original allowance-based method;
-  // 2026 explicitly uses QBRK/RBRK/WRRK/TERK, never QB/RB/WR/TE FPA values.
+  // 2026 explicitly averages QBRK/RBRK/WRRK/TERK from the local calculator.
   const result = { cutoff, basis, faced: {}, remaining: {}, playoff: {} };
   // Profile PLAYOFF SOS uses the same 32-team comparison for Weeks 15–17
   // only. Keep that full window even after playoff games have been recorded.

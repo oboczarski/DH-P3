@@ -1,4 +1,4 @@
-/* Current-season matchups: FPFA defense summaries, FPF offenses and FPAv2 games. */
+/* Current-season matchups: local weekly CSV results and calculated summaries. */
 (() => {
   "use strict";
   // This copied dashboard owns only the integrated Matchups document.
@@ -206,7 +206,7 @@
     // the labels already supply the per-game unit, so do not repeat it.
     const sosColor = heatColor({ rank: c.sosRank, pool: Data.TEAMS.length, rankOrder: "descending" });
     // Actual scoring follows the defense's difficulty color; expected scoring
-    // follows the published SOS scale, matching the existing Start/Sit chips.
+    // follows the calculated SOS scale, matching the existing Start/Sit chips.
     // Color only the per-game main values; total footers keep their muted CSS color.
     // Missing values/ranks stay neutral, while a recorded zero stays colored.
     const actualColor = Number.isFinite(stat.avg) ? heatColor(stat) : '#7b81a5';
@@ -217,9 +217,9 @@
       <div class="metric"><div class="metricLabel">FPA / G</div><div class="metricValue" style="color:${actualColor}">${fmt(stat.avg, 1)}</div><div class="metricSub"><span class="metricDesktop">${fmt(stat.total)} total</span><span class="metricMobile">${fmt(stat.total, 1)} total</span></div></div>
       <div class="metric"><div class="metricLabel">OPP AVG PPG</div><div class="metricValue" style="color:${expectedColor}">${fmt(c.expectedAvg, 1)}</div><div class="metricSub">${fmt(c.expectedTotal, 1)} total</div></div>
       <div class="metric"><div class="metricLabel">vs OPP AVG</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
-      <div class="metric metric--sos" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. FPFA ${state.pos}vRK: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub">${sosLabel(c.sosRank)}</div></div>`;
+      <div class="metric metric--sos" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. Opponent offense scoring: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub">${sosLabel(c.sosRank)}</div></div>`;
   }
-  // Page-owned labels describe the published season SOS rank without reversing
+  // Page-owned labels describe the calculated season SOS rank without reversing
   // or recomputing it under venue filters. Missing ranks stay unavailable.
   function sosLabel(rank) {
     if (!Number.isInteger(rank) || rank < 1 || rank > 32) return '—';
@@ -308,7 +308,7 @@
 
   // Both scatter modes describe per-game defense quality. Points divide the
   // original totals by games played; defense ranks reverse only the displayed matchup
-  // number, while published SOS stays intact. Venue expected ranks use averages.
+  // number, while season SOS stays intact. Venue expected ranks use averages.
   function renderScatter() {
     document.querySelectorAll("[data-scatter-mode]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.scatterMode === state.mode)));
     const ranked = state.mode === "rank";
@@ -378,8 +378,8 @@
     // Layout-only preview row: never add it to the analysis or matchup entries.
     const placeholder = c.entries.some(entry => entry.week === 4) ? "" : '<tr class="opponentPlaceholder" aria-label="Week 4 layout placeholder; no matchup or scoring data"><td>W4</td><td><span class="offenseCell"><i class="placeholderLogo" aria-hidden="true"></i>Placeholder</span></td><td>—</td><td>—</td><td>—</td><td>—</td></tr>';
     $("opponentsScope").textContent = `${state.team} · ${state.pos}`;
-    $("opponentsTable").innerHTML = `<caption class="srOnly">${state.team} opposing offenses, supplied ${state.pos} scoring averages and actual FPA</caption><thead><tr><th>Wk</th><th>Offense</th><th title="FPF offense position rank; 1 is the most points scored">Off. rank</th><th title="Supplied FPF average, counted once for this game">Expected</th><th>Actual</th><th>Δ FPA</th></tr></thead><tbody>${c.entries.length ? c.entries.map(entry => {
-      const delta = entry.actual !== null && entry.expected !== null ? (Math.round(entry.actual * 100) - Math.round(entry.expected * 100)) / 100 : null;
+    $("opponentsTable").innerHTML = `<caption class="srOnly">${state.team} opposing offenses, supplied ${state.pos} scoring averages and actual FPA</caption><thead><tr><th>Wk</th><th>Offense</th><th title="Offense position rank; 1 is the most points scored">Off. rank</th><th title="Offense average, counted once for this game">Expected</th><th>Actual</th><th>Δ FPA</th></tr></thead><tbody>${c.entries.length ? c.entries.map(entry => {
+      const delta = entry.actual !== null && entry.expected !== null ? entry.actual - entry.expected : null;
       return `<tr><td>W${entry.week}</td><td><span class="offenseCell" title="${esc(Data.TEAM_NAMES[entry.offense] || "Offense unavailable")}">${logo(entry.offense)}${entry.offense || "—"}</span></td><td>${entry.offenseRank === null ? "—" : `#${entry.offenseRank}`}</td><td>${fmt(entry.expected, 1)}</td><td>${fmt(entry.actual)}</td><td class="${direction(delta)}">${signed(delta)}</td></tr>`;
     }).join("") : '<tr><td colspan="6">No recorded games in this venue.</td></tr>'}${placeholder}</tbody>`;
   }
@@ -431,7 +431,7 @@
   }
   // Both player tables select columns from the active VIEW, never row.pos.
   // ALL deliberately uses only its four totals for QB/RB/WR/TE alike. Values
-  // are published per-game cells; no season averages or derived replacements.
+  // come from the same recorded CSV row; no season averages substitute for missing stats.
   function playerStatColumns() {
     const receiving = [["TGT", "TGT"], ["REC", "REC"], ["RECYDS", "recYDS"], ["RECTD", "recTD"], ["YAC", "YAC"]];
     return ({
@@ -588,30 +588,15 @@
   async function init() {
     bindEvents();
     try {
-      // Load the same workbook configuration as DH, with page-local source
-      // state. Keep the original parsers and publish only a valid three-tab set.
-      const { load2026MatchupSources } = await import("./data/2026-sheets.js?v=DH3.67-profile-weekly-stats");
+      // One local snapshot supplies all charts, Players Faced box scores and
+      // offense/defense summaries. Future projections cannot advance coverage.
+      const { load2026MatchupSources } = await import("./data/2026-csv.js?v=DH3.72-local-matchups");
       const sources = await load2026MatchupSources();
-      if (!Data || sources?.season !== 2026 || !sources.weekly?.csv || !sources.summary?.csv || !sources.offense?.csv) throw new Error("The 2026 weekly, defense-summary and offense sources are unavailable.");
-      const nextModel = Data.readSource(sources.weekly.csv, { name: sources.weekly.name });
-      // Attach only matched weekly stat cells; FPA remains the scoring source.
-      try {
-        if (!sources.playerStats?.csv) throw new Error(sources.playerStats?.error || 'Weekly box scores unavailable.');
-        Data.attachPlayerStats(nextModel, sources.playerStats.csv);
-      } catch (error) { nextModel.playerStatsError = error.message; }
-      const nextSummary = Data.readFPFA(sources.summary.csv, { name: sources.summary.name });
-      const nextOffenses = Data.readOffenses(sources.offense.csv, { name: sources.offense.name });
-      model = nextModel; summary = nextSummary; offenses = nextOffenses; readURL();
+      if (!Data || sources?.season !== 2026 || !sources.model || !sources.summary || !sources.offenses) throw new Error("The 2026 local matchup data is unavailable.");
+      model = sources.model; summary = sources.summary; offenses = sources.offenses; readURL();
       buildPickers();
-      const differences = Data.summaryDifferences(model, summary);
-      const repeatedExpectations = summary.rows.length > 0 && summary.rows.every(row => {
-        const rb = row.metrics.RB, wr = row.metrics.WR;
-        return rb.expectedTotal === wr.expectedTotal && rb.expectedAvg === wr.expectedAvg && rb.expectedRank === wr.expectedRank;
-      });
-      $("sourceNotes").textContent = `Live 2026-Wkly sheets: FPA (formerly FPAv2), FPFA and FPF; AllWKs supplies matched weekly player stats only. ${model.audit.excludedRows} rows without an opposing defense are excluded. ` +
-        (differences.length ? "FPFA season totals and FPAv2 weekly totals differ beyond rounding for " + [...new Set(differences.map(row => row.team))].join(", ") + ". Each view preserves its source. " : "") +
-        (repeatedExpectations ? "FPFA supplies identical RB and WR expected totals, averages, and ranks for every team; these are retained as provided. " : "") +
-        "FPFA totals and ranks stay intact; displayed season defense rank = 33 minus the published matchup rank. SOS and FPF offense ranks retain their supplied direction. All season per-game views divide actual and expected totals by games played and display one decimal, excluding BYEs. ALL uses its own total rather than adding rounded positional labels.";
+      $("sourceNotes").textContent = `2026 recorded weekly results and player stats through Week ${model.maxWeek}. ` +
+        "Actual scoring, offense averages and schedule difficulty update together when weekly results are updated. BYEs and future projections do not count as games. Tied scores share a rank; averages retain full precision until display.";
       render();
     } catch (error) {
       $("loadError").textContent = `Matchup data could not load: ${error.message}`; $("loadError").hidden = false;

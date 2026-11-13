@@ -26,9 +26,9 @@
 
   // The current-season profile uses the upcoming NFL week, with the recorded
   // CSV cutoff + 1 as a fallback. BYEs stay on that week rather than skipping
-  // to a later game. Schedule selects the opponent; FPFA supplies the same
+  // to a later game. Schedule selects the opponent; the weekly CSV supplies the same
   // positional rank as the breakdown's All Games RANK card. Projections never
-  // advance the week, and DRK remains separate for the profile's SOS metrics.
+  // advance the week. SOS averages the calculated allowance ranks.
   function upcomingProfileMatchup(source, team, pos, currentWeek) {
     const cutoff = source?.latestRecordedWeek;
     if (!Number.isInteger(cutoff) || cutoff < 0 || cutoff > 18) return null;
@@ -61,7 +61,7 @@
     rank.className = 'gl-profile-matchup-rank';
     rank.textContent = matchup.rank == null ? '(—)' : `(${ordinalSuffix(matchup.rank)})`;
     // Match the Weekly opponent tags: 1 is strongest, 32 weakest. Only the
-    // displayed FPFA rank is reversed; the source and SOS directions stay intact.
+    // displayed matchup rank is reversed; the source and SOS directions stay intact.
     if (matchup.rank != null) rank.style.color = getOpponentRankColor(matchup.rank);
     rank.title = matchup.rank == null ? `Defense rank vs ${pos} unavailable`
       : `Defense vs ${pos}: ${matchup.rank} of 32 · 1 strongest, 32 weakest`;
