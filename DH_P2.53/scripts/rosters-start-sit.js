@@ -20,12 +20,13 @@
       { main: '#d9a0ff', light: '#ffc0e6', mid: '#9970fa', deep: '#54348e', muted: '#a18caa', rgb: '210,144,255' },
     ],
     dm: [
-      // DM uses the full DataHub Compare RB-one and TE-two spectra. Text
-      // accents stay readable independently of the darker gradient endpoints.
-      { main: '#00edff', light: '#b1fff1', mid: '#00b3ff', deep: '#004cff', muted: '#739ba9', rgb: '0,237,255',
-        stops: ['#004CFF', '#00B3FF', '#00EDFF', '#00FFCB'] },
-      { main: '#ff94c2', light: '#ffd0e2', mid: '#ad3eac', deep: '#ff666b', muted: '#ab849b', rgb: '255,148,194',
-        stops: ['#FF666B', '#FF94C2', '#AD3EAC', '#8838FF'] },
+      // The supplied stat-graphic reference owns DM's player spectra: A uses
+      // turquoise/blue; B uses gold/coral/pink/magenta. Game Logs HUD dials
+      // retain their separate progress-based tones, as originally requested.
+      { main: '#18ebdc', light: '#b7fff5', mid: '#00c6ef', deep: '#1264ff', muted: '#779ea8', rgb: '24,235,220',
+        stops: ['#1264FF', '#118FFF', '#00C6EF', '#19EDDD'] },
+      { main: '#ffbd55', light: '#ffe5b5', mid: '#f43eae', deep: '#cd28f4', muted: '#a59180', rgb: '255,189,85',
+        stops: ['#FFBF47', '#FF866C', '#F43EAE', '#CD28F4'] },
     ],
   };
   let comparisonTheme = 'v2';
@@ -283,7 +284,9 @@
     const values = metrics.map(metric => number(metric.value));
     const label = players[0].labels[key] || LABELS[key] || key;
     const description = DESCRIPTIONS[key] || label;
-    const isNumeric = values.some(value => value !== null);
+    // Identity cells remain text. A numerical stat with two missing source
+    // values still owns two empty rails, so unavailable never resembles zero.
+    const isNumeric = !['player_name', 'position', 'team'].includes(key);
     const max = Math.max(...values.filter(value => value !== null).map(Math.abs), .00001);
     const comparable = values.every(value => value !== null) && !CONTEXT.has(key);
     const equal = comparable && Math.abs(values[0] - values[1]) < 1e-8;
@@ -293,14 +296,41 @@
     const sideState = side => winner === null ? '' : winner === side ? ' ss-leading' : ' ss-trailing';
     const precision = Math.min(3, Math.max(...metrics.map(metric => (String(metric.display).match(/\.(\d+)/)?.[1] || '').length)));
     const diff = comparable && !equal ? `${fmt(Math.abs(values[0] - values[1]), precision)}${String(metrics[0].display).includes('%') ? ' pp' : ''}` : equal ? 'EVEN' : '';
-    const valueMarkup = side => `<div class="ss-metric-value ss-side-${side}${sideState(side)}"><b>${escape(metrics[side].display)}</b>${metrics[side].rank ? `<small title="Season positional rank">${escape(players[side].pos)}·${escape(metrics[side].rank)}</small>` : ''}</div>`;
-    // Mirrored lollipop bars read outward from a shared center. Tick marks and
-    // an endpoint make each row a small graphic; magnitude never changes a sign
-    // or the better/worse logic for turnovers, context, ties and missing data.
-    return `<div class="ss-metric-row${!isNumeric ? ' ss-text-row' : ''}" data-ss-stat="${key}">${valueMarkup(0)}<div class="ss-metric-label"><button class="ss-metric-help" type="button" data-ss-help="${key}" aria-expanded="false" aria-controls="ss-help-${key}" aria-label="Explain ${escape(label)}" title="${escape(description)}">${escape(label)}</button><small class="${winner === null ? '' : `ss-side-${winner}`}">${winner === null ? diff : `${winner === 0 ? '←' : '→'} ${diff}`}</small></div>${valueMarkup(1)}${isNumeric ? `<div class="ss-paired-track" aria-hidden="true">${values.map((value, side) => `<div class="ss-track ss-side-${side}${sideState(side)}" data-ss-available="${value !== null}"><i class="${value < 0 ? 'ss-negative' : ''}" style="width:${value === null ? 0 : Math.abs(value) / max * 100}%">${value !== null && value !== 0 ? '<span class="ss-track-point"></span>' : ''}</i>${value === 0 ? '<em></em>' : ''}</div>`).join('')}<span></span></div>` : ''}<p class="ss-metric-explanation" id="ss-help-${key}" hidden>${escape(description)}</p></div>`;
+    const valueMarkup = side => {
+      const rank = number(metrics[side].rank);
+      const hasRank = values[side] !== null && rank !== null && rank > 0;
+      const rankText = hasRank ? `Rk ${rank}` : 'Rk —';
+      // Contextual rates keep supplied positional ranks even though they do
+      // not select a better/worse winner. Identity metadata never invents one.
+      const showRank = isNumeric && key !== 'overall_rank' && (hasRank || !CONTEXT.has(key));
+      return `<div class="ss-metric-value ss-side-${side}${sideState(side)}"><b>${escape(metrics[side].display)}</b>${showRank ? `<small title="${escape(players[side].pos)} season positional rank${hasRank ? '' : ' unavailable / unqualified'}">${rankText}</small>` : ''}</div>`;
+    };
+    // Reference-style butterfly bars extend out from the central stat pill.
+    // Each value/rank stack follows its fill's outer end. Both sides reserve
+    // the SAME measured text clearance to keep their magnitude scale honest.
+    const plotMarkup = side => {
+      const value = values[side], ratio = value === null ? 0 : Math.abs(value) / max;
+      return `<div class="ss-stat-plot ss-side-${side}${sideState(side)}" style="--ss-bar-ratio:${ratio}" data-ss-available="${value !== null}">${isNumeric ? `<div class="ss-stat-rail" aria-hidden="true">${value !== null && value !== 0 ? `<i class="ss-stat-fill${value < 0 ? ' ss-negative' : ''}"></i>` : value === 0 ? '<i class="ss-stat-zero"></i>' : ''}</div>` : ''}${valueMarkup(side)}</div>`;
+    };
+    return `<div class="ss-metric-row${!isNumeric ? ' ss-text-row' : ''}" data-ss-stat="${key}">${plotMarkup(0)}<div class="ss-metric-label"><button class="ss-metric-help" type="button" data-ss-help="${key}" aria-expanded="false" aria-controls="ss-help-${key}" aria-label="Explain ${escape(label)}" title="${escape(description)}"><span>${escape(label)}</span>${diff ? `<small class="${winner === null ? '' : `ss-side-${winner}`}">${winner === null ? diff : `${winner === 0 ? '←' : '→'} ${diff}`}</small>` : ''}</button></div>${plotMarkup(1)}<p class="ss-metric-explanation" id="ss-help-${key}" hidden>${escape(description)}</p></div>`;
+  }
+  function measureStatPlots(mount) {
+    // Text uses real responsive font metrics, including percentages, large
+    // totals and negative signs. A shared row reserve prevents either label
+    // from colliding with an edge or shortening only one player's bar scale.
+    const measurements = [...mount.querySelectorAll('.ss-metric-row:not(.ss-text-row)')].map(row => {
+      const widths = [...row.querySelectorAll('.ss-metric-value')].map(node => node.getBoundingClientRect().width);
+      const clearance = `${Math.ceil(Math.max(0, ...widths)) + 8}px`;
+      return { row, clearance };
+    });
+    // Read every label before updating CSS, avoiding repeated synchronous
+    // layouts across a long stat list when a phone rotates or fonts finish.
+    measurements.forEach(({ row, clearance }) => {
+      if (row.style.getPropertyValue('--ss-value-space') !== clearance) row.style.setProperty('--ss-value-space', clearance);
+    });
   }
   function statSections(players) {
-    return getSections(players).map((section, index) => `<section class="ss-stat-section ss-panel" id="ss-section-${section.id}" aria-label="${escape(section.label)}"><header class="ss-section-heading"><span class="ss-section-icon">${icon(section.id.includes('efficiency') ? 'spark' : section.id.includes('production') ? 'chart' : section.id === 'info' ? 'target' : 'layers')}</span><div><span class="ss-eyebrow">${String(index + 1).padStart(2, '0')} / SEASON DETAIL</span><h3>${escape(section.label.toLowerCase())}</h3></div><span class="ss-stat-count">${section.stats.length}<small>STATS</small></span></header><div class="ss-section-players"><span class="ss-side-0">${escape(shortName(players[0]))}</span><i aria-hidden="true">A / B</i><span class="ss-side-1">${escape(shortName(players[1]))}</span></div><div class="ss-metrics">${section.stats.map(key => metricRow(key, players)).join('')}</div></section>`).join('');
+    return getSections(players).map((section, index) => `<section class="ss-stat-section ss-panel" id="ss-section-${section.id}" aria-label="${escape(section.label)}"><header class="ss-section-heading"><span class="ss-section-icon">${icon(section.id.includes('efficiency') ? 'spark' : section.id.includes('production') ? 'chart' : section.id === 'info' ? 'target' : 'layers')}</span><div><span class="ss-eyebrow">${String(index + 1).padStart(2, '0')} / SEASON DETAIL</span><h3>${escape(section.label.toLowerCase())}</h3></div><span class="ss-stat-count">${section.stats.length}<small>STATS</small></span></header><div class="ss-section-players"><span class="ss-side-0"><small>A</small>${escape(shortName(players[0]))}</span><i aria-hidden="true">STAT</i><span class="ss-side-1"><small>B</small>${escape(shortName(players[1]))}</span></div><div class="ss-metrics">${section.stats.map(key => metricRow(key, players)).join('')}</div></section>`).join('');
   }
   function production(players) {
     const phases = [['pass_yd', 'Passing', '#9eb8f9'], ['rush_yd', 'Rushing', '#75d9c9'], ['rec_yd', 'Receiving', '#b99ae9']];
@@ -528,7 +558,7 @@
   function disposeComparison() {
     sequence += 1;
     if (mounted) {
-      mounted.observer?.disconnect(); mounted.chart?.dispose();
+      mounted.observer?.disconnect(); mounted.statsObserver?.disconnect(); mounted.chart?.dispose();
       mounted.mount.removeAttribute('aria-busy');
       if (mounted.keyHandler) mounted.mount.removeEventListener('keydown', mounted.keyHandler);
       mounted = null;
@@ -596,7 +626,11 @@
         else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
       };
       model.mount.addEventListener('keydown', keyHandler);
-      mounted = { chart: null, observer: null, keyHandler, mount: model.mount };
+      const statsObserver = new ResizeObserver(() => { if (sequence === token) measureStatPlots(model.mount); });
+      mounted = { chart: null, observer: null, statsObserver, keyHandler, mount: model.mount };
+      statsObserver.observe(model.mount.querySelector('.ss-stat-grid'));
+      measureStatPlots(model.mount);
+      document.fonts?.ready.then(() => { if (sequence === token) measureStatPlots(model.mount); });
       const chartNode = model.mount.querySelector('.ss-timeline-chart');
       if (!pair.some(player => player.weekly.length)) {
         chartNode.innerHTML = `<div class="ss-chart-empty">${icon('chart')}<b>No recorded scoring yet</b><span>Season stats remain available below.</span></div>`;

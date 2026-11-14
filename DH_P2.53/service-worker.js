@@ -158,7 +158,9 @@
 // together so a cached page cannot pair the new renderer with older styles.
 // Keep corrected DM controls, the shared plain ceiling row and its distinct
 // four-stop player spectra synchronized with the comparison stylesheet.
-const CACHE_NAME = 'DH3.73a-dm-controls';
+// Refresh reference-based stat bars/endpoint labels and DM's turquoise/blue
+// versus gold/magenta player spectra together with their responsive sizing.
+const CACHE_NAME = 'DH3.74-infographic-stats';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

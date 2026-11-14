@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import { getPlayerPalette } from '../DH_P2.53/scripts/datahub-comparison/comparisonStats.js';
 
 const app = fs.readFileSync(new URL('../DH_P2.53/scripts/app.js', import.meta.url), 'utf8');
 const presentation = fs.readFileSync(new URL('../DH_P2.53/scripts/rosters-start-sit.js', import.meta.url), 'utf8');
@@ -31,7 +30,7 @@ function harness(season = '2026') {
     + slice('function getOpponentDefenseRank(', 'let tableCoreLoaderPromise')
     + slice('function buildRostersDecisionPlayer(input) {', 'async function openRostersDecisionComparison(')
     // Test the actual private renderers without expanding the production API.
-    + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, metricRow, sparkline, shortName, projectionMatchup, projectionState, timelineOption, sizeTrajectory, playerHero, radarRadius, performanceRadar, hudDial, ring'), context);
+    + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, metricRow, measureStatPlots, sparkline, shortName, projectionMatchup, projectionState, timelineOption, sizeTrajectory, playerHero, radarRadius, performanceRadar, hudDial, ring'), context);
   return context;
 }
 
@@ -225,10 +224,12 @@ test('comparison values and bars agree on better/worse for higher/lower stats an
     ['pass_sack', 4, 1, 1], ['fum', 0, 1, 0], ['overall_rank', 21, 5, 1]]) {
     const markup = row(key, a, b);
     assert.match(markup, new RegExp(`ss-metric-value ss-side-${winner} ss-leading`));
-    assert.match(markup, new RegExp(`ss-track ss-side-${1 - winner} ss-trailing`));
+    assert.match(markup, new RegExp(`ss-stat-plot ss-side-${1 - winner} ss-trailing`));
     assert.match(markup, new RegExp(`ss-metric-value ss-side-${1 - winner} ss-trailing`));
-    assert.match(markup, /QB·5<\/small>/);
-    assert.match(markup, /QB·21<\/small>/);
+    if (key !== 'overall_rank') {
+      assert.match(markup, /QB season positional rank">Rk 5<\/small>/);
+      assert.match(markup, /QB season positional rank">Rk 21<\/small>/);
+    } else assert.doesNotMatch(markup, />Rk /, 'the overall-rank statistic is already a rank');
     assert.doesNotMatch(markup, /QB #/);
   }
   for (const markup of [row('fpts', 10, 10), row('fpts', 10, null), row('ttt', 2, 3)]) {
@@ -483,7 +484,7 @@ test('both themes share one plain ceiling row while DM has only a consistency di
   assert.match(ring(player, 0), /<span>CEILING<\/span><b>—<\/b>/);
 });
 
-test('DM reuses the exact DataHub second-TE and first-RB spectra for scoring and radar lines and areas', () => {
+test('DM carries the image reference turquoise/blue and gold/pink/magenta spectra into scoring and radar', () => {
   const { timelineOption, performanceRadar, radarStatsForPosition } = harness().window.RostersStartSit;
   const echarts = { graphic: { LinearGradient: class { constructor(...args) { this.args = args; } } } };
   const players = [0, 1].map(side => ({ id: String(side), name: `Player ${side}`, pos: 'TE',
@@ -491,9 +492,8 @@ test('DM reuses the exact DataHub second-TE and first-RB spectra for scoring and
     weekly: [{ week: 1, points: 10 }, { week: 2, points: 30 }] }));
   const option = timelineOption(players, 'weekly', echarts, true, 'dm');
   const radar = performanceRadar(players, 'dm');
-  for (const [side, position, index] of [[0, 'RB', 0], [1, 'TE', 1]]) {
-    const palette = getPlayerPalette({ pos: position }, index);
-    const expected = [palette.low, palette.lowMid, palette.highMid, palette.high];
+  const referenceSpectra = [['#1264FF', '#118FFF', '#00C6EF', '#19EDDD'], ['#FFBF47', '#FF866C', '#F43EAE', '#CD28F4']];
+  for (const [side, expected] of referenceSpectra.entries()) {
     assert.deepEqual(Array.from(option.series[side].lineStyle.color.args[4], stop => stop.color), expected);
     const area = option.series[side].areaStyle.color.args[4];
     assert.equal(area.length, 4);
@@ -517,4 +517,51 @@ test('both scoring themes round the lines without changing recorded values and k
     assert.deepEqual(Array.from(option.series[0].data, point => point.value), [-2, 0]);
     assert.deepEqual(Array.from(option.series[1].data, point => point.value), [4, 4]);
   }
+});
+
+test('endpoint bars retain shared magnitudes and distinguish source negatives, zeroes and unranked gaps', () => {
+  const { metricRow } = harness().window.RostersStartSit;
+  const players = [{ pos: 'QB', labels: { fpts: 'FPTS' }, metrics: { fpts: { value: -12, display: '-12.0', rank: 8 } } },
+    { pos: 'QB', labels: {}, metrics: { fpts: { value: 24, display: '24.0', rank: 3 } } }];
+  let markup = metricRow('fpts', players);
+  assert.match(markup, /ss-stat-plot ss-side-0 ss-trailing" style="--ss-bar-ratio:0.5"/);
+  assert.match(markup, /ss-stat-plot ss-side-1 ss-leading" style="--ss-bar-ratio:1"/);
+  assert.match(markup, /class="ss-stat-fill ss-negative"/);
+  assert.match(markup, />-12.0<\/b>/);
+  players[0].metrics.fpts = { value: 0, display: '0.0', rank: 12 };
+  players[1].metrics.fpts = { value: null, display: '—', rank: null };
+  markup = metricRow('fpts', players);
+  assert.equal((markup.match(/class="ss-stat-zero"/g) || []).length, 1);
+  assert.equal((markup.match(/data-ss-available="false"/g) || []).length, 1);
+  assert.match(markup, />0.0<\/b>/);
+  assert.match(markup, />Rk —<\/small>/);
+  players[0].metrics.fpts = { value: null, display: '—', rank: null };
+  markup = metricRow('fpts', players);
+  assert.equal((markup.match(/class="ss-stat-rail"/g) || []).length, 2);
+  assert.doesNotMatch(markup, /ss-stat-zero|ss-stat-fill|ss-text-row|ss-leading|ss-trailing/);
+});
+
+test('each stat row reserves the same endpoint-label clearance for both players and updates after font changes', () => {
+  const { measureStatPlots } = harness().window.RostersStartSit;
+  let widths = [28.2, 46.5], writes = 0, clearance = '';
+  const row = { querySelectorAll: () => widths.map(width => ({ getBoundingClientRect: () => ({ width }) })),
+    style: { getPropertyValue: () => clearance, setProperty: (key, value) => { assert.equal(key, '--ss-value-space'); clearance = value; writes++; } } };
+  const mount = { querySelectorAll: () => [row] };
+  measureStatPlots(mount);
+  assert.equal(clearance, '55px');
+  measureStatPlots(mount);
+  assert.equal(writes, 1, 'same measurements must not keep triggering ResizeObserver writes');
+  widths = [38.1, 31.5];
+  measureStatPlots(mount);
+  assert.equal(clearance, '47px');
+});
+
+test('contextual stat rates retain supplied positional ranks without selecting a better/worse winner', () => {
+  const { metricRow } = harness().window.RostersStartSit;
+  const players = [{ pos: 'QB', labels: { ttt: 'TTT' }, metrics: { ttt: { value: 2.4, display: '2.40', rank: 5 } } },
+    { pos: 'QB', labels: {}, metrics: { ttt: { value: 2.9, display: '2.90', rank: 21 } } }];
+  const markup = metricRow('ttt', players);
+  assert.match(markup, />Rk 5<\/small>/);
+  assert.match(markup, />Rk 21<\/small>/);
+  assert.doesNotMatch(markup, /ss-leading|ss-trailing/);
 });
