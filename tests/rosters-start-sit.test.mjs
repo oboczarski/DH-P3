@@ -30,7 +30,7 @@ function harness(season = '2026') {
     + slice('function getOpponentDefenseRank(', 'let tableCoreLoaderPromise')
     + slice('function buildRostersDecisionPlayer(input) {', 'async function openRostersDecisionComparison(')
     // Test the actual private renderers without expanding the production API.
-    + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, metricRow, measureStatPlots, sparkline, shortName, projectionMatchup, projectionState, timelineOption, sizeTrajectory, playerHero, radarRadius, performanceRadar, hudDial, ring'), context);
+    + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, metricRow, measureStatPlots, sparkline, shortName, projectionMatchup, projectionState, timelineOption, sizeTrajectory, playerHero, radarRadius, performanceRadar, hudDial, ring, radarValue, toggleComparisonTheme'), context);
   return context;
 }
 
@@ -433,19 +433,20 @@ test('radar keeps the Game Logs top-seven scale and treats missing ranks as gaps
   }
 });
 
-test('radar overlays same-position players but gives mixed positions their own metrics and rank scale', () => {
+test('radar gives each player labeled values and ordinal ranks with independent positional scales', () => {
   const { radarStatsForPosition, performanceRadar } = harness().window.RostersStartSit;
   const player = (pos, id) => ({ name: `Player ${id}`, id, pos, metrics: Object.fromEntries(radarStatsForPosition(pos).map(key => [key, { value: 0, display: '0.0', rank: 5 }])) });
   const rb = player('RB', 'first'), second = player('RB', 'second'), qb = player('QB', 'quarterback');
   const same = performanceRadar([rb, second], 'v2');
-  assert.equal((same.match(/class="ss-radar-svg"/g) || []).length, 1);
+  assert.equal((same.match(/class="ss-radar-svg"/g) || []).length, 2);
   assert.equal((same.match(/class="ss-radar-area"/g) || []).length, 2);
   assert.match(same, /Player first · FPTS: 0.0 · RB rank 5/);
-  assert.match(same, /0.0<\/b><small[^>]*>RB·5/);
+  assert.match(same, /ss-radar-axis-value[^>]*>0.0<\/text>/);
+  assert.match(same, /ss-radar-rank[^>]*[^]*?5<tspan class="ss-radar-rank-suffix" dy="-3">th<\/tspan>/);
   assert.doesNotMatch(same, /NaN|undefined/);
   const mixed = performanceRadar([rb, qb], 'dm');
   assert.equal((mixed.match(/class="ss-radar-svg"/g) || []).length, 2);
-  assert.match(mixed, /ss-radar-mixed/);
+  assert.match(mixed, /ss-radar-profiles/);
   assert.match(mixed, /EPA\/DB/);
   assert.match(mixed, /EXPLSV%/);
   assert.notEqual(same.match(/id="ss-radar-0-0-line"[^]*?<\/linearGradient>/)[0], performanceRadar([rb, second], 'dm').match(/id="ss-radar-0-0-line"[^]*?<\/linearGradient>/)[0]);
@@ -453,7 +454,7 @@ test('radar overlays same-position players but gives mixed positions their own m
   const partial = performanceRadar([rb, second], 'v2');
   assert.equal((partial.match(/class="ss-radar-area"/g) || []).length, 1, 'unranked axes must not invent a closed filled profile');
   assert.match(partial, /No qualified positional rank/);
-  assert.match(partial, />RB·—<\/small>/);
+  assert.match(partial, />—<\/small>/);
 });
 
 test('DM consistency HUD preserves recorded zero, unavailable values and all seven Game Logs progress bands', () => {
@@ -564,4 +565,35 @@ test('contextual stat rates retain supplied positional ranks without selecting a
   assert.match(markup, />Rk 5<\/small>/);
   assert.match(markup, />Rk 21<\/small>/);
   assert.doesNotMatch(markup, /ss-leading|ss-trailing/);
+});
+
+
+// A style is optional: Default must remain reachable through either button,
+// including repeated activation and a transition from one enabled theme.
+test('comparison starts in Default and each theme toggles off back to Default', () => {
+  const { toggleComparisonTheme, timelineOption } = harness().window.RostersStartSit;
+  assert.match(presentation, /let comparisonTheme = 'default'/);
+  for (const theme of ['dm', 'v2']) {
+    assert.equal(toggleComparisonTheme(theme), theme);
+    assert.equal(toggleComparisonTheme(theme), 'default');
+  }
+  assert.equal(toggleComparisonTheme('v2'), 'v2');
+  assert.equal(toggleComparisonTheme('dm'), 'dm');
+  assert.equal(toggleComparisonTheme('dm'), 'default');
+  const echarts = { graphic: { LinearGradient: class { constructor(...args) { this.args = args; } } } };
+  const players = [{ name: 'A', weekly: [{ week: 1, points: 10 }] }, { name: 'B', weekly: [{ week: 1, points: 12 }] }];
+  const option = timelineOption(players, 'weekly', echarts, true);
+  assert.equal(option.series[0].itemStyle.color, '#76e8ef');
+  assert.equal(option.series[1].itemStyle.color, '#9bc5ff');
+});
+
+test('radar axis values match actual Game Logs precision for every positional metric', () => {
+  const { radarValue, radarStatsForPosition } = harness().window.RostersStartSit;
+  const logs = fs.readFileSync(new URL('../DH_P2.53/scripts/rosters-gamelogs.js', import.meta.url), 'utf8');
+  const format = vm.runInNewContext(logs.slice(logs.indexOf('function formatRostersRadarStatValue('), logs.indexOf('const rostersPlayerRadarLabelPlugin')) + ';formatRostersRadarStatValue');
+  const stats = new Set(['QB', 'RB', 'WR', 'TE'].flatMap(pos => Array.from(radarStatsForPosition(pos))));
+  for (const key of stats) {
+    for (const value of [0, 1.23456, -2.3456, 1087]) assert.equal(radarValue(key, value), format(key, value), `${key}: ${value}`);
+    for (const value of [null, undefined, '', 'N/A']) assert.equal(radarValue(key, value), '—');
+  }
 });

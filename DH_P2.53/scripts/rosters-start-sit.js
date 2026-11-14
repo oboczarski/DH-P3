@@ -15,6 +15,7 @@
   // Comparison themes own their player colors; the selection tray keeps its
   // existing palette. Remember the selected theme only for this page session.
   const THEMES = {
+    default: PALETTES,
     v2: [
       { main: '#45ebce', light: '#a2fbe6', mid: '#18a9d9', deep: '#155e91', muted: '#789f9b', rgb: '69,235,206' },
       { main: '#d9a0ff', light: '#ffc0e6', mid: '#9970fa', deep: '#54348e', muted: '#a18caa', rgb: '210,144,255' },
@@ -29,18 +30,24 @@
         stops: ['#FFBF47', '#FF866C', '#F43EAE', '#CD28F4'] },
     ],
   };
-  let comparisonTheme = 'v2';
+  // Default remains the initial comparison. Each optional theme is a toggle:
+  // pressing its active button again restores the original presentation.
+  let comparisonTheme = 'default';
+  function toggleComparisonTheme(theme) {
+    comparisonTheme = comparisonTheme === theme ? 'default' : theme;
+    return comparisonTheme;
+  }
   // Match the current Game Logs Performance axes and positional rank ceilings.
   // These are data definitions only; Start/Sit draws its own SVG presentation.
   const RADAR_CONFIG = {
     QB: { stats: ['fpts', 'ppg', 'cmp_pct', 'pass_rtg', 'imp', 'epa_per_db', 'cpoe', 'ttt', 'pass_yd', 'rush_yd', 'team_pass_pct', 'csty_pct', 'ceiling'],
-      labels: ['FPTS', 'PPG', 'CMP%', 'paRTG', 'IMP', 'EPA/DB', 'CPOE', 'TTT', 'paYDS', 'ruYDS', 'TmPa%', 'CSTY%', 'CL'], maxRank: 36 },
+      labels: ['FPTS', 'PPG', 'CMP%', 'paRTG', 'IMP(TD+1D)', 'EPA/DB', 'CPOE', 'TTT', 'paYDS', 'ruYDS', 'TmPa%', 'CSTY%', 'CL'], maxRank: 36 },
     RB: { stats: ['fpts', 'ppg', 'snp_pct', 'ypc', 'imp', 'expl_ru_pct', 'mtf_per_att', 'yco_per_att', 'ts_per_rr', 'yprr', 'yds_total', 'csty_pct', 'ceiling'],
-      labels: ['FPTS', 'PPG', 'SNP%', 'YPC', 'IMP', 'EXPLSV%', 'MTF/A', 'YCO/A', 'TS%', 'YPRR', 'YDS(t)', 'CSTY%', 'CL'], maxRank: 48 },
+      labels: ['FPTS', 'PPG', 'SNP%', 'YPC', 'IMP(TD+1D)', 'EXPLSV%', 'MTF/A', 'YCO/A', 'TS%', 'YPRR', 'YDS(t)', 'CSTY%', 'CL'], maxRank: 48 },
     WR: { stats: ['fpts', 'ppg', 'yds_total', 'imp', 'rec_tgt', 'ts_per_rr', 'rec', 'yprr', 'rec_yar', 'rec_yms', 'csty_pct', 'ceiling'],
-      labels: ['FPTS', 'PPG', 'YDS(t)', 'IMP', 'TGT', 'TS%', 'REC', 'YPRR', 'YAC', 'recYS%', 'CSTY%', 'CL'], maxRank: 72 },
+      labels: ['FPTS', 'PPG', 'YDS(t)', 'IMP(TD+1D)', 'TGT', 'TS%', 'REC', 'YPRR', 'YAC', 'recYS%', 'CSTY%', 'CL'], maxRank: 72 },
     TE: { stats: ['fpts', 'ppg', 'yds_total', 'imp', 'rec_tgt', 'ts_per_rr', 'rec', 'yprr', 'rec_yar', 'rec_yms', 'csty_pct', 'ceiling'],
-      labels: ['FPTS', 'PPG', 'YDS(t)', 'IMP', 'TGT', 'TS%', 'REC', 'YPRR', 'YAC', 'recYS%', 'CSTY%', 'CL'], maxRank: 24 },
+      labels: ['FPTS', 'PPG', 'YDS(t)', 'IMP(TD+1D)', 'TGT', 'TS%', 'REC', 'YPRR', 'YAC', 'recYS%', 'CSTY%', 'CL'], maxRank: 24 },
   };
   const radarStatsForPosition = position => RADAR_CONFIG[position]?.stats || [];
   const TIMELINE_GUTTERS = { left: 30, right: 18 };
@@ -270,10 +277,10 @@
     const display = value === null ? '—' : `${fmt(value, Number.isInteger(value) ? 0 : 1)}%`;
     return `<div class="ss-hud-dial" data-dial-tone="${tone}" data-has-progress="${progress !== null && progress > 0}" style="--progress:${progress || 0}" role="img" aria-label="${escape(player.name)} consistency: ${display}" title="Arc = consistency percentage"><i class="ss-dial-glow"></i><i class="ss-dial-arc"></i><i class="ss-dial-echo"></i><i class="ss-dial-origin"></i><i class="ss-dial-cap"></i><div class="ss-dial-core"><b>${escape(display)}</b><span>CONSISTENCY</span></div></div>`;
   }
-  function ring(player, side) {
+  function ring(player, side, theme = 'default') {
     const value = number(player.metrics.csty_pct?.value);
     const id = `ss-ring-${player.id}-${side}`;
-    const p = THEMES.v2[side];
+    const p = THEMES[theme][side];
     return `<div class="ss-consistency-player ss-side-${side}"><strong><i></i>${escape(shortName(player))}</strong><div class="ss-dm-gauges">${hudDial(player)}</div><div class="ss-v2-gauges"><svg class="ss-consistency-ring" viewBox="0 0 120 106" role="img" aria-label="${escape(player.name)} consistency ${value === null ? 'unavailable' : `${fmt(value)} percent`}"><defs><linearGradient id="${id}" x1="0" x2="1" y1="1" y2="0"><stop stop-color="${p.deep}"/><stop offset=".35" stop-color="${p.mid}"/><stop offset=".72" stop-color="${p.main}"/><stop offset="1" stop-color="${p.light}"/></linearGradient></defs><path d="M20 85a48 48 0 1 1 80 0" fill="none" stroke="#ffffff0c" stroke-width="6" stroke-linecap="round"/><path d="M20 85a48 48 0 1 1 80 0" fill="none" stroke="url(#${id})" stroke-width="6" stroke-linecap="round" pathLength="100" stroke-dasharray="${value === null ? 0 : Math.min(100, Math.max(0, value))} 100"/><path d="M30 80a36 36 0 1 1 60 0" fill="none" stroke="${p.main}33" stroke-width="1" stroke-dasharray="1 6"/><text x="60" y="58" text-anchor="middle" class="ss-ring-value">${value === null ? '—' : fmt(value, Number.isInteger(value) ? 0 : 1)}<tspan class="ss-ring-unit">${value === null ? '' : '%'}</tspan></text><text x="60" y="73" text-anchor="middle" class="ss-ring-label">CONSISTENCY</text></svg></div><div class="ss-ceiling"><span>CEILING</span><b>${escape(player.metrics.ceiling?.display || '—')}</b><small>PPR pts</small></div></div>`;
   }
   function getSections(players) {
@@ -368,83 +375,94 @@
     const value = Number.parseInt(color.slice(1), 16);
     return `rgba(${(value >> 16) & 255},${(value >> 8) & 255},${value & 255},${opacity})`;
   }
-  function radarGraphic(players, sides, config, theme, uid) {
-    const center = 180, radius = 125, count = config.stats.length;
+  // Match Game Logs' Performance value precision without changing the season
+  // snapshot or the league-scored FPTS/PPG values supplied by app.js.
+  function radarValue(key, value) {
+    const n = number(value);
+    if (n === null) return '—';
+    if (['cmp_pct', 'snp_pct', 'ts_per_rr', 'csty_pct', 'rec_yms', 'team_pass_pct'].includes(key)) return `${n.toFixed(1)}%`;
+    if (key === 'expl_ru_pct') return `${n.toFixed(2)}%`;
+    if (key === 'cpoe') return `${n > 0 ? '+' : ''}${n.toFixed(1)}%`;
+    if (key === 'epa_per_db') return `${n > 0 ? '+' : ''}${n.toFixed(2)}`;
+    if (['fpts', 'ppg', 'pass_rtg', 'ceiling'].includes(key)) return n.toFixed(1);
+    if (['rec', 'rec_tgt', 'yds_total', 'imp', 'pass_yd', 'rush_yd', 'rec_yar'].includes(key)) return String(Math.round(n));
+    return n.toFixed(2);
+  }
+  function rankSuffix(rank) {
+    const n = Math.round(rank), last = n % 100;
+    return last >= 11 && last <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th');
+  }
+  // One full-width profile per player keeps all 12/13 stat + value pairs
+  // legible on phones. Desktop presents the two cards side by side. The rank
+  // geometry matches Game Logs; the gradient materials belong to Start/Sit.
+  function radarGraphic(player, side, config, theme, uid) {
+    const cx = 180, cy = 168, radius = 120, count = config.stats.length;
     const at = (index, distance) => {
       const angle = -Math.PI / 2 + index * Math.PI * 2 / count;
-      return [center + Math.cos(angle) * distance, 168 + Math.sin(angle) * distance];
+      return [cx + Math.cos(angle) * distance, cy + Math.sin(angle) * distance];
     };
     const pointString = points => points.map(point => point.map(value => value.toFixed(2)).join(',')).join(' ');
+    const palette = THEMES[theme][side], id = `ss-radar-${uid}-${side}`;
+    const lineStops = comparisonGradientStops(palette, theme).map(stop => `<stop offset="${stop.offset}" stop-color="${stop.color}"/>`).join('');
+    const areaStops = comparisonGradientStops(palette, theme).map(stop => `<stop offset="${stop.offset}" stop-color="${stop.color}" stop-opacity="${.07 + stop.offset * .25}"/>`).join('');
+    const definitions = `<linearGradient id="${id}-line" x1="0" y1="1" x2="1" y2="0">${lineStops}</linearGradient><linearGradient id="${id}-area" x1="0" y1="1" x2=".85" y2="0">${areaStops}</linearGradient>`;
     const grid = [20, 40, 60, 80, 100].map((level, index) => `<polygon points="${pointString(config.stats.map((_, i) => at(i, radius * level / 100)))}" class="ss-radar-grid-ring"${index === 4 ? ' data-outer="true"' : ''}/>`).join('');
     const axes = config.stats.map((key, index) => {
-      const edge = at(index, radius), label = at(index, radius + 23);
-      // The label's anchor follows the spoke, leaving useful room for long
-      // abbreviations at either edge without shrinking the whole mobile plot.
-      const cosine = Math.cos(-Math.PI / 2 + index * Math.PI * 2 / count);
-      return `<line x1="180" y1="168" x2="${edge[0]}" y2="${edge[1]}" class="ss-radar-spoke"/><text x="${label[0]}" y="${label[1]}" text-anchor="${cosine > .3 ? 'start' : cosine < -.3 ? 'end' : 'middle'}" dominant-baseline="middle" class="ss-radar-axis">${escape(config.labels[index])}</text>`;
+      const edge = at(index, radius), label = at(index, radius + 27);
+      const value = radarValue(key, player.metrics[key]?.value);
+      // Center both lines on their axis, including IMP's lighter explanation.
+      // This preserves the plotting area without pushing long labels off-card.
+      const name = key === 'imp' ? 'IMP<tspan class="ss-radar-axis-note">(TD+1D)</tspan>' : escape(config.labels[index]);
+      return `<line x1="${cx}" y1="${cy}" x2="${edge[0]}" y2="${edge[1]}" class="ss-radar-spoke"/><g class="ss-radar-axis-group" data-ss-radar-stat="${key}"><title>${escape(DESCRIPTIONS[key] || config.labels[index])}</title><text x="${label[0]}" y="${label[1] - 3}" text-anchor="middle" class="ss-radar-axis">${name}</text><text x="${label[0]}" y="${label[1] + 11}" text-anchor="middle" class="ss-radar-axis-value">${escape(value)}</text></g>`;
     }).join('');
-    let definitions = '';
-    const datasets = players.map((player, playerIndex) => {
-      const side = sides[playerIndex], palette = THEMES[theme][side];
-      const id = `ss-radar-${uid}-${side}`;
-      const lineStops = theme === 'dm' ? comparisonGradientStops(palette, theme).map(stop => `<stop offset="${stop.offset}" stop-color="${stop.color}"/>`).join('')
-        : `<stop stop-color="${palette.mid}"/><stop offset=".48" stop-color="${palette.main}"/><stop offset="1" stop-color="${palette.light}"/>`;
-      const areaStops = theme === 'dm' ? palette.stops.map((color, index) => `<stop offset="${index / 3}" stop-color="${color}" stop-opacity="${[.02, .08, .16, .3][index]}"/>`).join('')
-        : `<stop stop-color="${palette.deep}" stop-opacity=".02"/><stop offset=".5" stop-color="${palette.mid}" stop-opacity=".15"/><stop offset="1" stop-color="${palette.main}" stop-opacity=".32"/>`;
-      definitions += `<linearGradient id="${id}-line" x1="0" y1="1" x2="1" y2="0">${lineStops}</linearGradient><linearGradient id="${id}-area" x1="0" y1="1" x2=".8" y2="0">${areaStops}</linearGradient>`;
-      const points = config.stats.map((key, index) => {
-        const metric = player.metrics[key], distance = radarRadius(metric?.rank, config.maxRank);
-        return number(metric?.value) === null || distance === null ? null : at(index, radius * distance / 100);
-      });
-      const complete = points.every(Boolean);
-      const area = complete ? `<polygon class="ss-radar-area" points="${pointString(points)}" fill="url(#${id}-area)"/>` : '';
-      // A partial radar draws only adjacent ranked axes; its value ledger still
-      // exposes available source numbers and explains unqualified/missing ranks.
-      const line = complete ? `<polygon points="${pointString(points)}" fill="none" stroke="url(#${id}-line)"/>`
-        : points.map((point, index) => point && points[(index + 1) % count] ? `<path d="M${point}L${points[(index + 1) % count]}" fill="none" stroke="url(#${id}-line)"/>` : '').join('');
-      const markers = points.map((point, index) => {
-        if (!point) return '';
-        const rank = number(player.metrics[config.stats[index]].rank);
-        const radial = radarRadius(rank, config.maxRank) / 100 * radius;
-        const label = at(index, Math.max(7, radial + (side === 0 ? 11 : -11)));
-        const value = player.metrics[config.stats[index]].display;
-        return `<g><title>${escape(player.name)} · ${escape(config.labels[index])}: ${escape(value)} · ${escape(player.pos)} rank ${rank}</title>${side === 0 ? `<circle cx="${point[0]}" cy="${point[1]}" r="2.8"/>` : `<path d="M${point[0]},${point[1] - 3.5}l3.5 3.5-3.5 3.5-3.5-3.5Z"/>`}<text x="${label[0]}" y="${label[1]}" class="ss-radar-rank" text-anchor="middle" dominant-baseline="middle">${rank}</text></g>`;
-      }).join('');
-      return `<g class="ss-radar-dataset ss-side-${side}"><g class="ss-radar-shape">${area}${line}</g><g class="ss-radar-markers">${markers}</g></g>`;
+    const points = config.stats.map((key, index) => {
+      const metric = player.metrics[key], distance = radarRadius(metric?.rank, config.maxRank);
+      return number(metric?.value) === null || distance === null ? null : at(index, radius * distance / 100);
+    });
+    const complete = points.every(Boolean);
+    const area = complete ? `<polygon class="ss-radar-area" points="${pointString(points)}" fill="url(#${id}-area)"/>` : '';
+    // Missing/unqualified ranks stay gaps; never draw a fabricated closed area.
+    const line = complete ? `<polygon points="${pointString(points)}" fill="none" stroke="url(#${id}-line)"/>`
+      : points.map((point, index) => point && points[(index + 1) % count] ? `<path d="M${point}L${points[(index + 1) % count]}" fill="none" stroke="url(#${id}-line)"/>` : '').join('');
+    const markers = config.stats.map((key, index) => {
+      const point = points[index], rank = point ? number(player.metrics[key].rank) : null;
+      // Ranks sit outside their points with a minimum radius that prevents
+      // weak/unranked profiles from piling every label into the center.
+      const distance = rank === null ? 38 : Math.max(38, radius * radarRadius(rank, config.maxRank) / 100 + 13);
+      const label = at(index, distance);
+      const title = `${player.name} · ${config.labels[index]}: ${radarValue(key, player.metrics[key]?.value)} · ${player.pos} rank ${rank ?? 'unavailable'}`;
+      return `<g><title>${escape(title)}</title>${!point ? '' : side === 0 ? `<circle cx="${point[0]}" cy="${point[1]}" r="3"/>` : `<path d="M${point[0]},${point[1] - 3.5}l3.5 3.5-3.5 3.5-3.5-3.5Z"/>`}<text x="${label[0]}" y="${label[1]}" class="ss-radar-rank${rank === null ? ' ss-radar-unranked' : ''}" text-anchor="middle" dominant-baseline="middle">${rank === null ? '—' : `${rank}<tspan class="ss-radar-rank-suffix" dy="-3">${rankSuffix(rank)}</tspan>`}</text></g>`;
     }).join('');
-    const hasRanks = players.some(player => config.stats.some(key => number(player.metrics[key]?.value) !== null && radarRadius(player.metrics[key]?.rank, config.maxRank) !== null));
-    const summary = `${players.map(player => player.name).join(' and ')} ${players[0].pos} performance radar. Better positional ranks extend farther from the center. Exact values and ranks follow in the table.`;
-    return `<svg class="ss-radar-svg" viewBox="0 0 360 336" role="img" aria-label="${escape(summary)}"><defs>${definitions}</defs><g>${grid}${axes}</g><circle cx="180" cy="168" r="3" class="ss-radar-center"/>${datasets}${hasRanks ? '' : '<text x="180" y="166" text-anchor="middle" class="ss-radar-no-ranks">No qualified ranks</text>'}</svg>`;
+    const summary = `${player.name} ${player.pos} performance radar. Stat names and season values surround the plot; ordinal positional ranks label each axis. Better ranks extend farther from the center.`;
+    return `<svg class="ss-radar-svg" viewBox="0 0 360 340" role="img" aria-label="${escape(summary)}"><defs>${definitions}</defs><g>${grid}${axes}</g><circle cx="${cx}" cy="${cy}" r="2" class="ss-radar-center"/><g class="ss-radar-dataset ss-side-${side}"><g class="ss-radar-shape">${area}${line}</g><g class="ss-radar-markers">${markers}</g></g></svg>`;
   }
-  function radarCard(players, sides, config, theme, uid) {
-    return `<article class="ss-radar-card"><div class="ss-radar-card-heading"><span>${escape(players[0].pos)} <small>POSITIONAL PROFILE</small></span><b>01 <i>BEST RANK</i></b></div><div class="ss-radar-card-content"><div class="ss-radar-plot">${radarGraphic(players, sides, config, theme, uid)}</div><div class="ss-radar-ledger"><table><caption>Season values & positional ranks</caption><thead><tr><th scope="col">METRIC</th>${players.map((player, index) => `<th scope="col" class="ss-side-${sides[index]}"><span>${sides[index] === 0 ? '●' : '◆'}</span> ${escape(shortName(player))}</th>`).join('')}</tr></thead><tbody>${config.stats.map((key, index) => `<tr><th scope="row" title="${escape(DESCRIPTIONS[key] || config.labels[index])}">${escape(config.labels[index])}</th>${players.map((player, i) => {
+  function radarCard(player, side, config, theme) {
+    return `<article class="ss-radar-card ss-side-${side}"><div class="ss-radar-card-heading"><span><i>${side === 0 ? '●' : '◆'}</i> ${escape(shortName(player))}<small>${escape(player.pos)}</small></span><b>01 <i>BEST RANK</i></b></div><div class="ss-radar-card-content"><div class="ss-radar-plot">${radarGraphic(player, side, config, theme, side)}</div><details class="ss-radar-ledger"><summary>All values & positional ranks ${icon('down')}</summary><table><caption>${escape(player.name)} · season performance</caption><thead><tr><th scope="col">METRIC</th><th scope="col">VALUE</th><th scope="col">${escape(player.pos)} RANK</th></tr></thead><tbody>${config.stats.map((key, index) => {
       const metric = player.metrics[key] || {}, rank = number(metric.rank);
-      return `<td class="ss-side-${sides[i]}"><b>${escape(metric.display || '—')}</b><small title="${rank === null ? 'No qualified positional rank' : 'Season positional rank'}">${escape(player.pos)}·${rank ?? '—'}</small></td>`;
-    }).join('')}</tr>`).join('')}</tbody></table></div></div></article>`;
+      const qualified = number(metric.value) !== null && rank !== null && rank >= 1;
+      return `<tr><th scope="row" title="${escape(DESCRIPTIONS[key] || config.labels[index])}">${escape(config.labels[index])}</th><td><b>${escape(radarValue(key, metric.value))}</b></td><td><small title="${qualified ? 'Season positional rank' : 'No qualified positional rank'}">${qualified ? `${rank}${rankSuffix(rank)}` : '—'}</small></td></tr>`;
+    }).join('')}</tbody></table></details></div></article>`;
   }
-  function performanceRadar(players, theme = 'v2') {
-    const same = players[0].pos === players[1].pos;
-    const groups = same ? [players] : players.map(player => [player]);
-    const cards = groups.map((group, index) => {
-      const config = RADAR_CONFIG[group[0].pos];
-      return config ? radarCard(group, same ? [0, 1] : [index], config, theme, index) : '<p class="ss-panel-note">Performance radar unavailable for this position.</p>';
-    }).join('');
-    return `<div class="ss-radar-grid${same ? '' : ' ss-radar-mixed'}">${cards}</div>`;
+  function performanceRadar(players, theme = 'default') {
+    return `<div class="ss-radar-grid ss-radar-profiles">${players.map((player, side) => {
+      const config = RADAR_CONFIG[player.pos];
+      return config ? radarCard(player, side, config, theme) : '<p class="ss-panel-note">Performance radar unavailable for this position.</p>';
+    }).join('')}</div>`;
   }
   function comparisonMarkup(model, pair, chartMode) {
     const sections = getSections(pair);
     const same = pair[0].pos === pair[1].pos;
     const metricCount = sections.reduce((sum, section) => sum + section.stats.length, 0);
     const selectedOptions = side => model.players.map(player => `<option value="${escape(player.id)}"${player.id === pair[side].id ? ' selected' : ''}>${escape(player.name)} · ${escape(player.pos)}</option>`).join('');
-    return `<div class="ss-dashboard" data-ss-theme="${comparisonTheme}"><header class="ss-dashboard-header"><div class="ss-title-lockup"><span class="ss-app-mark">${icon('layers')}</span><div><span class="ss-eyebrow">START / SIT · COMPARISON</span><h1>Head to head<span class="ss-season-pill">${escape(model.season)}</span></h1></div></div><div class="ss-dashboard-actions"><div class="ss-theme-toggle" role="group" aria-label="Comparison theme"><button type="button" data-ss-theme-button="v2" aria-label="V2 theme" aria-pressed="${comparisonTheme === 'v2'}" title="V2 · aqua and orchid gradients">${icon('spark')}<span>V2</span></button><button type="button" data-ss-theme-button="dm" aria-label="DM theme" aria-pressed="${comparisonTheme === 'dm'}" title="DM · DataHub Game Logs inspired">${icon('layers')}<span>DM</span></button></div><button class="ss-dashboard-close ss-icon-button" type="button" data-ss-close aria-label="Close player comparison">${icon('close')}</button></div></header>
+    return `<div class="ss-dashboard" data-ss-theme="${comparisonTheme}"><header class="ss-dashboard-header"><div class="ss-title-lockup"><span class="ss-app-mark">${icon('layers')}</span><div><span class="ss-eyebrow">START / SIT · COMPARISON</span><h1>Head to head<span class="ss-season-pill">${escape(model.season)}</span></h1></div></div><div class="ss-dashboard-actions"><div class="ss-theme-toggle" role="group" aria-label="Comparison theme"><button type="button" data-ss-theme-button="v2" aria-label="V2 theme" aria-pressed="${comparisonTheme === 'v2'}" title="Toggle V2 · turn off for Default">${icon('spark')}<span>V2</span></button><button type="button" data-ss-theme-button="dm" aria-label="DM theme" aria-pressed="${comparisonTheme === 'dm'}" title="Toggle DM · turn off for Default">${icon('layers')}<span>DM</span></button></div><button class="ss-dashboard-close ss-icon-button" type="button" data-ss-close aria-label="Close player comparison">${icon('close')}</button></div></header>
       <div class="ss-dashboard-scroll"><div class="ss-comparison-pickers"><label class="ss-side-0"><span>A</span><select aria-label="First comparison player" data-ss-pick="0">${selectedOptions(0)}</select>${icon('down')}</label><button class="ss-swap ss-icon-button" type="button" data-ss-swap aria-label="Swap compared players">${icon('swap')}</button><label class="ss-side-1"><span>B</span><select aria-label="Second comparison player" data-ss-pick="1">${selectedOptions(1)}</select>${icon('down')}</label></div>
       <div class="ss-hero"><div class="ss-hero-orbit" aria-hidden="true"></div>${pair.map((player, side) => playerHero(player, side, model.week)).join('')}<span class="ss-hero-vs" aria-hidden="true">VS</span></div>
       <div class="ss-projection-insight">${icon('pulse')}<span>${number(pair[0].projection) !== null && number(pair[1].projection) !== null ? Math.abs(pair[0].projection - pair[1].projection) < .05 ? 'Level projections for this week' : `<b class="ss-side-${pair[0].projection > pair[1].projection ? 0 : 1}">${escape(shortName(pair[pair[0].projection > pair[1].projection ? 0 : 1]))}</b> projects <strong>${fmt(Math.abs(pair[0].projection - pair[1].projection))}</strong> points higher` : 'Compare season production while projections are unavailable'}</span><span class="ss-micro-label">WK ${model.week || '—'} OUTLOOK</span></div>
       <div class="ss-analytics-grid"><section class="ss-panel ss-timeline"><header class="ss-panel-header"><div>${icon('chart')}<h3>Scoring Comparison</h3></div><div class="ss-chart-toggle" role="group" aria-label="Scoring chart view"><button type="button" data-ss-chart="weekly" aria-pressed="${chartMode === 'weekly'}">Weekly</button><button type="button" data-ss-chart="cumulative" aria-pressed="${chartMode === 'cumulative'}">Cumulative</button></div></header><div class="ss-chart-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i></i>${escape(shortName(player))}</span>`).join('')}<span>LEAGUE PTS</span></div><div class="ss-timeline-viewport" tabindex="0" role="region" aria-label="Scoring Comparison; scroll horizontally for more weeks"><div class="ss-timeline-chart" role="img" aria-label="${chartMode === 'weekly' ? 'Weekly' : 'Cumulative'} fantasy points for ${escape(pair.map(player => player.name).join(' and '))}"></div></div><div class="ss-chart-caption"><span>Recorded games only</span><span>Unplayed weeks show status</span></div>${weeklyTable(pair)}</section>
-      <section class="ss-panel ss-reliability"><header class="ss-panel-header"><div>${icon('shield')}<h3>Consistency & ceiling</h3></div><span class="ss-micro-label">PPR BASELINE</span></header><div class="ss-consistency-rings">${pair.map(ring).join('')}</div><p class="ss-panel-note">CSTY% and CL · published season values</p></section>${production(pair)}</div>
+      <section class="ss-panel ss-reliability"><header class="ss-panel-header"><div>${icon('shield')}<h3>Consistency & ceiling</h3></div><span class="ss-micro-label">PPR BASELINE</span></header><div class="ss-consistency-rings">${pair.map((player, side) => ring(player, side, comparisonTheme)).join('')}</div><p class="ss-panel-note">CSTY% and CL · published season values</p></section>${production(pair)}</div>
       <div class="ss-detail-heading"><div><span class="ss-eyebrow">THE COMPLETE PICTURE</span><h2>Every stat. Both players.</h2></div><span class="ss-detail-badge">${metricCount}<small>METRICS</small></span></div><div class="ss-stat-contract"><span>${same ? `${escape(pair[0].pos)} · Game Logs season stats` : 'Mixed positions · Data Hub Overview'}</span><span>Bar length = magnitude · scale per metric</span></div>
       <nav class="ss-chapters" aria-label="Stat sections">${sections.map(section => `<button type="button" data-ss-section="${section.id}">${escape(section.label.toLowerCase())}</button>`).join('')}<button type="button" data-ss-section="radar">${icon('target')} Radar</button></nav><div class="ss-stat-grid">${statSections(pair)}</div>
-      <section class="ss-panel ss-performance" id="ss-section-radar" aria-label="Performance radar"><header class="ss-panel-header"><div>${icon('target')}<h3>Performance radar</h3></div><span class="ss-micro-label">${same ? `${escape(pair[0].pos)} · HEAD TO HEAD` : 'POSITION PROFILES'}</span></header><div class="ss-radar-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i>${side === 0 ? '●' : '◆'}</i>${escape(shortName(player))}</span>`).join('')}<small>OUTWARD = STRONGER RANK</small></div><div class="ss-radar-region">${performanceRadar(pair, comparisonTheme)}</div><p class="ss-radar-note">${same ? 'Shared axes · ' : 'Each position uses its own metrics and rank scale · '}Top 7 ranks retain the Game Logs scale. Missing ranks leave gaps; the table keeps available values.</p></section>
+      <section class="ss-panel ss-performance" id="ss-section-radar" aria-label="Performance radar"><header class="ss-panel-header"><div>${icon('target')}<h3>Performance radar</h3></div><span class="ss-micro-label">${same ? `${escape(pair[0].pos)} · HEAD TO HEAD` : 'POSITION PROFILES'}</span></header><div class="ss-radar-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i>${side === 0 ? '●' : '◆'}</i>${escape(shortName(player))}</span>`).join('')}<small>OUTWARD = STRONGER RANK</small></div><div class="ss-radar-region">${performanceRadar(pair, comparisonTheme)}</div><p class="ss-radar-note">Game Logs metrics, values and qualified positional ranks · farther out = stronger rank. Unranked metrics keep their values and leave gaps in the profile.</p></section>
       <footer class="ss-data-note">${icon('target')}<p>FPTS & PPG follow your league scoring. Other season metrics, ceiling and consistency follow the published stats. Positional ranks retain Game Logs qualification. <span>— Unavailable &nbsp; · &nbsp; 0 Recorded zero &nbsp; · &nbsp; Striped bar Negative value</span></p></footer></div></div>`;
   }
 
@@ -496,7 +514,7 @@
     // full seasons still reserve readable slots and scroll within the card.
     chartNode.style.minWidth = `${Math.max(0, data.weeks.length - 1) * labelWidth + TIMELINE_GUTTERS.left + TIMELINE_GUTTERS.right}px`;
   }
-  function timelineOption(players, mode, echarts, narrow, theme = 'v2') {
+  function timelineOption(players, mode, echarts, narrow, theme = 'default') {
     const data = trajectoryPlot(players, mode);
     const palettes = THEMES[theme];
     return {
@@ -580,10 +598,12 @@
       // Change materials and chart colors in place: selected players, scroll,
       // expanded definitions and weekly/cumulative mode all survive the toggle.
       model.mount.querySelectorAll('[data-ss-theme-button]').forEach(button => button.addEventListener('click', () => {
-        comparisonTheme = button.dataset.ssThemeButton;
+        toggleComparisonTheme(button.dataset.ssThemeButton);
         model.mount.querySelector('.ss-dashboard').dataset.ssTheme = comparisonTheme;
-        model.mount.querySelectorAll('[data-ss-theme-button]').forEach(other => other.setAttribute('aria-pressed', String(other === button)));
+        model.mount.querySelectorAll('[data-ss-theme-button]').forEach(other => other.setAttribute('aria-pressed', String(other.dataset.ssThemeButton === comparisonTheme)));
         model.mount.querySelector('.ss-radar-region').innerHTML = performanceRadar(pair, comparisonTheme);
+        model.mount.querySelector('.ss-consistency-rings').innerHTML = pair.map((player, side) => ring(player, side, comparisonTheme)).join('');
+        measureStatPlots(model.mount);
         const chartNode = model.mount.querySelector('.ss-timeline-chart');
         mounted?.chart?.setOption(timelineOption(pair, chartMode, window.echarts, chartNode.parentElement.clientWidth < 500, comparisonTheme), true);
       }));

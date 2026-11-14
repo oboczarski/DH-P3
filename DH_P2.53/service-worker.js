@@ -160,7 +160,9 @@
 // four-stop player spectra synchronized with the comparison stylesheet.
 // Refresh reference-based stat bars/endpoint labels and DM's turquoise/blue
 // versus gold/magenta player spectra together with their responsive sizing.
-const CACHE_NAME = 'DH3.74-infographic-stats';
+// Refresh Default/off theme behavior, denser stat rows and the fully labeled
+// per-player radars together; keep the comparison renderer and CSS in sync.
+const CACHE_NAME = 'DH3.75-comparison-refinement';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
