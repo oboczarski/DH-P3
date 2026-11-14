@@ -162,7 +162,9 @@
 // versus gold/magenta player spectra together with their responsive sizing.
 // Refresh Default/off theme behavior, denser stat rows and the fully labeled
 // per-player radars together; keep the comparison renderer and CSS in sync.
-const CACHE_NAME = 'DH3.75-comparison-refinement';
+// Refresh both Game Logs loaders and their shared URL configuration together:
+// future projection cells now use the single PROJ sheet's 10–18 columns.
+const CACHE_NAME = 'DH3.76-proj-sheet';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

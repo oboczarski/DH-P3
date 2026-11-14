@@ -1,7 +1,7 @@
 // DataHub-only 2026 sources: 2026_Season.csv supplies season totals; the combined
 // weekly CSV supplies results. Background Sheets reads supply only future PROJ.
 // Matchup ranks/SOS are calculated from the same recorded weekly CSV.
-import { get2026ProjectionWeeks, get2026ProjectionCsvUrl } from './nfl-2026-sheets.js';
+import { get2026ProjectionWeeks, get2026ProjectionCsvUrl } from './nfl-2026-sheets.js?v=DH3.76-proj-sheet';
 import { load2026WeeklyCsv, load2026ScheduleCsv, load2026MatchupData } from './nfl-2026-matchups.js';
 
 const POSITIONS = new Set(['QB', 'RB', 'WR', 'TE']);
@@ -143,9 +143,9 @@ export async function load2026WeeklyCsvData({
   return { weeklyRows, weekErrors, latestRecordedWeek };
 }
 
-// DataHub owns this projection parser and request lifecycle. Read only mapped
-// weeks beyond CSV results; discard every Sheets stat except the raw PROJ cell.
-// One failed/mislabeled tab cannot hide valid projections from another week.
+// DataHub Game Logs owns this parser/lifecycle. One PROJ export supplies the
+// numbered 10–18 columns beyond the CSV cutoff; v/inj columns never replace a
+// projection amount. Missing columns fail independently, without a WK fallback.
 export async function load2026ProjectionSourceData({ weeklySource, parseCsv, fetchImpl = fetch }) {
   const projectionRows = {};
   const projectionErrors = {};
@@ -153,23 +153,28 @@ export async function load2026ProjectionSourceData({ weeklySource, parseCsv, fet
   // requests for completed weeks or a Sheets replacement for missing results.
   if (Object.keys(weeklySource.weekErrors).length) return { projectionRows, projectionErrors };
   const weeks = get2026ProjectionWeeks(weeklySource.latestRecordedWeek);
-  await Promise.all(weeks.map(async (week) => {
-    try {
-      const response = await fetchImpl(get2026ProjectionCsvUrl(week), { cache: 'no-store' });
-      if (!response.ok) throw new Error(`WK${week} projections could not load (${response.status}).`);
-      const rows = parseCsv(await response.text());
-      if (!rows.length || !('WK' in rows[0] || 'SZN' in rows[0])
-          || ['SLPR_ID', 'POS', 'TM', 'PROJ'].some((header) => !(header in rows[0]))) {
-        throw new Error(`WK${week} projections have missing or invalid columns.`);
+  if (!weeks.length) return { projectionRows, projectionErrors };
+  try {
+    const response = await fetchImpl(get2026ProjectionCsvUrl(), { cache: 'no-store' });
+    if (!response.ok) throw new Error(`PROJ projections could not load (${response.status}).`);
+    const rows = parseCsv(await response.text());
+    if (!rows.length || ['SZN', 'SLPR_ID', 'POS', 'TM'].some((header) => !(header in rows[0]))) {
+      throw new Error('PROJ projections have missing or invalid columns.');
+    }
+    const players = rows.filter(isPlayer);
+    if (!players.length) throw new Error('PROJ projections have no valid player rows.');
+    if (players.some((row) => String(row.SZN).trim() !== '2026')) throw new Error('PROJ contains a different season.');
+    weeks.forEach((week) => {
+      if (!(String(week) in rows[0])) {
+        projectionErrors[week] = `PROJ is missing the Week ${week} projection column.`;
+        return;
       }
-      const players = rows.filter(isPlayer);
-      if (players.some((row) => Number(row.WK ?? row.SZN) !== week)) throw new Error(`WK${week} contains another week's rows.`);
       projectionRows[week] = players.map((row) => ({
         SZN: String(week), SLPR_ID: row.SLPR_ID, POS: row.POS, TM: row.TM,
-        'PLAYER NAME': row['PLAYER NAME'], PROJ: String(row.PROJ ?? '').trim(),
+        'PLAYER NAME': row['PLAYER NAME'], PROJ: String(row[week] ?? '').trim(),
       }));
-    } catch (error) { projectionErrors[week] = error.message; }
-  }));
+    });
+  } catch (error) { weeks.forEach((week) => { projectionErrors[week] = error.message; }); }
   return { projectionRows, projectionErrors };
 }
 

@@ -26,8 +26,9 @@ function createLoader(tables, failures = {}, boot = false) {
     if (failures[key] instanceof Error) throw failures[key];
     if (failures[key]) return { ok: false, status: failures[key] };
     if (sheet) {
-      assert.ok(/^WK(?:[1-9]|1[0-3])$/.test(sheet), 'Only mapped future projections may use Sheets');
-      return { ok: true, text: async () => tables[sheet] ?? (sheet === 'FPFA' ? matchupRanks : '') };
+      assert.equal(sheet, 'PROJ', 'Only the dedicated PROJ export may supply future projections');
+      assert.equal(parsed.searchParams.get('gid'), '1097963859');
+      return { ok: true, text: async () => tables[sheet] ?? '' };
     }
     if (filename === '2026_Season.csv') {
       assert.equal(parsed.pathname, '/data/NFL-2026_Stats/SeasonStats/2026_Season.csv');
@@ -97,21 +98,22 @@ test('projection-only players use calculated ranks whether projections finish be
   for (const late of [false, true]) {
     let release;
     const held = new Promise(resolve => { release = resolve; });
-    const rows = 'WK,SLPR_ID,POS,TM,PROJ\n4,99999,RB,BUF,OUT';
+    const rows = 'SZN,SLPR_ID,POS,TM,10\n2026,99999,RB,BUF,OUT';
     const window = createLoader({ '2026_Season.csv': season, DRK: defense,
       FPFA: 'TM,QBrk,RBrk,WRrk,TErk\nHOU,4,7,1,32',
       '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P\n1,4984,QB,BUF,5,1\n1,2,RB,BUF,3,1',
-      WK4: late ? held.then(() => rows) : rows,
+      'Schedule2026.csv': 'TM,1,10,18\nBUF,@ HOU,@ HOU,vs NYJ',
+      PROJ: late ? held.then(() => rows) : rows,
     });
     const projections = window.ensureRosters2026ProjectionsLoaded();
     if (!late) await projections;
     const snapshot = await window.activateRosters2026GameLogs();
     if (late) {
-      assert.equal(snapshot.weeklyStats[4]['99999'], undefined);
+      assert.equal(snapshot.weeklyStats[10]['99999'], undefined);
       release();
       await projections;
     }
-    const stats = snapshot.weeklyStats[4]['99999'];
+    const stats = snapshot.weeklyStats[10]['99999'];
     assert.equal(stats.opponent_rank, 32, 'projection-only players reuse the calculated defense strength');
     assert.equal(stats.opponent, '@ HOU');
     assert.equal(stats.proj, 'OUT');
@@ -411,67 +413,82 @@ test('a failed background 2025 CSV load cannot erase active Rosters 2026 data an
   }
 });
 
-test('Rosters boot loads WK8-WK13 projections after the CSV cutoff without delaying results or sharing historical state', async () => {
+test('Rosters boot reads PROJ once through Week 18 without delaying results or sharing historical state', async () => {
   let release;
   const held = new Promise((resolve) => { release = resolve; });
-  const projections = (week, proj) => `WK,SLPR_ID,POS,TM,PROJ,FPT_PPR,SNP\n${week},4984,QB,BUF,${proj},999,99`;
   const window = createLoader({ '2026_Season.csv': season, DRK: defense,
-    '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n7,4984,QB,BUF,19.52,1,59,23.4',
-    WK8: held.then(() => projections(8, '22.0')), WK9: projections(9, '0'), WK10: projections(10, 'BYE'),
-    WK11: projections(11, '21.2'), WK12: projections(12, 'OUT'), WK13: projections(13, '0'),
+    '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n9,4984,QB,BUF,19.52,1,59,23.4',
+    // Shuffled numbered headers and conflicting inj/v cells enforce the live
+    // PROJ schema while fake box scores verify the future-only merge boundary.
+    PROJ: held.then(() => 'SZN,SLPR_ID,POS,TM,v10,inj10,18,10,11,12,13,14,15,16,17,FPT_PPR,SNP\n2026,4984,QB,BUF,@ NYJ,OUT,-1.5,22.0,0,BYE,21.2,OUT,0,18.2,,999,99'),
   }, {}, true);
   const first = window.ensureRosters2026ProjectionsLoaded();
   assert.equal(window.ensureRosters2026ProjectionsLoaded(), first);
   const snapshot = await window.activateRosters2026GameLogs();
-  assert.equal(snapshot.weeklyStats[8]['4984'].proj, undefined, 'League snapshot must resolve while projection network is pending');
-  const historical = { 8: { '4984': { proj: '2025 projection' } } };
+  assert.equal(snapshot.weeklyStats[10]['4984'].proj, undefined, 'League snapshot must resolve while projection network is pending');
+  const historical = { 10: { '4984': { proj: '2025 projection' } } };
   window.state.activeRostersGameLogsSeason = '2025';
   window.state.playerWeeklyStats = historical;
   release();
   await first;
   assert.equal(window.state.playerWeeklyStats, historical, 'Late 2026 projections cannot activate or change historical data');
-  assert.equal(snapshot.weeklyStats[8]['4984'].proj, '22.0');
-  assert.equal(snapshot.weeklyStats[9]['4984'].proj, '0');
-  assert.equal(snapshot.weeklyStats[10]['4984'].proj, 'BYE');
-  assert.equal(snapshot.weeklyStats[11]['4984'].proj, '21.2');
-  assert.equal(snapshot.weeklyStats[12]['4984'].proj, 'OUT');
-  assert.equal(snapshot.weeklyStats[13]['4984'].proj, '0');
+  for (const [week, proj] of [[10, '22.0'], [11, '0'], [12, 'BYE'], [13, '21.2'], [14, 'OUT'], [15, '0'], [16, '18.2'], [17, ''], [18, '-1.5']]) {
+    assert.equal(snapshot.weeklyStats[week]['4984'].proj, proj);
+    assert.equal(snapshot.weeklyStats[week]['4984'].__hasRecordedStats, false);
+  }
   assert.equal(snapshot.weeklyStats[13]['4984'].fpt_ppr, undefined);
-  assert.equal(snapshot.weeklyStats[7]['4984'].proj, '23.4');
-  assert.equal(snapshot.weeklyStats[7]['4984'].fpt_ppr, 19.52);
-  assert.equal(snapshot.weeklyStats[8]['4984'].fpt_ppr, undefined);
-  assert.equal(snapshot.weeklyStats[8]['4984'].snp, undefined);
-  assert.equal(snapshot.weeklyStats[8]['4984'].__hasRecordedStats, false);
-  assert.equal(snapshot.latestRecordedWeek, 7);
+  assert.equal(snapshot.weeklyStats[9]['4984'].proj, '23.4');
+  assert.equal(snapshot.weeklyStats[9]['4984'].fpt_ppr, 19.52);
+  assert.equal(snapshot.weeklyStats[10]['4984'].fpt_ppr, undefined);
+  assert.equal(snapshot.weeklyStats[10]['4984'].snp, undefined);
+  assert.equal(snapshot.latestRecordedWeek, 9);
   assert.equal(snapshot.rankQualifierWeeks, 1);
   await window.activateRosters2026GameLogs();
-  assert.equal(window.state.currentNflWeek, 8);
-  assert.equal(window.state.playerProjectionWeeks[8], true);
-  assert.equal(window.state.playerProjectionWeeks[7], undefined);
-  assert.deepEqual(window.requests.map(({ sheet }) => sheet).filter((sheet) => /^WK/.test(sheet)).sort(), ['WK10', 'WK11', 'WK12', 'WK13', 'WK8', 'WK9']);
+  assert.equal(window.state.currentNflWeek, 10);
+  assert.equal(window.state.playerProjectionWeeks[10], true);
+  assert.equal(window.state.playerProjectionWeeks[9], undefined);
+  assert.deepEqual(window.requests.map(({ sheet }) => sheet).filter(Boolean), ['PROJ']);
   assert.equal(window.requests.filter(({ pathname }) => pathname.endsWith('2026_AllWKs.csv')).length, 1);
 });
 
-test('Rosters future tabs preserve statuses, reject the wrong week and contain individual failures', async () => {
+test('Rosters PROJ preserves statuses, skips completed weeks and isolates missing numbered columns', async () => {
   const window = createLoader({ '2026_Season.csv': season, DRK: defense,
-    '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP\n4,4984,QB,BUF,19.52,1,59',
-    WK5: 'SZN,SLPR_ID,POS,TM,PROJ\n5,4984,QB,BUF,OUT\n5,99999,RB,BUF,PUP',
-    WK6: 'WK,SLPR_ID,POS,TM,PROJ\n5,4984,QB,BUF,22.0',
-  }, { WK7: 400 });
+    '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n10,4984,QB,BUF,19.52,1,59,23.4',
+    PROJ: 'SZN,SLPR_ID,POS,TM,10,12,18\n2026,4984,QB,BUF,999,OUT,25.0\n2026,99999,RB,BUF,999,PUP,8.5',
+  });
   const result = await window.ensureRosters2026ProjectionsLoaded();
   const snapshot = await window.activateRosters2026GameLogs();
-  assert.equal(snapshot.weeklyStats[5]['4984'].proj, 'OUT');
-  assert.equal(snapshot.weeklyStats[5]['99999'].proj, 'PUP');
-  assert.equal(snapshot.weeklyStats[5]['99999'].__hasRecordedStats, false);
+  assert.equal(snapshot.weeklyStats[10]['4984'].proj, '23.4');
+  assert.equal(result.projectionRows[10], undefined);
+  assert.equal(snapshot.weeklyStats[12]['4984'].proj, 'OUT');
+  assert.equal(snapshot.weeklyStats[12]['99999'].proj, 'PUP');
+  assert.equal(snapshot.weeklyStats[18]['99999'].proj, '8.5');
+  assert.equal(snapshot.weeklyStats[12]['99999'].__hasRecordedStats, false);
   assert.equal(snapshot.seasonStats['99999'], undefined);
-  assert.match(result.projectionErrors[6], /another week/);
-  assert.match(result.projectionErrors[7], /could not load/);
-  assert.equal(snapshot.weeklyStats[6]['4984'].proj, undefined);
-  assert.equal(snapshot.weeklyStats[7]['4984'].proj, undefined);
+  assert.match(result.projectionErrors[11], /Week 11 projection column/);
+  assert.equal(snapshot.weeklyStats[11]['4984'].proj, undefined);
+  assert.equal(snapshot.latestRecordedWeek, 10);
   assert.equal(snapshot.seasonStats['4984'].fpts_ppr, 35.66);
 });
 
-test('Rosters skips projection Sheets if its CSV is invalid or no published future weeks remain', async () => {
+test('Rosters contains failed or malformed PROJ exports without requesting individual WK tabs', async () => {
+  for (const [csv, failure, message] of [
+    ['', 400, /could not load/],
+    ['SZN,SLPR_ID,POS,TM,10\n2025,4984,QB,BUF,22.0', null, /different season/],
+    ['<html>Sign in</html>', null, /invalid columns/],
+    ['SZN,SLPR_ID,POS,TM,10\n2026,not-a-player,QB,BUF,22.0', null, /no valid player/],
+  ]) {
+    const window = createLoader({
+      '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP\n9,4984,QB,BUF,19.52,1,59', PROJ: csv,
+    }, { PROJ: failure });
+    const result = await window.ensureRosters2026ProjectionsLoaded();
+    assert.equal(Object.keys(result.projectionRows).length, 0);
+    for (let week = 10; week <= 18; week++) assert.match(result.projectionErrors[week], message);
+    assert.deepEqual(window.requests.map(({ sheet }) => sheet).filter(Boolean), ['PROJ']);
+  }
+});
+
+test('Rosters skips PROJ if its CSV is invalid or no future projection columns remain', async () => {
   for (const csv of ['<html>Sign in</html>', 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP\n18,4984,QB,BUF,19.52,1,59']) {
     const window = createLoader({ '2026_AllWKs.csv': csv });
     const projections = await window.ensureRosters2026ProjectionsLoaded();

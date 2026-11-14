@@ -272,69 +272,87 @@ test('the shipped combined CSV preserves all original column values through Data
   assert.deepEqual(data.weekErrors, {});
 });
 
-test('projection URL configuration selects only published weeks after the CSV cutoff', () => {
-  assert.deepEqual(get2026ProjectionWeeks(4), [5, 6, 7, 8, 9, 10, 11, 12, 13]);
-  assert.deepEqual(get2026ProjectionWeeks(6), [7, 8, 9, 10, 11, 12, 13]);
-  assert.deepEqual(get2026ProjectionWeeks(7), [8, 9, 10, 11, 12, 13]);
-  assert.deepEqual(get2026ProjectionWeeks(10), [11, 12, 13]);
+test('projection configuration uses one native PROJ export and only future 10–18 columns', () => {
+  assert.deepEqual(get2026ProjectionWeeks(0), [10, 11, 12, 13, 14, 15, 16, 17, 18]);
+  assert.deepEqual(get2026ProjectionWeeks(9), [10, 11, 12, 13, 14, 15, 16, 17, 18]);
+  assert.deepEqual(get2026ProjectionWeeks(10), [11, 12, 13, 14, 15, 16, 17, 18]);
+  assert.deepEqual(get2026ProjectionWeeks(17), [18]);
   assert.deepEqual(get2026ProjectionWeeks(18), []);
-  assert.throws(() => get2026ProjectionWeeks(NaN), /cutoff/);
-  const url = new URL(get2026ProjectionCsvUrl(5));
+  for (const cutoff of [NaN, -1, 9.5, 19]) assert.throws(() => get2026ProjectionWeeks(cutoff), /cutoff/);
+  const url = new URL(get2026ProjectionCsvUrl());
   assert.equal(url.pathname.split('/').at(-1), 'export');
-  assert.equal(url.searchParams.get('gid'), '749604963');
-  assert.equal(url.searchParams.get('sheet'), 'WK5');
-  for (const [week, gid] of [[8, '1110983817'], [9, '102083848'], [10, '462792316'], [11, '993322654'], [12, '16052130'], [13, '1927039275']]) {
-    const futureUrl = new URL(get2026ProjectionCsvUrl(week));
-    assert.equal(futureUrl.searchParams.get('gid'), gid);
-    assert.equal(futureUrl.searchParams.get('sheet'), `WK${week}`);
-  }
+  assert.equal(url.searchParams.get('format'), 'csv');
+  assert.equal(url.searchParams.get('gid'), '1097963859');
+  assert.equal(url.searchParams.get('sheet'), 'PROJ');
 });
 
-test('DataHub future projections preserve zero/status text without importing sheet results or rereading CSV', async () => {
-  const fixture = weeklyFixture('WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n4,4984,QB,BUF,19.52,1,59,23.4');
+test('DataHub maps numbered PROJ columns through Week 18 and preserves zero/status text independently of v/inj', async () => {
+  const fixture = weeklyFixture('WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n9,4984,QB,BUF,19.52,1,59,23.4');
   const weeklySource = await load2026WeeklyCsvData(fixture.options);
   const requests = [];
-  const projectionSource = await load2026ProjectionSourceData({ weeklySource, parseCsv, fetchImpl: async (url) => {
-    const week = Number(new URL(url).searchParams.get('sheet').slice(2));
-    requests.push(week);
-    const value = { 5: '0', 6: 'OUT', 7: 'BYE', 8: '18.6', 9: 'IR', 10: '0', 11: '24.2', 12: 'OUT', 13: '0' }[week];
-    return { ok: true, text: async () => `WK,SLPR_ID,PLAYER NAME,POS,TM,PROJ,FPT_PPR,GM_P,SNP\n${week},4984,Josh Allen,QB,BUF,${value},999,1,90` };
+  const projectionSource = await load2026ProjectionSourceData({ weeklySource, parseCsv, fetchImpl: async (url, init) => {
+    assert.equal(init.cache, 'no-store');
+    requests.push(new URL(url).searchParams.get('sheet'));
+    // Intentionally shuffled week columns and conflicting metadata catch any
+    // positional parsing, inj/v substitution or accidental stats import.
+    return { ok: true, text: async () => 'SZN,SLPR_ID,PLAYER NAME,POS,TM,v10,inj10,18,10,11,12,13,14,15,16,17,FPT_PPR,GM_P,SNP\n2026,4984,Josh Allen,QB,BUF,@ NYJ,OUT,-1.5,0,OUT,BYE,18.6,IR,0,24.2,,999,1,90' };
   } });
-  assert.deepEqual(requests.sort((a, b) => a - b), [5, 6, 7, 8, 9, 10, 11, 12, 13]);
+  assert.deepEqual(requests, ['PROJ']);
+  assert.deepEqual(projectionSource.projectionErrors, {});
   const data = await load2026WeeklySourceData({ ...fixture.options, weeklySource, projectionSource });
   assert.equal(fixture.requests.filter(({ pathname }) => pathname.endsWith('2026_AllWKs.csv')).length, 1);
-  assert.equal(data.weeklyRows[4][0].PROJ, '23.4');
-  assert.equal(data.weeklyRows[4][0].FPT_PPR, '19.52');
-  for (const [week, value] of [[5, '0'], [6, 'OUT'], [7, 'BYE'], [8, '18.6'], [9, 'IR'], [10, '0'], [11, '24.2'], [12, 'OUT'], [13, '0']]) {
+  assert.equal(data.weeklyRows[9][0].PROJ, '23.4');
+  assert.equal(data.weeklyRows[9][0].FPT_PPR, '19.52');
+  for (const [week, value] of [[10, '0'], [11, 'OUT'], [12, 'BYE'], [13, '18.6'], [14, 'IR'], [15, '0'], [16, '24.2'], [17, ''], [18, '-1.5']]) {
     assert.equal(data.weeklyRows[week][0].PROJ, value);
     assert.equal(data.weeklyRows[week][0].FPT_PPR, undefined);
     assert.equal(data.weeklyRows[week][0].SNP, undefined);
     assert.equal(data.weeklyRows[week][0].__hasRecordedStats, false);
   }
-  assert.deepEqual(data.weeksWithResults, [4]);
+  assert.deepEqual(data.weeksWithResults, [9]);
   assert.equal(data.weeksOfData, 1);
   assert.equal(data.rawRows[0].FPT_PPR, '35.66');
 });
 
-test('DataHub isolates failed or mislabeled future tabs and skips Sheets when CSV cutoff is unavailable', async () => {
-  const weeklySource = { weeklyRows: {}, latestRecordedWeek: 4, weekErrors: {} };
+test('DataHub contains PROJ export failures and rejects malformed or different-season data without WK fallbacks', async () => {
+  const weeklySource = { weeklyRows: {}, latestRecordedWeek: 9, weekErrors: {} };
   for (const [csv, status, message] of [
     ['', 400, /could not load/],
-    ['WK,SLPR_ID,POS,TM,PROJ\n6,4984,QB,BUF,22.0', 200, /another week/],
+    ['SZN,SLPR_ID,POS,TM,10\n2025,4984,QB,BUF,22.0', 200, /different season/],
     ['<html>Sign in</html>', 200, /invalid columns/],
+    ['SZN,SLPR_ID,POS,TM,10\n2026,not-a-player,QB,BUF,22.0', 200, /no valid player/],
   ]) {
+    let requests = 0;
     const result = await load2026ProjectionSourceData({ weeklySource, parseCsv, fetchImpl: async (url) => {
-      const week = Number(new URL(url).searchParams.get('sheet').slice(2));
-      return week === 5 ? { ok: status === 200, status, text: async () => csv }
-        : { ok: true, text: async () => `SZN,SLPR_ID,POS,TM,PROJ\n${week},4984,QB,BUF,IR` };
+      assert.equal(new URL(url).searchParams.get('sheet'), 'PROJ');
+      requests++;
+      return { ok: status === 200, status, text: async () => csv };
     } });
-    assert.match(result.projectionErrors[5], message);
-    assert.equal(result.projectionRows[6][0].PROJ, 'IR');
-    assert.equal(result.projectionRows[7][0].PROJ, 'IR');
+    assert.equal(requests, 1);
+    assert.deepEqual(result.projectionRows, {});
+    for (let week = 10; week <= 18; week++) assert.match(result.projectionErrors[week], message);
   }
-  const skipped = await load2026ProjectionSourceData({ weeklySource: { ...weeklySource, weekErrors: { 1: 'CSV unavailable' } }, parseCsv,
-    fetchImpl: () => { assert.fail('A missing cutoff cannot request completed weeks'); } });
-  assert.deepEqual(skipped.projectionRows, {});
+  for (const source of [{ ...weeklySource, weekErrors: { 1: 'CSV unavailable' } }, { ...weeklySource, latestRecordedWeek: 18 }]) {
+    const skipped = await load2026ProjectionSourceData({ weeklySource: source, parseCsv,
+      fetchImpl: () => { assert.fail('A missing cutoff or completed season cannot request PROJ'); } });
+    assert.deepEqual(skipped.projectionRows, {});
+  }
+});
+
+test('DataHub skips completed PROJ columns and isolates a missing column while keeping valid future players', async () => {
+  const fixture = weeklyFixture('WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n10,4984,QB,BUF,19.52,1,59,23.4');
+  const weeklySource = await load2026WeeklyCsvData(fixture.options);
+  const projectionSource = await load2026ProjectionSourceData({ weeklySource, parseCsv,
+    fetchImpl: async () => ({ ok: true, text: async () => 'SZN,SLPR_ID,PLAYER NAME,POS,TM,10,12,18\n2026,4984,Josh Allen,QB,BUF,999,0,25.0\n2026,99999,New Player,RB,BUF,999,PUP,8.5' }) });
+  assert.equal(projectionSource.projectionRows[10], undefined);
+  assert.match(projectionSource.projectionErrors[11], /Week 11 projection column/);
+  const data = await load2026WeeklySourceData({ ...fixture.options, weeklySource, projectionSource });
+  assert.equal(data.weeklyRows[10].find(row => row.SLPR_ID === '4984').PROJ, '23.4');
+  assert.equal(data.weeklyRows[12].find(row => row.SLPR_ID === '4984').PROJ, '0');
+  assert.equal(data.weeklyRows[12].find(row => row.SLPR_ID === '99999').PROJ, 'PUP');
+  assert.equal(data.weeklyRows[18].find(row => row.SLPR_ID === '99999').__hasRecordedStats, false);
+  assert.equal(data.rawRows.length, 1);
+  assert.deepEqual(data.weeksWithResults, [10]);
 });
 
 test('DataHub background preparation is single-flight and cannot block initial Stats readiness', async () => {

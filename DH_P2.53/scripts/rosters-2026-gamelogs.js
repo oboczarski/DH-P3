@@ -178,7 +178,7 @@
                 players.forEach((row) => { weeks[Number(row.SZN) - 1].push(row); });
             } catch (error) {
                 // Missing results remain blank. Without a valid CSV cutoff,
-                // projection preparation cannot request any weekly Sheets.
+                // projection preparation cannot request the PROJ sheet.
                 for (let week = 1; week <= 18; week++) weekErrors[week] = error.message;
             }
             const latestRecordedWeek = weeks.reduce((latest, rows, index) => rows.some(hasRecordedStats) ? index + 1 : latest, 0);
@@ -209,29 +209,37 @@
             });
         });
     }
-    // Rosters independently parses the same configured projection exports as
-    // DataHub. Do not import its loader/state or carry any Sheets stats across.
+    // Rosters Game Logs independently reads the single PROJ export. Only its
+    // numbered 10–18 columns supply future amounts/statuses; v/inj metadata and
+    // any sheet statistics stay outside this page's recorded results/state.
     function ensureRosters2026ProjectionsLoaded() {
         if (!projectionsLoadPromise) projectionsLoadPromise = (async () => {
             const local = await ensureRosters2026WeeklyRowsLoaded();
             const projectionRows = {};
             const projectionErrors = {};
             if (!Object.keys(local.weekErrors).length) {
-                const { get2026ProjectionWeeks, get2026ProjectionCsvUrl } = await import('./nfl-2026-sheets.js');
-                await Promise.all(get2026ProjectionWeeks(local.latestRecordedWeek).map(async (week) => {
+                const { get2026ProjectionWeeks, get2026ProjectionCsvUrl } = await import('./nfl-2026-sheets.js?v=DH3.76-proj-sheet');
+                const weeks = get2026ProjectionWeeks(local.latestRecordedWeek);
+                if (weeks.length) {
                     try {
-                        const response = await fetch(get2026ProjectionCsvUrl(week), { cache: 'no-store' });
-                        if (!response.ok) throw new Error(`WK${week} projections could not load (${response.status}).`);
+                        const response = await fetch(get2026ProjectionCsvUrl(), { cache: 'no-store' });
+                        if (!response.ok) throw new Error(`PROJ projections could not load (${response.status}).`);
                         const rows = parseCsv(await response.text());
-                        if (!rows.length || !('WK' in rows[0] || 'SZN' in rows[0])
-                            || ['SLPR_ID', 'POS', 'TM', 'PROJ'].some((header) => !(header in rows[0]))) {
-                            throw new Error(`WK${week} projections have missing or invalid columns.`);
+                        if (!rows.length || ['SZN', 'SLPR_ID', 'POS', 'TM'].some((header) => !(header in rows[0]))) {
+                            throw new Error('PROJ projections have missing or invalid columns.');
                         }
                         const players = rows.filter(isPlayer);
-                        if (players.some((row) => Number(row.WK ?? row.SZN) !== week)) throw new Error(`WK${week} contains another week's rows.`);
-                        projectionRows[week] = players.map((row) => ({ SLPR_ID: row.SLPR_ID, POS: row.POS, TM: row.TM, PROJ: String(row.PROJ ?? '').trim() }));
-                    } catch (error) { projectionErrors[week] = error.message; }
-                }));
+                        if (!players.length) throw new Error('PROJ projections have no valid player rows.');
+                        if (players.some((row) => String(row.SZN).trim() !== '2026')) throw new Error('PROJ contains a different season.');
+                        weeks.forEach((week) => {
+                            if (!(String(week) in rows[0])) {
+                                projectionErrors[week] = `PROJ is missing the Week ${week} projection column.`;
+                                return;
+                            }
+                            projectionRows[week] = players.map((row) => ({ SLPR_ID: row.SLPR_ID, POS: row.POS, TM: row.TM, PROJ: String(row[week] ?? '').trim() }));
+                        });
+                    } catch (error) { weeks.forEach((week) => { projectionErrors[week] = error.message; }); }
+                }
             }
             projectionSource = { projectionRows, projectionErrors };
             applyRosters2026Projections(window.state.rosters2026GameLogs);

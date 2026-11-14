@@ -4,7 +4,7 @@ import { getDataHubStatsPeriodOptions, getDataHubWeeklyColumns, getDataHubWeekly
 import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSeasonRankQualified } from "./datahub-stats-positional-ranks.js";
 // Version the migrated loader too: standalone DataHub visits may not yet have
 // app.js's service worker to refresh an older unversioned module from HTTP cache.
-import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js?v=DH3.72-local-matchups";
+import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js?v=DH3.76-proj-sheet";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js?v=DH3.64a-air-yards-icon";
 import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js?v=DH3.62-datahub-gamelogs-parity";
 import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames, isConsistencyProductionStat, getConsistencyAverageLabelCenter } from "./datahub-gamelogs-controls.js?v=DH3.53-rosters-gamelogs";
