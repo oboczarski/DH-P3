@@ -154,7 +154,11 @@
 // Refresh Rosters Start/Sit's undistorted preview charts, shaded matchups,
 // compact comparison chart gutters and suffix-aware season panel headings.
 // Refresh the local CSV matchup calculator and every Game Logs/modal consumer.
-const CACHE_NAME = 'DH3.72-local-matchups';
+// Refresh Start/Sit's V2/DM comparison skins, rounded scoring chart and radar
+// together so a cached page cannot pair the new renderer with older styles.
+// Keep corrected DM controls, the shared plain ceiling row and its distinct
+// four-stop player spectra synchronized with the comparison stylesheet.
+const CACHE_NAME = 'DH3.73a-dm-controls';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -189,6 +193,7 @@ const CORE_ASSET_PATHS = [
   '/assets/fonts/google-sans-flex/latin.woff2',
   '/assets/fonts/google-sans-flex/latin-ext.woff2',
   '/styles/rosters-start-sit.css',
+  '/styles/rosters-start-sit-themes.css',
   '/styles/leaguehub.css',
   '/styles/research.css',
   '/styles/ownership.css',

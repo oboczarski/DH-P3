@@ -12,6 +12,36 @@
     { main: '#76e8ef', light: '#d0fcff', mid: '#389ed7', deep: '#235777', muted: '#a2b7bb', rgb: '102,224,239' },
     { main: '#9bc5ff', light: '#dfe3ff', mid: '#5493fa', deep: '#517fb2', muted: '#a5b1c1', rgb: '84,147,250' },
   ];
+  // Comparison themes own their player colors; the selection tray keeps its
+  // existing palette. Remember the selected theme only for this page session.
+  const THEMES = {
+    v2: [
+      { main: '#45ebce', light: '#a2fbe6', mid: '#18a9d9', deep: '#155e91', muted: '#789f9b', rgb: '69,235,206' },
+      { main: '#d9a0ff', light: '#ffc0e6', mid: '#9970fa', deep: '#54348e', muted: '#a18caa', rgb: '210,144,255' },
+    ],
+    dm: [
+      // DM uses the full DataHub Compare RB-one and TE-two spectra. Text
+      // accents stay readable independently of the darker gradient endpoints.
+      { main: '#00edff', light: '#b1fff1', mid: '#00b3ff', deep: '#004cff', muted: '#739ba9', rgb: '0,237,255',
+        stops: ['#004CFF', '#00B3FF', '#00EDFF', '#00FFCB'] },
+      { main: '#ff94c2', light: '#ffd0e2', mid: '#ad3eac', deep: '#ff666b', muted: '#ab849b', rgb: '255,148,194',
+        stops: ['#FF666B', '#FF94C2', '#AD3EAC', '#8838FF'] },
+    ],
+  };
+  let comparisonTheme = 'v2';
+  // Match the current Game Logs Performance axes and positional rank ceilings.
+  // These are data definitions only; Start/Sit draws its own SVG presentation.
+  const RADAR_CONFIG = {
+    QB: { stats: ['fpts', 'ppg', 'cmp_pct', 'pass_rtg', 'imp', 'epa_per_db', 'cpoe', 'ttt', 'pass_yd', 'rush_yd', 'team_pass_pct', 'csty_pct', 'ceiling'],
+      labels: ['FPTS', 'PPG', 'CMP%', 'paRTG', 'IMP', 'EPA/DB', 'CPOE', 'TTT', 'paYDS', 'ruYDS', 'TmPa%', 'CSTY%', 'CL'], maxRank: 36 },
+    RB: { stats: ['fpts', 'ppg', 'snp_pct', 'ypc', 'imp', 'expl_ru_pct', 'mtf_per_att', 'yco_per_att', 'ts_per_rr', 'yprr', 'yds_total', 'csty_pct', 'ceiling'],
+      labels: ['FPTS', 'PPG', 'SNP%', 'YPC', 'IMP', 'EXPLSV%', 'MTF/A', 'YCO/A', 'TS%', 'YPRR', 'YDS(t)', 'CSTY%', 'CL'], maxRank: 48 },
+    WR: { stats: ['fpts', 'ppg', 'yds_total', 'imp', 'rec_tgt', 'ts_per_rr', 'rec', 'yprr', 'rec_yar', 'rec_yms', 'csty_pct', 'ceiling'],
+      labels: ['FPTS', 'PPG', 'YDS(t)', 'IMP', 'TGT', 'TS%', 'REC', 'YPRR', 'YAC', 'recYS%', 'CSTY%', 'CL'], maxRank: 72 },
+    TE: { stats: ['fpts', 'ppg', 'yds_total', 'imp', 'rec_tgt', 'ts_per_rr', 'rec', 'yprr', 'rec_yar', 'rec_yms', 'csty_pct', 'ceiling'],
+      labels: ['FPTS', 'PPG', 'YDS(t)', 'IMP', 'TGT', 'TS%', 'REC', 'YPRR', 'YAC', 'recYS%', 'CSTY%', 'CL'], maxRank: 24 },
+  };
+  const radarStatsForPosition = position => RADAR_CONFIG[position]?.stats || [];
   const TIMELINE_GUTTERS = { left: 30, right: 18 };
   const OVERVIEW = [
     { id: 'info', label: 'PLAYER INFO', stats: ['overall_rank', 'player_name', 'position', 'team', 'age'] },
@@ -229,11 +259,21 @@
     }).catch(error => { chartPromise = null; throw error; });
     return chartPromise;
   }
+  // Only DM's consistency percentage uses the Game Logs HUD dial. Ceiling
+  // keeps the same plain label/value/PPR row in both comparison themes.
+  function hudDial(player) {
+    const value = number(player.metrics.csty_pct?.value);
+    const progress = value === null ? null : Math.max(0, Math.min(1, value / 100));
+    const tones = ['pink', 'magenta', 'violet', 'blue', 'cyan', 'teal', 'green'];
+    const tone = progress === null ? 'neutral' : tones[Math.min(6, Math.floor(progress * 7))];
+    const display = value === null ? '—' : `${fmt(value, Number.isInteger(value) ? 0 : 1)}%`;
+    return `<div class="ss-hud-dial" data-dial-tone="${tone}" data-has-progress="${progress !== null && progress > 0}" style="--progress:${progress || 0}" role="img" aria-label="${escape(player.name)} consistency: ${display}" title="Arc = consistency percentage"><i class="ss-dial-glow"></i><i class="ss-dial-arc"></i><i class="ss-dial-echo"></i><i class="ss-dial-origin"></i><i class="ss-dial-cap"></i><div class="ss-dial-core"><b>${escape(display)}</b><span>CONSISTENCY</span></div></div>`;
+  }
   function ring(player, side) {
     const value = number(player.metrics.csty_pct?.value);
     const id = `ss-ring-${player.id}-${side}`;
-    const p = PALETTES[side];
-    return `<div class="ss-consistency-player ss-side-${side}"><svg class="ss-consistency-ring" viewBox="0 0 120 106" role="img" aria-label="${escape(player.name)} consistency ${value === null ? 'unavailable' : `${fmt(value)} percent`}"><defs><linearGradient id="${id}" x1="0" x2="1" y1="1" y2="0"><stop stop-color="${p.deep}"/><stop offset=".35" stop-color="${p.mid}"/><stop offset=".72" stop-color="${p.main}"/><stop offset="1" stop-color="${p.light}"/></linearGradient></defs><path d="M20 85a48 48 0 1 1 80 0" fill="none" stroke="#ffffff0b" stroke-width="7" stroke-linecap="round"/><path d="M20 85a48 48 0 1 1 80 0" fill="none" stroke="url(#${id})" stroke-width="7" stroke-linecap="round" pathLength="100" stroke-dasharray="${value === null ? 0 : Math.min(100, Math.max(0, value))} 100"/><path d="M30 80a36 36 0 1 1 60 0" fill="none" stroke="${p.main}22" stroke-width="1" stroke-dasharray="1 7"/><text x="60" y="58" text-anchor="middle" class="ss-ring-value">${value === null ? '—' : fmt(value, Number.isInteger(value) ? 0 : 1)}<tspan class="ss-ring-unit">${value === null ? '' : '%'}</tspan></text><text x="60" y="74" text-anchor="middle" class="ss-ring-label">CONSISTENCY</text></svg><strong>${escape(shortName(player))}</strong><div class="ss-ceiling"><span>CEILING</span><b>${escape(player.metrics.ceiling?.display || '—')}</b><small>PPR pts</small></div></div>`;
+    const p = THEMES.v2[side];
+    return `<div class="ss-consistency-player ss-side-${side}"><strong><i></i>${escape(shortName(player))}</strong><div class="ss-dm-gauges">${hudDial(player)}</div><div class="ss-v2-gauges"><svg class="ss-consistency-ring" viewBox="0 0 120 106" role="img" aria-label="${escape(player.name)} consistency ${value === null ? 'unavailable' : `${fmt(value)} percent`}"><defs><linearGradient id="${id}" x1="0" x2="1" y1="1" y2="0"><stop stop-color="${p.deep}"/><stop offset=".35" stop-color="${p.mid}"/><stop offset=".72" stop-color="${p.main}"/><stop offset="1" stop-color="${p.light}"/></linearGradient></defs><path d="M20 85a48 48 0 1 1 80 0" fill="none" stroke="#ffffff0c" stroke-width="6" stroke-linecap="round"/><path d="M20 85a48 48 0 1 1 80 0" fill="none" stroke="url(#${id})" stroke-width="6" stroke-linecap="round" pathLength="100" stroke-dasharray="${value === null ? 0 : Math.min(100, Math.max(0, value))} 100"/><path d="M30 80a36 36 0 1 1 60 0" fill="none" stroke="${p.main}33" stroke-width="1" stroke-dasharray="1 6"/><text x="60" y="58" text-anchor="middle" class="ss-ring-value">${value === null ? '—' : fmt(value, Number.isInteger(value) ? 0 : 1)}<tspan class="ss-ring-unit">${value === null ? '' : '%'}</tspan></text><text x="60" y="73" text-anchor="middle" class="ss-ring-label">CONSISTENCY</text></svg></div><div class="ss-ceiling"><span>CEILING</span><b>${escape(player.metrics.ceiling?.display || '—')}</b><small>PPR pts</small></div></div>`;
   }
   function getSections(players) {
     return players[0].pos === players[1].pos && players[0].sections.length ? players[0].sections : OVERVIEW;
@@ -254,10 +294,13 @@
     const precision = Math.min(3, Math.max(...metrics.map(metric => (String(metric.display).match(/\.(\d+)/)?.[1] || '').length)));
     const diff = comparable && !equal ? `${fmt(Math.abs(values[0] - values[1]), precision)}${String(metrics[0].display).includes('%') ? ' pp' : ''}` : equal ? 'EVEN' : '';
     const valueMarkup = side => `<div class="ss-metric-value ss-side-${side}${sideState(side)}"><b>${escape(metrics[side].display)}</b>${metrics[side].rank ? `<small title="Season positional rank">${escape(players[side].pos)}·${escape(metrics[side].rank)}</small>` : ''}</div>`;
-    return `<div class="ss-metric-row${!isNumeric ? ' ss-text-row' : ''}" data-ss-stat="${key}">${valueMarkup(0)}<div class="ss-metric-label"><button class="ss-metric-help" type="button" data-ss-help="${key}" aria-expanded="false" aria-controls="ss-help-${key}" aria-label="Explain ${escape(label)}" title="${escape(description)}">${escape(label)}</button><small class="${winner === null ? '' : `ss-side-${winner}`}">${winner === null ? diff : `${winner === 0 ? '←' : '→'} ${diff}`}</small></div>${valueMarkup(1)}${isNumeric ? `<div class="ss-paired-track" aria-hidden="true">${values.map((value, side) => `<div class="ss-track ss-side-${side}${sideState(side)}"><i class="${value < 0 ? 'ss-negative' : ''}" style="width:${value === null ? 0 : Math.abs(value) / max * 100}%"></i>${value === 0 ? '<em></em>' : ''}</div>`).join('')}<span></span></div>` : ''}<p class="ss-metric-explanation" id="ss-help-${key}" hidden>${escape(description)}</p></div>`;
+    // Mirrored lollipop bars read outward from a shared center. Tick marks and
+    // an endpoint make each row a small graphic; magnitude never changes a sign
+    // or the better/worse logic for turnovers, context, ties and missing data.
+    return `<div class="ss-metric-row${!isNumeric ? ' ss-text-row' : ''}" data-ss-stat="${key}">${valueMarkup(0)}<div class="ss-metric-label"><button class="ss-metric-help" type="button" data-ss-help="${key}" aria-expanded="false" aria-controls="ss-help-${key}" aria-label="Explain ${escape(label)}" title="${escape(description)}">${escape(label)}</button><small class="${winner === null ? '' : `ss-side-${winner}`}">${winner === null ? diff : `${winner === 0 ? '←' : '→'} ${diff}`}</small></div>${valueMarkup(1)}${isNumeric ? `<div class="ss-paired-track" aria-hidden="true">${values.map((value, side) => `<div class="ss-track ss-side-${side}${sideState(side)}" data-ss-available="${value !== null}"><i class="${value < 0 ? 'ss-negative' : ''}" style="width:${value === null ? 0 : Math.abs(value) / max * 100}%">${value !== null && value !== 0 ? '<span class="ss-track-point"></span>' : ''}</i>${value === 0 ? '<em></em>' : ''}</div>`).join('')}<span></span></div>` : ''}<p class="ss-metric-explanation" id="ss-help-${key}" hidden>${escape(description)}</p></div>`;
   }
   function statSections(players) {
-    return getSections(players).map((section, index) => `<section class="ss-stat-section ss-panel" id="ss-section-${section.id}" aria-label="${escape(section.label)}"><header class="ss-section-heading"><span class="ss-section-icon">${icon(section.id.includes('efficiency') ? 'spark' : section.id.includes('production') ? 'chart' : section.id === 'info' ? 'target' : 'layers')}</span><div><span class="ss-eyebrow">${String(index + 1).padStart(2, '0')} / SEASON DETAIL</span><h3>${escape(section.label.toLowerCase())}</h3></div><span class="ss-stat-count">${section.stats.length}<small>STATS</small></span></header><div class="ss-section-players"><span>${escape(shortName(players[0]))}</span><span>${escape(shortName(players[1]))}</span></div><div class="ss-metrics">${section.stats.map(key => metricRow(key, players)).join('')}</div></section>`).join('');
+    return getSections(players).map((section, index) => `<section class="ss-stat-section ss-panel" id="ss-section-${section.id}" aria-label="${escape(section.label)}"><header class="ss-section-heading"><span class="ss-section-icon">${icon(section.id.includes('efficiency') ? 'spark' : section.id.includes('production') ? 'chart' : section.id === 'info' ? 'target' : 'layers')}</span><div><span class="ss-eyebrow">${String(index + 1).padStart(2, '0')} / SEASON DETAIL</span><h3>${escape(section.label.toLowerCase())}</h3></div><span class="ss-stat-count">${section.stats.length}<small>STATS</small></span></header><div class="ss-section-players"><span class="ss-side-0">${escape(shortName(players[0]))}</span><i aria-hidden="true">A / B</i><span class="ss-side-1">${escape(shortName(players[1]))}</span></div><div class="ss-metrics">${section.stats.map(key => metricRow(key, players)).join('')}</div></section>`).join('');
   }
   function production(players) {
     const phases = [['pass_yd', 'Passing', '#9eb8f9'], ['rush_yd', 'Rushing', '#75d9c9'], ['rec_yd', 'Receiving', '#b99ae9']];
@@ -276,19 +319,102 @@
     const weeks = [...new Set(players.flatMap(player => player.weekly.map(item => item.week)))].sort((a, b) => a - b);
     return `<details class="ss-weekly-table"><summary>Explore weekly values ${icon('down')}</summary><div><table><caption>Recorded weekly fantasy points · league scoring</caption><thead><tr><th scope="col">Week</th>${players.map(player => `<th scope="col">${escape(player.name)}</th>`).join('')}</tr></thead><tbody>${weeks.map(week => `<tr><th scope="row">${week}</th>${players.map(player => { const item = player.weekly.find(row => row.week === week); return `<td>${item?.points != null ? fmt(item.points) : escape(item?.status || '—')}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div></details>`;
   }
+  // Preserve the Game Logs rank-to-radius mapping, including its tighter top
+  // seven band. Missing ranks are gaps, never zero scores or last-place ranks.
+  function radarRadius(rank, maximum) {
+    const value = number(rank);
+    if (value === null || value < 1) return null;
+    if (value <= 1) return 85;
+    if (value >= maximum) return 10;
+    return value <= 7 ? 85 - (value - 1) * 2 : 73 - (value - 7) / (maximum - 7) * 63;
+  }
+  // Four-stop DM spectra are shared by its scoring and radar renderers; V2
+  // retains its existing three-stop lines and its original translucent areas.
+  function comparisonGradientStops(palette, theme) {
+    return theme === 'dm' ? palette.stops.map((color, index) => ({ offset: index / 3, color }))
+      : [{ offset: 0, color: palette.mid }, { offset: .45, color: palette.main }, { offset: 1, color: palette.light }];
+  }
+  function gradientRgba(color, opacity) {
+    const value = Number.parseInt(color.slice(1), 16);
+    return `rgba(${(value >> 16) & 255},${(value >> 8) & 255},${value & 255},${opacity})`;
+  }
+  function radarGraphic(players, sides, config, theme, uid) {
+    const center = 180, radius = 125, count = config.stats.length;
+    const at = (index, distance) => {
+      const angle = -Math.PI / 2 + index * Math.PI * 2 / count;
+      return [center + Math.cos(angle) * distance, 168 + Math.sin(angle) * distance];
+    };
+    const pointString = points => points.map(point => point.map(value => value.toFixed(2)).join(',')).join(' ');
+    const grid = [20, 40, 60, 80, 100].map((level, index) => `<polygon points="${pointString(config.stats.map((_, i) => at(i, radius * level / 100)))}" class="ss-radar-grid-ring"${index === 4 ? ' data-outer="true"' : ''}/>`).join('');
+    const axes = config.stats.map((key, index) => {
+      const edge = at(index, radius), label = at(index, radius + 23);
+      // The label's anchor follows the spoke, leaving useful room for long
+      // abbreviations at either edge without shrinking the whole mobile plot.
+      const cosine = Math.cos(-Math.PI / 2 + index * Math.PI * 2 / count);
+      return `<line x1="180" y1="168" x2="${edge[0]}" y2="${edge[1]}" class="ss-radar-spoke"/><text x="${label[0]}" y="${label[1]}" text-anchor="${cosine > .3 ? 'start' : cosine < -.3 ? 'end' : 'middle'}" dominant-baseline="middle" class="ss-radar-axis">${escape(config.labels[index])}</text>`;
+    }).join('');
+    let definitions = '';
+    const datasets = players.map((player, playerIndex) => {
+      const side = sides[playerIndex], palette = THEMES[theme][side];
+      const id = `ss-radar-${uid}-${side}`;
+      const lineStops = theme === 'dm' ? comparisonGradientStops(palette, theme).map(stop => `<stop offset="${stop.offset}" stop-color="${stop.color}"/>`).join('')
+        : `<stop stop-color="${palette.mid}"/><stop offset=".48" stop-color="${palette.main}"/><stop offset="1" stop-color="${palette.light}"/>`;
+      const areaStops = theme === 'dm' ? palette.stops.map((color, index) => `<stop offset="${index / 3}" stop-color="${color}" stop-opacity="${[.02, .08, .16, .3][index]}"/>`).join('')
+        : `<stop stop-color="${palette.deep}" stop-opacity=".02"/><stop offset=".5" stop-color="${palette.mid}" stop-opacity=".15"/><stop offset="1" stop-color="${palette.main}" stop-opacity=".32"/>`;
+      definitions += `<linearGradient id="${id}-line" x1="0" y1="1" x2="1" y2="0">${lineStops}</linearGradient><linearGradient id="${id}-area" x1="0" y1="1" x2=".8" y2="0">${areaStops}</linearGradient>`;
+      const points = config.stats.map((key, index) => {
+        const metric = player.metrics[key], distance = radarRadius(metric?.rank, config.maxRank);
+        return number(metric?.value) === null || distance === null ? null : at(index, radius * distance / 100);
+      });
+      const complete = points.every(Boolean);
+      const area = complete ? `<polygon class="ss-radar-area" points="${pointString(points)}" fill="url(#${id}-area)"/>` : '';
+      // A partial radar draws only adjacent ranked axes; its value ledger still
+      // exposes available source numbers and explains unqualified/missing ranks.
+      const line = complete ? `<polygon points="${pointString(points)}" fill="none" stroke="url(#${id}-line)"/>`
+        : points.map((point, index) => point && points[(index + 1) % count] ? `<path d="M${point}L${points[(index + 1) % count]}" fill="none" stroke="url(#${id}-line)"/>` : '').join('');
+      const markers = points.map((point, index) => {
+        if (!point) return '';
+        const rank = number(player.metrics[config.stats[index]].rank);
+        const radial = radarRadius(rank, config.maxRank) / 100 * radius;
+        const label = at(index, Math.max(7, radial + (side === 0 ? 11 : -11)));
+        const value = player.metrics[config.stats[index]].display;
+        return `<g><title>${escape(player.name)} · ${escape(config.labels[index])}: ${escape(value)} · ${escape(player.pos)} rank ${rank}</title>${side === 0 ? `<circle cx="${point[0]}" cy="${point[1]}" r="2.8"/>` : `<path d="M${point[0]},${point[1] - 3.5}l3.5 3.5-3.5 3.5-3.5-3.5Z"/>`}<text x="${label[0]}" y="${label[1]}" class="ss-radar-rank" text-anchor="middle" dominant-baseline="middle">${rank}</text></g>`;
+      }).join('');
+      return `<g class="ss-radar-dataset ss-side-${side}"><g class="ss-radar-shape">${area}${line}</g><g class="ss-radar-markers">${markers}</g></g>`;
+    }).join('');
+    const hasRanks = players.some(player => config.stats.some(key => number(player.metrics[key]?.value) !== null && radarRadius(player.metrics[key]?.rank, config.maxRank) !== null));
+    const summary = `${players.map(player => player.name).join(' and ')} ${players[0].pos} performance radar. Better positional ranks extend farther from the center. Exact values and ranks follow in the table.`;
+    return `<svg class="ss-radar-svg" viewBox="0 0 360 336" role="img" aria-label="${escape(summary)}"><defs>${definitions}</defs><g>${grid}${axes}</g><circle cx="180" cy="168" r="3" class="ss-radar-center"/>${datasets}${hasRanks ? '' : '<text x="180" y="166" text-anchor="middle" class="ss-radar-no-ranks">No qualified ranks</text>'}</svg>`;
+  }
+  function radarCard(players, sides, config, theme, uid) {
+    return `<article class="ss-radar-card"><div class="ss-radar-card-heading"><span>${escape(players[0].pos)} <small>POSITIONAL PROFILE</small></span><b>01 <i>BEST RANK</i></b></div><div class="ss-radar-card-content"><div class="ss-radar-plot">${radarGraphic(players, sides, config, theme, uid)}</div><div class="ss-radar-ledger"><table><caption>Season values & positional ranks</caption><thead><tr><th scope="col">METRIC</th>${players.map((player, index) => `<th scope="col" class="ss-side-${sides[index]}"><span>${sides[index] === 0 ? '●' : '◆'}</span> ${escape(shortName(player))}</th>`).join('')}</tr></thead><tbody>${config.stats.map((key, index) => `<tr><th scope="row" title="${escape(DESCRIPTIONS[key] || config.labels[index])}">${escape(config.labels[index])}</th>${players.map((player, i) => {
+      const metric = player.metrics[key] || {}, rank = number(metric.rank);
+      return `<td class="ss-side-${sides[i]}"><b>${escape(metric.display || '—')}</b><small title="${rank === null ? 'No qualified positional rank' : 'Season positional rank'}">${escape(player.pos)}·${rank ?? '—'}</small></td>`;
+    }).join('')}</tr>`).join('')}</tbody></table></div></div></article>`;
+  }
+  function performanceRadar(players, theme = 'v2') {
+    const same = players[0].pos === players[1].pos;
+    const groups = same ? [players] : players.map(player => [player]);
+    const cards = groups.map((group, index) => {
+      const config = RADAR_CONFIG[group[0].pos];
+      return config ? radarCard(group, same ? [0, 1] : [index], config, theme, index) : '<p class="ss-panel-note">Performance radar unavailable for this position.</p>';
+    }).join('');
+    return `<div class="ss-radar-grid${same ? '' : ' ss-radar-mixed'}">${cards}</div>`;
+  }
   function comparisonMarkup(model, pair, chartMode) {
     const sections = getSections(pair);
     const same = pair[0].pos === pair[1].pos;
     const metricCount = sections.reduce((sum, section) => sum + section.stats.length, 0);
     const selectedOptions = side => model.players.map(player => `<option value="${escape(player.id)}"${player.id === pair[side].id ? ' selected' : ''}>${escape(player.name)} · ${escape(player.pos)}</option>`).join('');
-    return `<div class="ss-dashboard"><header class="ss-dashboard-header"><div class="ss-title-lockup"><span class="ss-app-mark">${icon('layers')}</span><div><span class="ss-eyebrow">START / SIT · PLAYER INTELLIGENCE</span><h1>Head to head<span class="ss-season-pill">${escape(model.season)}</span></h1></div></div><button class="ss-dashboard-close ss-icon-button" type="button" data-ss-close aria-label="Close player comparison">${icon('close')}</button></header>
+    return `<div class="ss-dashboard" data-ss-theme="${comparisonTheme}"><header class="ss-dashboard-header"><div class="ss-title-lockup"><span class="ss-app-mark">${icon('layers')}</span><div><span class="ss-eyebrow">START / SIT · COMPARISON</span><h1>Head to head<span class="ss-season-pill">${escape(model.season)}</span></h1></div></div><div class="ss-dashboard-actions"><div class="ss-theme-toggle" role="group" aria-label="Comparison theme"><button type="button" data-ss-theme-button="v2" aria-label="V2 theme" aria-pressed="${comparisonTheme === 'v2'}" title="V2 · aqua and orchid gradients">${icon('spark')}<span>V2</span></button><button type="button" data-ss-theme-button="dm" aria-label="DM theme" aria-pressed="${comparisonTheme === 'dm'}" title="DM · DataHub Game Logs inspired">${icon('layers')}<span>DM</span></button></div><button class="ss-dashboard-close ss-icon-button" type="button" data-ss-close aria-label="Close player comparison">${icon('close')}</button></div></header>
       <div class="ss-dashboard-scroll"><div class="ss-comparison-pickers"><label class="ss-side-0"><span>A</span><select aria-label="First comparison player" data-ss-pick="0">${selectedOptions(0)}</select>${icon('down')}</label><button class="ss-swap ss-icon-button" type="button" data-ss-swap aria-label="Swap compared players">${icon('swap')}</button><label class="ss-side-1"><span>B</span><select aria-label="Second comparison player" data-ss-pick="1">${selectedOptions(1)}</select>${icon('down')}</label></div>
       <div class="ss-hero"><div class="ss-hero-orbit" aria-hidden="true"></div>${pair.map((player, side) => playerHero(player, side, model.week)).join('')}<span class="ss-hero-vs" aria-hidden="true">VS</span></div>
       <div class="ss-projection-insight">${icon('pulse')}<span>${number(pair[0].projection) !== null && number(pair[1].projection) !== null ? Math.abs(pair[0].projection - pair[1].projection) < .05 ? 'Level projections for this week' : `<b class="ss-side-${pair[0].projection > pair[1].projection ? 0 : 1}">${escape(shortName(pair[pair[0].projection > pair[1].projection ? 0 : 1]))}</b> projects <strong>${fmt(Math.abs(pair[0].projection - pair[1].projection))}</strong> points higher` : 'Compare season production while projections are unavailable'}</span><span class="ss-micro-label">WK ${model.week || '—'} OUTLOOK</span></div>
       <div class="ss-analytics-grid"><section class="ss-panel ss-timeline"><header class="ss-panel-header"><div>${icon('chart')}<h3>Scoring Comparison</h3></div><div class="ss-chart-toggle" role="group" aria-label="Scoring chart view"><button type="button" data-ss-chart="weekly" aria-pressed="${chartMode === 'weekly'}">Weekly</button><button type="button" data-ss-chart="cumulative" aria-pressed="${chartMode === 'cumulative'}">Cumulative</button></div></header><div class="ss-chart-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i></i>${escape(shortName(player))}</span>`).join('')}<span>LEAGUE PTS</span></div><div class="ss-timeline-viewport" tabindex="0" role="region" aria-label="Scoring Comparison; scroll horizontally for more weeks"><div class="ss-timeline-chart" role="img" aria-label="${chartMode === 'weekly' ? 'Weekly' : 'Cumulative'} fantasy points for ${escape(pair.map(player => player.name).join(' and '))}"></div></div><div class="ss-chart-caption"><span>Recorded games only</span><span>Unplayed weeks show status</span></div>${weeklyTable(pair)}</section>
       <section class="ss-panel ss-reliability"><header class="ss-panel-header"><div>${icon('shield')}<h3>Consistency & ceiling</h3></div><span class="ss-micro-label">PPR BASELINE</span></header><div class="ss-consistency-rings">${pair.map(ring).join('')}</div><p class="ss-panel-note">CSTY% and CL · published season values</p></section>${production(pair)}</div>
       <div class="ss-detail-heading"><div><span class="ss-eyebrow">THE COMPLETE PICTURE</span><h2>Every stat. Both players.</h2></div><span class="ss-detail-badge">${metricCount}<small>METRICS</small></span></div><div class="ss-stat-contract"><span>${same ? `${escape(pair[0].pos)} · Game Logs season stats` : 'Mixed positions · Data Hub Overview'}</span><span>Bar length = magnitude · scale per metric</span></div>
-      <nav class="ss-chapters" aria-label="Stat sections">${sections.map(section => `<button type="button" data-ss-section="${section.id}">${escape(section.label.toLowerCase())}</button>`).join('')}</nav><div class="ss-stat-grid">${statSections(pair)}</div>
+      <nav class="ss-chapters" aria-label="Stat sections">${sections.map(section => `<button type="button" data-ss-section="${section.id}">${escape(section.label.toLowerCase())}</button>`).join('')}<button type="button" data-ss-section="radar">${icon('target')} Radar</button></nav><div class="ss-stat-grid">${statSections(pair)}</div>
+      <section class="ss-panel ss-performance" id="ss-section-radar" aria-label="Performance radar"><header class="ss-panel-header"><div>${icon('target')}<h3>Performance radar</h3></div><span class="ss-micro-label">${same ? `${escape(pair[0].pos)} · HEAD TO HEAD` : 'POSITION PROFILES'}</span></header><div class="ss-radar-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i>${side === 0 ? '●' : '◆'}</i>${escape(shortName(player))}</span>`).join('')}<small>OUTWARD = STRONGER RANK</small></div><div class="ss-radar-region">${performanceRadar(pair, comparisonTheme)}</div><p class="ss-radar-note">${same ? 'Shared axes · ' : 'Each position uses its own metrics and rank scale · '}Top 7 ranks retain the Game Logs scale. Missing ranks leave gaps; the table keeps available values.</p></section>
       <footer class="ss-data-note">${icon('target')}<p>FPTS & PPG follow your league scoring. Other season metrics, ceiling and consistency follow the published stats. Positional ranks retain Game Logs qualification. <span>— Unavailable &nbsp; · &nbsp; 0 Recorded zero &nbsp; · &nbsp; Striped bar Negative value</span></p></footer></div></div>`;
   }
 
@@ -340,13 +466,14 @@
     // full seasons still reserve readable slots and scroll within the card.
     chartNode.style.minWidth = `${Math.max(0, data.weeks.length - 1) * labelWidth + TIMELINE_GUTTERS.left + TIMELINE_GUTTERS.right}px`;
   }
-  function timelineOption(players, mode, echarts, narrow) {
+  function timelineOption(players, mode, echarts, narrow, theme = 'v2') {
     const data = trajectoryPlot(players, mode);
+    const palettes = THEMES[theme];
     return {
       animation: false, backgroundColor: 'transparent', textStyle: { fontFamily: 'Google Sans, Arial, sans-serif' },
       // Use the comparison card's width, keeping a smaller gutter for axis and
       // endpoint labels. A single week stays centered rather than edge-aligned.
-      grid: { top: 28, ...TIMELINE_GUTTERS, bottom: 48 },
+      grid: { top: 24, ...TIMELINE_GUTTERS, bottom: 33 },
       tooltip: { trigger: 'axis', confine: true, transitionDuration: 0, backgroundColor: '#171f32f5', borderColor: '#8db9df55', padding: [10, 12], textStyle: { color: '#ebf4ff', fontSize: 11 }, axisPointer: { type: 'line', lineStyle: { color: '#d2e5ff66', type: 'dashed' } },
         formatter: items => {
           const index = items[0]?.dataIndex;
@@ -354,13 +481,13 @@
           const week = data.weeks[index];
           return `<div style="color:#9aaec7;font-size:10px;letter-spacing:1px;margin-bottom:7px">WEEK ${week} · ${mode === 'cumulative' ? 'CUMULATIVE' : 'FANTASY POINTS'}</div>${players.map((player, side) => {
             const item = player.weekly.find(row => row.week === week);
-            return `<div style="display:flex;gap:20px;justify-content:space-between;margin:5px 0"><span style="color:${PALETTES[side].main}">${escape(player.name)}</span><b>${data.series[side][index] === null ? escape(item?.status || '—') : fmt(data.series[side][index])}</b></div>`;
+            return `<div style="display:flex;gap:20px;justify-content:space-between;margin:5px 0"><span style="color:${palettes[side].main}">${escape(player.name)}</span><b>${data.series[side][index] === null ? escape(item?.status || '—') : fmt(data.series[side][index])}</b></div>`;
           }).join('')}`;
         } },
-      xAxis: { type: 'category', data: data.weeks.map(week => `W${week}`), boundaryGap: data.weeks.length < 2, axisTick: { show: false }, axisLine: { lineStyle: { color: '#ffffff13' } }, axisLabel: { color: '#8a9db7', fontSize: 10, interval: 0, margin: 26 }, splitLine: { show: true, lineStyle: { color: '#b5d3ff06', type: 'dotted' } } },
+      xAxis: { type: 'category', data: data.weeks.map(week => `W${week}`), boundaryGap: data.weeks.length < 2, axisTick: { show: false }, axisLine: { lineStyle: { color: '#ffffff13' } }, axisLabel: { color: '#8a9db7', fontSize: 10, interval: 0, margin: 16 }, splitLine: { show: true, lineStyle: { color: '#b5d3ff09', type: 'dotted' } } },
       yAxis: { type: 'value', scale: false, ...(!data.hasScores ? { min: -1, max: 1 } : {}), splitNumber: 4, axisLabel: { color: '#8a9db7', fontSize: 10 }, splitLine: { lineStyle: { color: '#b5d3ff10', type: 'dashed' } } },
       series: players.map((player, side) => {
-        const p = PALETTES[side];
+        const p = palettes[side];
         const hasGames = data.series[side].some(value => value !== null);
         const points = data.plotted[side].map((value, index) => {
           const missed = data.series[side][index] === null;
@@ -373,18 +500,24 @@
             // Unplayed-week designations use desaturated player hues at reduced
             // opacity so their plain text is quieter than recorded score labels.
             label: { position: value > other || (value === other && side === 0) ? 'top' : 'bottom',
-              ...(missed ? { color: p.muted, opacity: 0.65 } : {}) } };
+              ...(missed ? { color: p.muted, opacity: 0.65, backgroundColor: 'transparent', borderWidth: 0 } : {}) } };
         });
-        return { name: player.name, type: 'line', data: points, connectNulls: true, smooth: false, showSymbol: true, showAllSymbol: true, symbol: side === 0 ? 'circle' : 'diamond', symbolSize: 6, clip: true,
-          lineStyle: { width: 2.5, opacity: hasGames ? 1 : 0, color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: p.mid }, { offset: .4, color: p.main }, { offset: .72, color: p.light }, { offset: 1, color: p.main }]), shadowColor: `rgba(${p.rgb},0.3)`, shadowBlur: 7 },
-          itemStyle: { color: '#151d2c', borderColor: p.light, borderWidth: 1.6 },
+        // Monotone smoothing rounds the joins while keeping week order intact.
+        // DM borrows the Consistency chart's vertical chromatic treatment; V2
+        // uses a lateral gradient. Both keep distinct hues and marker shapes.
+        return { name: player.name, type: 'line', data: points, connectNulls: true, smooth: .38, smoothMonotone: 'x', showSymbol: true, showAllSymbol: true, symbol: side === 0 ? 'circle' : 'diamond', symbolSize: 5.5, clip: true,
+          lineStyle: { width: theme === 'dm' ? 2 : 2.5, cap: 'round', join: 'round', opacity: hasGames ? 1 : 0, color: new echarts.graphic.LinearGradient(0, theme === 'dm' ? 1 : 0, theme === 'dm' ? 0 : 1, 0, comparisonGradientStops(p, theme)), shadowColor: `rgba(${p.rgb},0.28)`, shadowBlur: theme === 'dm' ? 8 : 5 },
+          itemStyle: { color: p.main, borderColor: '#101626', borderWidth: 1.4 },
           // Values and literal BYE/injury labels remain visible without hover.
           // Move collisions vertically; never let ECharts hide either player.
-          label: { show: true, position: side === 0 ? 'top' : 'bottom', distance: 7,
-            color: p.light, fontSize: narrow ? 8 : 9, textBorderColor: '#192334', textBorderWidth: 3,
+          label: { show: true, position: side === 0 ? 'top' : 'bottom', distance: 3,
+            color: side === 0 ? p.main : p.light, fontSize: narrow ? 9 : 10, fontWeight: 600,
+            backgroundColor: side === 0 ? '#102b2be6' : '#2a1839e6', borderColor: `rgba(${p.rgb},.25)`, borderWidth: .5, borderRadius: 3, padding: [2, 3],
             formatter: item => data.labels[side][item.dataIndex] },
           labelLayout: { hideOverlap: false, moveOverlap: 'shiftY' },
-          areaStyle: { origin: 'auto', opacity: hasGames ? 1 : 0, color: new echarts.graphic.LinearGradient(0, 0, .2, 1, [{ offset: 0, color: `rgba(${p.rgb},.26)` }, { offset: .28, color: `rgba(${p.rgb},.15)` }, { offset: .63, color: `rgba(${p.rgb},.055)` }, { offset: 1, color: `rgba(${p.rgb},0)` }]) },
+          areaStyle: { origin: 'auto', opacity: hasGames ? 1 : 0, color: new echarts.graphic.LinearGradient(0, 0, .2, 1, theme === 'dm'
+            ? [...p.stops].reverse().map((color, index) => ({ offset: index / 3, color: gradientRgba(color, [.26, .15, .055, 0][index]) }))
+            : [{ offset: 0, color: `rgba(${p.rgb},.26)` }, { offset: .28, color: `rgba(${p.rgb},.15)` }, { offset: .63, color: `rgba(${p.rgb},.055)` }, { offset: 1, color: `rgba(${p.rgb},0)` }]) },
           emphasis: { disabled: true }, animation: false, z: 3 - side };
       }),
     };
@@ -414,6 +547,16 @@
       bindPlayerNames(model.mount, pair, model.onGameLogs);
       model.mount.querySelector('[data-ss-close]').addEventListener('click', model.onClose);
       model.mount.querySelector('[data-ss-swap]').addEventListener('click', () => { ids.reverse(); paint('[data-ss-swap]'); });
+      // Change materials and chart colors in place: selected players, scroll,
+      // expanded definitions and weekly/cumulative mode all survive the toggle.
+      model.mount.querySelectorAll('[data-ss-theme-button]').forEach(button => button.addEventListener('click', () => {
+        comparisonTheme = button.dataset.ssThemeButton;
+        model.mount.querySelector('.ss-dashboard').dataset.ssTheme = comparisonTheme;
+        model.mount.querySelectorAll('[data-ss-theme-button]').forEach(other => other.setAttribute('aria-pressed', String(other === button)));
+        model.mount.querySelector('.ss-radar-region').innerHTML = performanceRadar(pair, comparisonTheme);
+        const chartNode = model.mount.querySelector('.ss-timeline-chart');
+        mounted?.chart?.setOption(timelineOption(pair, chartMode, window.echarts, chartNode.parentElement.clientWidth < 500, comparisonTheme), true);
+      }));
       model.mount.querySelectorAll('[data-ss-pick]').forEach(select => select.addEventListener('change', () => {
         const side = Number(select.dataset.ssPick), previous = ids[side];
         ids[side] = select.value;
@@ -427,7 +570,7 @@
         sizeTrajectory(chartNode, pair, chartMode);
         if (mounted?.chart) {
           mounted.chart.resize();
-          mounted.chart.setOption(timelineOption(pair, chartMode, window.echarts, chartNode.parentElement.clientWidth < 500), true);
+          mounted.chart.setOption(timelineOption(pair, chartMode, window.echarts, chartNode.parentElement.clientWidth < 500, comparisonTheme), true);
         }
         chartNode.setAttribute('aria-label', `${chartMode} fantasy points for ${pair.map(player => player.name).join(' and ')}`);
       }));
@@ -464,8 +607,8 @@
         sizeTrajectory(chartNode, pair, chartMode);
         const chart = echarts.init(chartNode, null, { renderer: 'canvas', devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2) });
         mounted.chart = chart;
-        chart.setOption(timelineOption(pair, chartMode, echarts, chartNode.parentElement.clientWidth < 500));
-        mounted.observer = new ResizeObserver(() => { if (!chart.isDisposed()) { chart.resize(); chart.setOption(timelineOption(pair, chartMode, echarts, chartNode.parentElement.clientWidth < 500), true); } });
+        chart.setOption(timelineOption(pair, chartMode, echarts, chartNode.parentElement.clientWidth < 500, comparisonTheme));
+        mounted.observer = new ResizeObserver(() => { if (!chart.isDisposed()) { chart.resize(); chart.setOption(timelineOption(pair, chartMode, echarts, chartNode.parentElement.clientWidth < 500, comparisonTheme), true); } });
         mounted.observer.observe(chartNode.parentElement);
       }).catch(() => {
         if (sequence !== token || !chartNode.isConnected) return;
@@ -475,5 +618,5 @@
     };
     paint();
   }
-  window.RostersStartSit = Object.freeze({ renderPreview, renderLoading, renderComparison, disposeComparison, disposePreview, seriesFor, overviewSections: OVERVIEW });
+  window.RostersStartSit = Object.freeze({ renderPreview, renderLoading, renderComparison, disposeComparison, disposePreview, seriesFor, radarStatsForPosition, overviewSections: OVERVIEW });
 })();

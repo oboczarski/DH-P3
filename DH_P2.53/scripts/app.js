@@ -9887,7 +9887,10 @@ function buildRostersDecisionPlayer(input) {
     const metrics = {};
     const overviewKeys = ['overall_rank', 'player_name', 'position', 'team', 'age', 'games_played', 'snp_pct', 'yds_total', 'ypg', 'td_total', 'opp', 'imp', 'imp_per_opp', 'tds_pct', 'csty_pct', 'ceiling'];
     const keys = new Set([...sections.flatMap(section => section.stats), ...overviewKeys,
-        'fpts', 'ppg', 'pass_yd', 'rush_yd', 'rec_yd']);
+        'fpts', 'ppg', 'pass_yd', 'rush_yd', 'rec_yd',
+        // Start/Sit's own radar requests the Game Logs positional axes. Reuse
+        // this loaded season snapshot and its qualified ranks; no extra fetch.
+        ...(window.RostersStartSit?.radarStatsForPosition?.(pos) || [])]);
     const derivedInputs = { ypc: ['rush_yd', 'rush_att'], yco_per_att: ['rush_yac', 'rush_att'],
         mtf_per_att: ['mtf', 'rush_att'], pa_ypg: ['pass_yd', 'games_played'], ru_ypg: ['rush_yd', 'games_played'] };
     const overviewOnly = new Set(overviewKeys);
