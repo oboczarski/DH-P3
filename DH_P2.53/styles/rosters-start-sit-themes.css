@@ -59,8 +59,11 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-side-0 {
   --ss-player-mid: var(--ss-a-mid); --ss-player-deep: var(--ss-a-deep); --ss-player-rgb: var(--ss-a-rgb);
 }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-side-1 {
-  --ss-player: var(--ss-b); --ss-player-bright: var(--ss-b-bright);
-  --ss-player-mid: var(--ss-b-mid); --ss-player-deep: var(--ss-b-deep); --ss-player-rgb: var(--ss-b-rgb);
+  --ss-player: #5c91fb;
+  --ss-player-bright: var(--ss-b-bright);
+  --ss-player-mid: var(--ss-b-mid);
+  --ss-player-deep: var(--ss-b-deep);
+  --ss-player-rgb: var(--ss-b-rgb);
 }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme]:not([data-ss-theme="default"])::before { background: none; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-icon { filter: none; }
@@ -98,7 +101,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-player-id .ss-lo
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero .ss-opponent { padding: 5px 0; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-projection-insight { padding: 6px 2px; font-size: 9px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-projection-insight > .ss-micro-label { font-size: 6px; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-panel { border-radius: 12px; background: linear-gradient(150deg,var(--ss-surface),var(--ss-surface-end)) padding-box,linear-gradient(130deg,var(--ss-edge),#aac2e416 55%,#ab90dc35) border-box; box-shadow: inset 0 1px 0 #e1efff08,0 3px 10px #00000015; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-panel {border-radius: 12px;background: linear-gradient(150deg, #1e2535, var(--ss-surface-end)) padding-box, linear-gradient(130deg, var(--ss-edge), #aac2e416 55%, #ab90dc35) border-box;box-shadow: inset 0 1px 0 #e1efff08,0 3px 10px #00000015;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-analytics-grid { gap: 8px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-panel-header { padding: 8px 10px 3px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-panel-header h3 { font-size: 12px; letter-spacing: -.2px; }
@@ -189,32 +192,32 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-section-heading h3 { 
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-stat-count { font-size: 12px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-stat-count small { font-size: 6px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-section-players { display: grid; grid-template-columns: minmax(0,1fr) var(--ss-stat-center) minmax(0,1fr); padding: 6px 9px 7px; gap: 5px; font-size: 12px; font-weight: 550; letter-spacing: 0; border-bottom: 1px solid #9aacd51a; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-section-players > span { position: relative; display: flex; align-items: center; gap: 5px; max-width: 100%; min-width: 0; padding-bottom: 5px; color: var(--ss-player); border: 0; overflow-wrap: anywhere; line-height: 1.15; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-section-players > span:last-child { justify-content: flex-end; text-align: right; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-section-players > span {position: relative;display: flex;align-items: center;gap: 5px;max-width: 100%;min-width: 0;padding-bottom: 5px;color: var(--ss-player);border: 0;overflow-wrap: anywhere;line-height: 1.15;justify-content: center;}
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-section-players > span:last-child {justify-content: center;text-align: right;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-section-players > span::after { content: ''; position: absolute; inset: auto 0 0; height: 2px; border-radius: 3px; background: linear-gradient(90deg,var(--ss-player),var(--ss-player-mid),var(--ss-player-deep)); opacity: .8; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-section-players small { flex-shrink: 0; font-size: 7px; font-weight: 600; opacity: .65; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-section-players i { align-self: center; text-align: center; color: #6d809e; font-style: normal; font-size: 6px; font-weight: 400; letter-spacing: 1.5px; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-section-players i {align-self: center;text-align: center;color: #6d809e;font-style: normal;font-size: 11px;font-weight: 400;letter-spacing: 1.5px;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metrics { padding: 0 7px 3px; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-row {--ss-value-space: 52px;grid-template-columns: minmax(0,1fr) var(--ss-stat-center) minmax(0,1fr);column-gap: 0;row-gap: 0;min-height: 24px;padding: 0px 0;border-bottom: 1px solid #a0b0c000;}
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-row {--ss-value-space: 52px;grid-template-columns: minmax(0,1fr) var(--ss-stat-center) minmax(0,1fr);column-gap: 0;row-gap: 0;min-height: 22px;padding: 0px 0;border-bottom: 1px solid #a0b0c000;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-row + .ss-metric-row { border-top-color: #9bb7db14; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-stat-plot {--ss-bar-size: calc((100% - var(--ss-value-space)) * var(--ss-bar-ratio));position: relative;min-width: 0;height: 22px;}
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-stat-plot {--ss-bar-size: calc((100% - var(--ss-value-space)) * var(--ss-bar-ratio));position: relative;min-width: 0;height: 20px;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-stat-rail {position: absolute;top: 50%;left: 0;right: 0;height: 11px;transform: translateY(-50%);border: 0px solid #8da9ce2e;border-radius: 999px;background: transparent;box-shadow: none;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-stat-fill {position: absolute;top: -1px;bottom: -1px;right: -1px;width: var(--ss-bar-size);border: 1px solid #e9ffff29;border-radius: inherit;background: linear-gradient(90deg,var(--ss-player-bright),var(--ss-player) 30%,var(--ss-player-mid) 65%,var(--ss-player-deep));box-shadow: inset 0 1px 0 #ffffff3d,inset 0 -1px 0 #00000017,0 0 7px rgba(var(--ss-player-rgb),.13);}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-side-1 .ss-stat-fill { right: auto; left: -1px; background: linear-gradient(90deg,var(--ss-player-deep),var(--ss-player-mid) 35%,var(--ss-player) 70%,var(--ss-player-bright)); }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-stat-fill::before {content: '';position: absolute;inset: 1px 2px 48%;border-radius: inherit;background: none;pointer-events: none;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-stat-plot[data-ss-available="false"] .ss-stat-rail { opacity: .4; background: repeating-linear-gradient(120deg,#8ca6c512 0 1px,transparent 1px 6px),#091321; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-value {position: absolute;z-index: 1;top: 50%;right: calc(var(--ss-bar-size) + 3px);transform: translateY(-50%);display: flex;flex-direction: column;align-items: center;text-align: center;flex-wrap: nowrap;gap: 0;width: max-content;max-width: calc(100% - 8px);padding: 1px 3px;background: linear-gradient(90deg,transparent,var(--ss-value-surface) 20%,var(--ss-value-surface) 85%,transparent);white-space: nowrap;}
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-value.ss-side-1 {right: auto;left: calc(var(--ss-bar-size) + 3px);align-items: center;text-align: center;}
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-value b {max-width: 100%;color: #e9eff8;font-size: 10px;line-height: 1.05;font-weight: 600;letter-spacing: -.4px;text-shadow: 0 1px 3px #050917;overflow-wrap: normal;}
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-value {position: absolute;z-index: 1;top: 50%;right: calc(var(--ss-bar-size) + 1px);transform: translateY(-50%);display: flex;flex-direction: column;align-items: center;text-align: center;flex-wrap: nowrap;gap: 0;width: max-content;max-width: calc(100% - 8px);padding: 1px 3px;background: none;white-space: nowrap;}
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-value.ss-side-1 {right: auto;left: calc(var(--ss-bar-size) + 1px);align-items: center;text-align: center;}
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-value b {max-width: 100%;color: #e9eff8;font-size: 9px;line-height: 1;font-weight: 600;letter-spacing: -.4px;text-shadow: 0 1px 3px #050917;overflow-wrap: normal;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-value.ss-leading b { color: #f3f9ff; font-weight: 700; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-value.ss-trailing b { color: #d4dcec; opacity: 1; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-value small { margin: 0; padding: 0; color: #e9eff8; border: 0; border-radius: 0; background: none; font-size: 7.5px; line-height: 1.1; font-weight: 500; letter-spacing: 0; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-value small {margin: 0;padding: 0;color: #e9eff8;border: 0;border-radius: 0;background: none;font-size: 7.5px;line-height: 1;font-weight: 500;letter-spacing: 0;}
 /* Comparison bar label roles follow the statistic, independent of size:
    positional ranks carry the player hue; the smaller source value is neutral.
    Existing stack opacity still dims both lines for the worse-ranked player. */
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-value b.ss-metric-rank { color: var(--ss-player); }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-label { align-self: center; min-width: 0; gap: 0; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-help {display: flex;flex-direction: column;align-items: center;justify-content: center;gap: 0px;width: 85%;min-height: 20px;margin: 0;padding: 0px;border: 1px solid #9aafce55;border-radius: 7px;background: linear-gradient(155deg,#25394a80,#151e31e6 62%,#27213d80);box-shadow: inset 0 1px 0 #e3faff12,0 2px 6px #0002;color: #d6e3f4;font-size: 9px !important;line-height: 1.05;font-weight: 600 !important;letter-spacing: .1px;text-decoration: none;}
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-help {display: flex;flex-direction: column;align-items: center;justify-content: center;gap: 0px;width: 85%;min-height: 20px;margin: 0;padding: 0px;border: 0px solid #9aafce55;border-radius: 7px;background: linear-gradient(155deg,#25394a80,#151e31e6 62%,#27213d80);box-shadow: inset 0 1px 0 #e3faff12,0 2px 6px #0002;color: #d6e3f4;font-size: 9px !important;line-height: 1.05;font-weight: 600 !important;letter-spacing: .1px;text-decoration: none;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-help > span {max-width: 100%;white-space: nowrap;line-height: 0.9;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-label small { min-height: 0; margin: 0; color: var(--ss-player,#8fa3bf); font-size: 6px; line-height: 1; font-weight: 500; letter-spacing: 0; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-text-row { min-height: 29px; }
@@ -260,7 +263,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-panel { box-shad
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-hero-orbit { opacity: .2; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-hero-score strong { background-image: linear-gradient(160deg,#eef4ff,var(--ss-player) 70%); }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-chapters { background: linear-gradient(#090e1a 82%,#090e1a00); }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-section-heading { background: linear-gradient(110deg,#29334f50,#161d3020); box-shadow: inset 0 1px 4px #9ca7ff09; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-section-heading {background: linear-gradient( 161deg, #3b4a5780, #28334be6 62%, #191c2580);box-shadow: inset 0 1px 4px #9ca7ff09;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-section-icon { background: linear-gradient(145deg,#263148,#141c2d); border-color: #8296d72d; box-shadow: inset 0 1px 5px #c5d5ff12; }
 
 /* Shared Performance radar: retain both player gradients, stack A/B values
@@ -432,11 +435,11 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-comparison-p
 }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-comparison-pickers select { color: #dce6f7; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-metric-help {
-  border: 1px solid #9aacd222;
+  border: 0px solid #9aacd222;
   border-radius: 6px;
   padding-inline: 0px;
-  background: linear-gradient(180deg,rgba(18,26,43,.9),rgba(10,15,27,.96));
-  box-shadow: inset 0 1px 0 #ffffff0f,0 2px 5px #01061233;
+  background: linear-gradient( 161deg, #3b4a5780, #28334be6 62%, #191c2580);
+  box-shadow: inset 0 1px 0 #e3faff12,0 2px 6px #0002;
   text-decoration: none;
 }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-metric-help[aria-expanded="true"] {
@@ -496,9 +499,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-theme-toggle { b
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-theme-toggle button { border-radius: 9px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-theme-toggle button,.ss-chart-toggle button) {
   color: #79859b;
-  background: linear-gradient(180deg,rgba(17,24,40,.92),rgba(8,13,24,.98)) padding-box,
-    linear-gradient(135deg,rgba(115,244,255,.12),rgba(91,127,255,.12),rgba(219,109,255,.15)) border-box;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.06),0 5px 12px rgba(1,6,18,.2);
+  box-shadow: none;
 }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-theme-toggle button[aria-pressed="true"],.ss-chart-toggle button[aria-pressed="true"]) {
   color: #eaeef3;
