@@ -1,43 +1,9 @@
-/* Start/Sit side-by-side comparison only. Every selector stays under the
-   themed dashboard, so the selection tray, roster cards and Game Logs keep
-   their existing materials. Phones get the compact composition first. */
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] {
-  --ss-a: #76e8ef;
-  --ss-a-bright: #d0fcff;
-  --ss-a-mid: #389ed7;
-  --ss-a-deep: #235777;
-  --ss-a-rgb: 102,224,239;
-  --ss-b: #9bc5ff;
-  --ss-b-bright: #dfe3ff;
-  --ss-b-mid: #5493fa;
-  --ss-b-deep: #517fb2;
-  --ss-b-rgb: 84,147,250;
-  --ss-surface: #28374cda;
-  --ss-surface-end: #0f1420bf;
-  --ss-edge: #a3cde747;
-  --ss-stat-center: 52px;
-  --ss-value-surface: #1c2330f2;
-  --ss-trailing-opacity: .62;
-}
-body[data-page="rosters"] .ss-dashboard[data-ss-theme="v2"] {
-  --ss-a: #45ebce;
-  --ss-a-bright: #a2fbe6;
-  --ss-a-mid: #18a9d9;
-  --ss-a-deep: #155e91;
-  --ss-a-rgb: 69,235,206;
-  --ss-b: #d9a0ff;
-  --ss-b-bright: #ffc0e6;
-  --ss-b-mid: #9970fa;
-  --ss-b-deep: #54348e;
-  --ss-b-rgb: 210,144,255;
-  --ss-surface: #111b2b;
-  --ss-surface-end: #0c1322;
-  --ss-edge: #86acc331;
-  --ss-value-surface: #111b2bf2;
-  background: radial-gradient(ellipse at 0 0, #13848718, transparent 54%),
-    radial-gradient(ellipse at 100% 30%, #7940a61a, transparent 55%), #0e1624;
-}
+/* DM is the sole Start/Sit comparison style. Selectors remain scoped to the
+   comparison dashboard; the selection tray, roster cards and Game Logs keep
+   their own presentation. Preserve the user-edited compact phone dimensions. */
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] {
+  --ss-stat-center: 52px;
+  --ss-trailing-opacity: .62;
   --ss-a: #18ebdc;
   --ss-a-bright: #b7fff5;
   --ss-a-mid: #00c6ef;
@@ -65,7 +31,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-side-1 {
   --ss-player-deep: var(--ss-b-deep);
   --ss-player-rgb: var(--ss-b-rgb);
 }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme]:not([data-ss-theme="default"])::before { background: none; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme]::before { background: none; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-icon { filter: none; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-dashboard-header { padding: 8px 10px; background: #bacbff03; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-title-lockup { gap: 7px; }
@@ -76,23 +42,20 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-dashboard-header .ss-
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-dashboard-actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-dashboard-close { width: 30px; height: 30px; border-radius: 9px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-dashboard-close .ss-icon { width: 16px; height: 16px; color: #a6b4cc; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-theme-toggle { display: flex; gap: 2px; padding: 3px; border: 1px solid #899fca2c; background: #04091770; border-radius: 10px; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-theme-toggle button { display: flex; align-items: center; gap: 4px; min-height: 30px; padding: 4px 7px; color: #8293af; font-size: 10px; font-weight: 650; background: transparent; border: 1px solid transparent; border-radius: 7px; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-theme-toggle .ss-icon { width: 13px; height: 13px; color: inherit; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-theme-toggle button[aria-pressed="true"] { color: #d9edff; border-color: #c0d9ff40; background: linear-gradient(135deg, #208b8c45, #6952b151); box-shadow: inset 0 1px 0 #d8f7ff1c, 0 2px 5px #0005; }
+
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-dashboard-scroll { padding: 7px 8px 14px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-comparison-pickers { margin-bottom: 7px; gap: 4px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-comparison-pickers label { height: 33px; border-radius: 9px; border-color: rgba(var(--ss-player-rgb),.23); }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-comparison-pickers select { font-size: 10px; }
 
-body[data-page="rosters"] .ss-dashboard[data-ss-theme]:not([data-ss-theme="default"]) .ss-hero-player {
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-player {
   background: radial-gradient(ellipse at 0 0,rgba(var(--ss-player-rgb),.16),transparent 70%),linear-gradient(155deg,#182837,#111a2b 60%,#181d32) padding-box,linear-gradient(140deg,rgba(var(--ss-player-rgb),.6),#a4c4e219 55%,rgba(var(--ss-player-rgb),.22)) border-box;
 }
-/* Both themes keep names and matchup context compact. The richer V2 gradients
-   carry each player's identity through the hero, bars, scoring and radar. */
+/* DM keeps names and matchup context compact, with each player spectrum
+   carried through the hero, bars, scoring and radar. */
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero { gap: 6px; border-radius: 12px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-player { padding: 4px 9px 0; border-radius: 12px; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme]:not([data-ss-theme="default"]) .ss-hero-player.ss-side-1 { background: radial-gradient(ellipse at 100% 0,rgba(var(--ss-player-rgb),.18),transparent 70%),linear-gradient(205deg,#30233e,#19182e 60%,#201c32) padding-box,linear-gradient(215deg,rgba(var(--ss-player-rgb),.58),#b9a0e71a 55%,rgba(var(--ss-player-rgb),.23)) border-box; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-player.ss-side-1 { background: radial-gradient(ellipse at 100% 0,rgba(var(--ss-player-rgb),.18),transparent 70%),linear-gradient(205deg,#30233e,#19182e 60%,#201c32) padding-box,linear-gradient(215deg,rgba(var(--ss-player-rgb),.58),#b9a0e71a 55%,rgba(var(--ss-player-rgb),.23)) border-box; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero h2 {min-height: 0;margin: 1px 0 5px;font-size: 17px;line-height: 1.08;letter-spacing: -.5px;text-wrap: nowrap;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-score strong {font-size: 30px;line-height: 1;background-image: linear-gradient(125deg,var(--ss-player-bright),var(--ss-player) 58%,var(--ss-player-mid));}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-score .ss-eyebrow {font-size: 9px;letter-spacing: .45px;}
@@ -120,7 +83,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-consistency-player { 
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-consistency-player + .ss-consistency-player { border-left: 1px solid #a7bce317; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-consistency-player > strong { display: flex; gap: 5px; align-items: center; max-width: 100%; margin: 0 0 1px; font-size: 11px; font-weight: 550; overflow-wrap: anywhere; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-consistency-player > strong i { width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0; background: var(--ss-player); }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-v2-gauges { width: 100%; }
+
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-consistency-ring { max-width: 126px; height: 100px; margin: 0 auto; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-ring-value { font-weight: 500; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-ceiling {border: 0;margin-top: -4px;padding: 0;gap: 4px;}
@@ -134,41 +97,41 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-production-player > d
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-production-track { height: 11px; padding: 1px; border-radius: 3px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-production-legend { margin-top: 6px; }
 
-/* SCORING CHART LABELS / CHIPS — editable CSS controls for canvas labels.
-   The renderer reads these on initial draw, theme changes and resize. Edit
-   here and reload; no JavaScript edits are needed to restyle the score chips.
-   font-size / line-height / distance / padding / radius accept pixel values. */
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-timeline-chart {
-  --ss-score-font-family: 'Google Sans', Arial, sans-serif;
-  --ss-score-font-size: 9px;
-  --ss-score-font-weight: 600;
-  --ss-score-line-height: 11px;
+/* SCORING COMPARISON DATA-LABEL CHIPS — real HTML elements above the canvas.
+   Edit these rules directly for font, padding, surface, border, radius and
+   shadow. The clean navy gradient/inset highlight follows Game Logs' actual
+   .career-stats-fantasy-chip; only the text hue identifies each player. */
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-timeline-chart { position: relative; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-labels { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-labels.is-measuring { visibility: hidden; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-label {
   --ss-score-distance: 3px;
-  --ss-score-pad-y: 2px;
-  --ss-score-pad-x: 3px;
-  --ss-score-radius: 3px;
-  --ss-score-border-width: .5px;
-  --ss-score-a-color: var(--ss-a);
-  --ss-score-b-color: var(--ss-b-bright);
-  --ss-score-a-background: #102b2be6;
-  --ss-score-b-background: #211c39e6;
-  --ss-score-a-border: rgba(var(--ss-a-rgb),.25);
-  --ss-score-b-border: rgba(var(--ss-b-rgb),.25);
-  --ss-score-status-font-size: 9px;
-  --ss-score-status-font-weight: 500;
-  --ss-score-status-opacity: .65;
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 16px;
+  padding: 2px 4px;
+  border: 0 solid rgba(155,178,236,.16);
+  border-radius: 7px;
+  background: linear-gradient(180deg,rgb(39 50 73 / 90%),rgb(28 35 50 / 92%));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05),0 3px 8px rgba(0,0,0,.16);
+  color: var(--ss-player);
+  font-family: 'Google Sans',Arial,sans-serif;
+  font-size: 9px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
 }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-timeline-chart {
-  --ss-score-b-color: #d9bcff;
-  --ss-score-b-background: #211a3ce6;
-  --ss-score-b-border: #a18bff55;
-}
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-label[hidden] { display: none; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-label.is-above { transform: translate(-50%,calc(-100% - var(--ss-score-distance))); }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-label.is-below { transform: translate(-50%,var(--ss-score-distance)); }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-label.is-status { min-height: 0; padding: 0; border: 0; background: none; box-shadow: none; opacity: .65; font-size: 8.5px; font-weight: 400; }
 @media (min-width: 820px) {
-  body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-timeline-chart {
-    --ss-score-font-size: 10px;
-    --ss-score-line-height: 12px;
-    --ss-score-status-font-size: 10px;
-  }
+  body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-label { min-height: 18px; font-size: 10px; }
+  body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-label.is-status { min-height: 0; font-size: 9px; }
 }
 
 /* The stat panels retain the compact user-edited row dimensions. Rounded
@@ -232,6 +195,11 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-text-row .ss-metric-v
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-text-row .ss-metric-value b { font-size: 11px; line-height: 1.2; overflow-wrap: anywhere; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-explanation { margin: 6px 0 0 !important; padding: 6px 8px; font-size: 10px; }
 
+/* Metric and section-lead arrows sit on the side they point toward. Only
+   the arrow receives the requested rounded font and extra half pixel. */
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-difference,.ss-section-margin) { display: inline-flex; align-items: center; justify-content: center; gap: 2px; white-space: nowrap; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-delta-arrow { font-family: 'M PLUS Rounded 1c',sans-serif; font-size: calc(1em + .5px); line-height: 1; font-weight: 500; }
+
 /* Rank-based stat bars dim only the trailing fill and its label stack.
    Hue stays intact; tied ranks and unqualified values receive no loser state. */
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-stat-plot.ss-trailing :is(.ss-stat-fill,.ss-metric-value) { opacity: var(--ss-trailing-opacity); }
@@ -239,8 +207,8 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-stat-plot[data-ss-ran
 
 /* DM's consistency dial reproduces the Game Logs HUD material. Ceiling stays
    in the shared text row below the gauge; it never becomes a second dial. */
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-dm-gauges { display: none; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-v2-gauges { display: none; }
+
+
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-dm-gauges {display: flex;justify-content: center;padding: 3px 0 9px;width: 100%;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-hud-dial { --dial-accent: #a8b3cb; --dial-start: #cbd5e1; --dial-mid: #a8b3cb; --dial-end: #8291ac; --arc-end: calc(var(--progress) * 1turn); --arc-mid: calc(var(--progress) * .5turn); --dial-width: 4px; position: relative; isolation: isolate; flex: 0 0 94px; aspect-ratio: 1; border-radius: 50%; filter: drop-shadow(0 5px 10px color-mix(in srgb,var(--dial-accent) 14%,transparent)); }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] [data-dial-tone="green"] { --dial-accent: #55e58f; --dial-start: #8fffc0; --dial-mid: #55e58f; --dial-end: #00d9b0; }
@@ -323,7 +291,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-radar-spoke { st
   body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-dashboard-header .ss-app-mark { display: none; }
   body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-dashboard-header { padding-inline: 8px; }
   body[data-page="rosters"] .ss-dashboard[data-ss-theme] h1 { font-size: 19px; }
-  body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-theme-toggle button { padding-inline: 6px; }
+
   body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-dashboard-scroll { padding-inline: 6px; }
   body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-player { padding-inline: 7px; }
   body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero h2 { font-size: 15px; }
@@ -343,7 +311,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-radar-spoke { st
   body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-app-mark { width: 35px; height: 38px; }
   body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-dashboard-header .ss-season-pill { font-size: 9px; margin-left: 9px; }
   body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-dashboard-close { width: 34px; height: 34px; }
-  body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-theme-toggle button { min-height: 32px; padding-inline: 10px; font-size: 11px; }
+
   body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-dashboard-scroll { padding: 11px 16px 19px; }
   body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-comparison-pickers { max-width: 710px; margin-bottom: 10px; gap: 8px; }
   body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-comparison-pickers select { font-size: 11px; }
@@ -394,7 +362,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-radar-spoke { st
 /* DM controls use DataHub Game Logs' actual Liquid Glass dock and selected
    button materials, copied locally from its bottom-nav/context-action rules.
    Keep the compact comparison dimensions while carrying the treatment through
-   theme/view buttons, section navigation, player selectors and small actions. */
+   view buttons, section navigation, player selectors and small actions. */
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] {
   --ss-dm-control-border: rgba(188,208,255,.22);
   --ss-dm-control-glass: radial-gradient(ellipse at 17% 0%,rgba(183,227,255,.13),transparent 55%),
@@ -406,7 +374,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] {
   --ss-dm-active-shadow: inset 0 1px 0 rgba(242,249,255,.22),inset 0 -6px 18px rgba(101,128,219,.08),
     0 2px 8px rgba(0,0,0,.15),0 0 15px rgba(116,160,244,.1);
 }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-theme-toggle,.ss-chart-toggle,.ss-chapters) {
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-chart-toggle,.ss-chapters) {
   border: 1px solid var(--ss-dm-control-border);
   border-radius: 35px;
   background: var(--ss-dm-control-glass);
@@ -415,7 +383,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-theme-toggle
   -webkit-backdrop-filter: blur(28px) saturate(180%);
 }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-chapters { padding: 3px; gap: 1px; margin-block: 7px 8px; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-theme-toggle button,.ss-chart-toggle button,.ss-chapters button) {
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-chart-toggle button,.ss-chapters button) {
   border: 1px solid transparent;
   border-radius: 30px;
   color: #a3b0cb;
@@ -423,7 +391,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-theme-toggle
   box-shadow: none;
   font-weight: 500;
 }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-theme-toggle button[aria-pressed="true"],.ss-chart-toggle button[aria-pressed="true"],.ss-chapters button.is-active) {
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-chart-toggle button[aria-pressed="true"],.ss-chapters button.is-active) {
   border-color: transparent;
   color: #e0efff;
   background: var(--ss-dm-active-fill) padding-box,var(--ss-dm-active-edge) border-box;
@@ -490,23 +458,23 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-side-1 .ss-stat-
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-section-players > .ss-side-0::after { background: var(--ss-player-spectrum-reverse); }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-section-players > .ss-side-1::after { background: var(--ss-player-spectrum); }
 
-/* The header theme tabs and scoring mode use the Game Logs upper-tab/season
+/* The scoring view buttons use the Game Logs upper-tab/season
    selector treatment: opaque midnight centers and a cyan/blue/purple edge.
    The section dock above retains that modal's separate Liquid Glass styling. */
-body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-theme-toggle,.ss-chart-toggle) {
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-chart-toggle {
   background: linear-gradient(180deg,rgba(12,18,31,.9),rgba(6,10,18,.94));
   border-color: rgba(152,176,236,.18);
   box-shadow: 0 20px 42px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.05);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-theme-toggle { border-radius: 12px; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-theme-toggle button { border-radius: 9px; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-theme-toggle button,.ss-chart-toggle button) {
+
+
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-chart-toggle button {
   color: #79859b;
   box-shadow: none;
 }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-theme-toggle button[aria-pressed="true"],.ss-chart-toggle button[aria-pressed="true"]) {
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-chart-toggle button[aria-pressed="true"] {
   color: #eaeef3;
   border-color: transparent;
   background: linear-gradient(180deg,rgba(19,30,50,.98),rgba(8,14,29,.985)) padding-box,
@@ -514,7 +482,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-theme-toggle
   box-shadow: 0 0 0 1px rgba(115,244,255,.08),0 0 4px rgba(91,127,255,.26),0 0 10px rgba(219,109,255,.16),inset 0 0 24px rgba(91,127,255,.08);
 }
 @media (hover: hover) and (pointer: fine) {
-  body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-theme-toggle button,.ss-chart-toggle button,.ss-chapters button):hover {
+  body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] :is(.ss-chart-toggle button,.ss-chapters button):hover {
     border-color: rgba(186,215,255,.4);
     color: #e0efff;
     background-color: rgba(175,199,255,.08);

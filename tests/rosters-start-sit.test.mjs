@@ -30,7 +30,7 @@ function harness(season = '2026') {
     + slice('function getOpponentDefenseRank(', 'let tableCoreLoaderPromise')
     + slice('function buildRostersDecisionPlayer(input) {', 'async function openRostersDecisionComparison(')
     // Test the actual private renderers without expanding the production API.
-    + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, metricRow, statSections, measureStatPlots, sparkline, shortName, projectionMatchup, projectionState, timelineOption, sizeTrajectory, playerHero, radarRadius, performanceRadar, hudDial, ring, radarValue, toggleComparisonTheme'), context);
+    + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, metricRow, statSections, measureStatPlots, sparkline, shortName, projectionMatchup, projectionState, timelineOption, sizeTrajectory, playerHero, radarRadius, performanceRadar, hudDial, ring, radarValue, comparisonName, comparisonMarkup, scoringLabelsFor, scoringLabelMarkup, directedDifference'), context);
   return context;
 }
 
@@ -277,73 +277,70 @@ test('preview and comparison names are native Game Logs buttons and preview acti
   assert.match(context.window.RostersStartSit.playerHero(player, 0, 7), /<h2><button type="button" class="ss-player-name-button" data-ss-gamelogs="one"/);
 });
 
-test('trajectory bridges missed weeks with status labels and keeps both players visible', () => {
-  const { timelineOption } = harness().window.RostersStartSit;
+test('trajectory and HTML labels preserve gaps, zero, negatives and every player status in both views', () => {
+  const { timelineOption, scoringLabelsFor } = harness().window.RostersStartSit;
   const echarts = { graphic: { LinearGradient: class {} } };
   const players = [{ name: 'First', weekly: [{ week: 1, points: 0 }, { week: 2, points: -2 }, { week: 3, points: null, status: 'BYE' }, { week: 4, points: 8 }] },
-    { name: 'Second', weekly: [{ week: 1, points: 2 }, { week: 2, points: 4 }, { week: 3, points: null, status: 'IR' }, { week: 4, points: null, status: 'OUT' }] }];
+    { name: 'Second', weekly: [{ week: 1, points: 4 }, { week: 2, points: 4 }, { week: 3, points: null, status: 'IR' }, { week: 4, points: null, status: 'OUT' }] }];
   for (const mode of ['weekly', 'cumulative']) {
-    for (const narrow of [true, false]) {
-      const option = timelineOption(players, mode, echarts, narrow);
-      assert.ok(option.series.every(series => series.label.show && series.showAllSymbol && !series.labelLayout.hideOverlap && series.labelLayout.moveOverlap === 'shiftY'));
-      assert.ok(option.series.every(series => series.connectNulls && series.data.every(point => Number.isFinite(point.value))));
-      const first = option.series[0], second = option.series[1];
-      assert.equal(first.label.formatter({ dataIndex: 0 }), '0.0');
-      assert.equal(first.label.formatter({ dataIndex: 1 }), '-2.0');
-      assert.equal(first.label.formatter({ dataIndex: 2 }), 'BYE');
-      assert.equal(first.data[2].symbolSize, 0);
-      assert.notEqual(first.data[2].symbol, 'none');
-      assert.equal(first.data[2].value, mode === 'weekly' ? 3 : 2);
-      assert.equal(first.data[3].value, mode === 'weekly' ? 8 : 6);
-      assert.equal(first.label.formatter({ dataIndex: 3 }), mode === 'weekly' ? '8.0' : '6.0');
-      assert.equal(second.label.formatter({ dataIndex: 2 }), 'IR');
-      assert.equal(second.label.formatter({ dataIndex: 3 }), 'OUT');
-      assert.equal(second.data[3].value, mode === 'weekly' ? 4 : 6);
-      assert.notEqual(first.data[0].label.position, second.data[0].label.position);
-      assert.notEqual(first.data[3].label.position, second.data[3].label.position);
-      const tooltip = option.tooltip.formatter([{ dataIndex: 2 }]);
-      assert.match(tooltip, />BYE<\/b>/);
-      assert.match(tooltip, />IR<\/b>/);
-      assert.deepEqual(Array.from(players[0].weekly, row => row.points), [0, -2, null, 8]);
-    }
+    const option = timelineOption(players, mode, echarts), labels = scoringLabelsFor(players, mode);
+    const label = (side, index) => labels.find(item => item.side === side && item.index === index);
+    assert.ok(option.series.every(series => !series.label.show && series.showAllSymbol && series.connectNulls));
+    assert.ok(option.series.every(series => series.data.every(point => Number.isFinite(point.value))));
+    assert.equal(labels.length, 8, 'HTML overlay must retain every label for both players');
+    assert.equal(label(0, 0).text, '0.0');
+    assert.equal(label(0, 1).text, '-2.0');
+    assert.equal(label(0, 2).text, 'BYE');
+    assert.equal(label(0, 2).status, true);
+    assert.equal(option.series[0].data[2].symbolSize, 0);
+    assert.equal(option.series[0].data[2].value, mode === 'weekly' ? 3 : 2);
+    assert.equal(label(0, 3).text, mode === 'weekly' ? '8.0' : '6.0');
+    assert.equal(label(1, 2).text, 'IR');
+    assert.equal(label(1, 3).text, 'OUT');
+    assert.notEqual(label(0, 0).above, label(1, 0).above);
+    assert.notEqual(label(0, 3).above, label(1, 3).above);
+    const tooltip = option.tooltip.formatter([{ dataIndex: 2 }]);
+    assert.match(tooltip, />BYE<\/b>/);
+    assert.match(tooltip, />IR<\/b>/);
+    assert.deepEqual(Array.from(players[0].weekly, row => row.points), [0, -2, null, 8]);
   }
 });
 
-test('trajectory extends leading and trailing statuses without inventing games for an injured player', () => {
-  const { timelineOption } = harness().window.RostersStartSit;
+test('trajectory and DOM label statuses extend across injuries without inventing games', () => {
+  const { timelineOption, scoringLabelsFor } = harness().window.RostersStartSit;
   const echarts = { graphic: { LinearGradient: class {} } };
   const players = [{ name: 'First', weekly: [{ week: 1, points: null, status: 'PUP' }, { week: 2, points: 10 }, { week: 3, points: null, status: 'DNR' }] },
     { name: 'Second', weekly: [{ week: 1, points: null, status: 'IR' }, { week: 2, points: null, status: 'OUT' }, { week: 3, points: null, status: 'reserve' }] }];
   for (const mode of ['weekly', 'cumulative']) {
-    const option = timelineOption(players, mode, echarts, true);
+    const option = timelineOption(players, mode, echarts), labels = scoringLabelsFor(players, mode);
     assert.deepEqual(Array.from(option.series[0].data, point => point.value), [10, 10, 10]);
-    assert.equal(option.series[0].label.formatter({ dataIndex: 0 }), 'PUP');
-    assert.equal(option.series[0].label.formatter({ dataIndex: 2 }), 'DNR');
+    assert.deepEqual(Array.from(labels.filter(item => item.side === 0), item => item.text), ['PUP', '10.0', 'DNR']);
     assert.equal(option.series[1].lineStyle.opacity, 0);
     assert.equal(option.series[1].areaStyle.opacity, 0);
     assert.ok(option.series[1].data.every(point => point.symbolSize === 0));
-    assert.equal(option.series[1].label.formatter({ dataIndex: 2 }), 'RESERVE');
+    assert.equal(labels.at(-1).text, 'RESERVE');
   }
   players[0].weekly[1] = { week: 2, points: null, status: 'DNP' };
-  const statusOnly = timelineOption(players, 'weekly', echarts, true);
+  const statusOnly = timelineOption(players, 'weekly', echarts);
   assert.equal(statusOnly.yAxis.min, -1);
   assert.equal(statusOnly.yAxis.max, 1);
   assert.ok(statusOnly.series.every(series => series.lineStyle.opacity === 0));
-  assert.equal(statusOnly.series[0].label.formatter({ dataIndex: 1 }), 'DNP');
+  assert.equal(scoringLabelsFor(players, 'weekly')[1].text, 'DNP');
 });
 
-test('full-season trajectory reserves readable slots for both weekly and cumulative labels', () => {
-  const { sizeTrajectory, timelineOption } = harness().window.RostersStartSit;
+test('full-season trajectory reserves readable slots and every HTML score label', () => {
+  const { sizeTrajectory, timelineOption, scoringLabelsFor } = harness().window.RostersStartSit;
   const players = ['First', 'Second'].map(name => ({ name, weekly: Array.from({ length: 18 }, (_, index) => ({ week: index + 1, points: 30 })) }));
   const node = { style: {} }, echarts = { graphic: { LinearGradient: class {} } };
   for (const mode of ['weekly', 'cumulative']) {
     sizeTrajectory(node, players, mode);
-    const option = timelineOption(players, mode, echarts, true);
+    const option = timelineOption(players, mode, echarts), labels = scoringLabelsFor(players, mode);
     assert.ok((Number.parseInt(node.style.minWidth) - option.grid.left - option.grid.right) / 17 >= 34);
     assert.equal(option.xAxis.axisLabel.interval, 0);
-    assert.equal(option.series[0].label.formatter({ dataIndex: 17 }), mode === 'weekly' ? '30.0' : '540.0');
-    assert.equal(option.series[0].data[17].label.position, 'top');
-    assert.equal(option.series[1].data[17].label.position, 'bottom');
+    assert.equal(labels.length, 36);
+    assert.equal(labels[17].text, mode === 'weekly' ? '30.0' : '540.0');
+    assert.equal(labels[17].above, true);
+    assert.equal(labels[35].above, false);
   }
 });
 
@@ -432,7 +429,7 @@ test('radar overlays both players with stacked values, smaller ordinal ranks and
   const { radarStatsForPosition, performanceRadar } = harness().window.RostersStartSit;
   const player = (pos, id) => ({ name: `Player ${id}`, id, pos, metrics: Object.fromEntries(radarStatsForPosition(pos).map(key => [key, { value: 0, display: '0.0', rank: 5 }])) });
   const rb = player('RB', 'first'), second = player('RB', 'second'), qb = player('QB', 'quarterback');
-  const same = performanceRadar([rb, second], 'v2');
+  const same = performanceRadar([rb, second]);
   assert.equal((same.match(/class="ss-radar-svg"/g) || []).length, 1);
   assert.equal((same.match(/class="ss-radar-area"/g) || []).length, 2);
   assert.equal((same.match(/class="ss-radar-axis-value ss-side-/g) || []).length, 26);
@@ -440,19 +437,19 @@ test('radar overlays both players with stacked values, smaller ordinal ranks and
   assert.match(same, /Player first · FPTS: 0.0 · RB rank 5/);
   assert.match(same, /5<tspan class="ss-radar-rank-suffix" dy="-2.5">th<\/tspan>/);
   assert.doesNotMatch(same, /NaN|undefined|ss-trailing/);
-  const mixed = performanceRadar([rb, qb], 'dm');
+  const mixed = performanceRadar([rb, qb]);
   assert.equal((mixed.match(/class="ss-radar-svg"/g) || []).length, 1);
   assert.match(mixed, /Shared metrics; each player retains their positional ranks/);
   assert.match(mixed, /data-ss-radar-stat="csty_pct"/);
   assert.doesNotMatch(mixed, /EPA\/DB|EXPLSV%/, 'mixed positions must never pair unrelated axes');
-  assert.notEqual(same.match(/id="ss-radar-0-line"[^]*?<\/linearGradient>/)[0], performanceRadar([rb, second], 'dm').match(/id="ss-radar-0-line"[^]*?<\/linearGradient>/)[0]);
+  assert.notEqual(same.match(/id="ss-radar-0-line"[^]*?<\/linearGradient>/)[0], same.match(/id="ss-radar-1-line"[^]*?<\/linearGradient>/)[0]);
   second.metrics.ypc.rank = null;
-  const partial = performanceRadar([rb, second], 'v2');
+  const partial = performanceRadar([rb, second]);
   assert.equal((partial.match(/class="ss-radar-area"/g) || []).length, 1, 'unranked axes must not invent a closed filled profile');
   assert.match(partial, /No qualified positional rank/);
   assert.match(partial, />—<\/small>/);
   second.metrics.fpts = { value: 2, rank: 9 };
-  const dimmed = performanceRadar([rb, second], 'dm');
+  const dimmed = performanceRadar([rb, second]);
   assert.match(dimmed, /ss-radar-rank ss-side-1 ss-trailing/);
   assert.match(dimmed, /ss-radar-axis-value ss-side-0 ss-trailing/);
 });
@@ -471,13 +468,14 @@ test('DM consistency HUD preserves recorded zero, unavailable values and all sev
   }
 });
 
-test('both themes share one plain ceiling row while DM has only a consistency dial', () => {
+test('DM retains one consistency dial and a separate plain ceiling row', () => {
   const { ring } = harness().window.RostersStartSit;
   const player = { ...previewPlayer('ceiling'), metrics: { csty_pct: { value: 50 }, ceiling: { value: 28, display: '28.0', rank: 1 } } };
   const markup = ring(player, 0);
   assert.equal((markup.match(/class="ss-hud-dial"/g) || []).length, 1);
   assert.equal((markup.match(/class="ss-ceiling"/g) || []).length, 1);
-  assert.match(markup, /<\/svg><\/div><div class="ss-ceiling"><span>CEILING<\/span><b>28.0<\/b><small>PPR pts<\/small>/);
+  assert.match(markup, /<div class="ss-ceiling"><span>CEILING<\/span><b>28.0<\/b><small>PPR pts<\/small>/);
+  assert.doesNotMatch(markup, /ss-v2-gauges|ss-consistency-ring/);
   assert.doesNotMatch(markup, /CEILING · PPR|Arc = positional ceiling rank|ceiling: 28.0/);
   player.metrics.ceiling = { value: 0, display: '0.0', rank: null };
   assert.match(ring(player, 0), /<span>CEILING<\/span><b>0.0<\/b>/);
@@ -491,8 +489,8 @@ test('DM carries the edited cyan/blue/violet player B spectrum into scoring and 
   const players = [0, 1].map(side => ({ id: String(side), name: `Player ${side}`, pos: 'TE',
     metrics: Object.fromEntries(radarStatsForPosition('TE').map(key => [key, { value: 10, display: '10', rank: side + 1 }])),
     weekly: [{ week: 1, points: 10 }, { week: 2, points: 30 }] }));
-  const option = timelineOption(players, 'weekly', echarts, true, 'dm');
-  const radar = performanceRadar(players, 'dm');
+  const option = timelineOption(players, 'weekly', echarts);
+  const radar = performanceRadar(players);
   const referenceSpectra = [['#1264FF', '#118FFF', '#00C6EF', '#19EDDD'], ['rgba(115,244,255,.72)', 'rgba(91,127,255,.72)', 'rgba(219,109,255,.82)']];
   for (const [side, expected] of referenceSpectra.entries()) {
     assert.deepEqual(Array.from(option.series[side].lineStyle.color.args[4], stop => stop.color), expected);
@@ -500,25 +498,23 @@ test('DM carries the edited cyan/blue/violet player B spectrum into scoring and 
     assert.equal(area.length, expected.length);
     if (side === 1) assert.deepEqual(Array.from(option.series[side].lineStyle.color.args[4], stop => stop.offset), [0, .52, 1]);
     expected.forEach(color => assert.ok(radar.includes(`stop-color="${color}"`), `Missing radar stop ${color}`));
-    assert.notDeepEqual(Array.from(option.series[side].lineStyle.color.args[4], stop => stop.color),
-      Array.from(timelineOption(players, 'weekly', echarts, true, 'v2').series[side].lineStyle.color.args[4], stop => stop.color));
+
   }
 });
 
-test('both scoring themes round the lines without changing recorded values and keep labels close and distinct', () => {
-  const { timelineOption } = harness().window.RostersStartSit;
-  const echarts = { graphic: { LinearGradient: class { constructor(...args) { this.args = args; } } } };
-  const players = [{ name: 'First', weekly: [{ week: 1, points: -2 }, { week: 2, points: 0 }] },
-    { name: 'Second', weekly: [{ week: 1, points: 4 }, { week: 2, points: 4 }] }];
-  for (const theme of ['v2', 'dm']) {
-    const option = timelineOption(players, 'weekly', echarts, true, theme);
-    assert.ok(option.series.every(series => series.smooth > 0 && series.smoothMonotone === 'x'));
-    assert.ok(option.series.every(series => series.label.distance <= 3));
-    assert.notEqual(option.series[0].label.color, option.series[1].label.color);
-    assert.notEqual(option.series[0].symbol, option.series[1].symbol);
-    assert.deepEqual(Array.from(option.series[0].data, point => point.value), [-2, 0]);
-    assert.deepEqual(Array.from(option.series[1].data, point => point.value), [4, 4]);
-  }
+test('DM rounds scoring lines while HTML labels retain player identity and literal statuses', () => {
+  const { timelineOption, scoringLabelsFor, scoringLabelMarkup } = harness().window.RostersStartSit;
+  const echarts = { graphic: { LinearGradient: class {} } };
+  const players = [{ name: 'First', weekly: [{ week: 1, points: -2 }, { week: 2, points: null, status: '<out>' }] },
+    { name: 'Second', weekly: [{ week: 1, points: 4 }, { week: 2, points: 0 }] }];
+  const option = timelineOption(players, 'weekly', echarts), markup = scoringLabelMarkup(scoringLabelsFor(players, 'weekly'));
+  assert.ok(option.series.every(series => series.smooth > 0 && series.smoothMonotone === 'x' && !series.label.show));
+  assert.notEqual(option.series[0].symbol, option.series[1].symbol);
+  assert.match(markup, /ss-score-label ss-side-0/);
+  assert.match(markup, /ss-score-label ss-side-1/);
+  assert.match(markup, /is-status/);
+  assert.match(markup, /&lt;OUT&gt;/);
+  assert.doesNotMatch(markup, /<OUT>/);
 });
 
 test('rank-sized bars keep units independent, display zero/negative source values and leave unqualified stats empty', () => {
@@ -574,23 +570,17 @@ test('contextual stat bars use supplied positional ranks without inventing raw-v
 });
 
 
-// A style is optional: Default must remain reachable through either button,
-// including repeated activation and a transition from one enabled theme.
-test('comparison starts in Default and each theme toggles off back to Default', () => {
-  const { toggleComparisonTheme, timelineOption } = harness().window.RostersStartSit;
-  assert.match(presentation, /let comparisonTheme = 'default'/);
-  for (const theme of ['dm', 'v2']) {
-    assert.equal(toggleComparisonTheme(theme), theme);
-    assert.equal(toggleComparisonTheme(theme), 'default');
-  }
-  assert.equal(toggleComparisonTheme('v2'), 'v2');
-  assert.equal(toggleComparisonTheme('dm'), 'dm');
-  assert.equal(toggleComparisonTheme('dm'), 'default');
-  const echarts = { graphic: { LinearGradient: class { constructor(...args) { this.args = args; } } } };
-  const players = [{ name: 'A', weekly: [{ week: 1, points: 10 }] }, { name: 'B', weekly: [{ week: 1, points: 12 }] }];
-  const option = timelineOption(players, 'weekly', echarts, true);
-  assert.equal(option.series[0].itemStyle.color, '#76e8ef');
-  assert.equal(option.series[1].itemStyle.color, '#9bc5ff');
+test('comparison has only DM and no theme controls or alternate palette paths', () => {
+  const context = harness(), { comparisonMarkup, timelineOption } = context.window.RostersStartSit;
+  const players = ['one','two'].map(id => context.buildRostersDecisionPlayer({ id, pos:'RB', name:`Player ${id}` }));
+  const markup = comparisonMarkup({players,season:'2026',week:10},players,'weekly');
+  assert.match(markup, /data-ss-theme="dm"/);
+  assert.doesNotMatch(markup, /data-ss-theme-button|ss-theme-toggle/);
+  assert.doesNotMatch(presentation, /toggleComparisonTheme|comparisonTheme|THEMES/);
+  const echarts = { graphic: { LinearGradient: class {} } };
+  const option = timelineOption(players, 'weekly', echarts);
+  assert.equal(option.series[0].itemStyle.color, '#18ebdc');
+  assert.equal(option.series[1].itemStyle.color, '#b69aff');
 });
 
 test('radar axis values match actual Game Logs precision for every positional metric', () => {
@@ -605,24 +595,13 @@ test('radar axis values match actual Game Logs precision for every positional me
 });
 
 
-test('scoring labels consume CSS typography, chip and status controls without altering scores', () => {
-  const context = harness(), node = {};
-  const tokens = { '--ss-score-font-size': '12px', '--ss-score-font-weight': '500', '--ss-score-pad-x': '6px',
-    '--ss-score-pad-y': '1px', '--ss-score-distance': '2px', '--ss-score-radius': '7px',
-    '--ss-score-a-color': '#abcdef', '--ss-score-b-background': '#123456', '--ss-score-status-opacity': '.4' };
-  context.window.getComputedStyle = value => { assert.equal(value, node); return { getPropertyValue: key => tokens[key] || '' }; };
-  const echarts = { graphic: { LinearGradient: class { constructor(...args) { this.args = args; } } } };
-  const players = [{ name: 'A', weekly: [{ week: 1, points: 10 }, { week: 2, points: null, status: 'BYE' }] },
-    { name: 'B', weekly: [{ week: 1, points: 12 }, { week: 2, points: 15 }] }];
-  const option = context.window.RostersStartSit.timelineOption(players, 'weekly', echarts, true, 'dm', node);
-  assert.equal(option.series[0].label.fontSize, 12);
-  assert.deepEqual(Array.from(option.series[0].label.padding), [1, 6]);
-  assert.equal(option.series[0].label.distance, 2);
-  assert.equal(option.series[0].label.borderRadius, 7);
-  assert.equal(option.series[0].label.color, '#abcdef');
-  assert.equal(option.series[1].label.backgroundColor, '#123456');
-  assert.equal(option.series[0].data[1].label.opacity, .4);
-  assert.equal(option.series[0].data[0].value, 10);
+test('comparison names add first initials and retain compound surnames and suffixes', () => {
+  const { comparisonName } = harness().window.RostersStartSit;
+  for (const [name, expected] of [['Jahmyr Gibbs','J. Gibbs'],['Bijan Robinson','B. Robinson'],
+    ['Brian Robinson Jr.','B. Robinson Jr.'],['Kenneth Walker III','K. Walker III'],
+    ['Amon-Ra St. Brown','A. St. Brown'],["De'Von Achane",'D. Achane'],['','']]) {
+    assert.equal(comparisonName({name}), expected);
+  }
 });
 
 // Difference chips describe the advantage in stat units, while the bars and
@@ -635,13 +614,13 @@ test('stat difference chips show signed raw advantages and use % for percentage 
     players[1].metrics[key] = { value: b, display: displayB, rank: 8 };
     return metricRow(key, players);
   };
-  assert.match(row('fpts', 10, 15), /class="ss-side-1">→ \+5<\/small>/, 'point toward the higher stat even when the other positional rank is better');
-  assert.match(row('fpts', -2, -5), /class="ss-side-0">← \+3<\/small>/);
-  assert.match(row('pass_int', 4, 1), /class="ss-side-1">→ -3<\/small>/);
+  assert.match(row('fpts', 10, 15), /ss-difference ss-side-1[^>]*><span class="ss-delta-amount">\+5<\/span><span class="ss-delta-arrow"[^>]*>→/, 'point toward the higher stat even when the other positional rank is better');
+  assert.match(row('fpts', -2, -5), /ss-difference ss-side-0[^>]*><span class="ss-delta-arrow"[^>]*>←<\/span><span class="ss-delta-amount">\+3/);
+  assert.match(row('pass_int', 4, 1), /ss-difference ss-side-1[^>]*><span class="ss-delta-amount">-3<\/span><span class="ss-delta-arrow"[^>]*>→/);
   const percent = row('cmp_pct', 70.5, 65.2, '70.5%', '65.2%');
-  assert.match(percent, /← \+5.3%<\/small>/);
+  assert.match(percent, /ss-delta-amount">\+5.3%<\/span>/);
   assert.doesNotMatch(percent, / pp/);
-  assert.match(row('fpts', 0, 0), />EVEN<\/small>/);
+  assert.match(row('fpts', 0, 0), />EVEN<\/span>/);
   assert.doesNotMatch(row('fpts', 1, null, '1', '—'), /←|→/);
 });
 
@@ -655,15 +634,15 @@ test('section header removes side letters and reports the net qualified rank-win
   players[0].metrics.unqualified.rank = null;
   players[0].metrics.missing.value = null;
   let markup = statSections(players);
-  assert.match(markup, /<span class="ss-side-0">Alpha<\/span>/);
-  assert.match(markup, /<span class="ss-side-1">Beta<\/span>/);
+  assert.match(markup, /<span class="ss-side-0">F. Alpha<\/span>/);
+  assert.match(markup, /<span class="ss-side-1">S. Beta<\/span>/);
   assert.doesNotMatch(markup, /<small>[AB]<\/small>/);
-  assert.match(markup, /Alpha leads by 3 ranked stats \(5 to 2\)/);
-  assert.match(markup, /ss-section-margin ss-side-0[^>]*>← \+3<\/small>/);
+  assert.match(markup, /F. Alpha leads by 3 ranked stats \(5 to 2\)/);
+  assert.match(markup, /ss-section-margin ss-side-0[^>]*><span class="ss-delta-arrow"[^>]*>←<\/span><span class="ss-delta-amount">\+3/);
   markup = statSections([...players].reverse());
-  assert.match(markup, /ss-section-margin ss-side-1[^>]*>→ \+3<\/small>/);
+  assert.match(markup, /ss-section-margin ss-side-1[^>]*><span class="ss-delta-amount">\+3<\/span><span class="ss-delta-arrow"[^>]*>→/);
   players.forEach(player => section.stats.forEach(key => player.metrics[key].rank = 3));
-  assert.match(statSections(players), /ss-section-margin[^>]*>EVEN<\/small>/);
+  assert.match(statSections(players), /ss-section-margin[^>]*><span class="ss-delta-amount">EVEN<\/span>/);
   players.forEach(player => section.stats.forEach(key => player.metrics[key].rank = null));
-  assert.match(statSections(players), /No comparable positional ranks[^>]*>—<\/small>/);
+  assert.match(statSections(players), /No comparable positional ranks[^>]*><span class="ss-delta-amount">—<\/span>/);
 });

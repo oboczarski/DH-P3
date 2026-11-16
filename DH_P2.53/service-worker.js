@@ -170,7 +170,9 @@
 // with their comparison-only styles so cached clients receive both together.
 // Refresh signed stat differences and each section's positional-rank win
 // margin together with the compact, prefix-free player-name header styles.
-const CACHE_NAME = 'DH3.79-comparison-leads';
+// Refresh DM-only comparisons, directed rounded arrows, initialed names and
+// real CSS-styled scoring chips together with their renderer and stylesheet.
+const CACHE_NAME = 'DH3.80-dm-comparison';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
