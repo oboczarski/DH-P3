@@ -166,7 +166,9 @@
 // future projection cells now use the single PROJ sheet's 10–18 columns.
 // Refresh rank-sized comparison bars, shared radars and the corrected DM
 // palette with their CSS-editable scoring labels as one presentation update.
-const CACHE_NAME = 'DH3.77-rank-comparison';
+// Refresh player-colored position-prefix ranks and tighter radar label stacks
+// with their comparison-only styles so cached clients receive both together.
+const CACHE_NAME = 'DH3.78-comparison-labels';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

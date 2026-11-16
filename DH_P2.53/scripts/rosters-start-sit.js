@@ -322,9 +322,10 @@
     const diff = comparable && !equal ? `${fmt(Math.abs(values[0] - values[1]), precision)}${String(metrics[0].display).includes('%') ? ' pp' : ''}` : equal ? 'EVEN' : '';
     const valueMarkup = side => {
       const rank = ranks[side], showRank = isNumeric && key !== 'overall_rank' && (rank !== null || !CONTEXT.has(key));
-      // Rank takes the original large, neutral-colored top line. The actual
-      // value takes the smaller player-tinted line, centered directly below.
-      return `<div class="ss-metric-value ss-side-${side}${comparisonState(winner, side)}">${showRank ? `<b class="ss-metric-rank" title="${escape(players[side].pos)} season positional rank${rank === null ? ' unavailable / unqualified' : ''}">${rank === null ? 'Rk —' : `Rk ${rank}`}</b><small class="ss-metric-stat">${escape(metrics[side].display)}</small>` : `<b>${escape(metrics[side].display)}</b>`}</div>`;
+      // Comparison bars keep the positional rank player-colored on the larger
+      // top line, with the neutral stat value centered on the smaller line.
+      // Prefix each rank with its own position, including unavailable ranks.
+      return `<div class="ss-metric-value ss-side-${side}${comparisonState(winner, side)}">${showRank ? `<b class="ss-metric-rank" title="${escape(players[side].pos)} season positional rank${rank === null ? ' unavailable / unqualified' : ''}">${escape(players[side].pos)}·${rank ?? '—'}</b><small class="ss-metric-stat">${escape(metrics[side].display)}</small>` : `<b>${escape(metrics[side].display)}</b>`}</div>`;
     };
     const plotMarkup = side => {
       const rank = ranks[side], ratio = rank === null ? 0 : (rankScale - rank + 1) / rankScale;
@@ -435,8 +436,9 @@
       const metrics = players.map(player => player.metrics[key]);
       const worseValue = valueWinner(key, metrics);
       // Keep both values centered beneath their shared stat label: A first,
-      // B directly below. Opacity marks the weaker value without changing hue.
-      const values = players.map((player, side) => `<text x="${label[0]}" y="${label[1] + 9 + side * 14}" text-anchor="middle" class="ss-radar-axis-value ss-side-${side}${comparisonState(worseValue, side)}"><title>${escape(player.name)} · ${escape(config.labels[index])}</title>${escape(radarValue(key, metrics[side]?.value))}</text>`).join('');
+      // B directly below. Compact 12/13-unit baseline gaps bring the values
+      // closer to the stat and each other, retaining their size and hue.
+      const values = players.map((player, side) => `<text x="${label[0]}" y="${label[1] + 7 + side * 13}" text-anchor="middle" class="ss-radar-axis-value ss-side-${side}${comparisonState(worseValue, side)}"><title>${escape(player.name)} · ${escape(config.labels[index])}</title>${escape(radarValue(key, metrics[side]?.value))}</text>`).join('');
       return `<line x1="${cx}" y1="${cy}" x2="${edge[0]}" y2="${edge[1]}" class="ss-radar-spoke"/><g class="ss-radar-axis-group" data-ss-radar-stat="${key}"><title>${escape(DESCRIPTIONS[key] || config.labels[index])}</title><text x="${label[0]}" y="${label[1] - 5}" text-anchor="middle" class="ss-radar-axis">${name}</text>${values}</g>`;
     }).join('');
     const datasets = players.map((player, side) => {

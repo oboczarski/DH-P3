@@ -224,8 +224,8 @@ test('comparison bar emphasis follows positional ranks regardless of raw stat ma
     const markup = row(key, a, b);
     assert.match(markup, /ss-metric-value ss-side-0 ss-leading/);
     assert.match(markup, /ss-stat-plot ss-side-1 ss-trailing/);
-    assert.match(markup, /ss-metric-rank" title="QB season positional rank">Rk 5<\/b><small class="ss-metric-stat">/);
-    assert.match(markup, /QB season positional rank">Rk 21<\/b>/);
+    assert.match(markup, /ss-metric-rank" title="QB season positional rank">QB·5<\/b><small class="ss-metric-stat">/);
+    assert.match(markup, /QB season positional rank">QB·21<\/b>/);
   }
   for (const markup of [row('fpts', 10, 10, [5, 5]), row('fpts', 10, null), row('fpts', 10, 20, [null, 4])]) {
     assert.doesNotMatch(markup, /ss-leading|ss-trailing/);
@@ -537,8 +537,8 @@ test('rank-sized bars keep units independent, display zero/negative source value
   assert.equal(ratios(markup)[0], 1);
   assert.equal(ratios(markup)[1], 0);
   assert.equal((markup.match(/class="ss-stat-fill"/g) || []).length, 1);
-  assert.match(markup, />Rk 1<\/b><small class="ss-metric-stat">0.0<\/small>/);
-  assert.match(markup, />Rk —<\/b><small class="ss-metric-stat">12.0<\/small>/);
+  assert.match(markup, />QB·1<\/b><small class="ss-metric-stat">0.0<\/small>/);
+  assert.match(markup, />QB·—<\/b><small class="ss-metric-stat">12.0<\/small>/);
   players[0].metrics.fpts = { value: null, display: '—', rank: null };
   markup = metricRow('fpts', players);
   assert.doesNotMatch(markup, /ss-stat-fill|ss-leading|ss-trailing/);
@@ -567,8 +567,8 @@ test('contextual stat bars use supplied positional ranks without inventing raw-v
   const players = [{ pos: 'QB', labels: { ttt: 'TTT' }, metrics: { ttt: { value: 2.4, display: '2.40', rank: 5 } } },
     { pos: 'QB', labels: {}, metrics: { ttt: { value: 2.9, display: '2.90', rank: 21 } } }];
   const markup = metricRow('ttt', players);
-  assert.match(markup, />Rk 5<\/b>/);
-  assert.match(markup, />Rk 21<\/b>/);
+  assert.match(markup, />QB·5<\/b>/);
+  assert.match(markup, />QB·21<\/b>/);
   assert.match(markup, /ss-stat-plot ss-side-1 ss-trailing/);
   assert.doesNotMatch(markup, /←|→/);
 });
