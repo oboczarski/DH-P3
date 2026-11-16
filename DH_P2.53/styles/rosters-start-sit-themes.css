@@ -93,7 +93,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme]:not([data-ss-theme="defau
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero { gap: 6px; border-radius: 12px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-player { padding: 4px 9px 0; border-radius: 12px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme]:not([data-ss-theme="default"]) .ss-hero-player.ss-side-1 { background: radial-gradient(ellipse at 100% 0,rgba(var(--ss-player-rgb),.18),transparent 70%),linear-gradient(205deg,#30233e,#19182e 60%,#201c32) padding-box,linear-gradient(215deg,rgba(var(--ss-player-rgb),.58),#b9a0e71a 55%,rgba(var(--ss-player-rgb),.23)) border-box; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero h2 { min-height: 0; margin: 1px 0 5px; font-size: 17px; line-height: 1.08; letter-spacing: -.5px; text-wrap: wrap; text-decoration: none; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero h2 {min-height: 0;margin: 1px 0 5px;font-size: 17px;line-height: 1.08;letter-spacing: -.5px;text-wrap: nowrap;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-score strong {font-size: 30px;line-height: 1;background-image: linear-gradient(125deg,var(--ss-player-bright),var(--ss-player) 58%,var(--ss-player-mid));}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-score .ss-eyebrow {font-size: 9px;letter-spacing: .45px;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-player-id { gap: 6px; font-size: 10px; }
@@ -241,7 +241,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-stat-plot[data-ss-ran
    in the shared text row below the gauge; it never becomes a second dial. */
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-dm-gauges { display: none; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-v2-gauges { display: none; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-dm-gauges { display: flex; justify-content: center; padding: 3px 0 9px; width: 100%; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-dm-gauges {display: flex;justify-content: center;padding: 3px 0 9px;width: 100%;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-hud-dial { --dial-accent: #a8b3cb; --dial-start: #cbd5e1; --dial-mid: #a8b3cb; --dial-end: #8291ac; --arc-end: calc(var(--progress) * 1turn); --arc-mid: calc(var(--progress) * .5turn); --dial-width: 4px; position: relative; isolation: isolate; flex: 0 0 94px; aspect-ratio: 1; border-radius: 50%; filter: drop-shadow(0 5px 10px color-mix(in srgb,var(--dial-accent) 14%,transparent)); }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] [data-dial-tone="green"] { --dial-accent: #55e58f; --dial-start: #8fffc0; --dial-mid: #55e58f; --dial-end: #00d9b0; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] [data-dial-tone="teal"] { --dial-accent: #00dcca; --dial-start: #50e8ff; --dial-mid: #00dcca; --dial-end: #27ef9f; }

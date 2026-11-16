@@ -126,9 +126,20 @@ body[data-page="rosters"] .ss-preview-identity .ss-logo {width: 24px;height: 24p
 /* Both player-name headings open Game Logs through native buttons. Inherit
    the heading's current typography, with a visible keyboard focus treatment. */
 body[data-page="rosters"] :is(.ss-preview-identity h4, .ss-hero h2) .ss-player-name-button {
-  appearance: none; display: inline; border: 0; padding: 0; margin: 0; background: transparent;
-  font: inherit !important; letter-spacing: inherit; color: inherit; text-align: inherit;
-  text-decoration: inherit; text-wrap: wrap; overflow-wrap: anywhere; cursor: pointer; max-width: 100%;
+  appearance: none;
+  display: inline;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  font: inherit !important;
+  letter-spacing: inherit;
+  color: inherit;
+  text-align: inherit;
+  text-decoration: inherit;
+  text-wrap: nowrap;
+  cursor: pointer;
+  max-width: 100%;
 }
 body[data-page="rosters"] .ss-player-name-button:focus-visible {outline: 1px solid #a9ddeb;outline-offset: 3px;border-radius: 2px;}
 body[data-page="rosters"] .ss-preview-numbers { display: flex; justify-content: space-between; gap: 6px; }
