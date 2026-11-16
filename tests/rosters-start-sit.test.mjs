@@ -30,7 +30,7 @@ function harness(season = '2026') {
     + slice('function getOpponentDefenseRank(', 'let tableCoreLoaderPromise')
     + slice('function buildRostersDecisionPlayer(input) {', 'async function openRostersDecisionComparison(')
     // Test the actual private renderers without expanding the production API.
-    + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, metricRow, measureStatPlots, sparkline, shortName, projectionMatchup, projectionState, timelineOption, sizeTrajectory, playerHero, radarRadius, performanceRadar, hudDial, ring, radarValue, toggleComparisonTheme'), context);
+    + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, metricRow, statSections, measureStatPlots, sparkline, shortName, projectionMatchup, projectionState, timelineOption, sizeTrajectory, playerHero, radarRadius, performanceRadar, hudDial, ring, radarValue, toggleComparisonTheme'), context);
   return context;
 }
 
@@ -623,4 +623,47 @@ test('scoring labels consume CSS typography, chip and status controls without al
   assert.equal(option.series[1].label.backgroundColor, '#123456');
   assert.equal(option.series[0].data[1].label.opacity, .4);
   assert.equal(option.series[0].data[0].value, 10);
+});
+
+// Difference chips describe the advantage in stat units, while the bars and
+// section tally continue to compare published positional ranks independently.
+test('stat difference chips show signed raw advantages and use % for percentage gaps', () => {
+  const { metricRow } = harness().window.RostersStartSit;
+  const players = [{ pos: 'QB', labels: {}, metrics: {} }, { pos: 'QB', labels: {}, metrics: {} }];
+  const row = (key, a, b, displayA = String(a), displayB = String(b)) => {
+    players[0].metrics[key] = { value: a, display: displayA, rank: 2 };
+    players[1].metrics[key] = { value: b, display: displayB, rank: 8 };
+    return metricRow(key, players);
+  };
+  assert.match(row('fpts', 10, 15), /class="ss-side-1">→ \+5<\/small>/, 'point toward the higher stat even when the other positional rank is better');
+  assert.match(row('fpts', -2, -5), /class="ss-side-0">← \+3<\/small>/);
+  assert.match(row('pass_int', 4, 1), /class="ss-side-1">→ -3<\/small>/);
+  const percent = row('cmp_pct', 70.5, 65.2, '70.5%', '65.2%');
+  assert.match(percent, /← \+5.3%<\/small>/);
+  assert.doesNotMatch(percent, / pp/);
+  assert.match(row('fpts', 0, 0), />EVEN<\/small>/);
+  assert.doesNotMatch(row('fpts', 1, null, '1', '—'), /←|→/);
+});
+
+test('section header removes side letters and reports the net qualified rank-win lead', () => {
+  const { statSections } = harness().window.RostersStartSit;
+  const section = { id: 'fixture', label: 'SECTION', stats: ['a','b','c','d','e','f','g','tie','unqualified','missing'] };
+  const players = [0, 1].map(side => ({ name: side === 0 ? 'First Alpha' : 'Second Beta', pos: 'RB', sections: [section], labels: {}, metrics: {} }));
+  section.stats.forEach((key, index) => players.forEach((player, side) => {
+    player.metrics[key] = { value: 10, display: '10', rank: index < 5 ? side + 1 : index < 7 ? 2 - side : 3 };
+  }));
+  players[0].metrics.unqualified.rank = null;
+  players[0].metrics.missing.value = null;
+  let markup = statSections(players);
+  assert.match(markup, /<span class="ss-side-0">Alpha<\/span>/);
+  assert.match(markup, /<span class="ss-side-1">Beta<\/span>/);
+  assert.doesNotMatch(markup, /<small>[AB]<\/small>/);
+  assert.match(markup, /Alpha leads by 3 ranked stats \(5 to 2\)/);
+  assert.match(markup, /ss-section-margin ss-side-0[^>]*>← \+3<\/small>/);
+  markup = statSections([...players].reverse());
+  assert.match(markup, /ss-section-margin ss-side-1[^>]*>→ \+3<\/small>/);
+  players.forEach(player => section.stats.forEach(key => player.metrics[key].rank = 3));
+  assert.match(statSections(players), /ss-section-margin[^>]*>EVEN<\/small>/);
+  players.forEach(player => section.stats.forEach(key => player.metrics[key].rank = null));
+  assert.match(statSections(players), /No comparable positional ranks[^>]*>—<\/small>/);
 });

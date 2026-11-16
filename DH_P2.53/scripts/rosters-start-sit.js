@@ -319,7 +319,11 @@
     const comparable = values.every(value => value !== null) && !CONTEXT.has(key);
     const equal = comparable && Math.abs(values[0] - values[1]) < 1e-8;
     const precision = Math.min(3, Math.max(...metrics.map(metric => (String(metric.display).match(/\.(\d+)/)?.[1] || '').length)));
-    const diff = comparable && !equal ? `${fmt(Math.abs(values[0] - values[1]), precision)}${String(metrics[0].display).includes('%') ? ' pp' : ''}` : equal ? 'EVEN' : '';
+    // Difference chips describe raw stat advantages, independently of the
+    // rank-based bar emphasis. A lower-is-better advantage is a reduction;
+    // percentage gaps keep the requested % suffix without relative scaling.
+    const differenceWinner = comparable && !equal ? valueWinner(key, metrics) : null;
+    const diff = comparable && !equal ? `${LOWER.has(key) ? '-' : '+'}${fmt(Math.abs(values[0] - values[1]), precision)}${metrics.some(metric => String(metric.display).includes('%')) ? '%' : ''}` : equal ? 'EVEN' : '';
     const valueMarkup = side => {
       const rank = ranks[side], showRank = isNumeric && key !== 'overall_rank' && (rank !== null || !CONTEXT.has(key));
       // Comparison bars keep the positional rank player-colored on the larger
@@ -333,7 +337,7 @@
       // and negative values remain literal labels; unranked values have no fill.
       return `<div class="ss-stat-plot ss-side-${side}${comparisonState(winner, side)}" style="--ss-bar-ratio:${ratio}" data-ss-available="${values[side] !== null}" data-ss-ranked="${rank !== null}" data-ss-rank="${rank ?? ''}">${isNumeric ? `<div class="ss-stat-rail" aria-hidden="true">${rank === null ? '' : '<i class="ss-stat-fill"></i>'}</div>` : ''}${valueMarkup(side)}</div>`;
     };
-    return `<div class="ss-metric-row${!isNumeric ? ' ss-text-row' : ''}" data-ss-stat="${key}">${plotMarkup(0)}<div class="ss-metric-label"><button class="ss-metric-help" type="button" data-ss-help="${key}" aria-expanded="false" aria-controls="ss-help-${key}" aria-label="Explain ${escape(label)}" title="${escape(description)}"><span>${escape(label)}</span>${diff ? `<small class="${winner === null ? '' : `ss-side-${winner}`}">${winner === null ? diff : `${winner === 0 ? '←' : '→'} ${diff}`}</small>` : ''}</button></div>${plotMarkup(1)}<p class="ss-metric-explanation" id="ss-help-${key}" hidden>${escape(description)}</p></div>`;
+    return `<div class="ss-metric-row${!isNumeric ? ' ss-text-row' : ''}" data-ss-stat="${key}">${plotMarkup(0)}<div class="ss-metric-label"><button class="ss-metric-help" type="button" data-ss-help="${key}" aria-expanded="false" aria-controls="ss-help-${key}" aria-label="Explain ${escape(label)}" title="${escape(description)}"><span>${escape(label)}</span>${diff ? `<small class="${differenceWinner === null ? '' : `ss-side-${differenceWinner}`}">${differenceWinner === null ? diff : `${differenceWinner === 0 ? '←' : '→'} ${diff}`}</small>` : ''}</button></div>${plotMarkup(1)}<p class="ss-metric-explanation" id="ss-help-${key}" hidden>${escape(description)}</p></div>`;
   }
   function measureStatPlots(mount) {
     // Text uses real responsive font metrics, including percentages, large
@@ -350,8 +354,28 @@
       if (row.style.getPropertyValue('--ss-value-space') !== clearance) row.style.setProperty('--ss-value-space', clearance);
     });
   }
+  // Each section counts only head-to-head qualified positional rank wins.
+  // Missing ranks never award a win; tied ranks contribute no lead. Keep the
+  // compact margin below STAT, colored toward the side with more stat wins.
+  function sectionRankMargin(section, players) {
+    const wins = [0, 0];
+    let comparable = 0;
+    section.stats.forEach(key => {
+      const metrics = players.map(player => player.metrics[key]);
+      if (metrics.some(metric => qualifiedRank(metric) === null)) return;
+      comparable += 1;
+      const winner = rankWinner(metrics);
+      if (winner !== null) wins[winner] += 1;
+    });
+    const margin = wins[0] - wins[1], winner = margin === 0 ? null : margin > 0 ? 0 : 1;
+    const label = winner === null ? comparable ? 'EVEN' : '—' : `${winner === 0 ? '←' : '→'} +${Math.abs(margin)}`;
+    const description = !comparable ? 'No comparable positional ranks' : winner === null
+      ? `Ranked stat wins tied: ${wins[0]} to ${wins[1]}`
+      : `${shortName(players[winner])} leads by ${Math.abs(margin)} ranked stat${Math.abs(margin) === 1 ? '' : 's'} (${wins[winner]} to ${wins[1 - winner]})`;
+    return `<div class="ss-section-stat"><i>STAT</i><small class="ss-section-margin${winner === null ? '' : ` ss-side-${winner}`}" aria-label="${escape(description)}" title="${escape(description)}">${label}</small></div>`;
+  }
   function statSections(players) {
-    return getSections(players).map((section, index) => `<section class="ss-stat-section ss-panel" id="ss-section-${section.id}" aria-label="${escape(section.label)}"><header class="ss-section-heading"><span class="ss-section-icon">${icon(section.id.includes('efficiency') ? 'spark' : section.id.includes('production') ? 'chart' : section.id === 'info' ? 'target' : 'layers')}</span><div><span class="ss-eyebrow">${String(index + 1).padStart(2, '0')} / SEASON DETAIL</span><h3>${escape(section.label.toLowerCase())}</h3></div><span class="ss-stat-count">${section.stats.length}<small>STATS</small></span></header><div class="ss-section-players"><span class="ss-side-0"><small>A</small>${escape(shortName(players[0]))}</span><i aria-hidden="true">STAT</i><span class="ss-side-1"><small>B</small>${escape(shortName(players[1]))}</span></div><div class="ss-metrics">${section.stats.map(key => metricRow(key, players)).join('')}</div></section>`).join('');
+    return getSections(players).map((section, index) => `<section class="ss-stat-section ss-panel" id="ss-section-${section.id}" aria-label="${escape(section.label)}"><header class="ss-section-heading"><span class="ss-section-icon">${icon(section.id.includes('efficiency') ? 'spark' : section.id.includes('production') ? 'chart' : section.id === 'info' ? 'target' : 'layers')}</span><div><span class="ss-eyebrow">${String(index + 1).padStart(2, '0')} / SEASON DETAIL</span><h3>${escape(section.label.toLowerCase())}</h3></div><span class="ss-stat-count">${section.stats.length}<small>STATS</small></span></header><div class="ss-section-players"><span class="ss-side-0">${escape(shortName(players[0]))}</span>${sectionRankMargin(section, players)}<span class="ss-side-1">${escape(shortName(players[1]))}</span></div><div class="ss-metrics">${section.stats.map(key => metricRow(key, players)).join('')}</div></section>`).join('');
   }
   function production(players) {
     const phases = [['pass_yd', 'Passing', '#9eb8f9'], ['rush_yd', 'Rushing', '#75d9c9'], ['rec_yd', 'Receiving', '#b99ae9']];
