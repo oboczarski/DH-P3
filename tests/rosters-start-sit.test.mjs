@@ -212,27 +212,22 @@ test('comparison headings retain surnames with suffixes and ordinary last names'
   }
 });
 
-test('comparison values and bars agree on better/worse for higher/lower stats and stay neutral for ties/gaps/context', () => {
+test('comparison bar emphasis follows positional ranks regardless of raw stat magnitude or direction', () => {
   const { metricRow } = harness().window.RostersStartSit;
   const players = [{ pos: 'QB', labels: {}, metrics: {} }, { pos: 'QB', labels: {}, metrics: {} }];
-  const row = (key, a, b) => {
-    players[0].metrics[key] = { value: a, display: a === null ? '—' : String(a), rank: 5 };
-    players[1].metrics[key] = { value: b, display: b === null ? '—' : String(b), rank: 21 };
+  const row = (key, a, b, ranks = [5, 21]) => {
+    players[0].metrics[key] = { value: a, display: a === null ? '—' : String(a), rank: ranks[0] };
+    players[1].metrics[key] = { value: b, display: b === null ? '—' : String(b), rank: ranks[1] };
     return metricRow(key, players);
   };
-  for (const [key, a, b, winner] of [['fpts', 110, 90, 0], ['fpts', -2, 0, 1], ['pass_int', 1, 4, 0],
-    ['pass_sack', 4, 1, 1], ['fum', 0, 1, 0], ['overall_rank', 21, 5, 1]]) {
+  for (const [key, a, b] of [['fpts', 110, 90], ['fpts', -2, 0], ['pass_int', 1, 4], ['ttt', 2, 3], ['fpts', 10, 10]]) {
     const markup = row(key, a, b);
-    assert.match(markup, new RegExp(`ss-metric-value ss-side-${winner} ss-leading`));
-    assert.match(markup, new RegExp(`ss-stat-plot ss-side-${1 - winner} ss-trailing`));
-    assert.match(markup, new RegExp(`ss-metric-value ss-side-${1 - winner} ss-trailing`));
-    if (key !== 'overall_rank') {
-      assert.match(markup, /QB season positional rank">Rk 5<\/small>/);
-      assert.match(markup, /QB season positional rank">Rk 21<\/small>/);
-    } else assert.doesNotMatch(markup, />Rk /, 'the overall-rank statistic is already a rank');
-    assert.doesNotMatch(markup, /QB #/);
+    assert.match(markup, /ss-metric-value ss-side-0 ss-leading/);
+    assert.match(markup, /ss-stat-plot ss-side-1 ss-trailing/);
+    assert.match(markup, /ss-metric-rank" title="QB season positional rank">Rk 5<\/b><small class="ss-metric-stat">/);
+    assert.match(markup, /QB season positional rank">Rk 21<\/b>/);
   }
-  for (const markup of [row('fpts', 10, 10), row('fpts', 10, null), row('ttt', 2, 3)]) {
+  for (const markup of [row('fpts', 10, 10, [5, 5]), row('fpts', 10, null), row('fpts', 10, 20, [null, 4])]) {
     assert.doesNotMatch(markup, /ss-leading|ss-trailing/);
   }
 });
@@ -433,28 +428,33 @@ test('radar keeps the Game Logs top-seven scale and treats missing ranks as gaps
   }
 });
 
-test('radar gives each player labeled values and ordinal ranks with independent positional scales', () => {
+test('radar overlays both players with stacked values, smaller ordinal ranks and actual shared metrics', () => {
   const { radarStatsForPosition, performanceRadar } = harness().window.RostersStartSit;
   const player = (pos, id) => ({ name: `Player ${id}`, id, pos, metrics: Object.fromEntries(radarStatsForPosition(pos).map(key => [key, { value: 0, display: '0.0', rank: 5 }])) });
   const rb = player('RB', 'first'), second = player('RB', 'second'), qb = player('QB', 'quarterback');
   const same = performanceRadar([rb, second], 'v2');
-  assert.equal((same.match(/class="ss-radar-svg"/g) || []).length, 2);
+  assert.equal((same.match(/class="ss-radar-svg"/g) || []).length, 1);
   assert.equal((same.match(/class="ss-radar-area"/g) || []).length, 2);
+  assert.equal((same.match(/class="ss-radar-axis-value ss-side-/g) || []).length, 26);
+  assert.equal((same.match(/class="ss-radar-rank ss-side-/g) || []).length, 26);
   assert.match(same, /Player first · FPTS: 0.0 · RB rank 5/);
-  assert.match(same, /ss-radar-axis-value[^>]*>0.0<\/text>/);
-  assert.match(same, /ss-radar-rank[^>]*[^]*?5<tspan class="ss-radar-rank-suffix" dy="-3">th<\/tspan>/);
-  assert.doesNotMatch(same, /NaN|undefined/);
+  assert.match(same, /5<tspan class="ss-radar-rank-suffix" dy="-2.5">th<\/tspan>/);
+  assert.doesNotMatch(same, /NaN|undefined|ss-trailing/);
   const mixed = performanceRadar([rb, qb], 'dm');
-  assert.equal((mixed.match(/class="ss-radar-svg"/g) || []).length, 2);
-  assert.match(mixed, /ss-radar-profiles/);
-  assert.match(mixed, /EPA\/DB/);
-  assert.match(mixed, /EXPLSV%/);
-  assert.notEqual(same.match(/id="ss-radar-0-0-line"[^]*?<\/linearGradient>/)[0], performanceRadar([rb, second], 'dm').match(/id="ss-radar-0-0-line"[^]*?<\/linearGradient>/)[0]);
+  assert.equal((mixed.match(/class="ss-radar-svg"/g) || []).length, 1);
+  assert.match(mixed, /Shared metrics; each player retains their positional ranks/);
+  assert.match(mixed, /data-ss-radar-stat="csty_pct"/);
+  assert.doesNotMatch(mixed, /EPA\/DB|EXPLSV%/, 'mixed positions must never pair unrelated axes');
+  assert.notEqual(same.match(/id="ss-radar-0-line"[^]*?<\/linearGradient>/)[0], performanceRadar([rb, second], 'dm').match(/id="ss-radar-0-line"[^]*?<\/linearGradient>/)[0]);
   second.metrics.ypc.rank = null;
   const partial = performanceRadar([rb, second], 'v2');
   assert.equal((partial.match(/class="ss-radar-area"/g) || []).length, 1, 'unranked axes must not invent a closed filled profile');
   assert.match(partial, /No qualified positional rank/);
   assert.match(partial, />—<\/small>/);
+  second.metrics.fpts = { value: 2, rank: 9 };
+  const dimmed = performanceRadar([rb, second], 'dm');
+  assert.match(dimmed, /ss-radar-rank ss-side-1 ss-trailing/);
+  assert.match(dimmed, /ss-radar-axis-value ss-side-0 ss-trailing/);
 });
 
 test('DM consistency HUD preserves recorded zero, unavailable values and all seven Game Logs progress bands', () => {
@@ -485,7 +485,7 @@ test('both themes share one plain ceiling row while DM has only a consistency di
   assert.match(ring(player, 0), /<span>CEILING<\/span><b>—<\/b>/);
 });
 
-test('DM carries the image reference turquoise/blue and gold/pink/magenta spectra into scoring and radar', () => {
+test('DM carries the edited cyan/blue/violet player B spectrum into scoring and radar', () => {
   const { timelineOption, performanceRadar, radarStatsForPosition } = harness().window.RostersStartSit;
   const echarts = { graphic: { LinearGradient: class { constructor(...args) { this.args = args; } } } };
   const players = [0, 1].map(side => ({ id: String(side), name: `Player ${side}`, pos: 'TE',
@@ -493,11 +493,12 @@ test('DM carries the image reference turquoise/blue and gold/pink/magenta spectr
     weekly: [{ week: 1, points: 10 }, { week: 2, points: 30 }] }));
   const option = timelineOption(players, 'weekly', echarts, true, 'dm');
   const radar = performanceRadar(players, 'dm');
-  const referenceSpectra = [['#1264FF', '#118FFF', '#00C6EF', '#19EDDD'], ['#FFBF47', '#FF866C', '#F43EAE', '#CD28F4']];
+  const referenceSpectra = [['#1264FF', '#118FFF', '#00C6EF', '#19EDDD'], ['rgba(115,244,255,.72)', 'rgba(91,127,255,.72)', 'rgba(219,109,255,.82)']];
   for (const [side, expected] of referenceSpectra.entries()) {
     assert.deepEqual(Array.from(option.series[side].lineStyle.color.args[4], stop => stop.color), expected);
     const area = option.series[side].areaStyle.color.args[4];
-    assert.equal(area.length, 4);
+    assert.equal(area.length, expected.length);
+    if (side === 1) assert.deepEqual(Array.from(option.series[side].lineStyle.color.args[4], stop => stop.offset), [0, .52, 1]);
     expected.forEach(color => assert.ok(radar.includes(`stop-color="${color}"`), `Missing radar stop ${color}`));
     assert.notDeepEqual(Array.from(option.series[side].lineStyle.color.args[4], stop => stop.color),
       Array.from(timelineOption(players, 'weekly', echarts, true, 'v2').series[side].lineStyle.color.args[4], stop => stop.color));
@@ -520,26 +521,30 @@ test('both scoring themes round the lines without changing recorded values and k
   }
 });
 
-test('endpoint bars retain shared magnitudes and distinguish source negatives, zeroes and unranked gaps', () => {
+test('rank-sized bars keep units independent, display zero/negative source values and leave unqualified stats empty', () => {
   const { metricRow } = harness().window.RostersStartSit;
   const players = [{ pos: 'QB', labels: { fpts: 'FPTS' }, metrics: { fpts: { value: -12, display: '-12.0', rank: 8 } } },
     { pos: 'QB', labels: {}, metrics: { fpts: { value: 24, display: '24.0', rank: 3 } } }];
-  let markup = metricRow('fpts', players);
-  assert.match(markup, /ss-stat-plot ss-side-0 ss-trailing" style="--ss-bar-ratio:0.5"/);
-  assert.match(markup, /ss-stat-plot ss-side-1 ss-leading" style="--ss-bar-ratio:1"/);
-  assert.match(markup, /class="ss-stat-fill ss-negative"/);
-  assert.match(markup, />-12.0<\/b>/);
-  players[0].metrics.fpts = { value: 0, display: '0.0', rank: 12 };
-  players[1].metrics.fpts = { value: null, display: '—', rank: null };
+  const ratios = markup => [...markup.matchAll(/--ss-bar-ratio:([0-9.]+)/g)].map(match => Number(match[1]));
+  let markup = metricRow('fpts', players), lengths = ratios(markup);
+  assert.ok(lengths[0] < lengths[1]);
+  assert.match(markup, /ss-metric-stat">-12.0<\/small>/);
+  players[0].metrics.fpts.value = 9999;
+  assert.deepEqual(ratios(metricRow('fpts', players)), lengths, 'raw magnitude cannot change rank bar length');
+  players[0].metrics.fpts = { value: 0, display: '0.0', rank: 1 };
+  players[1].metrics.fpts = { value: 12, display: '12.0', rank: null };
   markup = metricRow('fpts', players);
-  assert.equal((markup.match(/class="ss-stat-zero"/g) || []).length, 1);
-  assert.equal((markup.match(/data-ss-available="false"/g) || []).length, 1);
-  assert.match(markup, />0.0<\/b>/);
-  assert.match(markup, />Rk —<\/small>/);
+  assert.equal(ratios(markup)[0], 1);
+  assert.equal(ratios(markup)[1], 0);
+  assert.equal((markup.match(/class="ss-stat-fill"/g) || []).length, 1);
+  assert.match(markup, />Rk 1<\/b><small class="ss-metric-stat">0.0<\/small>/);
+  assert.match(markup, />Rk —<\/b><small class="ss-metric-stat">12.0<\/small>/);
   players[0].metrics.fpts = { value: null, display: '—', rank: null };
   markup = metricRow('fpts', players);
-  assert.equal((markup.match(/class="ss-stat-rail"/g) || []).length, 2);
-  assert.doesNotMatch(markup, /ss-stat-zero|ss-stat-fill|ss-text-row|ss-leading|ss-trailing/);
+  assert.doesNotMatch(markup, /ss-stat-fill|ss-leading|ss-trailing/);
+  players.forEach((player, side) => player.metrics.fpts = { value: 1, display: '1', rank: 80 + side });
+  lengths = ratios(metricRow('fpts', players));
+  assert.ok(lengths[0] > lengths[1] && lengths[1] > 0, 'valid ranks outside the reference range remain ordered');
 });
 
 test('each stat row reserves the same endpoint-label clearance for both players and updates after font changes', () => {
@@ -557,14 +562,15 @@ test('each stat row reserves the same endpoint-label clearance for both players 
   assert.equal(clearance, '47px');
 });
 
-test('contextual stat rates retain supplied positional ranks without selecting a better/worse winner', () => {
+test('contextual stat bars use supplied positional ranks without inventing raw-value comparisons', () => {
   const { metricRow } = harness().window.RostersStartSit;
   const players = [{ pos: 'QB', labels: { ttt: 'TTT' }, metrics: { ttt: { value: 2.4, display: '2.40', rank: 5 } } },
     { pos: 'QB', labels: {}, metrics: { ttt: { value: 2.9, display: '2.90', rank: 21 } } }];
   const markup = metricRow('ttt', players);
-  assert.match(markup, />Rk 5<\/small>/);
-  assert.match(markup, />Rk 21<\/small>/);
-  assert.doesNotMatch(markup, /ss-leading|ss-trailing/);
+  assert.match(markup, />Rk 5<\/b>/);
+  assert.match(markup, />Rk 21<\/b>/);
+  assert.match(markup, /ss-stat-plot ss-side-1 ss-trailing/);
+  assert.doesNotMatch(markup, /←|→/);
 });
 
 
@@ -596,4 +602,25 @@ test('radar axis values match actual Game Logs precision for every positional me
     for (const value of [0, 1.23456, -2.3456, 1087]) assert.equal(radarValue(key, value), format(key, value), `${key}: ${value}`);
     for (const value of [null, undefined, '', 'N/A']) assert.equal(radarValue(key, value), '—');
   }
+});
+
+
+test('scoring labels consume CSS typography, chip and status controls without altering scores', () => {
+  const context = harness(), node = {};
+  const tokens = { '--ss-score-font-size': '12px', '--ss-score-font-weight': '500', '--ss-score-pad-x': '6px',
+    '--ss-score-pad-y': '1px', '--ss-score-distance': '2px', '--ss-score-radius': '7px',
+    '--ss-score-a-color': '#abcdef', '--ss-score-b-background': '#123456', '--ss-score-status-opacity': '.4' };
+  context.window.getComputedStyle = value => { assert.equal(value, node); return { getPropertyValue: key => tokens[key] || '' }; };
+  const echarts = { graphic: { LinearGradient: class { constructor(...args) { this.args = args; } } } };
+  const players = [{ name: 'A', weekly: [{ week: 1, points: 10 }, { week: 2, points: null, status: 'BYE' }] },
+    { name: 'B', weekly: [{ week: 1, points: 12 }, { week: 2, points: 15 }] }];
+  const option = context.window.RostersStartSit.timelineOption(players, 'weekly', echarts, true, 'dm', node);
+  assert.equal(option.series[0].label.fontSize, 12);
+  assert.deepEqual(Array.from(option.series[0].label.padding), [1, 6]);
+  assert.equal(option.series[0].label.distance, 2);
+  assert.equal(option.series[0].label.borderRadius, 7);
+  assert.equal(option.series[0].label.color, '#abcdef');
+  assert.equal(option.series[1].label.backgroundColor, '#123456');
+  assert.equal(option.series[0].data[1].label.opacity, .4);
+  assert.equal(option.series[0].data[0].value, 10);
 });

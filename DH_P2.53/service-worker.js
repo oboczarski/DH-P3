@@ -164,7 +164,9 @@
 // per-player radars together; keep the comparison renderer and CSS in sync.
 // Refresh both Game Logs loaders and their shared URL configuration together:
 // future projection cells now use the single PROJ sheet's 10–18 columns.
-const CACHE_NAME = 'DH3.76-proj-sheet';
+// Refresh rank-sized comparison bars, shared radars and the corrected DM
+// palette with their CSS-editable scoring labels as one presentation update.
+const CACHE_NAME = 'DH3.77-rank-comparison';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

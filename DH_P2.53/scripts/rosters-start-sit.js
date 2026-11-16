@@ -22,12 +22,12 @@
     ],
     dm: [
       // The supplied stat-graphic reference owns DM's player spectra: A uses
-      // turquoise/blue; B uses gold/coral/pink/magenta. Game Logs HUD dials
+      // turquoise/blue; B follows the user-edited cyan/blue/violet bar. HUD dials
       // retain their separate progress-based tones, as originally requested.
       { main: '#18ebdc', light: '#b7fff5', mid: '#00c6ef', deep: '#1264ff', muted: '#779ea8', rgb: '24,235,220',
         stops: ['#1264FF', '#118FFF', '#00C6EF', '#19EDDD'] },
-      { main: '#ffbd55', light: '#ffe5b5', mid: '#f43eae', deep: '#cd28f4', muted: '#a59180', rgb: '255,189,85',
-        stops: ['#FFBF47', '#FF866C', '#F43EAE', '#CD28F4'] },
+      { main: '#b69aff', light: '#e6c4ff', mid: '#5b7fff', deep: '#db6dff', muted: '#9d99bb', rgb: '182,154,255',
+        stops: ['rgba(115,244,255,.72)', 'rgba(91,127,255,.72)', 'rgba(219,109,255,.82)'], offsets: [0, .52, 1] },
     ],
   };
   // Default remains the initial comparison. Each optional theme is a toggle:
@@ -286,45 +286,58 @@
   function getSections(players) {
     return players[0].pos === players[1].pos && players[0].sections.length ? players[0].sections : OVERVIEW;
   }
+  // Start/Sit compares published positional ranks directly: a smaller number
+  // wins, even for lower-is-better or contextual stats. A source value is still
+  // required, so missing/unqualified stats never acquire a fabricated rank.
+  function qualifiedRank(metric) {
+    const rank = number(metric?.rank);
+    return number(metric?.value) !== null && rank !== null && rank >= 1 ? rank : null;
+  }
+  function rankWinner(metrics) {
+    const ranks = metrics.map(qualifiedRank);
+    return ranks.some(rank => rank === null) || ranks[0] === ranks[1] ? null : ranks[0] < ranks[1] ? 0 : 1;
+  }
+  function valueWinner(key, metrics) {
+    const values = metrics.map(metric => number(metric?.value));
+    if (values.some(value => value === null)) return null;
+    if (CONTEXT.has(key)) return rankWinner(metrics);
+    return Math.abs(values[0] - values[1]) < 1e-8 ? null : (LOWER.has(key) ? values[0] < values[1] : values[0] > values[1]) ? 0 : 1;
+  }
+  const comparisonState = (winner, side) => winner === null ? '' : winner === side ? ' ss-leading' : ' ss-trailing';
   function metricRow(key, players) {
     const metrics = players.map(player => player.metrics[key] || { display: '—', value: null, rank: null });
     const values = metrics.map(metric => number(metric.value));
+    const ranks = metrics.map(qualifiedRank);
     const label = players[0].labels[key] || LABELS[key] || key;
     const description = DESCRIPTIONS[key] || label;
-    // Identity cells remain text. A numerical stat with two missing source
-    // values still owns two empty rails, so unavailable never resembles zero.
     const isNumeric = !['player_name', 'position', 'team'].includes(key);
-    const max = Math.max(...values.filter(value => value !== null).map(Math.abs), .00001);
+    const winner = rankWinner(metrics);
+    // Both halves share a rank scale. Use the positional reference range and
+    // extend it for valid lower ranks; changing raw units cannot resize a bar.
+    // Rank 1 fills its half; progressively worse ranks shorten continuously.
+    const rankScale = Math.max(1, ...players.map(player => RADAR_CONFIG[player.pos]?.maxRank || 72), ...ranks.filter(rank => rank !== null));
     const comparable = values.every(value => value !== null) && !CONTEXT.has(key);
     const equal = comparable && Math.abs(values[0] - values[1]) < 1e-8;
-    const winner = comparable && !equal ? (LOWER.has(key) ? values[0] < values[1] : values[0] > values[1]) ? 0 : 1 : null;
-    // Values and bars share the same better/worse state, including metrics
-    // where lower wins. Equal, unavailable and contextual stats stay neutral.
-    const sideState = side => winner === null ? '' : winner === side ? ' ss-leading' : ' ss-trailing';
     const precision = Math.min(3, Math.max(...metrics.map(metric => (String(metric.display).match(/\.(\d+)/)?.[1] || '').length)));
     const diff = comparable && !equal ? `${fmt(Math.abs(values[0] - values[1]), precision)}${String(metrics[0].display).includes('%') ? ' pp' : ''}` : equal ? 'EVEN' : '';
     const valueMarkup = side => {
-      const rank = number(metrics[side].rank);
-      const hasRank = values[side] !== null && rank !== null && rank > 0;
-      const rankText = hasRank ? `Rk ${rank}` : 'Rk —';
-      // Contextual rates keep supplied positional ranks even though they do
-      // not select a better/worse winner. Identity metadata never invents one.
-      const showRank = isNumeric && key !== 'overall_rank' && (hasRank || !CONTEXT.has(key));
-      return `<div class="ss-metric-value ss-side-${side}${sideState(side)}"><b>${escape(metrics[side].display)}</b>${showRank ? `<small title="${escape(players[side].pos)} season positional rank${hasRank ? '' : ' unavailable / unqualified'}">${rankText}</small>` : ''}</div>`;
+      const rank = ranks[side], showRank = isNumeric && key !== 'overall_rank' && (rank !== null || !CONTEXT.has(key));
+      // Rank takes the original large, neutral-colored top line. The actual
+      // value takes the smaller player-tinted line, centered directly below.
+      return `<div class="ss-metric-value ss-side-${side}${comparisonState(winner, side)}">${showRank ? `<b class="ss-metric-rank" title="${escape(players[side].pos)} season positional rank${rank === null ? ' unavailable / unqualified' : ''}">${rank === null ? 'Rk —' : `Rk ${rank}`}</b><small class="ss-metric-stat">${escape(metrics[side].display)}</small>` : `<b>${escape(metrics[side].display)}</b>`}</div>`;
     };
-    // Reference-style butterfly bars extend out from the central stat pill.
-    // Each value/rank stack follows its fill's outer end. Both sides reserve
-    // the SAME measured text clearance to keep their magnitude scale honest.
     const plotMarkup = side => {
-      const value = values[side], ratio = value === null ? 0 : Math.abs(value) / max;
-      return `<div class="ss-stat-plot ss-side-${side}${sideState(side)}" style="--ss-bar-ratio:${ratio}" data-ss-available="${value !== null}">${isNumeric ? `<div class="ss-stat-rail" aria-hidden="true">${value !== null && value !== 0 ? `<i class="ss-stat-fill${value < 0 ? ' ss-negative' : ''}"></i>` : value === 0 ? '<i class="ss-stat-zero"></i>' : ''}</div>` : ''}${valueMarkup(side)}</div>`;
+      const rank = ranks[side], ratio = rank === null ? 0 : (rankScale - rank + 1) / rankScale;
+      // The bars encode rank rather than signed stat magnitude. Recorded zero
+      // and negative values remain literal labels; unranked values have no fill.
+      return `<div class="ss-stat-plot ss-side-${side}${comparisonState(winner, side)}" style="--ss-bar-ratio:${ratio}" data-ss-available="${values[side] !== null}" data-ss-ranked="${rank !== null}" data-ss-rank="${rank ?? ''}">${isNumeric ? `<div class="ss-stat-rail" aria-hidden="true">${rank === null ? '' : '<i class="ss-stat-fill"></i>'}</div>` : ''}${valueMarkup(side)}</div>`;
     };
     return `<div class="ss-metric-row${!isNumeric ? ' ss-text-row' : ''}" data-ss-stat="${key}">${plotMarkup(0)}<div class="ss-metric-label"><button class="ss-metric-help" type="button" data-ss-help="${key}" aria-expanded="false" aria-controls="ss-help-${key}" aria-label="Explain ${escape(label)}" title="${escape(description)}"><span>${escape(label)}</span>${diff ? `<small class="${winner === null ? '' : `ss-side-${winner}`}">${winner === null ? diff : `${winner === 0 ? '←' : '→'} ${diff}`}</small>` : ''}</button></div>${plotMarkup(1)}<p class="ss-metric-explanation" id="ss-help-${key}" hidden>${escape(description)}</p></div>`;
   }
   function measureStatPlots(mount) {
     // Text uses real responsive font metrics, including percentages, large
     // totals and negative signs. A shared row reserve prevents either label
-    // from colliding with an edge or shortening only one player's bar scale.
+    // from colliding with an edge or shortening only one player's rank scale.
     const measurements = [...mount.querySelectorAll('.ss-metric-row:not(.ss-text-row)')].map(row => {
       const widths = [...row.querySelectorAll('.ss-metric-value')].map(node => node.getBoundingClientRect().width);
       const clearance = `${Math.ceil(Math.max(0, ...widths)) + 8}px`;
@@ -365,13 +378,15 @@
     if (value >= maximum) return 10;
     return value <= 7 ? 85 - (value - 1) * 2 : 73 - (value - 7) / (maximum - 7) * 63;
   }
-  // Four-stop DM spectra are shared by its scoring and radar renderers; V2
-  // retains its existing three-stop lines and its original translucent areas.
+  // DM preserves each edited spectrum's stop positions and alpha, including
+  // player B's three-stop 52% midpoint. The same colors feed line and area.
   function comparisonGradientStops(palette, theme) {
-    return theme === 'dm' ? palette.stops.map((color, index) => ({ offset: index / 3, color }))
+    return theme === 'dm' ? palette.stops.map((color, index) => ({ offset: palette.offsets?.[index] ?? index / (palette.stops.length - 1), color }))
       : [{ offset: 0, color: palette.mid }, { offset: .45, color: palette.main }, { offset: 1, color: palette.light }];
   }
   function gradientRgba(color, opacity) {
+    const rgba = color.match(/^rgba?\(([^)]+)\)/i)?.[1].split(',').map(Number);
+    if (rgba) return `rgba(${rgba.slice(0, 3).join(',')},${opacity * (rgba[3] ?? 1)})`;
     const value = Number.parseInt(color.slice(1), 16);
     return `rgba(${(value >> 16) & 255},${(value >> 8) & 255},${value & 255},${opacity})`;
   }
@@ -392,62 +407,107 @@
     const n = Math.round(rank), last = n % 100;
     return last >= 11 && last <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th');
   }
-  // One full-width profile per player keeps all 12/13 stat + value pairs
-  // legible on phones. Desktop presents the two cards side by side. The rank
-  // geometry matches Game Logs; the gradient materials belong to Start/Sit.
-  function radarGraphic(player, side, config, theme, uid) {
-    const cx = 180, cy = 168, radius = 120, count = config.stats.length;
+  // Both players share one radar. Same-position pairs retain every Game Logs
+  // axis; mixed positions use only the intersection of their actual axes, with
+  // each player's own positional radius scale. Never equate unrelated stats.
+  function radarConfigFor(players) {
+    const configs = players.map(player => RADAR_CONFIG[player.pos]);
+    if (configs.some(config => !config)) return null;
+    const stats = configs[0].stats.filter(key => configs[1].stats.includes(key));
+    return { stats, labels: stats.map(key => configs[0].labels[configs[0].stats.indexOf(key)]) };
+  }
+  function radarGraphic(players, config, theme) {
+    const cx = 180, cy = 176, radius = 110, count = config.stats.length;
     const at = (index, distance) => {
       const angle = -Math.PI / 2 + index * Math.PI * 2 / count;
       return [cx + Math.cos(angle) * distance, cy + Math.sin(angle) * distance];
     };
     const pointString = points => points.map(point => point.map(value => value.toFixed(2)).join(',')).join(' ');
-    const palette = THEMES[theme][side], id = `ss-radar-${uid}-${side}`;
-    const lineStops = comparisonGradientStops(palette, theme).map(stop => `<stop offset="${stop.offset}" stop-color="${stop.color}"/>`).join('');
-    const areaStops = comparisonGradientStops(palette, theme).map(stop => `<stop offset="${stop.offset}" stop-color="${stop.color}" stop-opacity="${.07 + stop.offset * .25}"/>`).join('');
-    const definitions = `<linearGradient id="${id}-line" x1="0" y1="1" x2="1" y2="0">${lineStops}</linearGradient><linearGradient id="${id}-area" x1="0" y1="1" x2=".85" y2="0">${areaStops}</linearGradient>`;
+    const palettes = THEMES[theme];
+    const definitions = palettes.map((palette, side) => {
+      const stops = comparisonGradientStops(palette, theme);
+      return `<linearGradient id="ss-radar-${side}-line" x1="0" y1="1" x2="1" y2="0">${stops.map(stop => `<stop offset="${stop.offset}" stop-color="${stop.color}"/>`).join('')}</linearGradient><linearGradient id="ss-radar-${side}-area" x1="0" y1="1" x2=".85" y2="0">${stops.map(stop => `<stop offset="${stop.offset}" stop-color="${stop.color}" stop-opacity="${.04 + stop.offset * .2}"/>`).join('')}</linearGradient>`;
+    }).join('');
     const grid = [20, 40, 60, 80, 100].map((level, index) => `<polygon points="${pointString(config.stats.map((_, i) => at(i, radius * level / 100)))}" class="ss-radar-grid-ring"${index === 4 ? ' data-outer="true"' : ''}/>`).join('');
     const axes = config.stats.map((key, index) => {
-      const edge = at(index, radius), label = at(index, radius + 27);
-      const value = radarValue(key, player.metrics[key]?.value);
-      // Center both lines on their axis, including IMP's lighter explanation.
-      // This preserves the plotting area without pushing long labels off-card.
+      const edge = at(index, radius), label = at(index, radius + 31);
       const name = key === 'imp' ? 'IMP<tspan class="ss-radar-axis-note">(TD+1D)</tspan>' : escape(config.labels[index]);
-      return `<line x1="${cx}" y1="${cy}" x2="${edge[0]}" y2="${edge[1]}" class="ss-radar-spoke"/><g class="ss-radar-axis-group" data-ss-radar-stat="${key}"><title>${escape(DESCRIPTIONS[key] || config.labels[index])}</title><text x="${label[0]}" y="${label[1] - 3}" text-anchor="middle" class="ss-radar-axis">${name}</text><text x="${label[0]}" y="${label[1] + 11}" text-anchor="middle" class="ss-radar-axis-value">${escape(value)}</text></g>`;
+      const metrics = players.map(player => player.metrics[key]);
+      const worseValue = valueWinner(key, metrics);
+      // Keep both values centered beneath their shared stat label: A first,
+      // B directly below. Opacity marks the weaker value without changing hue.
+      const values = players.map((player, side) => `<text x="${label[0]}" y="${label[1] + 9 + side * 14}" text-anchor="middle" class="ss-radar-axis-value ss-side-${side}${comparisonState(worseValue, side)}"><title>${escape(player.name)} · ${escape(config.labels[index])}</title>${escape(radarValue(key, metrics[side]?.value))}</text>`).join('');
+      return `<line x1="${cx}" y1="${cy}" x2="${edge[0]}" y2="${edge[1]}" class="ss-radar-spoke"/><g class="ss-radar-axis-group" data-ss-radar-stat="${key}"><title>${escape(DESCRIPTIONS[key] || config.labels[index])}</title><text x="${label[0]}" y="${label[1] - 5}" text-anchor="middle" class="ss-radar-axis">${name}</text>${values}</g>`;
     }).join('');
-    const points = config.stats.map((key, index) => {
-      const metric = player.metrics[key], distance = radarRadius(metric?.rank, config.maxRank);
-      return number(metric?.value) === null || distance === null ? null : at(index, radius * distance / 100);
+    const datasets = players.map((player, side) => {
+      const maximum = RADAR_CONFIG[player.pos].maxRank;
+      const points = config.stats.map((key, index) => {
+        const distance = radarRadius(qualifiedRank(player.metrics[key]), maximum);
+        return distance === null ? null : at(index, radius * distance / 100);
+      });
+      const complete = points.every(Boolean);
+      const area = complete ? `<polygon class="ss-radar-area" points="${pointString(points)}" fill="url(#ss-radar-${side}-area)"/>` : '';
+      const line = complete ? `<polygon points="${pointString(points)}" fill="none" stroke="url(#ss-radar-${side}-line)"/>`
+        : points.map((point, index) => point && points[(index + 1) % count] ? `<path d="M${point}L${points[(index + 1) % count]}" fill="none" stroke="url(#ss-radar-${side}-line)"/>` : '').join('');
+      const markers = points.map((point, index) => !point ? '' : `<g><title>${escape(player.name)} · ${escape(config.labels[index])}: ${escape(radarValue(config.stats[index], player.metrics[config.stats[index]]?.value))} · ${escape(player.pos)} rank ${qualifiedRank(player.metrics[config.stats[index]])}</title>${side === 0 ? `<circle cx="${point[0]}" cy="${point[1]}" r="2.6"/>` : `<path d="M${point[0]},${point[1] - 3.4}l3.4 3.4-3.4 3.4-3.4-3.4Z"/>`}</g>`).join('');
+      return { markup: `<g class="ss-radar-dataset ss-side-${side}"><g class="ss-radar-shape">${area}${line}</g><g class="ss-radar-markers">${markers}</g></g>`, points };
     });
-    const complete = points.every(Boolean);
-    const area = complete ? `<polygon class="ss-radar-area" points="${pointString(points)}" fill="url(#${id}-area)"/>` : '';
-    // Missing/unqualified ranks stay gaps; never draw a fabricated closed area.
-    const line = complete ? `<polygon points="${pointString(points)}" fill="none" stroke="url(#${id}-line)"/>`
-      : points.map((point, index) => point && points[(index + 1) % count] ? `<path d="M${point}L${points[(index + 1) % count]}" fill="none" stroke="url(#${id}-line)"/>` : '').join('');
-    const markers = config.stats.map((key, index) => {
-      const point = points[index], rank = point ? number(player.metrics[key].rank) : null;
-      // Ranks sit outside their points with a minimum radius that prevents
-      // weak/unranked profiles from piling every label into the center.
-      const distance = rank === null ? 38 : Math.max(38, radius * radarRadius(rank, config.maxRank) / 100 + 13);
-      const label = at(index, distance);
-      const title = `${player.name} · ${config.labels[index]}: ${radarValue(key, player.metrics[key]?.value)} · ${player.pos} rank ${rank ?? 'unavailable'}`;
-      return `<g><title>${escape(title)}</title>${!point ? '' : side === 0 ? `<circle cx="${point[0]}" cy="${point[1]}" r="3"/>` : `<path d="M${point[0]},${point[1] - 3.5}l3.5 3.5-3.5 3.5-3.5-3.5Z"/>`}<text x="${label[0]}" y="${label[1]}" class="ss-radar-rank${rank === null ? ' ss-radar-unranked' : ''}" text-anchor="middle" dominant-baseline="middle">${rank === null ? '—' : `${rank}<tspan class="ss-radar-rank-suffix" dy="-3">${rankSuffix(rank)}</tspan>`}</text></g>`;
-    }).join('');
-    const summary = `${player.name} ${player.pos} performance radar. Stat names and season values surround the plot; ordinal positional ranks label each axis. Better ranks extend farther from the center.`;
-    return `<svg class="ss-radar-svg" viewBox="0 0 360 340" role="img" aria-label="${escape(summary)}"><defs>${definitions}</defs><g>${grid}${axes}</g><circle cx="${cx}" cy="${cy}" r="2" class="ss-radar-center"/><g class="ss-radar-dataset ss-side-${side}"><g class="ss-radar-shape">${area}${line}</g><g class="ss-radar-markers">${markers}</g></g></svg>`;
-  }
-  function radarCard(player, side, config, theme) {
-    return `<article class="ss-radar-card ss-side-${side}"><div class="ss-radar-card-heading"><span><i>${side === 0 ? '●' : '◆'}</i> ${escape(shortName(player))}<small>${escape(player.pos)}</small></span><b>01 <i>BEST RANK</i></b></div><div class="ss-radar-card-content"><div class="ss-radar-plot">${radarGraphic(player, side, config, theme, side)}</div><details class="ss-radar-ledger"><summary>All values & positional ranks ${icon('down')}</summary><table><caption>${escape(player.name)} · season performance</caption><thead><tr><th scope="col">METRIC</th><th scope="col">VALUE</th><th scope="col">${escape(player.pos)} RANK</th></tr></thead><tbody>${config.stats.map((key, index) => {
-      const metric = player.metrics[key] || {}, rank = number(metric.rank);
-      const qualified = number(metric.value) !== null && rank !== null && rank >= 1;
-      return `<tr><th scope="row" title="${escape(DESCRIPTIONS[key] || config.labels[index])}">${escape(config.labels[index])}</th><td><b>${escape(radarValue(key, metric.value))}</b></td><td><small title="${qualified ? 'Season positional rank' : 'No qualified positional rank'}">${qualified ? `${rank}${rankSuffix(rank)}` : '—'}</small></td></tr>`;
-    }).join('')}</tbody></table></details></div></article>`;
+    // Reserve the three-line axis groups before placing point labels. Dense
+    // low-rank profiles cannot fit 26 labels at the center: search nearby
+    // radial/tangent slots, retaining every label and its player identity.
+    const reserved = config.stats.map((key, index) => {
+      const label = at(index, radius + 31);
+      const width = Math.max(key === 'imp' ? 52 : config.labels[index].length * 6,
+        ...players.map(player => radarValue(key, player.metrics[key]?.value).length * 5.5)) + 4;
+      return { x: label[0] - width / 2, y: label[1] - 18, width, height: 45 };
+    });
+    const labels = config.stats.flatMap((key, index) => {
+      const metrics = players.map(player => player.metrics[key]), winner = rankWinner(metrics);
+      return players.map((player, side) => {
+        const rank = qualifiedRank(metrics[side]);
+        if (rank === null) return null;
+        const distance = radius * radarRadius(rank, RADAR_CONFIG[player.pos].maxRank) / 100;
+        return { key, index, side, rank, winner, distance, point: datasets[side].points[index] };
+      }).filter(Boolean);
+    });
+    // Stronger outer points get first choice; later labels move just enough to
+    // clear prior labels. A conservative text box includes ordinal suffixes.
+    const occupied = [...reserved];
+    const intersects = (a, b) => a.x < b.x + b.width + 2 && a.x + a.width + 2 > b.x
+      && a.y < b.y + b.height + 2 && a.y + a.height + 2 > b.y;
+    labels.sort((a, b) => b.distance - a.distance || a.index - b.index || a.side - b.side).forEach(item => {
+      const angle = -Math.PI / 2 + item.index * Math.PI * 2 / count;
+      const width = String(item.rank).length * 5 + 8, height = 13.5;
+      const candidates = [];
+      for (const radialShift of [0, 9, -9, 18, -18, 27, -27, 36, -36, 45, -45, 54, -54, 63, -63, 72, -72, 81, -81, 90, -90]) {
+        const distance = Math.max(23, Math.min(104, item.distance + 9 + radialShift));
+        for (const tangent of [0, -8, 8, -16, 16, -24, 24, -32, 32]) {
+          const point = at(item.index, distance);
+          const xy = [point[0] - Math.sin(angle) * tangent, point[1] + Math.cos(angle) * tangent];
+          const box = { x: xy[0] - width / 2, y: xy[1] - height / 2, width, height };
+          candidates.push({ xy, box, cost: Math.hypot(xy[0] - item.point[0], xy[1] - item.point[1]) });
+        }
+      }
+      candidates.sort((a, b) => a.cost - b.cost);
+      const placement = candidates.find(candidate => !occupied.some(box => intersects(candidate.box, box))) || candidates.at(-1);
+      item.xy = placement.xy;
+      occupied.push(placement.box);
+    });
+    const rankLeaders = labels.map(item => Math.hypot(item.xy[0] - item.point[0], item.xy[1] - item.point[1]) < 17 ? ''
+      : `<line x1="${item.point[0]}" y1="${item.point[1]}" x2="${item.xy[0]}" y2="${item.xy[1]}" class="ss-radar-rank-leader ss-side-${item.side}${comparisonState(item.winner, item.side)}"/>`).join('');
+    const rankLabels = labels.map(item => `<text x="${item.xy[0]}" y="${item.xy[1]}" data-ss-radar-rank="${item.key}" class="ss-radar-rank ss-side-${item.side}${comparisonState(item.winner, item.side)}" text-anchor="middle" dominant-baseline="middle"><title>${escape(players[item.side].name)} · ${escape(config.labels[item.index])} · ${escape(players[item.side].pos)} rank ${item.rank}</title>${item.rank}<tspan class="ss-radar-rank-suffix" dy="-2.5">${rankSuffix(item.rank)}</tspan></text>`).join('');
+    return `<svg class="ss-radar-svg" viewBox="0 0 360 360" role="img" aria-label="${escape(players.map(player => player.name).join(' and '))} performance radar. Each stat shows player A's value above player B's; colored positional ranks label the plotted points."><defs>${definitions}</defs><g>${grid}${axes}</g><circle cx="${cx}" cy="${cy}" r="2" class="ss-radar-center"/>${datasets.map(item => item.markup).join('')}<g class="ss-radar-ranks">${rankLeaders}${rankLabels}</g></svg>`;
   }
   function performanceRadar(players, theme = 'default') {
-    return `<div class="ss-radar-grid ss-radar-profiles">${players.map((player, side) => {
-      const config = RADAR_CONFIG[player.pos];
-      return config ? radarCard(player, side, config, theme) : '<p class="ss-panel-note">Performance radar unavailable for this position.</p>';
-    }).join('')}</div>`;
+    const config = radarConfigFor(players);
+    if (!config) return '<p class="ss-panel-note">Performance radar unavailable for this position.</p>';
+    return `<div class="ss-radar-shared"><div class="ss-radar-card-content"><div class="ss-radar-plot">${radarGraphic(players, config, theme)}</div><details class="ss-radar-ledger"><summary>All values & positional ranks ${icon('down')}</summary><table><caption>Season performance · ${players[0].pos === players[1].pos ? escape(players[0].pos) : 'Shared metrics; each player retains their positional ranks'}</caption><thead><tr><th scope="col">METRIC</th>${players.map((player, side) => `<th scope="col" class="ss-side-${side}">${escape(shortName(player))}</th>`).join('')}</tr></thead><tbody>${config.stats.map((key, index) => {
+      const metrics = players.map(player => player.metrics[key]), winner = rankWinner(metrics), bestValue = valueWinner(key, metrics);
+      return `<tr><th scope="row">${escape(config.labels[index])}</th>${players.map((player, side) => {
+        const rank = qualifiedRank(metrics[side]);
+        return `<td class="ss-side-${side}"><b class="${comparisonState(bestValue, side).trim()}">${escape(radarValue(key, metrics[side]?.value))}</b><small class="${comparisonState(winner, side).trim()}" title="${rank === null ? 'No qualified positional rank' : `${escape(player.pos)} positional rank`}">${rank === null ? '—' : `${rank}${rankSuffix(rank)}`}</small></td>`;
+      }).join('')}</tr>`;
+    }).join('')}</tbody></table></details></div></div>`;
   }
   function comparisonMarkup(model, pair, chartMode) {
     const sections = getSections(pair);
@@ -460,10 +520,10 @@
       <div class="ss-projection-insight">${icon('pulse')}<span>${number(pair[0].projection) !== null && number(pair[1].projection) !== null ? Math.abs(pair[0].projection - pair[1].projection) < .05 ? 'Level projections for this week' : `<b class="ss-side-${pair[0].projection > pair[1].projection ? 0 : 1}">${escape(shortName(pair[pair[0].projection > pair[1].projection ? 0 : 1]))}</b> projects <strong>${fmt(Math.abs(pair[0].projection - pair[1].projection))}</strong> points higher` : 'Compare season production while projections are unavailable'}</span><span class="ss-micro-label">WK ${model.week || '—'} OUTLOOK</span></div>
       <div class="ss-analytics-grid"><section class="ss-panel ss-timeline"><header class="ss-panel-header"><div>${icon('chart')}<h3>Scoring Comparison</h3></div><div class="ss-chart-toggle" role="group" aria-label="Scoring chart view"><button type="button" data-ss-chart="weekly" aria-pressed="${chartMode === 'weekly'}">Weekly</button><button type="button" data-ss-chart="cumulative" aria-pressed="${chartMode === 'cumulative'}">Cumulative</button></div></header><div class="ss-chart-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i></i>${escape(shortName(player))}</span>`).join('')}<span>LEAGUE PTS</span></div><div class="ss-timeline-viewport" tabindex="0" role="region" aria-label="Scoring Comparison; scroll horizontally for more weeks"><div class="ss-timeline-chart" role="img" aria-label="${chartMode === 'weekly' ? 'Weekly' : 'Cumulative'} fantasy points for ${escape(pair.map(player => player.name).join(' and '))}"></div></div><div class="ss-chart-caption"><span>Recorded games only</span><span>Unplayed weeks show status</span></div>${weeklyTable(pair)}</section>
       <section class="ss-panel ss-reliability"><header class="ss-panel-header"><div>${icon('shield')}<h3>Consistency & ceiling</h3></div><span class="ss-micro-label">PPR BASELINE</span></header><div class="ss-consistency-rings">${pair.map((player, side) => ring(player, side, comparisonTheme)).join('')}</div><p class="ss-panel-note">CSTY% and CL · published season values</p></section>${production(pair)}</div>
-      <div class="ss-detail-heading"><div><span class="ss-eyebrow">THE COMPLETE PICTURE</span><h2>Every stat. Both players.</h2></div><span class="ss-detail-badge">${metricCount}<small>METRICS</small></span></div><div class="ss-stat-contract"><span>${same ? `${escape(pair[0].pos)} · Game Logs season stats` : 'Mixed positions · Data Hub Overview'}</span><span>Bar length = magnitude · scale per metric</span></div>
+      <div class="ss-detail-heading"><div><span class="ss-eyebrow">THE COMPLETE PICTURE</span><h2>Every stat. Both players.</h2></div><span class="ss-detail-badge">${metricCount}<small>METRICS</small></span></div><div class="ss-stat-contract"><span>${same ? `${escape(pair[0].pos)} · Game Logs season stats` : 'Mixed positions · Data Hub Overview'}</span><span>Bar length = positional rank · longer is stronger</span></div>
       <nav class="ss-chapters" aria-label="Stat sections">${sections.map(section => `<button type="button" data-ss-section="${section.id}">${escape(section.label.toLowerCase())}</button>`).join('')}<button type="button" data-ss-section="radar">${icon('target')} Radar</button></nav><div class="ss-stat-grid">${statSections(pair)}</div>
-      <section class="ss-panel ss-performance" id="ss-section-radar" aria-label="Performance radar"><header class="ss-panel-header"><div>${icon('target')}<h3>Performance radar</h3></div><span class="ss-micro-label">${same ? `${escape(pair[0].pos)} · HEAD TO HEAD` : 'POSITION PROFILES'}</span></header><div class="ss-radar-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i>${side === 0 ? '●' : '◆'}</i>${escape(shortName(player))}</span>`).join('')}<small>OUTWARD = STRONGER RANK</small></div><div class="ss-radar-region">${performanceRadar(pair, comparisonTheme)}</div><p class="ss-radar-note">Game Logs metrics, values and qualified positional ranks · farther out = stronger rank. Unranked metrics keep their values and leave gaps in the profile.</p></section>
-      <footer class="ss-data-note">${icon('target')}<p>FPTS & PPG follow your league scoring. Other season metrics, ceiling and consistency follow the published stats. Positional ranks retain Game Logs qualification. <span>— Unavailable &nbsp; · &nbsp; 0 Recorded zero &nbsp; · &nbsp; Striped bar Negative value</span></p></footer></div></div>`;
+      <section class="ss-panel ss-performance" id="ss-section-radar" aria-label="Performance radar"><header class="ss-panel-header"><div>${icon('target')}<h3>Performance radar</h3></div><span class="ss-micro-label">${same ? `${escape(pair[0].pos)} · HEAD TO HEAD` : 'SHARED POSITION METRICS'}</span></header><div class="ss-radar-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i>${side === 0 ? '●' : '◆'}</i>${escape(shortName(player))}</span>`).join('')}<small>OUTWARD = STRONGER RANK</small></div><div class="ss-radar-region">${performanceRadar(pair, comparisonTheme)}</div><p class="ss-radar-note">${same ? 'Game Logs positional metrics' : 'Shared Game Logs metrics · each position retains its rank scale'} · A values above B · dimmed labels trail the other player. Unranked metrics keep their values and leave gaps.</p></section>
+      <footer class="ss-data-note">${icon('target')}<p>FPTS & PPG follow your league scoring. Other season metrics, ceiling and consistency follow the published stats. Positional ranks retain Game Logs qualification. <span>— Unavailable &nbsp; · &nbsp; 0 Recorded zero &nbsp; · &nbsp; Dimmed label Trails the other player</span></p></footer></div></div>`;
   }
 
   function seriesFor(players, mode) {
@@ -514,7 +574,28 @@
     // full seasons still reserve readable slots and scroll within the card.
     chartNode.style.minWidth = `${Math.max(0, data.weeks.length - 1) * labelWidth + TIMELINE_GUTTERS.left + TIMELINE_GUTTERS.right}px`;
   }
-  function timelineOption(players, mode, echarts, narrow, theme = 'default') {
+  // ECharts draws labels on canvas, so the comparison stylesheet supplies
+  // their editable tokens here. Read on render, theme changes and resize;
+  // users can adjust label/chip typography, padding, distance and colors in CSS.
+  function scoreLabelStyle(node, side, palette, narrow) {
+    const css = node ? window.getComputedStyle(node) : null;
+    const read = (name, fallback) => css?.getPropertyValue(`--ss-score-${name}`).trim() || fallback;
+    const numeric = (name, fallback) => {
+      const value = Number.parseFloat(read(name, ''));
+      return Number.isFinite(value) ? value : fallback;
+    };
+    const player = side === 0 ? 'a' : 'b';
+    return { color: read(`${player}-color`, side === 0 ? palette.main : palette.light),
+      fontFamily: read('font-family', 'Google Sans, Arial, sans-serif'),
+      fontSize: numeric('font-size', narrow ? 9 : 10), fontWeight: numeric('font-weight', 600),
+      lineHeight: numeric('line-height', narrow ? 11 : 12), distance: numeric('distance', 3),
+      padding: [numeric('pad-y', 2), numeric('pad-x', 3)], borderRadius: numeric('radius', 3),
+      backgroundColor: read(`${player}-background`, side === 0 ? '#102b2be6' : '#2a1839e6'),
+      borderColor: read(`${player}-border`, `rgba(${palette.rgb},.25)`), borderWidth: numeric('border-width', .5),
+      status: { color: read(`${player}-status-color`, palette.muted), opacity: numeric('status-opacity', .65),
+        fontSize: numeric('status-font-size', narrow ? 9 : 10), fontWeight: numeric('status-font-weight', 500) } };
+  }
+  function timelineOption(players, mode, echarts, narrow, theme = 'default', chartNode = null) {
     const data = trajectoryPlot(players, mode);
     const palettes = THEMES[theme];
     return {
@@ -536,6 +617,8 @@
       yAxis: { type: 'value', scale: false, ...(!data.hasScores ? { min: -1, max: 1 } : {}), splitNumber: 4, axisLabel: { color: '#8a9db7', fontSize: 10 }, splitLine: { lineStyle: { color: '#b5d3ff10', type: 'dashed' } } },
       series: players.map((player, side) => {
         const p = palettes[side];
+        const labelStyle = scoreLabelStyle(chartNode, side, p, narrow);
+        const { status: statusStyle, ...chipStyle } = labelStyle;
         const hasGames = data.series[side].some(value => value !== null);
         const points = data.plotted[side].map((value, index) => {
           const missed = data.series[side][index] === null;
@@ -548,7 +631,7 @@
             // Unplayed-week designations use desaturated player hues at reduced
             // opacity so their plain text is quieter than recorded score labels.
             label: { position: value > other || (value === other && side === 0) ? 'top' : 'bottom',
-              ...(missed ? { color: p.muted, opacity: 0.65, backgroundColor: 'transparent', borderWidth: 0 } : {}) } };
+              ...(missed ? { ...statusStyle, backgroundColor: 'transparent', borderWidth: 0 } : {}) } };
         });
         // Monotone smoothing rounds the joins while keeping week order intact.
         // DM borrows the Consistency chart's vertical chromatic treatment; V2
@@ -558,13 +641,11 @@
           itemStyle: { color: p.main, borderColor: '#101626', borderWidth: 1.4 },
           // Values and literal BYE/injury labels remain visible without hover.
           // Move collisions vertically; never let ECharts hide either player.
-          label: { show: true, position: side === 0 ? 'top' : 'bottom', distance: 3,
-            color: side === 0 ? p.main : p.light, fontSize: narrow ? 9 : 10, fontWeight: 600,
-            backgroundColor: side === 0 ? '#102b2be6' : '#2a1839e6', borderColor: `rgba(${p.rgb},.25)`, borderWidth: .5, borderRadius: 3, padding: [2, 3],
+          label: { show: true, position: side === 0 ? 'top' : 'bottom', ...chipStyle,
             formatter: item => data.labels[side][item.dataIndex] },
           labelLayout: { hideOverlap: false, moveOverlap: 'shiftY' },
           areaStyle: { origin: 'auto', opacity: hasGames ? 1 : 0, color: new echarts.graphic.LinearGradient(0, 0, .2, 1, theme === 'dm'
-            ? [...p.stops].reverse().map((color, index) => ({ offset: index / 3, color: gradientRgba(color, [.26, .15, .055, 0][index]) }))
+            ? comparisonGradientStops(p, theme).map(stop => ({ offset: 1 - stop.offset, color: gradientRgba(stop.color, .26 * stop.offset) })).reverse()
             : [{ offset: 0, color: `rgba(${p.rgb},.26)` }, { offset: .28, color: `rgba(${p.rgb},.15)` }, { offset: .63, color: `rgba(${p.rgb},.055)` }, { offset: 1, color: `rgba(${p.rgb},0)` }]) },
           emphasis: { disabled: true }, animation: false, z: 3 - side };
       }),
@@ -601,11 +682,13 @@
         toggleComparisonTheme(button.dataset.ssThemeButton);
         model.mount.querySelector('.ss-dashboard').dataset.ssTheme = comparisonTheme;
         model.mount.querySelectorAll('[data-ss-theme-button]').forEach(other => other.setAttribute('aria-pressed', String(other.dataset.ssThemeButton === comparisonTheme)));
+        const ledgerOpen = model.mount.querySelector('.ss-radar-ledger')?.open;
         model.mount.querySelector('.ss-radar-region').innerHTML = performanceRadar(pair, comparisonTheme);
+        if (ledgerOpen) model.mount.querySelector('.ss-radar-ledger').open = true;
         model.mount.querySelector('.ss-consistency-rings').innerHTML = pair.map((player, side) => ring(player, side, comparisonTheme)).join('');
         measureStatPlots(model.mount);
         const chartNode = model.mount.querySelector('.ss-timeline-chart');
-        mounted?.chart?.setOption(timelineOption(pair, chartMode, window.echarts, chartNode.parentElement.clientWidth < 500, comparisonTheme), true);
+        mounted?.chart?.setOption(timelineOption(pair, chartMode, window.echarts, chartNode.parentElement.clientWidth < 500, comparisonTheme, chartNode), true);
       }));
       model.mount.querySelectorAll('[data-ss-pick]').forEach(select => select.addEventListener('change', () => {
         const side = Number(select.dataset.ssPick), previous = ids[side];
@@ -620,7 +703,7 @@
         sizeTrajectory(chartNode, pair, chartMode);
         if (mounted?.chart) {
           mounted.chart.resize();
-          mounted.chart.setOption(timelineOption(pair, chartMode, window.echarts, chartNode.parentElement.clientWidth < 500, comparisonTheme), true);
+          mounted.chart.setOption(timelineOption(pair, chartMode, window.echarts, chartNode.parentElement.clientWidth < 500, comparisonTheme, chartNode), true);
         }
         chartNode.setAttribute('aria-label', `${chartMode} fantasy points for ${pair.map(player => player.name).join(' and ')}`);
       }));
@@ -661,8 +744,8 @@
         sizeTrajectory(chartNode, pair, chartMode);
         const chart = echarts.init(chartNode, null, { renderer: 'canvas', devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2) });
         mounted.chart = chart;
-        chart.setOption(timelineOption(pair, chartMode, echarts, chartNode.parentElement.clientWidth < 500, comparisonTheme));
-        mounted.observer = new ResizeObserver(() => { if (!chart.isDisposed()) { chart.resize(); chart.setOption(timelineOption(pair, chartMode, echarts, chartNode.parentElement.clientWidth < 500, comparisonTheme), true); } });
+        chart.setOption(timelineOption(pair, chartMode, echarts, chartNode.parentElement.clientWidth < 500, comparisonTheme, chartNode));
+        mounted.observer = new ResizeObserver(() => { if (!chart.isDisposed()) { chart.resize(); chart.setOption(timelineOption(pair, chartMode, echarts, chartNode.parentElement.clientWidth < 500, comparisonTheme, chartNode), true); } });
         mounted.observer.observe(chartNode.parentElement);
       }).catch(() => {
         if (sequence !== token || !chartNode.isConnected) return;
