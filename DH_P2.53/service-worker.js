@@ -168,7 +168,7 @@
 // palette with their CSS-editable scoring labels as one presentation update.
 // Refresh player-colored position-prefix ranks and tighter radar label stacks
 // with their comparison-only styles so cached clients receive both together.
-const CACHE_NAME = 'DH3.78-comparison-labels';
+const CACHE_NAME = 'DH3.78-comparison-labelsv2';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
