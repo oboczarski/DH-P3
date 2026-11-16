@@ -29,7 +29,7 @@ dialog { font:inherit; }
 .metricStrip { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:3px; margin-bottom:4px; }
 /* Mobile opponent chips use the compact week slot with a 1px gap; retain
    their text/logo sizes and exact alignment beneath the bars. */
-.weekMatchup {display:flex;justify-content:center;align-items:center;min-width:0;justify-self:center;color:var(--muted);border:1px solid #aabbff10;border-radius:7px;width:calc(100% - 1px);font-size:8px;padding: 2px 0 1px;gap: 2px;border-color:transparent;background:linear-gradient(90deg,#8f94a61f,#8f94a612) padding-box,linear-gradient(90deg,#74efff5b 0%,#7297ff5b 52%,#d97dff5b 100%) border-box;}
+.weekMatchup {display:flex;justify-content:center;align-items:center;min-width:0;justify-self:center;color:var(--muted);border:1px solid #aabbff10;border-radius:7px;width: calc(100% - 2px);font-size: 7.5px;padding: 2px 0 1px;gap: 2px;border-color:transparent;background:linear-gradient(90deg,#8f94a61f,#8f94a612) padding-box,linear-gradient(90deg,#74efff5b 0%,#7297ff5b 52%,#d97dff5b 100%) border-box;}
 .weekOpponentStack { display:flex; flex-direction:column; align-items:center; gap:0; min-width:0; max-width:100%; }
 /* Wrap the venue marker above long team codes when needed, retaining the
    complete opponent text at the existing mobile font size. */
