@@ -1,7 +1,7 @@
 import {
+  COMPARISON_GRADIENT_PALETTES,
   formatComparisonValue,
   formatRank,
-  getPlayerAccentColor,
   getPlayerName,
   getPlayerPalette,
   getStatLabel,
@@ -11,6 +11,25 @@ import {
 } from "./comparisonStats.js";
 
 const COMPARISON_CHART_FONT_FAMILY = '"Product Sans", "Google Sans", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
+export function getWeeklyPlayerPalette(player, playerIndex) {
+  // DataHub Compare weekly line charts: RB keeps its first blue/mint palette
+  // and uses the original second WR pink/cyan palette for its second player.
+  // WR uses those palettes in the opposite order. Keep this mapping local so
+  // season radars and the modal's other player colors retain their palettes.
+  const position = String(player?.pos || "").toUpperCase();
+  if ((position === "RB" && playerIndex === 1) || (position === "WR" && playerIndex === 0)) {
+    return COMPARISON_GRADIENT_PALETTES.WR[1];
+  }
+  if (position === "WR" && playerIndex === 1) {
+    return COMPARISON_GRADIENT_PALETTES.RB[0];
+  }
+  return getPlayerPalette(player, playerIndex);
+}
+
+function getWeeklyPlayerAccentColor(player, playerIndex) {
+  return getWeeklyPlayerPalette(player, playerIndex).high;
+}
 
 function clamp(value, min, max) {
   if (value === null) {
@@ -138,9 +157,9 @@ function getSamePositionPaletteIndex(players, player, playerIndex) {
 }
 
 function buildThresholdGradient(player, playerIndex, statKey, thresholds, axis) {
-  const palette = getPlayerPalette(player, playerIndex);
+  const palette = getWeeklyPlayerPalette(player, playerIndex);
   const config = getThresholdConfig(thresholds, player.pos, statKey);
-  const fallback = getPlayerAccentColor(player, playerIndex);
+  const fallback = getWeeklyPlayerAccentColor(player, playerIndex);
   if (!config) {
     return fallback;
   }
@@ -187,7 +206,7 @@ function buildWeeklyAreaGradient(player, playerIndex, isMobile) {
   // a richer tint beneath the curve, then ease to fully transparent at the
   // plot floor. Relative coordinates keep the fade proportional on resize;
   // compact charts use less opacity so their dense labels remain prominent.
-  const palette = getPlayerPalette(player, playerIndex);
+  const palette = getWeeklyPlayerPalette(player, playerIndex);
   const peakOpacity = isMobile ? 0.3 : 0.38;
   return {
     type: "linear",
@@ -208,10 +227,10 @@ function buildWeeklyAreaGradient(player, playerIndex, isMobile) {
 
 function getPointThresholdColor(player, playerIndex, statKey, thresholds, rawValue) {
   const value = toFiniteNumber(rawValue);
-  const palette = getPlayerPalette(player, playerIndex);
+  const palette = getWeeklyPlayerPalette(player, playerIndex);
   const config = getThresholdConfig(thresholds, player.pos, statKey);
   if (value === null || !config) {
-    return getPlayerAccentColor(player, playerIndex);
+    return getWeeklyPlayerAccentColor(player, playerIndex);
   }
   const lowerBetter = isLowerBetterForPosition(player.pos, statKey);
   const high = getThresholdValue(config, "HIGH");
@@ -253,6 +272,7 @@ function buildWeeklyTooltip(params, statKey, players, thresholds) {
   // Weekly comparison tooltip:
   // build one row from each selected player's actual weekly record instead of
   // reading ECharts' line/logo/label helper layers, which repeated one value.
+  // Let player details wrap within phone widths while keeping values aligned.
   const week = getTooltipWeek(params);
   const safePlayers = Array.isArray(players) ? players : [];
   const lines = safePlayers.map((player, playerIndex) => {
@@ -261,7 +281,7 @@ function buildWeeklyTooltip(params, statKey, players, thresholds) {
     const rawValue = getSeriesRawValue(entry, statKey);
     const paletteIndex = getSamePositionPaletteIndex(safePlayers, player, playerIndex);
     const pointColor = rawValue === null
-      ? getPlayerAccentColor(player, paletteIndex)
+      ? getWeeklyPlayerAccentColor(player, paletteIndex)
       : getPointThresholdColor(player, paletteIndex, statKey, thresholds, rawValue);
     const rankValue = entry?.ranks?.[statKey];
     const rank = rankValue
@@ -277,15 +297,15 @@ function buildWeeklyTooltip(params, statKey, players, thresholds) {
       ? "rgba(255,214,176,.92)"
       : "rgba(245,249,255,.98)";
     return `
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:8px;">
-        <span><span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:${pointColor};margin-right:6px;"></span>${getPlayerName(player)}${opponent}${rank}</span>
-        <strong style="color:${valueColor};">${displayValue}</strong>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px;">
+        <span style="min-width:0;white-space:normal;line-height:1.4;"><span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:${pointColor};margin-right:6px;"></span>${getPlayerName(player)}${opponent}${rank}</span>
+        <strong style="flex:0 0 auto;color:${valueColor};">${displayValue}</strong>
       </div>
     `;
   }).join("");
 
   return `
-    <div style="min-width:220px;font-family:Product Sans,Google Sans,sans-serif;">
+    <div style="width:min(340px,calc(100vw - 72px));font-size:12px;font-family:Product Sans,Google Sans,sans-serif;">
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:rgba(226,238,255,.58);">${week ? `Week ${week}` : "Week"}</div>
       ${lines || '<div style="margin-top:6px;color:rgba(226,238,255,.68);">No stat recorded</div>'}
     </div>
@@ -333,15 +353,11 @@ function buildCollisionLanes(players, statKey, weeks, axis, isMobile) {
   return lanes;
 }
 
-function getVisualPlotValue(rawValue, lane, axis, isMobile) {
-  const baseValue = clamp(rawValue, axis.min, axis.max);
-  if (baseValue === null || !lane) {
-    return baseValue;
-  }
-  const range = Math.max(1, axis.max - axis.min);
-  const valueStep = range * (isMobile ? 0.04 : 0.035);
-  const direction = axis.inverse ? lane : -lane;
-  return clamp(baseValue + (direction * valueStep), axis.min, axis.max);
+function getWeeklyLabelPosition(lane, playerIndex, inverse) {
+  // Shared weekly plot: separate nearby players' labels above/below their
+  // actual points, including inverted axes. Lines always retain real values.
+  if (lane) return (inverse ? -lane : lane) < 0 ? "top" : "bottom";
+  return playerIndex === 0 ? "top" : "bottom";
 }
 
 function interpolateSkippedValue(seriesPoints, skippedWeek, axis) {
@@ -445,20 +461,18 @@ function buildSkipLogoPoints({ player, statKey, weeks, axis, seriesPoints }) {
     .filter(Boolean);
 }
 
-export function buildWeeklyChartOption({ players, axisPlayers = players, statKey, weeks, thresholds, isCompact = null, colorIndex = null, showXAxis = true }) {
+export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, isCompact = null }) {
   const safeWeeks = Array.isArray(weeks) && weeks.length
     ? weeks
     : Array.from({ length: 18 }, (_, index) => index + 1);
   const isMobile = typeof isCompact === "boolean" ? isCompact : isMobileComparisonChart();
-  // Per-player weekly chart scale:
-  // derive both dedicated charts from the full selected-player set so the
-  // visual scale remains directly comparable even though each chart renders
-  // only one player's line.
-  const axis = getAxisConfig(axisPlayers, statKey, thresholds);
+  // Shared weekly chart: both selected players contribute to one value axis,
+  // one week axis, and one tooltip. Reserve label space above/below the plot.
+  const axis = getAxisConfig(players, statKey, thresholds);
   const lanes = buildCollisionLanes(players, statKey, safeWeeks, axis, isMobile);
   // Weekly comparison data-point logos:
   // keep team marks subordinate to the value/rank labels so adjacent weeks stay
-  // readable in both the desktop pair and the compact stacked mobile charts.
+  // readable with both lines on the same desktop or compact mobile plot.
   const symbolSize = isMobile ? 12 : 15;
   const labelPadding = isMobile ? [2, 3, 2, 3] : [3, 5, 3, 5];
 
@@ -467,8 +481,8 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
     animationEasing: "cubicOut",
     backgroundColor: "transparent",
     grid: isMobile
-      ? { top: 10, right: 6, bottom: showXAxis ? 15 : 4, left: 24, containLabel: false }
-      : { top: 12, right: 22, bottom: showXAxis ? 32 : 8, left: 48, containLabel: false },
+      ? { top: 28, right: 14, bottom: 34, left: 32, containLabel: false }
+      : { top: 36, right: 24, bottom: 44, left: 56, containLabel: false },
     tooltip: {
       trigger: "axis",
       confine: true,
@@ -481,26 +495,26 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
         fontFamily: COMPARISON_CHART_FONT_FAMILY,
       },
       extraCssText: "border-radius:16px;box-shadow:0 20px 48px rgba(0,0,0,.38);",
-      formatter: (params) => buildWeeklyTooltip(params, statKey, axisPlayers, thresholds),
+      formatter: (params) => buildWeeklyTooltip(params, statKey, players, thresholds),
     },
     legend: { show: false },
     xAxis: {
       type: "category",
-      show: showXAxis,
+      show: true,
       boundaryGap: true,
       data: safeWeeks.map((week) => `wk${week}`),
-      axisLine: { show: showXAxis, lineStyle: { color: "rgba(190, 218, 255, 0.16)" } },
+      axisLine: { show: true, lineStyle: { color: "rgba(190, 218, 255, 0.16)" } },
       axisTick: { show: false },
       axisLabel: {
-        show: showXAxis,
+        show: true,
         interval: 0,
         color: "rgba(205, 220, 245, 0.58)",
         fontFamily: COMPARISON_CHART_FONT_FAMILY,
         // Mobile week labels:
         // add the requested lowercase `wk` as a smaller rich-text prefix while
-        // keeping the 2px margin and one-line shallow axis on both charts.
+        // keeping a shallow week axis underneath the shared plot.
         fontSize: isMobile ? 7 : 11,
-        margin: isMobile ? 2 : 7,
+        margin: isMobile ? 6 : 9,
         rotate: 0,
         align: "center",
         formatter: isMobile
@@ -552,10 +566,8 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
       // use secondary position gradients only when this player follows another
       // selected player at the same position. Mixed-position comparisons keep
       // every position on its primary gradient.
-      const paletteIndex = Number.isInteger(colorIndex)
-        ? colorIndex
-        : getSamePositionPaletteIndex(players, player, index);
-      const accent = getPlayerAccentColor(player, paletteIndex);
+      const paletteIndex = getSamePositionPaletteIndex(players, player, index);
+      const accent = getWeeklyPlayerAccentColor(player, paletteIndex);
       const gradient = buildThresholdGradient(player, paletteIndex, statKey, thresholds, axis);
       const skipLogoSymbolSize = symbolSize;
       const dataPoints = safeWeeks.map((week) => {
@@ -567,14 +579,11 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
           ? accent
           : getPointThresholdColor(player, paletteIndex, statKey, thresholds, rawValue);
         const skipped = Boolean(entry?.isSkipped || entry?.skipped);
-        // Weekly overlap plotting:
-        // move close points in value space, not pixel space, so the line,
-        // logo marker, and label all share one visual coordinate while the
-        // original stat stays available as rawValue for labels/tooltips.
-        const plottedValue = getVisualPlotValue(rawValue, lane, axis, isMobile);
+        // Never move the lines to resolve collisions: equal stats must meet at
+        // the same height. Only marker pixels and label positions may separate.
         return {
           week,
-          value: plottedValue,
+          value: rawValue,
           realValue: rawValue === null ? null : clamp(rawValue, axis.min, axis.max),
           rawValue,
           rank,
@@ -583,7 +592,8 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
           skipped,
           skipLabel: entry?.skipLabel || entry?.skipReason || "",
           pointColor,
-          symbolOffset: [0, 0],
+          symbolOffset: lane ? [lane * (isMobile ? 4 : 5), 0] : [0, 0],
+          labelPosition: getWeeklyLabelPosition(lane, index, axis.inverse),
           label: { show: false },
         };
       });
@@ -603,18 +613,26 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
         axis,
         seriesPoints: dataPoints,
       });
+      // Give skipped-week annotations the same side as this player's values
+      // so a shared BYE/OUT week remains legible on the combined plot.
+      skipLabelPoints.forEach((point) => {
+        point.label.position = index === 0 ? "top" : "bottom";
+        point.label.distance = 4;
+      });
+      skipLogoPoints.forEach((point) => {
+        point.symbolOffset = [index === 0 ? -4 : 4, 0];
+      });
       const playedLogoPoints = player.teamLogoSrc
         ? dataPoints
           .filter((point) => point.rawValue !== null && !point.skipped)
           .map((point) => ({
             value: [`wk${point.week}`, point.value],
             rawValue: point.rawValue,
+            symbolOffset: point.symbolOffset,
           }))
         : [];
-      // Weekly data labels:
-      // labels are now a permanent part of each player's dedicated chart;
-      // the previous modal toggle was removed to keep the compact layout
-      // predictable and the values immediately readable.
+      // Shared weekly labels: use opposite sides for close values, then let
+      // ECharts suppress any remaining label collisions on narrow viewports.
       const labelPoints = dataPoints
         .map((point, weekIndex) => {
           if (point.rawValue === null || point.skipped) {
@@ -633,8 +651,8 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
             itemStyle: { color: "rgba(150,160,176,0.01)" },
             label: {
               show: true,
-              position: "top",
-              distance: 1,
+              position: point.labelPosition,
+              distance: 4,
               offset: [0, 0],
               backgroundColor: {
                 type: "linear",
@@ -687,18 +705,20 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
         symbol: player.teamLogoSrc ? `image://${player.teamLogoSrc}` : "circle",
         symbolSize: player.teamLogoSrc ? symbolSize : (isMobile ? 5 : 7),
         // Played-week team logos are rendered in a dedicated scatter layer
-        // below so compact chart clipping cannot make the upper chart lose
-        // its point markers. Circle fallbacks remain owned by this line.
+        // below so labels cannot hide team marks at the plot edges. Circle
+        // fallbacks remain owned by this line.
         showSymbol: !player.teamLogoSrc,
         zlevel: 0,
         z: 6 + index,
         lineStyle: {
-          width: isMobile ? 2.55 : 2.95,
+          // Slightly lighter strokes/glow keep crossing lines crisp; hover
+          // receives the same treatment so it cannot restore the old weight.
+          width: isMobile ? 2.15 : 2.5,
           color: gradient,
           opacity: 1,
-          shadowColor: accent,
-          shadowBlur: isMobile ? 7 : 11,
-          shadowOffsetY: 3,
+          shadowColor: hexToRgba(accent, 0.65),
+          shadowBlur: isMobile ? 4 : 7,
+          shadowOffsetY: 2,
         },
         itemStyle: {
           color: accent,
@@ -743,8 +763,8 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
           },
         },
         emphasis: {
-          focus: "series",
-          lineStyle: { width: isMobile ? 3.2 : 3.8 },
+          focus: "none",
+          lineStyle: { width: isMobile ? 2.55 : 2.9 },
           // The gradient's stops own its alpha; hover must retain that fade.
           areaStyle: { opacity: 1 },
         },
@@ -842,6 +862,7 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
               },
             },
           },
+          labelLayout: { hideOverlap: true },
           emphasis: {
             disabled: true,
           },
@@ -869,6 +890,7 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
             fontWeight: 950,
             color: "#9090a0",
           },
+          labelLayout: { hideOverlap: true },
           emphasis: {
             disabled: true,
           },
