@@ -114,7 +114,6 @@
     const POSITION_ORDER = ['QB', 'RB', 'WR', 'TE'];
 
     const RADAR_SLOT_TYPES = ['QB', 'RB', 'WR', 'TE', 'FLEX', 'SUPER_FLEX'];
-    const RADAR_FLEX_ELIGIBLE = ['RB', 'WR', 'TE'];
     const TRADE_FETCH_LEGS = Array.from({ length: 19 }, (_, index) => index);
     const TRADE_MONTH_FORMATTER = new Intl.DateTimeFormat('en-US', { month: 'short' });
     const TRADE_ASSET_OPTIONS = [
@@ -353,6 +352,7 @@
       currentLeadersMetric: 'proj',
       matrixSort: { key: 'overall', direction: 'desc' },
       playerProjections: {},
+      weeklyProjections: {},
       projectionMeta: {},
       seasonOutlook: null,
       analysisRequestToken: 0,
@@ -465,6 +465,7 @@
         currentLineupMetric: state.currentLineupMetric,
         currentRadarMetric: state.currentRadarMetric,
         playerProjections: state.playerProjections,
+        weeklyProjections: state.weeklyProjections,
         projectionMeta: state.projectionMeta,
         seasonOutlook: state.seasonOutlook,
         isSuperflex: state.isSuperflex,
@@ -493,6 +494,7 @@
       state.currentLineupMetric = snapshot.currentLineupMetric;
       state.currentRadarMetric = snapshot.currentRadarMetric;
       state.playerProjections = snapshot.playerProjections;
+      state.weeklyProjections = snapshot.weeklyProjections;
       state.projectionMeta = snapshot.projectionMeta;
       state.seasonOutlook = snapshot.seasonOutlook;
       state.isSuperflex = snapshot.isSuperflex;
@@ -3174,12 +3176,17 @@
           fetchAnalyzerCareerStats(leagueInfo),
         ]);
 
+        // Both projection consumers share fresh weekly requests and the same bye
+        // schedule, while retaining their NFL-season and fantasy-season horizons.
+        let schedule;
+        const loadSchedule = () => schedule || (schedule = fetchProjectionSchedule(leagueInfo));
         const [projections, outlookData] = await Promise.all([
-          fetchAnalysisProjections(leagueInfo, rosters, loadJson),
-          fetchSeasonOutlookData(leagueInfo, rosters, loadJson),
+          fetchAnalysisProjections(leagueInfo, rosters, loadJson, loadSchedule),
+          fetchSeasonOutlookData(leagueInfo, rosters, loadJson, loadSchedule),
         ]);
         if (requestToken !== state.analysisRequestToken) return false;
         state.playerProjections = projections.values;
+        state.weeklyProjections = projections.weeklyValues || {};
         state.projectionMeta = projections.meta;
         // Commit scoring format with its request so a fast league switch cannot mix KTC formats.
         state.isSuperflex = qbSlots > 1 || superflexSlots > 0;
@@ -3246,60 +3253,71 @@
       }
     }
 
-    // Use Sleeper's selected-season forecast. Weekly projection sums describe a
-    // different forecast and must not replace the provider's season totals.
-    // Completed-week actual counts are removed from the season forecast for ROS;
-    // no previous-season data is allowed into Contender rankings.
-    async function fetchAnalysisProjections(leagueInfo, rosters, loadJson = fetchWithCache) {
+    // LeagueHub owns this local schedule adapter; no other page's data/state is
+    // involved. Confirmed byes override stray player forecasts in both ROS views.
+    async function fetchProjectionSchedule(leagueInfo) {
+      if (Number(leagueInfo.season) !== 2026) return {};
+      const response = await fetch('../data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv', { cache: 'no-store' });
+      if (!response.ok) throw new Error('NFL bye schedule could not be loaded.');
+      const schedule = Object.fromEntries(parseCsvRows(await response.text()).map(row => [row.TM, row]));
+      if (Object.keys(schedule).length !== 32) throw new Error('NFL bye schedule is incomplete.');
+      return schedule;
+    }
+
+    function isProjectionBye(playerId, week, schedule) {
+      const team = state.players[playerId]?.team;
+      const normalized = ({ JAC: 'JAX', WSH: 'WAS', LA: 'LAR' })[team] || team;
+      return schedule[normalized]?.[week] === 'BYE';
+    }
+
+    // ROS means future weekly forecasts, scored with this league's settings.
+    // Never subtract actual production from a preseason budget: that penalizes
+    // breakout players and leaves stale season totals on injured replacements.
+    // Require every remaining week so a failed request cannot shorten the total.
+    async function fetchAnalysisProjections(leagueInfo, rosters, loadJson = fetchWithCache, loadSchedule = () => fetchProjectionSchedule(leagueInfo)) {
       const playerIds = [...new Set(rosters.flatMap(roster => roster.players || []))];
       try {
         const nfl = await loadJson('https://api.sleeper.app/v1/state/nfl');
-        const weeks = Analysis.projectionWeeks(leagueInfo.season, nfl);
+        const weeks = Analysis.projectionWeeks(leagueInfo.season, nfl, Analysis.completedLeagueWeek(leagueInfo, rosters));
         if (!weeks.length) return { values: {}, meta: { available: false, label: `${leagueInfo.season} season complete · No remaining regular-season projections.` } };
-        const seasonData = await loadJson(`https://api.sleeper.app/v1/projections/nfl/regular/${leagueInfo.season}`);
-        if (!seasonData || !Object.values(seasonData).some(stats => stats?.pts_ppr != null)) throw new Error('Season forecast unavailable.');
-        const completed = [];
-        for (let start = 1; start < weeks[0]; start += 4) {
-          const batch = await Promise.all(Array.from({ length: Math.min(4, weeks[0] - start) }, (_, i) =>
-            loadJson(`https://api.sleeper.app/v1/stats/nfl/regular/${leagueInfo.season}/${start + i}`)));
-          if (batch.some(data => !data || !Object.values(data).some(stats => stats?.pts_ppr != null))) throw new Error('Completed-week stats unavailable.');
-          completed.push(...batch);
+        const nflSchedule = await loadSchedule();
+        const weeklyValues = {}, supported = new Set();
+        for (let offset = 0; offset < weeks.length; offset += 3) {
+          await Promise.all(weeks.slice(offset, offset + 3).map(async week => {
+            const forecast = await loadJson(`https://api.sleeper.app/v1/projections/nfl/regular/${leagueInfo.season}/${week}`);
+            if (!forecast || !Object.values(forecast).some(stats => Analysis.scoreProjection(stats, leagueInfo.scoring_settings, '') !== null)) {
+              throw new Error(`Week ${week} player projections have not been published.`);
+            }
+            Object.values(forecast).forEach(stats => POSITION_ORDER.forEach(pos =>
+              Object.keys(Analysis.scoringStats(stats, pos)).forEach(key => supported.add(key))));
+            weeklyValues[week] = Object.fromEntries(playerIds.map(id => [id, Analysis.weeklyOutlookPoints(
+              forecast[id], leagueInfo.scoring_settings, state.players[id]?.position, isProjectionBye(id, week, nflSchedule))]));
+          }));
         }
-        const values = Object.fromEntries(playerIds.map(id => [id, Analysis.scoreProjection(
-          Analysis.remainingProjection(seasonData[id], completed.map(week => week[id]), state.players[id]?.position),
-          leagueInfo.scoring_settings, state.players[id]?.position)]));
+        const values = Object.fromEntries(playerIds.map(id => [id, Analysis.sumProjections(weeks.map(week => ({ proj: weeklyValues[week][id] })))]));
         const eligible = playerIds.filter(id => POSITION_ORDER.includes(state.players[id]?.position));
         const missing = eligible.filter(id => !Number.isFinite(values[id])).length;
         const available = eligible.some(id => Number.isFinite(values[id]));
         // Sparse stat fields represent zero, but categories absent across the entire
         // forecast are not modeled by the provider. Surface those league bonuses.
-        const supported = new Set(Object.values(seasonData).flatMap(stats => POSITION_ORDER.flatMap(pos => Object.keys(Analysis.scoringStats(stats, pos)))));
         const unmodeled = Object.entries(leagueInfo.scoring_settings || {}).filter(([key, weight]) => Number(weight) && /^(pass_|rush_|rec(?:_|$)|fum|bonus_(?:pass|rush|rec))/.test(key) && !supported.has(key)).map(([key]) => key);
-        return { values, meta: { available, season: leagueInfo.season, weeks, missing, unmodeled,
-          label: `${leagueInfo.season}–${String(Number(leagueInfo.season) + 1).slice(-2)} · ${weeks[0] === 1 ? 'Season' : 'Remaining season'} PROJ · League scoring${missing ? ` · ${missing} players without PROJ` : ''}${unmodeled.length ? ' · Some scoring categories unprojected' : ''}` } };
+        return { values, weeklyValues, meta: { available, season: leagueInfo.season, weeks, missing, unmodeled,
+          label: `${leagueInfo.season} · ROS PROJ: Weeks ${weeks[0]}–18 · Weekly optimized lineups · League scoring${missing ? ` · ${missing} players with incomplete PROJ` : ''}${unmodeled.length ? ' · Some scoring categories unprojected' : ''}` } };
       } catch (error) {
         console.warn('LeagueHub projections unavailable:', error);
-        return { values: {}, meta: { available: false, label: 'PROJ unavailable · Sleeper projections could not be loaded. Reload to retry; Dynasty values remain available.' } };
+        return { values: {}, meta: { available: false, label: `PROJ unavailable · ${error.message} Reload to retry; Dynasty values remain available.` } };
       }
     }
 
-    // This forecast has its own Week 14 horizon. Weekly Sleeper stat projections
+    // This forecast ends at the selected league's playoffs. Weekly stat projections
     // use the same league-scoring adapter as Contender; season averages never fill
     // a missing week. Batches bound network concurrency, while loadJson deduplicates.
-    async function fetchSeasonOutlookData(leagueInfo, rosters, loadJson) {
+    async function fetchSeasonOutlookData(leagueInfo, rosters, loadJson, loadSchedule = () => fetchProjectionSchedule(leagueInfo)) {
       try {
         const nfl = await loadJson('https://api.sleeper.app/v1/state/nfl');
         const weeks = Analysis.forecastWeeks(leagueInfo, nfl, rosters);
         const matchups = {}, projections = {};
-        let nflSchedule = {};
-        // The schedule under NFL-2026_Stats/NFL-Schedule identifies byes even when Sleeper
-        // omits a player's weekly row. Never infer other missing forecasts as zero.
-        if (weeks.length && Number(leagueInfo.season) === 2026) {
-          const response = await fetch('../data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv', { cache: 'no-store' });
-          if (!response.ok) throw new Error('NFL bye schedule could not be loaded.');
-          nflSchedule = Object.fromEntries(parseCsvRows(await response.text()).map(row => [row.TM, row]));
-          if (!Object.keys(nflSchedule).length) throw new Error('NFL bye schedule is unavailable.');
-        }
+        const nflSchedule = weeks.length ? await loadSchedule() : {};
         if (weeks.length && Number(leagueInfo.settings?.league_average_match)) {
           throw new Error('This head-to-head forecast does not yet support extra league-median games.');
         }
@@ -3309,7 +3327,7 @@
               loadJson(`https://api.sleeper.app/v1/league/${leagueInfo.league_id}/matchups/${week}`),
               loadJson(`https://api.sleeper.app/v1/projections/nfl/regular/${leagueInfo.season}/${week}`),
             ]);
-            if (!forecast || !Object.values(forecast).some(stats => stats?.pts_ppr != null)) {
+            if (!forecast || !Object.values(forecast).some(stats => Analysis.scoreProjection(stats, leagueInfo.scoring_settings, '') !== null)) {
               throw new Error(`Week ${week} player projections have not been published.`);
             }
             matchups[week] = schedule;
@@ -3344,15 +3362,10 @@
           // the expected record, playoff estimate, and opponent-strength ranking.
           for (const team of teams) {
             const players = playerPools.get(team).map(player => {
-              const nflTeam = state.players[player.id]?.team;
-              const normalizedTeam = ({ JAC: 'JAX', WSH: 'WAS', LA: 'LAR' })[nflTeam] || nflTeam;
-              const bye = data.nflSchedule[normalizedTeam]?.[week] === 'BYE';
-              // Sleeper omits many bye, inactive, and deep-bench player rows. A
-              // missing individual row contributes zero, while published weekly
-              // scores still decide the optimal lineup for this specific week.
-              return { ...player, proj: Analysis.weeklyOutlookPoints(data.projections[week][player.id], leagueInfo.scoring_settings, player.pos, bye) };
+              return { ...player, proj: Analysis.weeklyOutlookPoints(data.projections[week][player.id], leagueInfo.scoring_settings,
+                player.pos, isProjectionBye(player.id, week, data.nflSchedule)) };
             });
-            const lineup = buildDerivedLineup(players, leagueInfo.roster_positions, sequence, 'proj', true);
+            const lineup = buildDerivedLineup(players, leagueInfo.roster_positions, sequence, 'proj');
             strengths[week][String(team.roster.roster_id)] = Analysis.weeklyStrength(lineup, players);
           }
         }
@@ -3362,9 +3375,10 @@
           teamName: row.team.teamName, wins: row.projectedWins, losses: row.projectedLosses,
           totalFpts: combineScore(row.team.roster.settings?.fpts, row.team.roster.settings?.fpts_decimal),
         }))).map(row => row.id);
-        return { rows: Analysis.seasonOutlook(teams, data.weeks, data.matchups, strengths, order), weeks: data.weeks };
+        return { rows: Analysis.seasonOutlook(teams, data.weeks, data.matchups, strengths, order, leagueInfo.settings?.playoff_teams),
+          weeks: data.weeks, playoffTeams: Number(leagueInfo.settings?.playoff_teams ?? 6) };
       } catch (error) {
-        return { error: error.message, rows: teams.map(team => ({ team })) };
+        return { error: error.message, playoffTeams: Number(leagueInfo.settings?.playoff_teams ?? 6), rows: teams.map(team => ({ team })) };
       }
     }
 
@@ -3377,8 +3391,9 @@
       const status = document.getElementById('seasonOutlookStatus');
       if (!body || !outlook) return;
       status.textContent = outlook.error ? `Estimates unavailable · ${outlook.error}`
-        : outlook.weeks.length ? `Weeks ${outlook.weeks[0]}–14 · ${outlook.weeks.length} remaining weeks`
+        : outlook.weeks.length ? `Weeks ${outlook.weeks[0]}–${outlook.weeks.at(-1)} · ${outlook.weeks.length} remaining weeks`
           : 'Regular season complete · Final records and seeds';
+      document.getElementById('seasonOutlookBerths').textContent = outlook.playoffTeams ?? '—';
       body.innerHTML = outlook.rows.map(row => {
         const team = row.team;
         const settings = team.roster.settings || {};
@@ -3387,7 +3402,7 @@
         const pct = available ? row.playoffProbability * 100 : 0;
         const palette = row.seed <= 4 ? 'dynasty' : row.seed <= 8 ? 'contender' : 'roster';
         const seedTone = row.seed === 1 ? ' la-outlook-seed--gold' : row.seed <= 4 ? ' la-outlook-seed--silver'
-          : row.seed <= 6 ? ' la-outlook-seed-bright' : row.seed <= 8 ? ' la-outlook-seed-dim' : '';
+          : row.seed <= outlook.playoffTeams ? ' la-outlook-seed-bright' : row.seed <= outlook.playoffTeams + 2 ? ' la-outlook-seed-dim' : '';
         const recordTone = row.seed <= 3 ? 'top' : row.seed > outlook.rows.length - 3 ? 'bottom'
           : row.projectedWins > row.projectedLosses ? 'ahead' : 'behind';
         const record = available ? `<span class="la-outlook-record-parts la-outlook-record-${recordTone}"><span class="la-outlook-wins">${row.projectedWins.toFixed(1)}</span><span class="la-outlook-dash">–</span><span class="la-outlook-losses">${row.projectedLosses.toFixed(1)}</span>${row.ties ? `<span class="la-outlook-dash">–</span><span>${row.ties}</span>` : ''}</span>` : '—';
@@ -3427,10 +3442,15 @@
         const ownedPicks = getOwnedPicks(roster.roster_id, rosters, tradedPicks, leagueInfo)
           .map(pick => ({ ...pick, ktc: getKtcValue(pick.label) }));
         overallPositional.Picks = ownedPicks.reduce((sum, pick) => sum + pick.ktc, 0);
-        // Preserve positional-first, FLEX-leftover, and QB-only SUPER_FLEX selection.
+        // Contender re-optimizes each remaining week so bye replacements and
+        // changing weekly forecasts count only in the slots they actually fill.
         const derivedLineups = {
           value: buildDerivedLineup(allPlayers, leagueInfo.roster_positions, slotSequence, 'value'),
-          proj: buildDerivedLineup(allPlayers, leagueInfo.roster_positions, slotSequence, 'proj'),
+          proj: Analysis.remainingLineup((state.projectionMeta.weeks || []).map(week => {
+            const players = allPlayers.filter(player => POSITION_ORDER.includes(player.pos))
+              .map(player => ({ ...player, proj: state.weeklyProjections[week]?.[player.id] ?? null }));
+            return { ...buildDerivedLineup(players, leagueInfo.roster_positions, slotSequence, 'proj'), week, players };
+          })) || buildDerivedLineup(allPlayers, leagueInfo.roster_positions, slotSequence, 'proj'),
         };
         const team = {
           teamName, username: owner?.display_name || owner?.username || `Team ${roster.roster_id}`, roster, overallPositional, allPlayers, ownedPicks, derivedLineups,
@@ -3505,11 +3525,13 @@
     // Number every repeated slot, including its first occurrence, while single
     // slots keep the compact league abbreviations in both the matrix and radar.
     function buildRadarSlots(rosterPositions = []) {
-      const types = (rosterPositions || []).map(normalizeSlot).filter(type => RADAR_SLOT_TYPES.includes(type));
+      const slots = (rosterPositions || []).map(raw => ({ type: normalizeSlot(raw),
+        eligibility: Analysis.SLOT_POSITIONS[raw] || Analysis.SLOT_POSITIONS[normalizeSlot(raw)] }))
+        .filter(slot => RADAR_SLOT_TYPES.includes(slot.type));
       const counts = {};
-      return types.map(type => {
+      return slots.map(({ type, eligibility }) => {
         counts[type] = (counts[type] || 0) + 1;
-        return { type, label: `${SLOT_LABELS[type]}${types.filter(item => item === type).length > 1 ? counts[type] : ''}` };
+        return { type, eligibility, label: `${SLOT_LABELS[type]}${slots.filter(item => item.type === type).length > 1 ? counts[type] : ''}` };
       });
     }
 
@@ -3521,19 +3543,10 @@
       return slotTotals;
     }
 
-    function compareDerivedCandidates(a, b, metricKey) {
-      if (metricKey === 'proj' && Number.isFinite(a?.proj) !== Number.isFinite(b?.proj)) return Number.isFinite(b?.proj) ? 1 : -1;
-      const primaryDiff = (Number(b?.[metricKey]) || 0) - (Number(a?.[metricKey]) || 0);
-      if (primaryDiff !== 0) return primaryDiff;
-
-      const secondaryKey = metricKey === 'proj' ? 'ktc' : 'proj';
-      const secondaryDiff = (Number(b?.[secondaryKey]) || 0) - (Number(a?.[secondaryKey]) || 0);
-      if (secondaryDiff !== 0) return secondaryDiff;
-
-      return (a?.name || '').localeCompare(b?.name || '');
-    }
-
-    function buildDerivedLineup(players = [], rosterPositions = [], slotSequence = [], metric = 'value', weekly = false) {
+    // Every LeagueHub lineup uses exact slot eligibility and global optimization.
+    // In particular SUPER_FLEX can select any eligible position, and restricted
+    // FLEX slots cannot consume a player needed to achieve a stronger lineup.
+    function buildDerivedLineup(players = [], rosterPositions = [], slotSequence = [], metric = 'value') {
       const orderedSlots = Array.isArray(slotSequence) && slotSequence.length
         ? slotSequence
         : buildRadarSlots(rosterPositions || []);
@@ -3541,81 +3554,15 @@
       const assignments = orderedSlots.map((slot) => ({ ...slot, score: 0, player: null }));
       const totals = { value: 0, proj: 0 };
 
-      if (!orderedSlots.length) {
-        return { startersBySlot, assignments, totals };
-      }
-
-      const metricKey = metric === 'proj' ? 'proj' : 'ktc';
-      const availableByPos = { QB: [], RB: [], WR: [], TE: [] };
-
-      (weekly ? [] : players || []).forEach((player) => {
-        if (!player?.pos || !availableByPos[player.pos]) return;
-        availableByPos[player.pos].push({
-          ...player,
-          ktc: Number(player.ktc) || 0,
-          proj: Number.isFinite(player.proj) ? player.proj : null,
-        });
-      });
-
-      Object.keys(availableByPos).forEach((pos) => {
-        availableByPos[pos].sort((a, b) => compareDerivedCandidates(a, b, metricKey));
-      });
-
-      const used = new Set();
-      const indices = {};
-
-      const takeAt = (pos, forcedIndex) => {
-        const list = availableByPos[pos] || [];
-        if (!list.length) return null;
-
-        let idx = forcedIndex ?? indices[pos] ?? 0;
-        while (idx < list.length && used.has(list[idx]?.id)) {
-          idx += 1;
-        }
-
-        if (idx >= list.length) return null;
-        indices[pos] = idx + 1;
-
-        const player = list[idx];
-        used.add(player.id);
-        return player;
-      };
-
-      const peekNext = (pos) => {
-        const list = availableByPos[pos] || [];
-        let idx = indices[pos] ?? 0;
-        while (idx < list.length && used.has(list[idx]?.id)) {
-          idx += 1;
-        }
-        return { player: list[idx], index: idx };
-      };
-
-      const takeBestFlex = () => {
-        let bestPlayer = null;
-        let bestPos = null;
-        let bestIndex = null;
-
-        RADAR_FLEX_ELIGIBLE.forEach((pos) => {
-          const { player, index } = peekNext(pos);
-          if (!player) return;
-          if (!bestPlayer || compareDerivedCandidates(player, bestPlayer, metricKey) < 0) {
-            bestPlayer = player;
-            bestPos = pos;
-            bestIndex = index;
-          }
-        });
-
-        if (!bestPlayer || !bestPos) return null;
-        return takeAt(bestPos, bestIndex);
-      };
-
-      const applySelection = (slot, idx, selected) => {
+      Analysis.selectWeeklyStarters(players, orderedSlots, metric).forEach((selected, idx) => {
+        if (!selected) return;
+        const slot = orderedSlots[idx];
         const playerValue = Number(selected.ktc) || 0;
-        const playerProj = Number(selected.proj) || 0;
+        const playerProj = Number.isFinite(selected.proj) ? selected.proj : null;
         const score = metric === 'proj' ? playerProj : playerValue;
 
         startersBySlot[slot.type].value += playerValue;
-        startersBySlot[slot.type].proj += playerProj;
+        startersBySlot[slot.type].proj = Analysis.sumProjections([{ proj: startersBySlot[slot.type].proj }, { proj: playerProj }]);
         startersBySlot[slot.type].players.push({
           name: selected.name,
           value: playerValue,
@@ -3623,12 +3570,13 @@
         });
 
         totals.value += playerValue;
-        totals.proj += playerProj;
+        totals.proj = Analysis.sumProjections([{ proj: totals.proj }, { proj: playerProj }]);
 
         assignments[idx] = {
           ...slot,
           score,
           player: {
+            ...selected,
             id: selected.id,
             name: selected.name,
             value: playerValue,
@@ -3636,37 +3584,7 @@
             score,
           },
         };
-      };
-
-      // Forecasts retain the shared assignment/totals shape but select against
-      // actual weekly points and the exact eligibility of each league slot.
-      if (weekly) {
-        Analysis.selectWeeklyStarters(players, orderedSlots).forEach((player, index) => {
-          if (player) applySelection(orderedSlots[index], index, player);
-        });
-        return { startersBySlot, assignments, totals };
-      }
-
-      // Analyzer lineup slot filling:
-      // exact position requirements are always filled before FLEX leftovers, so the chart
-      // follows league starter counts even if Sleeper's slot array order varies.
-      const fillSlots = (slotMatcher, takePlayer) => {
-        orderedSlots.forEach((slot, idx) => {
-          if (!slotMatcher(slot)) return;
-
-          const selected = takePlayer(slot);
-          if (!selected) {
-            assignments[idx] = { ...slot, score: 0, player: null };
-            return;
-          }
-
-          applySelection(slot, idx, selected);
-        });
-      };
-
-      fillSlots((slot) => POSITION_ORDER.includes(slot.type), (slot) => takeAt(slot.type));
-      fillSlots((slot) => slot.type === 'FLEX', () => takeBestFlex());
-      fillSlots((slot) => slot.type === 'SUPER_FLEX', () => takeAt('QB'));
+      });
 
       return { startersBySlot, assignments, totals };
     }
@@ -3767,6 +3685,13 @@
     function formatAnalysisValue(value, metric = 'value') {
       if (!Number.isFinite(value)) return '—';
       return value.toLocaleString('en-US', { maximumFractionDigits: metric === 'proj' ? 1 : 0, minimumFractionDigits: metric === 'proj' ? 1 : 0 });
+    }
+
+    // ROS tooltips show the players/weeks that actually contribute to a weekly
+    // optimized slot or reserve role, rather than a representative season total.
+    function describeProjectionContributors(players = []) {
+      return players.map(player => `${player.name} (${formatAnalysisValue(player.proj, 'proj')} ROS PROJ${player.weeks?.length
+        ? `; W${[...new Set(player.weeks)].join(', W')}` : ''})`).join(', ');
     }
 
     // Reuse LeagueHub's existing conditional rank palette, scaled to league size.
@@ -3907,7 +3832,7 @@
       // Full league scores stay independent of temporary chart position/refine filters.
       const ringModes = [
         { metric: 'value', title: 'Dynasty', label: 'SUSTAIN', note: 'Starters + depth + 2027/28 Rounds 1–2' },
-        { metric: 'proj', title: 'Contender', label: 'WIN NOW', note: 'Starters + four reserves' },
+        { metric: 'proj', title: 'Contender', label: 'WIN NOW', note: 'Weekly ROS starters + four reserves' },
       ];
       const rings = ringModes.map(({ metric, title, label, note }) => {
         const quality = team.quality[metric];
@@ -3944,10 +3869,10 @@
       // Starter Balance owns horizontal axis captions above/below its plot.
       // Keeping captions outside ECharts removes the rotated title's left gutter.
       elements.summaryStats.innerHTML = `<div class="la-summary-stats">${cards}</div><article class="analyzer-panel la-scatter-panel" aria-labelledby="startersScatterTitle">
-        <header class="la-scatter-header"><div><span class="la-eyebrow">STARTER BALANCE</span><h2 id="startersScatterTitle">Value × Projections</h2><p>Starting lineups · League scoring</p></div><span class="la-scatter-user-key"><i aria-hidden="true"></i>Your team</span></header>
+        <header class="la-scatter-header"><div><span class="la-eyebrow">STARTER BALANCE</span><h2 id="startersScatterTitle">Value × Projections</h2><p>Optimized starters · ROS · League scoring</p></div><span class="la-scatter-user-key"><i aria-hidden="true"></i>Your team</span></header>
         <div class="la-scatter-axis-heading" aria-hidden="true"><span>Starter value <small>KTC ↑</small></span><span class="la-scatter-average-key">League avg.</span></div>
         <div id="startersScatterChart" class="la-scatter-chart" role="img" aria-label="Starter values versus projected points for each league team"></div>
-        <p class="la-scatter-x-title" aria-hidden="true">Projected starter points <span>PROJ →</span></p>
+        <p class="la-scatter-x-title" aria-hidden="true">ROS starter points <span>PROJ →</span></p>
         <p class="la-scatter-note">Rank = average of value + PROJ ranks · PROJ breaks ties.</p><p id="startersScatterMissing" class="la-scatter-missing hidden"></p>
       </article><div class="la-rank-panel"><div class="la-rank-pair">${rings}</div>${renderSummaryRosterValue(team, teams)}</div><div class="la-summary-aside"><article class="la-champions-card" aria-labelledby="leagueChampionsTitle"><header><span class="la-champions-icon" aria-hidden="true">${leagueChampionsTrophyIcon()}</span><div><span class="la-eyebrow">LEAGUE HISTORY</span><h2 id="leagueChampionsTitle">League Champions</h2></div></header><ol id="leagueChampionsList"></ol></article>${renderPlayoffGauge(team)}</div>`;
       elements.summaryStats.classList.remove('hidden');
@@ -4073,9 +3998,10 @@
         const rank = Analysis.rank(value, population);
         // Same 0–4 percentile buckets as DataHub, with flat columns at tier 2.
         const tier = !rank ? 0 : population.every(item => item === population[0]) ? 2 : Math.round((population.length - rank) / Math.max(1, population.length - 1) * 4);
-        const player = column.slot != null ? team.derivedLineups[metric].assignments[column.slot]?.player : null;
-        const detail = column.slot != null ? (player?.name || 'Empty starting spot')
-          : column.family === 'depth' ? team.quality[metric].depthPlayers.map(p => `${p.name} (${formatAnalysisValue(dynasty ? p.ktc : p.proj, metric)})`).join(', ') || 'No eligible reserves'
+        const assignment = column.slot != null ? team.derivedLineups[metric].assignments[column.slot] : null;
+        const detail = column.slot != null ? ((!dynasty ? describeProjectionContributors(assignment?.contributors || (assignment?.player ? [assignment.player] : [])) : assignment?.player?.name) || 'Empty starting spot')
+          : column.family === 'depth' ? (dynasty ? team.quality[metric].depthPlayers.map(p => `${p.name} (${formatAnalysisValue(p.ktc)})`).join(', ')
+            : describeProjectionContributors(team.quality[metric].depthPlayers)) || 'No eligible reserves'
           : column.family === 'picks' ? formatAnalysisPickText(team.quality[metric].pickAssets)
           : column.fullLabel;
         // Round the visible subvalue only; full precision still drives scoring and sorting.
@@ -4086,10 +4012,10 @@
         ? 'OVR: QB + RB + WR + TE + all picks · After the divider: starters and all non-starters, already included in positional totals'
         : dynasty
           ? 'KTC in parentheses · OVR: starters + six reserves + 2027/2028 Rounds 1–2 (Mid) · Depth: 1 QB, 3 RB/WR, 1 TE + best remaining player'
-          : 'PROJ in parentheses · OVR: starters + depth · Depth: next 1 QB + next 3 RB/WR/TE';
+          : 'Weekly optimized ROS PROJ · OVR: starters + depth · Depth per week: next 1 QB + next 3 RB/WR/TE';
       document.getElementById('analysisScoringNote').textContent = state.projectionMeta.unmodeled?.length
-        ? `Sleeper does not publish season forecasts for these league scoring categories: ${state.projectionMeta.unmodeled.join(', ')}. They contribute no projected points. Season PROJ uses the selected year's forecast; after Week 1, completed-week actual stat counts are subtracted to show the remaining season.`
-        : 'Season PROJ uses the selected year’s forecast with league scoring. After Week 1, completed-week actual stat counts are subtracted to show the remaining season.';
+        ? `Sleeper does not publish weekly forecasts for these league scoring categories: ${state.projectionMeta.unmodeled.join(', ')}. They contribute no projected points. ROS sums only the selected year's remaining weekly forecasts with league scoring. Confirmed byes count as zero; missing forecasts stay unavailable.`
+        : 'ROS sums only the selected year’s remaining weekly forecasts with league scoring. Completed weeks are excluded. Confirmed byes count as zero; missing forecasts stay unavailable.';
     }
 
     function populateAnalysisSlotFilter() {
@@ -4308,7 +4234,8 @@
               const members = segment.key === 'Picks'
                 ? escapeHtml(formatAnalysisPickText(segment.picks)).replace(/\n/g, '<br>')
                 : segment.players.slice().sort((a, b) => (b[dynasty ? 'ktc' : 'proj'] ?? -Infinity) - (a[dynasty ? 'ktc' : 'proj'] ?? -Infinity))
-                  .map(player => `${escapeHtml(player.name)} (${formatAnalysisValue(player[dynasty ? 'ktc' : 'proj'], metric)})`).join(', ') || 'No eligible players';
+                  .map(player => dynasty ? `${escapeHtml(player.name)} (${formatAnalysisValue(player.ktc, metric)})`
+                    : escapeHtml(describeProjectionContributors([player]))).join(', ') || 'No eligible players';
               return `<div style="margin-top:7px"><b style="color:${colors[segment.key]}">${SLOT_LABELS[segment.key] || segment.key}</b> · ${formatAnalysisValue(segment.value, metric)}<div style="color:#9eacc4;font-size:11px">${members}</div></div>`;
             }).join('');
             return `<b>${escapeHtml(row.team.username)}</b><div style="margin-top:4px">${row.rank ? `#${row.rank} · ` : ''}${formatAnalysisValue(row.total, metric)} ${dynasty ? 'KTC' : 'PROJ'}</div>${details}`;
@@ -4384,9 +4311,9 @@
         document.getElementById('lineupChartLegend').innerHTML = keys.map(key => `<span><i style="background:${colors[key]}"></i>${SLOT_LABELS[key] || key}</span>`).join('');
         document.getElementById('lineupChartNote').textContent = filter !== 'ALL'
           ? `Ranked by ${SLOT_LABELS[filter] || filter} only · Your team is highlighted`
-          : startersOnly ? 'Re-ranked by starters only · Depth and picks excluded'
+          : startersOnly ? `${dynasty ? 'Optimized starters' : 'Weekly optimized ROS starter points'} · Depth and picks excluded`
             : dynasty ? 'Starters + six reserves + 2027/2028 first- and second-round picks (Mid)'
-              : 'Starters + next 1 QB + next 3 RB/WR/TE';
+              : 'Weekly optimized ROS starters + reserve depth (1 QB + 3 RB/WR/TE per week)';
         return;
       }
       // Reserve a compact second axis line for the metric name, retaining bar density.
@@ -4454,7 +4381,8 @@
       const rankScoreFor = team => rosterValue ? team.quality.roster.overall : team.quality[radarMetric].starters;
       document.getElementById('radarStrengthSubtitle').innerHTML = rosterValue
         ? 'Your total positional value <b>vs.</b> League AVG.'
-        : 'Your starters at each position <b>vs.</b> League AVG.';
+        : radarMetric === 'proj' ? 'Your weekly optimized ROS slots <b>vs.</b> League AVG.'
+          : 'Your starters at each position <b>vs.</b> League AVG.';
       const isMobileRadar = window.matchMedia('(max-width: 640px)').matches;
       const radarMetricLabel = radarMetric === 'value' ? 'Value' : 'PROJ';
       const radarValueFormatter = radarMetric === 'value' ? formatNumber : formatProj;
@@ -4492,7 +4420,8 @@
         return {
           metricAverage: mean(availableTeams.map(team => valuesFor(team)[index])),
           valueAverage: mean(availableTeams.map(team => rosterValue ? valuesFor(team)[index] : team.derivedLineups[radarMetric].assignments[index]?.player?.value ?? 0)),
-          projAverage: mean(availableTeams.map(team => team.derivedLineups[radarMetric].assignments[index]?.player?.proj)),
+          projAverage: mean(availableTeams.map(team => radarMetric === 'proj' ? valuesFor(team)[index]
+            : team.derivedLineups[radarMetric].assignments[index]?.player?.proj)),
           populatedCount: availableTeams.length,
           comparisonLabel: `Across ${availableTeams.length} ${usingRestOfLeague ? 'other ' : ''}teams with available data`,
         };
@@ -4549,10 +4478,14 @@
         if (!assignment?.player) {
           return ['No eligible player for this slot.'];
         }
+        if (radarMetric === 'proj') return [
+          `${slot.label}: ${formatAnalysisValue(assignment.score, 'proj')} ROS PROJ`,
+          ...(assignment.contributors || [assignment.player]).map(player => describeProjectionContributors([player])),
+        ];
         return [
           assignment.player.name,
           `Value: ${formatNumber(assignment.player.value)}`,
-          `PROJ: ${formatAnalysisValue(assignment.player.proj, 'proj')}`,
+          `ROS PROJ: ${formatAnalysisValue(assignment.player.proj, 'proj')}`,
         ];
       });
 
@@ -4561,8 +4494,8 @@
           return [usingRestOfLeague ? 'No eligible starters for this slot across the rest of the league.' : 'No eligible starters for this slot across the league.'];
         }
         return [
-          `Avg Value: ${formatNumber(detail.valueAverage)}`,
-          ...(!rosterValue ? [`Avg PROJ: ${formatProj(detail.projAverage)}`] : []),
+          ...(radarMetric === 'value' ? [`Avg Value: ${formatNumber(detail.valueAverage)}`] : []),
+          ...(!rosterValue ? [`Avg ROS PROJ: ${formatAnalysisValue(detail.projAverage, 'proj')}`] : []),
           detail.comparisonLabel,
         ];
       });

@@ -6,12 +6,12 @@
 
   // ROS includes the current NFL week through Week 18. Completed seasons have
   // no remaining weeks; future seasons start at Week 1. Never substitute 2025.
-  function projectionWeeks(season, nfl) {
+  function projectionWeeks(season, nfl, completedWeek = 0) {
     const year = Number(season);
     const current = Number(nfl.season);
     if (!year || !current) throw new Error('NFL projection season unavailable.');
     if (year < current || (year === current && nfl.season_type === 'post')) return [];
-    const start = year > current || nfl.season_type === 'pre' ? 1 : Math.max(1, Number(nfl.week) || 1);
+    const start = year > current || nfl.season_type === 'pre' ? 1 : Math.max(1, Number(nfl.week) || 1, completedWeek + 1);
     return Array.from({ length: Math.max(0, 19 - start) }, (_, i) => start + i);
   }
 
@@ -28,21 +28,6 @@
     return result;
   }
 
-  // A season forecast is the baseline, not a sum of independently authored weekly
-  // forecasts. Remove completed-week actual stat counts to express the remaining
-  // season budget; current-week games remain included until the NFL week advances.
-  function remainingProjection(stats, completedStats, position) {
-    if (!stats) return null;
-    const result = scoringStats(stats, position);
-    const completed = completedStats.map(item => scoringStats(item || {}, position));
-    Object.keys(result).forEach(key => {
-      if (/^(pass_|rush_|rec(?:_|$)|fum|bonus_)/.test(key)) {
-        result[key] = Math.max(0, Number(result[key]) - completed.reduce((sum, item) => sum + (Number(item[key]) || 0), 0));
-      }
-    });
-    return result;
-  }
-
   // Score the forecast with this league's weights; generic pts_ppr is a coverage
   // marker only and never substitutes for custom league points.
   function scoreProjection(stats, scoring, position) {
@@ -50,18 +35,17 @@
     const settings = Object.entries(scoring || {}).filter(([, weight]) => Number.isFinite(Number(weight)) && Number(weight) !== 0);
     if (!settings.length) return null;
     const covered = ['pts_ppr', 'pts_half_ppr', 'pts_std', ...settings.map(([key]) => key)]
-      .some(key => stats[key] != null && Number.isFinite(Number(stats[key])));
+      .some(key => stats[key] != null && String(stats[key]).trim() !== '' && Number.isFinite(Number(stats[key])));
     if (!covered) return null;
     const derived = scoringStats(stats, position);
     return settings.reduce((total, [key, weight]) => total + (Number(derived[key]) || 0) * Number(weight), 0);
   }
 
-  // Outlook only: an omitted player row in an otherwise published week is a
-  // zero-point option, so it cannot invalidate a team's optimal lineup.
+  // Both ROS and Outlook use the same weekly scores. A confirmed bye is zero;
+  // absent/unscored player rows stay unknown rather than inventing points.
   function weeklyOutlookPoints(stats, scoring, position, bye = false) {
     if (bye) return 0;
-    const points = scoreProjection(stats, scoring, position);
-    return Number.isFinite(points) ? points : 0;
+    return scoreProjection(stats, scoring, position);
   }
 
   function rank(value, population) {
@@ -78,6 +62,36 @@
   function sumProjections(players) {
     return players.some(player => !Number.isFinite(player.proj))
       ? null : players.reduce((sum, player) => sum + player.proj, 0);
+  }
+
+  // ROS slot/depth tooltips report only the points contributed in that role.
+  // A player can start in one week and provide depth in another, never twice
+  // within a week. Keep the contributing weeks so rotations are inspectable.
+  function combineContributors(entries) {
+    const byId = new Map();
+    entries.forEach(({ player, week }) => {
+      if (!byId.has(player.id)) byId.set(player.id, { ...player, proj: 0, weeks: [] });
+      const combined = byId.get(player.id);
+      combined.proj = Number.isFinite(combined.proj) && Number.isFinite(player.proj) ? combined.proj + player.proj : null;
+      combined.weeks.push(...(week == null ? player.weeks || [] : [week]));
+    });
+    return [...byId.values()].sort((a, b) => (b.proj ?? -Infinity) - (a.proj ?? -Infinity) || a.name.localeCompare(b.name));
+  }
+
+  // Aggregate independently optimized weekly starters for every Contender view.
+  // Slot points belong to the week's actual selection, not a fixed player's
+  // entire ROS forecast; the same weekly lineups also determine reserve depth.
+  function remainingLineup(weeklyLineups) {
+    if (!weeklyLineups.length) return null;
+    const assignments = weeklyLineups[0].assignments.map((slot, index) => {
+      const contributors = combineContributors(weeklyLineups.flatMap(lineup => {
+        const player = lineup.assignments[index].player;
+        return player ? [{ player, week: lineup.week }] : [];
+      }));
+      const score = sumProjections(contributors);
+      return { ...slot, score, player: contributors[0] || null, contributors };
+    });
+    return { assignments, weeklyLineups, totals: { proj: sumProjections(assignments.map(slot => ({ proj: slot.score }))) } };
   }
 
   // Power Rankings use the bench left after this metric's optimized starters.
@@ -109,6 +123,21 @@
   // all bench/pick value; Dynasty power counts six reserves and only the user's
   // specified 2027/2028 first- and second-round picks. Mid values arrive upstream.
   function quality(team, metric) {
+    // Contender power remains a strength score (starters plus reserve depth).
+    // Its starters-only score is the optimized playable ROS total; reserve
+    // points are displayed separately and never added to matchup forecasts.
+    if (metric === 'proj' && team.derivedLineups.proj.weeklyLineups) {
+      const lineup = team.derivedLineups.proj;
+      const depthPlayers = combineContributors(lineup.weeklyLineups.flatMap(week => {
+        const used = new Set(week.assignments.flatMap(slot => slot.player ? [slot.player.id] : []));
+        return selectDepth(week.players.filter(player => !used.has(player.id)), 'proj')
+          .map(player => ({ player, week: week.week }));
+      }));
+      const starters = lineup.totals.proj;
+      const depth = sumProjections(depthPlayers);
+      return { slots: lineup.assignments.map(slot => slot.score), starters, depth, picks: 0,
+        overall: Number.isFinite(starters) && Number.isFinite(depth) ? starters + depth : null, depthPlayers, pickAssets: [] };
+    }
     const rosterValue = metric === 'roster';
     const dynasty = metric !== 'proj';
     const lineup = team.derivedLineups[dynasty ? 'value' : 'proj'];
@@ -143,6 +172,9 @@
     const lineup = team.derivedLineups[metric];
     const segments = [...new Set(lineup.assignments.map(slot => slot.type))].map(key => {
       const slots = lineup.assignments.filter(slot => slot.type === key);
+      if (metric === 'proj' && lineup.weeklyLineups) return { key,
+        players: combineContributors(slots.flatMap(slot => slot.contributors.map(player => ({ player, week: null })))),
+        value: sumProjections(slots.map(slot => ({ proj: slot.score }))) };
       const ids = new Set(slots.flatMap(slot => slot.player ? [slot.player.id] : []));
       const players = team.allPlayers.filter(player => ids.has(player.id));
       return { key, players, value: metric === 'value' ? players.reduce((sum, p) => sum + p.ktc, 0) : sumProjections(players) };
@@ -201,7 +233,7 @@
   // Records are authoritative for processed results. NFL week alone cannot mark
   // an in-progress matchup final. A scored-leg marker handles unequal game counts;
   // uniform record counts also catch the rollover before that marker updates.
-  function forecastWeeks(league, nfl, rosters) {
+  function completedLeagueWeek(league, rosters) {
     const start = Math.max(1, Number(league.settings?.start_week) || 1);
     const gamesPerWeek = Number(league.settings?.league_average_match) ? 2 : 1;
     const games = rosters.map(roster => ['wins', 'losses', 'ties'].reduce(
@@ -211,51 +243,81 @@
     const scoredLeg = Number(league.last_scored_leg ?? league.settings?.last_scored_leg) || 0;
     // A scoring marker may advance before updated records arrive. Uniform live
     // records take precedence so the current matchup is not silently dropped.
-    let completed = uniform ? recordLeg : Math.max(start - 1, scoredLeg);
+    return uniform ? recordLeg : Math.max(start - 1, scoredLeg);
+  }
+
+  // Outlook follows this league's actual regular-season length and playoff
+  // field. Power/player ROS projections retain their separate NFL Week 18 end.
+  function regularSeasonEnd(league) {
+    const playoffsStart = Number(league.settings?.playoff_week_start ?? 15);
+    return playoffsStart === 0 ? 18 : Math.min(18, Math.max(1, playoffsStart - 1));
+  }
+
+  function forecastWeeks(league, nfl, rosters) {
+    const start = Math.max(1, Number(league.settings?.start_week) || 1);
+    const end = regularSeasonEnd(league);
+    let completed = completedLeagueWeek(league, rosters);
     if (Number(league.season) < Number(nfl.season) || league.status === 'complete'
-      || (Number(league.season) === Number(nfl.season) && nfl.season_type === 'post')) completed = 14;
-    if (completed < 14 && !uniform && !scoredLeg) throw new Error('League results are updating; reload to refresh the completed-week boundary.');
-    return Array.from({ length: Math.max(0, 14 - completed) }, (_, index) => completed + index + 1);
+      || (Number(league.season) === Number(nfl.season) && nfl.season_type === 'post')) completed = end;
+    const records = rosters.map(roster => ['wins', 'losses', 'ties'].reduce((sum, key) => sum + (Number(roster.settings?.[key]) || 0), 0));
+    if (completed < end && (!rosters.length || (!records.every(count => count === records[0])
+      && !(Number(league.last_scored_leg ?? league.settings?.last_scored_leg) > 0)))) {
+      throw new Error('League results are updating; reload to refresh the completed-week boundary.');
+    }
+    return Array.from({ length: Math.max(0, end - completed) }, (_, index) => Math.max(start, completed + 1) + index);
   }
 
   // Reuse the Analyzer's lineup assembly with a weekly selection strategy. A tiny
   // memoized position-count search handles overlapping restricted FLEX slots exactly;
   // each player is consumed once, and a new call uses that week's scores (including 0).
-  function selectWeeklyStarters(players, slots) {
-    const pools = POSITIONS.map(pos => players.filter(player => player.pos === pos && Number.isFinite(player.proj))
-      .sort((a, b) => b.proj - a.proj || String(a.id).localeCompare(String(b.id))));
+  function selectWeeklyStarters(players, slots, metric = 'proj') {
+    const key = metric === 'value' ? 'ktc' : 'proj';
+    const unique = [...new Map(players.filter(player => POSITIONS.includes(player.pos)).map(player => [player.id, player])).values()];
+    const pools = POSITIONS.map(pos => unique.filter(player => player.pos === pos)
+      .sort((a, b) => Number(Number.isFinite(b[key])) - Number(Number.isFinite(a[key]))
+        || (b[key] ?? -Infinity) - (a[key] ?? -Infinity)
+        || (b.ktc || 0) - (a.ktc || 0) || String(a.id).localeCompare(String(b.id))));
+    // Canonical placement keeps repeated position slots strongest-first and
+    // leaves broader FLEX slots for the optimal remaining eligible players.
+    const ordered = slots.map((slot, index) => ({ ...slot, index,
+      eligibility: slot.eligibility || SLOT_POSITIONS[slot.type] || [] }))
+      .sort((a, b) => a.eligibility.length - b.eligibility.length || a.index - b.index);
     const memo = new Map();
     function visit(index, counts) {
-      if (index === slots.length) return { score: 0, filled: 0, players: [] };
-      const key = `${index}:${counts.join(',')}`;
-      if (memo.has(key)) return memo.get(key);
+      if (index === slots.length) return { score: 0, filled: 0, known: 0, players: [] };
+      const stateKey = `${index}:${counts.join(',')}`;
+      if (memo.has(stateKey)) return memo.get(stateKey);
       const empty = visit(index + 1, counts);
       let best = { ...empty, players: [null, ...empty.players] };
-      (slots[index].eligibility || SLOT_POSITIONS[slots[index].type] || []).forEach(pos => {
+      ordered[index].eligibility.forEach(pos => {
         const position = POSITIONS.indexOf(pos);
         const player = pools[position]?.[counts[position]];
         if (!player) return;
         const next = [...counts]; next[position]++;
         const rest = visit(index + 1, next);
-        const candidate = { score: player.proj + rest.score, filled: rest.filled + 1, players: [player, ...rest.players] };
-        if (candidate.filled > best.filled || (candidate.filled === best.filled && candidate.score > best.score)) best = candidate;
+        const candidate = { score: (player[key] || 0) + rest.score, filled: rest.filled + 1,
+          known: rest.known + Number(Number.isFinite(player[key])), players: [player, ...rest.players] };
+        if (candidate.filled > best.filled || (candidate.filled === best.filled
+          && (candidate.known > best.known || (candidate.known === best.known && candidate.score > best.score)))) best = candidate;
       });
-      memo.set(key, best);
+      memo.set(stateKey, best);
       return best;
     }
-    return visit(0, [0, 0, 0, 0]).players;
+    const selected = Array(slots.length).fill(null);
+    visit(0, [0, 0, 0, 0]).players.forEach((player, index) => { selected[ordered[index].index] = player; });
+    return selected;
   }
 
   function weeklyStrength(lineup, players) {
     const byId = new Map(players.map(player => [player.id, player]));
     const starters = lineup.assignments.flatMap(slot => slot.player ? [byId.get(slot.player.id)] : []);
-    return { points: starters.reduce((sum, player) => sum + player.proj, 0),
+    return { points: sumProjections(starters),
       variance: starters.reduce((sum, player) => sum + POSITION_SD[player.pos] ** 2, 0) };
   }
 
   // Pair each scheduled game once; the same weekly strengths drive both its odds
   // and ROS SOS. A missing week/pair invalidates the outlook rather than shortening it.
-  function seasonOutlook(teams, weeks, matchups, strengths, standingsOrder) {
+  function seasonOutlook(teams, weeks, matchups, strengths, standingsOrder, playoffTeams = 6) {
     const rows = teams.map(team => {
       const settings = team.roster.settings || {};
       const wins = Number(settings.wins) || 0, losses = Number(settings.losses) || 0, ties = Number(settings.ties) || 0;
@@ -297,24 +359,25 @@
     rows.sort((a, b) => Math.abs(b.projectedWins - a.projectedWins) > 1e-9
       ? b.projectedWins - a.projectedWins : tiebreakOrder.indexOf(a.id) - tiebreakOrder.indexOf(b.id));
     rows.forEach((row, index) => { row.seed = index + 1; row.opponentAverage = row.games ? row.opponentTotal / row.games : null; });
-    const cutoff = rows[5];
+    const berths = Math.min(rows.length, Math.max(0, Number(playoffTeams)));
+    const cutoff = rows[berths - 1];
     rows.forEach(row => {
       const variance = row.variance + (cutoff?.variance || 0);
-      const rawProbability = rows.length <= 6 ? 1 : variance > 0
-        ? normalCDF((row.projectedWins - cutoff.projectedWins) / Math.sqrt(variance)) : Number(row.seed <= 6);
+      const rawProbability = !berths ? 0 : rows.length <= berths ? 1 : variance > 0
+        ? normalCDF((row.projectedWins - cutoff.projectedWins) / Math.sqrt(variance)) : Number(row.seed <= berths);
       // Exact zero/one needs a mathematical elimination or clinch. With games
       // left, spread uncertain odds smoothly over 4–97% around a 50% bubble;
       // this preserves differences between very high or very low raw estimates.
-      const eliminated = rows.filter(other => other !== row && other.wins > row.wins + row.games + 1e-9).length >= 6;
-      const clinched = rows.filter(other => other !== row && other.wins + other.games >= row.wins - 1e-9).length <= 5;
-      row.playoffProbability = !weeks.length ? Number(row.seed <= 6) : eliminated ? 0 : clinched ? 1
+      const eliminated = rows.filter(other => other !== row && other.wins > row.wins + row.games + 1e-9).length >= berths;
+      const clinched = rows.filter(other => other !== row && other.wins + other.games >= row.wins - 1e-9).length < berths;
+      row.playoffProbability = !berths ? 0 : !weeks.length ? Number(row.seed <= berths) : eliminated ? 0 : clinched ? 1
         : rawProbability <= 0.5 ? 0.04 + rawProbability * 0.92 : 0.5 + (rawProbability - 0.5) * 0.94;
       row.scheduleRank = row.games ? 1 + rows.filter(other => other.games && other.opponentAverage < row.opponentAverage - 1e-9).length : null;
     });
     return rows.sort((a, b) => b.playoffProbability - a.playoffProbability || a.seed - b.seed);
   }
 
-  const api = { POSITION_SD, SLOT_POSITIONS, normalCDF, forecastWeeks, selectWeeklyStarters, weeklyStrength, seasonOutlook, projectionWeeks, scoringStats, remainingProjection, scoreProjection, weeklyOutlookPoints, rank, rankFill, quality, selectDepth, barSegments, sumProjections, starterScatterRankings };
+  const api = { POSITION_SD, SLOT_POSITIONS, normalCDF, completedLeagueWeek, regularSeasonEnd, forecastWeeks, selectWeeklyStarters, weeklyStrength, seasonOutlook, projectionWeeks, scoringStats, scoreProjection, weeklyOutlookPoints, remainingLineup, rank, rankFill, quality, selectDepth, barSegments, sumProjections, starterScatterRankings };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.LeagueHubAnalysis = api;
 })(typeof window !== 'undefined' ? window : globalThis);

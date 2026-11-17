@@ -8,7 +8,7 @@ const A = require('../DH_P2.53/scripts/leaguehub-analysis.js');
 const source = fs.readFileSync(require.resolve('../DH_P2.53/scripts/leaguehub.js'), 'utf8');
 const start = source.indexOf('    function createDerivedSlotTotals(');
 const end = source.indexOf('    function formatPlayerName(', start);
-const context = { SLOT_ORDER: ['QB','RB','WR','TE','FLEX','SUPER_FLEX'], POSITION_ORDER: ['QB','RB','WR','TE'], RADAR_FLEX_ELIGIBLE: ['RB','WR','TE'] };
+const context = { Analysis: A, SLOT_ORDER: ['QB','RB','WR','TE','FLEX','SUPER_FLEX'], POSITION_ORDER: ['QB','RB','WR','TE'] };
 vm.createContext(context);
 vm.runInContext(source.slice(start, end), context);
 const players = [
@@ -118,19 +118,18 @@ test('ties share ranks and ring fill; absent projections do not receive rank one
 
 // Forecast regressions: exercise weekly selection through the shared builder,
 // probability conservation, the sixth-seed bubble and the final Week 14 rollover.
-context.Analysis = A;
 test('weekly optimizer replaces bye starters and allows a WR in SUPER_FLEX', () => {
  const weeklyPlayers = [
   {id:'q',pos:'QB',proj:20}, {id:'q2',pos:'QB',proj:0},
   {id:'w1',pos:'WR',proj:25}, {id:'w2',pos:'WR',proj:18},
  ].map(player=>({...player,ktc:0,name:player.id}));
  const weeklySlots = ['SUPER_FLEX','WR','QB'].map(type=>({type,label:type}));
- const first = context.buildDerivedLineup(weeklyPlayers, [], weeklySlots, 'proj', true);
+ const first = context.buildDerivedLineup(weeklyPlayers, [], weeklySlots, 'proj');
  assert.deepEqual(Array.from(first.assignments,slot=>slot.player.id).sort(),['q','w1','w2']);
  assert.equal(first.totals.proj,63);
  assert.ok(first.assignments[0].player.id.startsWith('w'));
  weeklyPlayers[3].proj=0; weeklyPlayers[1].proj=22;
- const second = context.buildDerivedLineup(weeklyPlayers, [], weeklySlots, 'proj', true);
+ const second = context.buildDerivedLineup(weeklyPlayers, [], weeklySlots, 'proj');
  assert.equal(second.totals.proj,67);
  assert.ok(second.assignments.some(slot=>slot.player.id==='q2'));
  const strength=A.weeklyStrength(first,weeklyPlayers);
@@ -187,7 +186,7 @@ test('incomplete future schedule is unavailable instead of a shortened projectio
  assert.throws(()=>A.seasonOutlook(f.teams,[14],{14:[]},{14:f.strengths},f.order),/schedule/);
  assert.throws(()=>A.seasonOutlook(f.teams,[14],{14:f.entries.map(row=>({...row,matchup_id:null}))},{14:f.strengths},f.order),/scheduled/);
 });
-test('omitted player rows become zero-point choices while published scores decide that week', () => {
+test('omitted player rows stay unknown while explicit zeros and confirmed byes remain valid', () => {
  const scoring={rec:1};
  const candidates=[
   {id:'missing',pos:'WR',proj:A.weeklyOutlookPoints(undefined,scoring,'WR')},
@@ -195,8 +194,105 @@ test('omitted player rows become zero-point choices while published scores decid
   {id:'active',pos:'WR',proj:A.weeklyOutlookPoints({rec:8},scoring,'WR')},
  ];
  assert.deepEqual(A.selectWeeklyStarters(candidates,[{type:'WR'}]).map(player=>player.id),['active']);
- assert.equal(candidates[0].proj,0);
+ assert.equal(candidates[0].proj,null);
  assert.equal(candidates[1].proj,0);
+ assert.equal(A.weeklyOutlookPoints({pts_ppr:0},scoring,'WR'),0);
+ assert.equal(A.weeklyOutlookPoints({pts_ppr:''},scoring,'WR'),null);
+});
+
+test('every projection builder optimizes SUPER_FLEX rather than forcing a lower-scoring QB', () => {
+ const pool=[['q1','QB',50,30],['q2','QB',10,5],['w1','WR',40,25],['w2','WR',30,20]]
+  .map(([id,pos,ktc,proj])=>({id,pos,ktc,proj,name:id}));
+ for(const metric of ['value','proj']) {
+  const lineup=context.buildDerivedLineup(pool,[],['QB','WR','SUPER_FLEX'].map(type=>({type,label:type})),metric);
+  assert.equal(lineup.assignments[2].player.id,'w2');
+  assert.equal(lineup.totals.proj,75);
+ }
+});
+
+test('page slot adapters preserve restricted FLEX eligibility through normalization', () => {
+ vm.runInContext(source.slice(source.indexOf('    const SLOT_LABELS ='),source.indexOf('    const POSITION_ORDER =')),context);
+ context.RADAR_SLOT_TYPES=context.SLOT_ORDER;
+ vm.runInContext(source.slice(source.indexOf('    function normalizeSlot('),start),context);
+ const slots=context.buildRadarSlots(['REC_FLEX','WRRB_FLEX','SUPER_FLEX','BN','IR','TAXI']);
+ assert.deepEqual(Array.from(slots,slot=>Array.from(slot.eligibility)),[['WR','TE'],['WR','RB'],['QB','RB','WR','TE']]);
+ const pool=[['r','RB',30],['w','WR',25],['t','TE',20],['q','QB',5]].map(([id,pos,proj])=>({id,pos,proj,name:id,ktc:0}));
+ const lineup=context.buildDerivedLineup(pool,[],slots,'proj');
+ assert.deepEqual(Array.from(lineup.assignments,slot=>slot.player.id),['w','r','t']);
+ assert.equal(lineup.totals.proj,75);
+});
+
+test('weekly rotations feed slot totals, bars, depth and scatter without double counting', () => {
+ const weeks=[{week:10,scores:{q:20,r:10,w1:30,w2:5}}, {week:11,scores:{q:18,r:12,w1:0,w2:25}}];
+ const pool=[['q','QB'],['r','RB'],['w1','WR'],['w2','WR']].map(([id,pos])=>({id,pos,ktc:100,name:id}));
+ const weekly=weeks.map(({week,scores})=>{
+  const players=pool.map(player=>({...player,proj:scores[player.id]}));
+  return {...context.buildDerivedLineup(players,[],[{type:'QB'},{type:'FLEX'}],'proj'),week,players};
+ });
+ const lineup=A.remainingLineup(weekly);
+ assert.equal(lineup.totals.proj,93);
+ assert.deepEqual(lineup.assignments.map(slot=>slot.score),[38,55]);
+ assert.deepEqual(lineup.assignments[1].contributors.map(player=>[player.id,player.proj,player.weeks]),[['w1',30,[10]],['w2',25,[11]]]);
+ const t={allPlayers:pool,derivedLineups:{proj:lineup}};
+ t.quality={proj:A.quality(t,'proj')};
+ assert.equal(t.quality.proj.starters,93);
+ assert.equal(t.quality.proj.depth,27);
+ assert.equal(t.quality.proj.overall,120);
+ const segments=A.barSegments(t,'proj');
+ assert.equal(segments.reduce((sum,segment)=>sum+segment.value,0),120);
+ assert.equal(A.barSegments(t,'proj',true).reduce((sum,segment)=>sum+segment.value,0),93);
+ assert.deepEqual(segments.find(segment=>segment.key==='FLEX').players.map(player=>[player.id,player.proj]),[['w1',30],['w2',25]]);
+});
+
+test('missing required forecasts stay unranked and negative weekly forecasts are preserved', () => {
+ const pool=[{id:'q',name:'q',pos:'QB',ktc:50,proj:null},{id:'w',name:'w',pos:'WR',ktc:50,proj:-2}];
+ const lineup=context.buildDerivedLineup(pool,[],[{type:'QB'},{type:'WR'}],'proj');
+ assert.equal(lineup.assignments[1].score,-2);
+ assert.equal(lineup.assignments[0].score,null);
+ assert.equal(lineup.totals.proj,null);
+ assert.equal(A.weeklyStrength(lineup,pool).points,null);
+ assert.equal(A.rank(lineup.totals.proj,[50,null]),null);
+});
+
+test('remaining weeks exclude a processed current week and Outlook respects league playoff settings', () => {
+ const nfl={season:'2026',week:10,season_type:'regular'};
+ const league={season:'2026',settings:{playoff_week_start:14,playoff_teams:4}};
+ const rosters=Array.from({length:8},()=>({settings:{wins:7,losses:3}}));
+ const completed=A.completedLeagueWeek(league,rosters);
+ assert.equal(completed,10);
+ assert.deepEqual(A.projectionWeeks(2026,nfl,completed),[11,12,13,14,15,16,17,18]);
+ assert.deepEqual(A.forecastWeeks(league,nfl,rosters),[11,12,13]);
+ const f=forecastFixture();
+ const final=A.seasonOutlook(f.teams,[],{},{},f.order,4);
+ assert.ok(final.slice(0,4).every(row=>row.playoffProbability===1));
+ assert.ok(final.slice(4).every(row=>row.playoffProbability===0));
+});
+
+test('a league without playoffs keeps the full regular season and invents no playoff berths', () => {
+ const league={season:'2026',settings:{playoff_week_start:0,playoff_teams:0}};
+ const nfl={season:'2026',week:14,season_type:'regular'};
+ assert.deepEqual(A.forecastWeeks(league,nfl,[{settings:{wins:7,losses:7}}]),[15,16,17,18]);
+ const f=forecastFixture();
+ assert.ok(A.seasonOutlook(f.teams,[],{},{},f.order,0).every(row=>row.playoffProbability===0));
+ assert.ok(A.seasonOutlook(f.teams,[14],{14:f.entries},{14:f.strengths},f.order,0).every(row=>row.playoffProbability===0));
+});
+
+test('exact selection agrees with exhaustive legal lineups for mixed and restricted slots', () => {
+ const slots=[{type:'SUPER_FLEX'},{type:'FLEX',eligibility:['WR','TE']},{type:'FLEX',eligibility:['RB','WR']}];
+ for(let scenario=0;scenario<32;scenario++) {
+  const pool=['QB','QB','RB','WR','WR','TE'].map((pos,i)=>({id:String(i),name:String(i),pos,proj:((scenario+3)*(i+5)*13)%41-3}));
+  let best=-Infinity;
+  function brute(index,used,points) {
+   if(index===slots.length){best=Math.max(best,points);return;}
+   for(const player of pool) if(!used.has(player.id)&&(slots[index].eligibility||A.SLOT_POSITIONS[slots[index].type]).includes(player.pos)) {
+    brute(index+1,new Set([...used,player.id]),points+player.proj);
+   }
+  }
+  brute(0,new Set(),0);
+  const selected=A.selectWeeklyStarters(pool,slots);
+  assert.equal(selected.reduce((sum,player)=>sum+player.proj,0),best);
+  assert.equal(new Set(selected.map(player=>player.id)).size,slots.length);
+ }
 });
 test('uncertain playoff odds stay scaled while proven clinches and eliminations remain exact', () => {
  const uncertain=forecastFixture();

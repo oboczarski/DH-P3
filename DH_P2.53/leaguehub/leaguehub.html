@@ -334,7 +334,9 @@
                 <p class="la-method" id="qualityMatrixNote"></p>
               </section>
             </div>
-            <details class="la-method-details"><summary>How starting lineups and rankings work</summary><p>League settings determine each starting spot. Dynasty selects the highest KTC values; Contender selects the highest rest-of-season PROJ. QB, RB, WR and TE slots fill first. FLEX uses the best remaining RB/WR/TE; SUPER_FLEX uses the next-highest QB after the primary QB slots. Each player can fill only one spot. Tied values receive the same rank.</p><p>Dynasty power adds six reserves: one QB, three RB/WR combined, one TE, then the highest-valued remaining QB/RB/WR/TE. Only first- and second-round picks count. Contender adds the next QB and the next three RB/WR/TE. If a roster cannot fill a depth requirement, only available players count. Total Roster Value counts every QB/RB/WR/TE and all owned picks; its Starters and Depth columns are a separate breakdown, never added twice.</p><p id="analysisScoringNote"></p></details>
+            <!-- LeagueHub's methodology matches its weekly ROS calculations;
+                 reserve power is distinct from playable starter points. -->
+            <details class="la-method-details"><summary>How starting lineups and rankings work</summary><p>League settings determine each starting spot and its eligible positions. Dynasty maximizes total starter KTC value. Contender maximizes projected starter points independently for every remaining NFL week through Week 18, including bye replacements. SUPER_FLEX accepts QB, RB, WR or TE; restricted FLEX slots retain their league eligibility. Each player can fill only one spot per week. Matrix and radar slot totals combine the players selected for that spot across the remaining weeks; tooltips show those contributions. Tied values receive the same rank.</p><p>Dynasty power adds six reserves: one QB, three RB/WR combined, one TE, then the highest-valued remaining QB/RB/WR/TE, plus 2027/2028 first- and second-round picks at Mid value. Contender power adds each week's next QB and next three RB/WR/TE to that week's optimized starters. This is a strength score that includes reserve depth; use Starters Only to compare playable ROS points. Season Outlook uses only optimized starters through the selected league's final regular-season week. If a roster cannot fill a depth requirement, only owned players count. Total Roster Value counts every QB/RB/WR/TE and all owned picks; its Starters and Depth columns provide a separate breakdown.</p><p id="analysisScoringNote"></p></details>
           </section>
           <!-- Outlook precedes the historical table on mobile; this local grid
                shares desktop width without affecting the other Analyzer panels. -->
@@ -342,7 +344,7 @@
             <section class="analyzer-panel la-outlook-panel" aria-labelledby="seasonOutlookTitle">
               <header class="la-outlook-header">
                 <div><span class="la-eyebrow">THE ROAD TO THE PLAYOFFS</span><h2 id="seasonOutlookTitle">Season Outlook</h2></div>
-                <span class="la-outlook-berths"><b>6</b> PLAYOFF SPOTS</span>
+                <span class="la-outlook-berths"><b id="seasonOutlookBerths">—</b> PLAYOFF SPOTS</span>
               </header>
               <p class="la-outlook-status" id="seasonOutlookStatus" role="status">Loading weekly matchup projections…</p>
               <div class="la-outlook-scroll" tabindex="0" role="region" aria-label="Season outlook; scroll for all columns">
@@ -431,7 +433,7 @@
             <div class="analyzer-filter-group" role="group" aria-label="Position filters">
               <button type="button" class="filter-chip active" data-pos="ALL" aria-pressed="true">ALL</button><button type="button" class="filter-chip" data-pos="QB" aria-pressed="false">QB</button><button type="button" class="filter-chip" data-pos="RB" aria-pressed="false">RB</button><button type="button" class="filter-chip" data-pos="WR" aria-pressed="false">WR</button><button type="button" class="filter-chip" data-pos="TE" aria-pressed="false">TE</button>
             </div>
-            <div class="analyzer-panel-body"><div class="analyzer-leaderboard-scroll"><table class="analyzer-leaderboard-table" aria-live="polite"><thead><tr><th scope="col">RK</th><th scope="col" class="al-col-player">Player</th><th scope="col">Pos</th><th scope="col">TM</th><th scope="col" class="al-col-owner">Owner</th><th scope="col">KTC</th><th scope="col">PROJ</th></tr></thead><tbody id="leaderboardTableBody"></tbody></table></div></div>
+            <div class="analyzer-panel-body"><div class="analyzer-leaderboard-scroll"><table class="analyzer-leaderboard-table" aria-live="polite"><thead><tr><th scope="col">RK</th><th scope="col" class="al-col-player">Player</th><th scope="col">Pos</th><th scope="col">TM</th><th scope="col" class="al-col-owner">Owner</th><th scope="col">KTC</th><th scope="col" title="Sum of remaining weekly projections in this league's scoring">ROS PROJ</th></tr></thead><tbody id="leaderboardTableBody"></tbody></table></div></div>
           </section>
         </section>
       </section>
@@ -505,8 +507,8 @@
     </main>
   </div>
 
-  <script src="../scripts/leaguehub-analysis.js?v=DH3.47w-playoff-gauge"></script>
-  <script src="../scripts/leaguehub.js?v=DH3.49p-active-league-menu"></script>
+  <script src="../scripts/leaguehub-analysis.js?v=DH3.50-weekly-ros"></script>
+  <script src="../scripts/leaguehub.js?v=DH3.50-weekly-ros"></script>
   <script defer src="../scripts/app.js?v=DH3.49n-local-weekly-stats"></script>
 </body>
 
