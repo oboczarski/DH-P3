@@ -172,7 +172,7 @@
 // margin together with the compact, prefix-free player-name header styles.
 // Refresh DM-only comparisons, directed rounded arrows, initialed names and
 // real CSS-styled scoring chips together with their renderer and stylesheet.
-const CACHE_NAME = 'DH3.80-dm-comparison_data2';
+const CACHE_NAME = 'DH3.80-dm-comparison_data3';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
