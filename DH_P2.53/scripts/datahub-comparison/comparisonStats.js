@@ -3,8 +3,8 @@
 // stat labels, threshold semantics, player colors, and radar bundles out of
 // the main DataHub page startup path.
 // Comparison selection limit:
-// keep the modal intentionally focused on a direct head-to-head so each
-// player can own a dedicated chart at every responsive breakpoint.
+// keep the modal focused on a direct head-to-head: weekly lines share a plot,
+// while season mode retains an individual radar card for each player.
 export const MAX_COMPARISON_PLAYERS = 2;
 
 export const COMPARISON_POSITION_TONES = Object.freeze({
