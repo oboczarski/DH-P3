@@ -1,7 +1,7 @@
 import {
+  COMPARISON_GRADIENT_PALETTES,
   formatComparisonValue,
   formatRank,
-  getPlayerAccentColor,
   getPlayerName,
   getPlayerPalette,
   getStatLabel,
@@ -11,6 +11,25 @@ import {
 } from "./comparisonStats.js";
 
 const COMPARISON_CHART_FONT_FAMILY = '"Product Sans", "Google Sans", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
+function getWeeklyPlayerPalette(player, playerIndex) {
+  // DataHub Compare weekly line charts: RB keeps its first blue/mint palette
+  // and uses the original second WR pink/cyan palette for its second player.
+  // WR uses those palettes in the opposite order. Keep this mapping local so
+  // season radars and the modal's other player colors retain their palettes.
+  const position = String(player?.pos || "").toUpperCase();
+  if ((position === "RB" && playerIndex === 1) || (position === "WR" && playerIndex === 0)) {
+    return COMPARISON_GRADIENT_PALETTES.WR[1];
+  }
+  if (position === "WR" && playerIndex === 1) {
+    return COMPARISON_GRADIENT_PALETTES.RB[0];
+  }
+  return getPlayerPalette(player, playerIndex);
+}
+
+function getWeeklyPlayerAccentColor(player, playerIndex) {
+  return getWeeklyPlayerPalette(player, playerIndex).high;
+}
 
 function clamp(value, min, max) {
   if (value === null) {
@@ -138,9 +157,9 @@ function getSamePositionPaletteIndex(players, player, playerIndex) {
 }
 
 function buildThresholdGradient(player, playerIndex, statKey, thresholds, axis) {
-  const palette = getPlayerPalette(player, playerIndex);
+  const palette = getWeeklyPlayerPalette(player, playerIndex);
   const config = getThresholdConfig(thresholds, player.pos, statKey);
-  const fallback = getPlayerAccentColor(player, playerIndex);
+  const fallback = getWeeklyPlayerAccentColor(player, playerIndex);
   if (!config) {
     return fallback;
   }
@@ -187,7 +206,7 @@ function buildWeeklyAreaGradient(player, playerIndex, isMobile) {
   // a richer tint beneath the curve, then ease to fully transparent at the
   // plot floor. Relative coordinates keep the fade proportional on resize;
   // compact charts use less opacity so their dense labels remain prominent.
-  const palette = getPlayerPalette(player, playerIndex);
+  const palette = getWeeklyPlayerPalette(player, playerIndex);
   const peakOpacity = isMobile ? 0.3 : 0.38;
   return {
     type: "linear",
@@ -208,10 +227,10 @@ function buildWeeklyAreaGradient(player, playerIndex, isMobile) {
 
 function getPointThresholdColor(player, playerIndex, statKey, thresholds, rawValue) {
   const value = toFiniteNumber(rawValue);
-  const palette = getPlayerPalette(player, playerIndex);
+  const palette = getWeeklyPlayerPalette(player, playerIndex);
   const config = getThresholdConfig(thresholds, player.pos, statKey);
   if (value === null || !config) {
-    return getPlayerAccentColor(player, playerIndex);
+    return getWeeklyPlayerAccentColor(player, playerIndex);
   }
   const lowerBetter = isLowerBetterForPosition(player.pos, statKey);
   const high = getThresholdValue(config, "HIGH");
@@ -261,7 +280,7 @@ function buildWeeklyTooltip(params, statKey, players, thresholds) {
     const rawValue = getSeriesRawValue(entry, statKey);
     const paletteIndex = getSamePositionPaletteIndex(safePlayers, player, playerIndex);
     const pointColor = rawValue === null
-      ? getPlayerAccentColor(player, paletteIndex)
+      ? getWeeklyPlayerAccentColor(player, paletteIndex)
       : getPointThresholdColor(player, paletteIndex, statKey, thresholds, rawValue);
     const rankValue = entry?.ranks?.[statKey];
     const rank = rankValue
@@ -555,7 +574,7 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
       const paletteIndex = Number.isInteger(colorIndex)
         ? colorIndex
         : getSamePositionPaletteIndex(players, player, index);
-      const accent = getPlayerAccentColor(player, paletteIndex);
+      const accent = getWeeklyPlayerAccentColor(player, paletteIndex);
       const gradient = buildThresholdGradient(player, paletteIndex, statKey, thresholds, axis);
       const skipLogoSymbolSize = symbolSize;
       const dataPoints = safeWeeks.map((week) => {
