@@ -4,7 +4,7 @@
 // the main DataHub page startup path.
 // Comparison selection limit:
 // keep the modal focused on a direct head-to-head: weekly lines share a plot,
-// while season mode retains an individual radar card for each player.
+// followed by season visualizations and an individual radar for each player.
 export const MAX_COMPARISON_PLAYERS = 2;
 
 export const COMPARISON_POSITION_TONES = Object.freeze({

@@ -4,6 +4,7 @@ import {
   formatRank,
   getPlayerName,
   getPlayerPalette,
+  getStatDefinition,
   getStatLabel,
   getThresholdConfig,
   isLowerBetterForPosition,
@@ -70,13 +71,11 @@ function hexToRgba(color, alpha) {
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 }
 
-function getReadableValueLabelColor(color, pos) {
-  // RB/TE threshold palettes include deep violet values that lose contrast
-  // against the opaque navy label pill. Preserve the hue while lifting only
-  // colors whose perceived brightness is too low for compact text.
-  const position = String(pos || "").trim().toUpperCase();
+function getReadableValueLabelColor(color) {
+  // Weekly value labels: any position can now use deep blue/violet palettes.
+  // Lift dark text on navy pills without changing line/area gradient colors.
   const hex = String(color || "").trim();
-  if ((position !== "RB" && position !== "TE") || !/^#[0-9a-f]{6}$/i.test(hex)) {
+  if (!/^#[0-9a-f]{6}$/i.test(hex)) {
     return color;
   }
   const value = Number.parseInt(hex.slice(1), 16);
@@ -467,7 +466,8 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
     : Array.from({ length: 18 }, (_, index) => index + 1);
   const isMobile = typeof isCompact === "boolean" ? isCompact : isMobileComparisonChart();
   // Shared weekly chart: both selected players contribute to one value axis,
-  // one week axis, and one tooltip. Reserve label space above/below the plot.
+  // one week axis, and one tooltip. Keep the endpoints near the chart edges;
+  // y-axis labels sit inside the plot instead of creating an empty gutter.
   const axis = getAxisConfig(players, statKey, thresholds);
   const lanes = buildCollisionLanes(players, statKey, safeWeeks, axis, isMobile);
   // Weekly comparison data-point logos:
@@ -481,8 +481,8 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
     animationEasing: "cubicOut",
     backgroundColor: "transparent",
     grid: isMobile
-      ? { top: 28, right: 14, bottom: 34, left: 32, containLabel: false }
-      : { top: 36, right: 24, bottom: 44, left: 56, containLabel: false },
+      ? { top: 24, right: 10, bottom: 25, left: 8, containLabel: false }
+      : { top: 28, right: 14, bottom: 32, left: 10, containLabel: false },
     tooltip: {
       trigger: "axis",
       confine: true,
@@ -501,7 +501,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
     xAxis: {
       type: "category",
       show: true,
-      boundaryGap: true,
+      boundaryGap: false,
       data: safeWeeks.map((week) => `wk${week}`),
       axisLine: { show: true, lineStyle: { color: "rgba(190, 218, 255, 0.16)" } },
       axisTick: { show: false },
@@ -514,7 +514,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
         // add the requested lowercase `wk` as a smaller rich-text prefix while
         // keeping a shallow week axis underneath the shared plot.
         fontSize: isMobile ? 7 : 11,
-        margin: isMobile ? 6 : 9,
+        margin: isMobile ? 5 : 7,
         rotate: 0,
         align: "center",
         formatter: isMobile
@@ -550,15 +550,23 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
       min: axis.min,
       max: axis.max,
       inverse: axis.inverse,
+      // Match tick spacing to the displayed stat precision. Integer metrics
+      // such as TD/INT must not label fractional ticks as repeated 1s or 2s.
+      minInterval: 10 ** -(getStatDefinition(statKey).decimals ?? 1),
       splitLine: { lineStyle: { color: "rgba(190, 218, 255, 0.1)" } },
       axisLine: { show: false },
       axisTick: { show: false },
       axisLabel: {
+        inside: true,
+        align: "left",
+        showMinLabel: false,
+        showMaxLabel: false,
         color: "rgba(205, 220, 245, 0.5)",
         fontFamily: COMPARISON_CHART_FONT_FAMILY,
         fontSize: isMobile ? 9 : 10,
-        margin: isMobile ? 4 : 8,
-        formatter: (value) => formatComparisonValue(statKey, value, { compact: true }),
+        margin: 2,
+        // Hide only the zero axis label; recorded zero values stay on the line.
+        formatter: (value) => Number(value) === 0 ? "" : formatComparisonValue(statKey, value, { compact: true }),
       },
     },
     series: players.flatMap((player, index) => {
@@ -579,6 +587,13 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
           ? accent
           : getPointThresholdColor(player, paletteIndex, statKey, thresholds, rawValue);
         const skipped = Boolean(entry?.isSkipped || entry?.skipped);
+        const labelPosition = getWeeklyLabelPosition(lane, index, axis.inverse);
+        const nearPlotFloor = rawValue !== null && gradientOffset(rawValue, axis, axis.inverse) > 0.88;
+        let markerOffset = lane * (isMobile ? 4 : 5);
+        // Near-edge points stay put; keep offset logos inside the canvas and
+        // move baseline labels above the plot floor so they cannot cover weeks.
+        if (week === safeWeeks[0]) markerOffset = Math.max(-1, markerOffset);
+        if (week === safeWeeks.at(-1)) markerOffset = Math.min(1, markerOffset);
         // Never move the lines to resolve collisions: equal stats must meet at
         // the same height. Only marker pixels and label positions may separate.
         return {
@@ -592,8 +607,9 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
           skipped,
           skipLabel: entry?.skipLabel || entry?.skipReason || "",
           pointColor,
-          symbolOffset: lane ? [lane * (isMobile ? 4 : 5), 0] : [0, 0],
-          labelPosition: getWeeklyLabelPosition(lane, index, axis.inverse),
+          symbolOffset: [markerOffset, 0],
+          labelPosition: nearPlotFloor ? "top" : labelPosition,
+          labelOffset: nearPlotFloor && labelPosition === "bottom" ? [0, isMobile ? -16 : -24] : [0, 0],
           label: { show: false },
         };
       });
@@ -618,9 +634,18 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
       skipLabelPoints.forEach((point) => {
         point.label.position = index === 0 ? "top" : "bottom";
         point.label.distance = 4;
+        if (gradientOffset(point.value[1], axis, axis.inverse) > 0.88) {
+          point.label.position = "top";
+          point.label.offset = index === 0 ? [0, 0] : [0, isMobile ? -16 : -24];
+        }
+        const week = point.value[0];
+        if (week === `wk${safeWeeks[0]}`) point.label.align = "left";
+        if (week === `wk${safeWeeks.at(-1)}`) point.label.align = "right";
       });
       skipLogoPoints.forEach((point) => {
-        point.symbolOffset = [index === 0 ? -4 : 4, 0];
+        const first = point.value[0] === `wk${safeWeeks[0]}`;
+        const last = point.value[0] === `wk${safeWeeks.at(-1)}`;
+        point.symbolOffset = [index === 0 ? (first ? -1 : -4) : (last ? 1 : 4), 0];
       });
       const playedLogoPoints = player.teamLogoSrc
         ? dataPoints
@@ -638,7 +663,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
           if (point.rawValue === null || point.skipped) {
             return null;
           }
-          const labelTextColor = getReadableValueLabelColor(point.pointColor, player.pos);
+          const labelTextColor = getReadableValueLabelColor(point.pointColor);
           return {
             name: `${getPlayerName(player)} wk${safeWeeks[weekIndex]} ${getStatLabel(statKey)}`,
             value: [`wk${safeWeeks[weekIndex]}`, point.value],
@@ -652,8 +677,11 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
             label: {
               show: true,
               position: point.labelPosition,
+              // Endpoint value chips extend into the plot so near-edge data
+              // points stay visible without clipping their text or adding gaps.
+              align: weekIndex === 0 ? "left" : (weekIndex === safeWeeks.length - 1 ? "right" : "center"),
               distance: 4,
-              offset: [0, 0],
+              offset: point.labelOffset,
               backgroundColor: {
                 type: "linear",
                 x: 0,

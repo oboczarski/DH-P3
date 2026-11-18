@@ -7359,9 +7359,9 @@ function closeDataHubChartModal({ restoreFocus = true } = {}) {
 
 const DATAHUB_COMPARISON_REACT_URL = "https://cdn.jsdelivr.net/npm/react@18.3.1/+esm";
 const DATAHUB_COMPARISON_REACT_DOM_URL = "https://cdn.jsdelivr.net/npm/react-dom@18.3.1/client/+esm";
-// Keep the shared weekly layout and lazy modal bundle on the same version,
+// Keep the full-season chart/report styles and lazy bundle on the same version,
 // including standalone visits without the app.js service worker.
-const DATAHUB_COMPARISON_STYLES_URL = "../scripts/datahub-comparison/DataHubComparisonModal.css?v=DH3.77-compare-shared-weekly";
+const DATAHUB_COMPARISON_STYLES_URL = "../scripts/datahub-comparison/DataHubComparisonModal.css?v=DH3.78-compare-season";
 const DATAHUB_COMPARISON_WEEKLY_STAT_KEYS = Object.freeze([
   "fpts",
   "pass_yd",
@@ -7445,7 +7445,7 @@ async function ensureDataHubComparisonModule() {
     dataHubComparisonModulePromise = Promise.all([
       import(DATAHUB_COMPARISON_REACT_URL),
       import(DATAHUB_COMPARISON_REACT_DOM_URL),
-      import("./datahub-comparison/DataHubComparisonModal.js?v=DH3.77-compare-shared-weekly"),
+      import("./datahub-comparison/DataHubComparisonModal.js?v=DH3.78-compare-season"),
     ])
       .then(([reactModule, reactDomModule, comparisonModule]) => {
         const React = reactModule.default || reactModule;
@@ -7925,15 +7925,14 @@ function computeDataHubComparisonSeasonRankSets(players, qualifiedIds = null) {
 
 function buildDataHubComparisonPayload() {
   const players = buildDataHubComparisonPlayers();
-  // Compare weekly charts share one nine-week calendar window. For 2026,
-  // pre-created future rows are ignored until a week has recorded results.
+  // Compare shows the full recorded season starting at Week 1. Never drop
+  // early games as new weeks arrive or include pre-created future results.
   const latestWeek = state.statsSeason === "2026"
     ? (state.comparisonData?.weeklyRows || []).reduce((latest, entry) =>
       entry.stats?.__hasRecordedStats ? Math.max(latest, entry.week) : latest, 0)
       || Math.max(1, Math.min(DATAHUB_MAX_WEEKS, state.stats2026.weeksOfData))
     : DATAHUB_MAX_WEEKS;
-  const firstWeek = Math.max(1, latestWeek - 8);
-  const chartWeeks = Array.from({ length: latestWeek - firstWeek + 1 }, (_, index) => firstWeek + index);
+  const chartWeeks = Array.from({ length: latestWeek }, (_, index) => index + 1);
   const qualifiedIds = getDataHubGameLogsQualifiedIds(state.statsSeason);
   const computedRanks = computeDataHubComparisonSeasonRankSets(players, qualifiedIds);
   const enrichedPlayers = players.map((player) => {
@@ -7970,7 +7969,6 @@ function buildDataHubComparisonPayload() {
     maxPlayers: 2,
     weeks: chartWeeks,
     defaults: {
-      mode: "weekly",
       weeklyStat: "fpts",
       // Compare modal initial state:
       // begin empty so the user explicitly owns both head-to-head slots.

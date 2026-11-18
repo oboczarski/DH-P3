@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
 import { buildWeeklyChartOption, getWeeklyPlayerPalette } from '../DH_P2.53/scripts/datahub-comparison/comparisonChartOptions.js';
 import { COMPARISON_GRADIENT_PALETTES, getPlayerPalette } from '../DH_P2.53/scripts/datahub-comparison/comparisonStats.js';
 
@@ -20,6 +22,24 @@ const options = (players, extra = {}) => buildWeeklyChartOption({ players, statK
 const lines = option => option.series.filter(series => series.type === 'line');
 const labels = option => option.series.filter(series => series.name.endsWith(' weekly labels'));
 
+test('Compare includes Week 1 through every recorded week instead of a rolling window', () => {
+  const source = fs.readFileSync(new URL('../DH_P2.53/scripts/DataHub.js', import.meta.url), 'utf8');
+  const payloadFunction = source.slice(source.indexOf('function buildDataHubComparisonPayload()'), source.indexOf('function buildDataHubComparisonPlayers()'));
+  for (const [season, latest, expected] of [['2026', 10, 10], ['2026', 18, 18], ['2025', 10, 18]]) {
+    const payload = vm.runInNewContext(`${payloadFunction}\nbuildDataHubComparisonPayload()`, {
+      state: { statsSeason: season, comparisonData: { weeklyRows: [
+        { week: latest, stats: { __hasRecordedStats: true } },
+        { week: 18, stats: { __hasRecordedStats: false } },
+      ] }, stats2026: { weeksOfData: latest } },
+      DATAHUB_MAX_WEEKS: 18,
+      buildDataHubComparisonPlayers: () => [],
+      getDataHubGameLogsQualifiedIds: () => new Set(),
+      computeDataHubComparisonSeasonRankSets: () => ({ overall: {}, positional: {} }),
+    });
+    assert.deepEqual(Array.from(payload.weeks), Array.from({ length: expected }, (_, i) => i + 1));
+  }
+});
+
 for (const isCompact of [true, false]) {
   test(`shared ${isCompact ? 'mobile' : 'desktop'} chart retains exact close/tied values on one scale`, () => {
     const players = [player('A', 'RB', [15, 10, 0, -2, 40]), player('B', 'RB', [15, 10.1, 0, -2, 45])];
@@ -27,6 +47,11 @@ for (const isCompact of [true, false]) {
     assert.equal(lines(option).length, 2);
     assert.ok(!Array.isArray(option.xAxis) && !Array.isArray(option.yAxis));
     assert.deepEqual(option.xAxis.data, weeks.map(week => `wk${week}`));
+    assert.equal(option.xAxis.boundaryGap, false);
+    assert.equal(option.yAxis.axisLabel.inside, true);
+    assert.equal(option.yAxis.axisLabel.formatter(0), '');
+    assert.notEqual(option.yAxis.axisLabel.formatter(10), '');
+    assert.ok(option.grid.left <= 10 && option.grid.right <= 14);
     assert.ok(option.yAxis.min < -2 && option.yAxis.max > 45);
     lines(option).forEach((series, index) => {
       assert.deepEqual(series.data.map(point => point.value), players[index].weeklySeries.map(entry => entry.stats.fpts));
@@ -92,6 +117,24 @@ test('mixed-position and single-player charts use each position\'s first weekly 
     assert.deepEqual(lines(option).map(series => series.lineStyle.color), players.map(p => getWeeklyPlayerPalette(p, 0).high));
     assert.deepEqual(lines(option).map(series => series.data[0].value), positions.map(() => 15));
   }
+});
+
+test('dark weekly value labels remain readable when a WR uses the blue/mint palette', () => {
+  const players = [player('A', 'WR', [1]), player('B', 'WR', [2])];
+  const option = options(players, { isCompact: true });
+  const label = labels(option)[1].data[0];
+  assert.equal(label.pointColor, COMPARISON_GRADIENT_PALETTES.RB[0].low);
+  assert.notEqual(label.labelTextColor, label.pointColor);
+  assert.equal(lines(option)[1].lineStyle.color.colorStops.some(stop => stop.color === label.pointColor), true);
+});
+
+test('zero-baseline labels stay above the week axis while near-edge markers stay inside the canvas', () => {
+  const option = options([player('A', 'RB', [0, 10, 0]), player('B', 'RB', [0, 12, 0])], { isCompact: true, weeks: [1, 2, 3] });
+  assert.deepEqual(labels(option).map(series => series.data[0].label.position), ['top', 'top']);
+  assert.notDeepEqual(labels(option)[0].data[0].label.offset, labels(option)[1].data[0].label.offset);
+  assert.deepEqual(lines(option).map(series => series.data[0].value), [0, 0]);
+  assert.ok(lines(option).every(series => series.data[0].symbolOffset[0] >= -1));
+  assert.ok(lines(option).every(series => series.data.at(-1).symbolOffset[0] <= 1));
 });
 
 test('one week tooltip contains exactly one original result per player, including skipped weeks', () => {

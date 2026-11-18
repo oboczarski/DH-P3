@@ -2160,3 +2160,245 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
     min-height: 320px;
   }
 }
+
+/* Unified Compare report: compact fixed controls above one vertical scroller.
+   These overrides target this modal only; Game Logs/research keep their owners.
+   Mobile is the base layout, with larger plots and a two-column season grid
+   added at desktop widths. The preserved radars are always the final section. */
+body[data-page="datahub"] .dh-compare-modal__dialog--report:not(.dh-compare-modal__dialog--error) {
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 7px;
+  min-height: 0;
+  height: calc(100svh - 16px);
+  width: 100%;
+}
+
+body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-header {
+  gap: 6px 10px;
+  padding: 9px 8px 0;
+}
+
+body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-heading h2 {
+  font-size: 1.23rem;
+  line-height: 1.12;
+  padding: 0;
+  overflow: visible;
+}
+
+body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-eyebrow { font-size: .48rem; letter-spacing: .14em; }
+body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-beta { font-size: .66rem; }
+body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-selector { grid-template-columns: minmax(0, 1fr); gap: 5px; }
+body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-selected {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  min-height: 0;
+  max-height: none;
+  padding: 0;
+  overflow: visible;
+}
+body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-selected:empty { display: none; }
+body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-player-chip { min-width: 0; max-width: none; min-height: 28px; gap: 4px; padding: 3px 5px 3px 7px; }
+body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-player-chip__name { flex: 1; min-width: 0; max-width: none; font-size: .65rem; }
+body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-player-chip__logo { width: 16px; height: 16px; flex: 0 0 auto; }
+body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-player-chip__dot { width: 5px; height: 5px; flex: 0 0 auto; }
+body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-player-chip__pos { flex: 0 0 auto; font-size: .55rem; }
+body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-player-chip__remove { width: 22px; height: 22px; flex: 0 0 auto; }
+body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-control-row { grid-template-columns: minmax(68px, 84px) minmax(0, 1fr); gap: 5px; }
+body[data-page="datahub"] .dh-compare-modal__dialog--report :is(.dh-compare-stat-trigger, .dh-compare-search__input, .dh-compare-search__launcher) { height: 34px; }
+body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-search__launcher-label { font-size: .63rem; letter-spacing: .025em; }
+
+body[data-page="datahub"] .dh-compare-body--report {
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 0 4px 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #7785a344 transparent;
+  scroll-padding-block: 10px;
+}
+body[data-page="datahub"] .dh-compare-body--report:focus-visible { outline: 1px solid #86d5fa66; outline-offset: -1px; }
+body[data-page="datahub"] .dh-compare-report { display: grid; gap: 10px; min-width: 0; }
+body[data-page="datahub"] .dh-compare-report .dh-compare-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 0; max-height: none; overflow: visible; }
+body[data-page="datahub"] .dh-compare-report .dh-compare-summary-card { min-height: 51px; padding: 6px; column-gap: 4px; border-radius: 13px; }
+body[data-page="datahub"] .dh-compare-report .dh-compare-summary-card__identity { min-width: 0; }
+body[data-page="datahub"] .dh-compare-report .dh-compare-summary-card__identity strong { font-size: .67rem; }
+
+/* The weekly plot has a deliberate height instead of consuming the viewport.
+   Its value/week axes stay inside this same responsive ECharts canvas. */
+body[data-page="datahub"] .dh-compare-report .dh-compare-chart-shell--weekly { height: auto; min-height: 0; border-radius: 13px; }
+body[data-page="datahub"] .dh-compare-report .dh-compare-weekly-chart { grid-template-rows: auto 250px; padding: 0 2px 2px; }
+body[data-page="datahub"] .dh-compare-report .dh-compare-weekly-chart__header { gap: 5px; padding: 6px 7px 5px; }
+body[data-page="datahub"] .dh-compare-report .dh-compare-weekly-legend .dh-compare-player-chart__header { gap: 3px; }
+
+/* Hit Rate dial silhouette and exact Game Logs conditional palette are local
+   copies: tick rim, gradient layers, endpoint, recessed core, and neutral NA. */
+body[data-page="datahub"] .dh-compare-consistency { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; min-width: 0; }
+body[data-page="datahub"] .dh-compare-consistency-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 8px 6px;
+  border: 1px solid color-mix(in srgb, var(--dial-accent) 22%, #b8c5e013);
+  border-radius: 14px;
+  background: radial-gradient(ellipse at 50% 55%, color-mix(in srgb, var(--dial-accent) 8%, transparent), transparent 65%), linear-gradient(145deg, #151f31e6, #0a1020e6);
+  box-shadow: inset 0 1px #ffffff09;
+}
+body[data-page="datahub"] .dh-compare-consistency-card__identity { display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; min-width: 0; }
+body[data-page="datahub"] .dh-compare-consistency-card__identity img { width: 17px; height: 17px; object-fit: contain; flex: 0 0 auto; }
+body[data-page="datahub"] .dh-compare-consistency-card__identity strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .68rem; font-weight: 800; }
+body[data-page="datahub"] .dh-compare-consistency-card__meta { display: flex; justify-content: space-between; gap: 5px; width: 100%; color: #8c9ab5; font-size: .55rem; font-weight: 700; }
+body[data-page="datahub"] .dh-compare-consistency-card__meta > :first-child { color: var(--dial-accent); }
+body[data-page="datahub"] .dh-compare-consistency-dial {
+  --dial-size: 90px;
+  --dial-inset: 4px;
+  --dial-width: 5px;
+  --arc-end: calc(var(--progress, 0) * 1turn);
+  --arc-mid: calc(var(--progress, 0) * .5turn);
+  position: relative;
+  isolation: isolate;
+  width: var(--dial-size);
+  height: var(--dial-size);
+  border-radius: 50%;
+  filter: drop-shadow(0 7px 13px color-mix(in srgb, var(--dial-accent) 14%, transparent));
+}
+body[data-page="datahub"] .dh-compare-consistency-dial::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: repeating-conic-gradient(from 0deg, #ffffff40 0deg 1deg, transparent 1deg 18deg); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 0); mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 0); opacity: .48; }
+body[data-page="datahub"] .dh-compare-consistency-dial::after { content: ""; position: absolute; inset: var(--dial-inset); border: var(--dial-width) solid #ffffff10; border-radius: inherit; box-shadow: inset 0 0 9px #000b, 0 0 0 1px #ffffff06; }
+body[data-page="datahub"] :is(.dh-compare-dial-arc, .dh-compare-dial-glow, .dh-compare-dial-echo) { position: absolute; inset: var(--dial-inset); border-radius: 50%; background: conic-gradient(from 0deg, var(--dial-start) 0deg, var(--dial-mid) var(--arc-mid), var(--dial-end) var(--arc-end), transparent var(--arc-end) 1turn); pointer-events: none; }
+body[data-page="datahub"] .dh-compare-dial-arc { z-index: 2; -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--dial-width)), #000 0); mask: radial-gradient(farthest-side, transparent calc(100% - var(--dial-width)), #000 0); filter: drop-shadow(0 0 5px color-mix(in srgb, var(--dial-accent) 42%, transparent)); }
+body[data-page="datahub"] .dh-compare-dial-glow { z-index: 1; -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--dial-width) - 4px), #000 0); mask: radial-gradient(farthest-side, transparent calc(100% - var(--dial-width) - 4px), #000 0); filter: blur(3px); opacity: .4; }
+body[data-page="datahub"] .dh-compare-dial-echo { z-index: 2; inset: calc(var(--dial-inset) + var(--dial-width) + 2px); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1px), #000 0); mask: radial-gradient(farthest-side, transparent calc(100% - 1px), #000 0); opacity: .3; }
+body[data-page="datahub"] .dh-compare-dial-cap { position: absolute; inset: var(--dial-inset); z-index: 5; border-radius: 50%; transform: rotate(var(--arc-end)); }
+body[data-page="datahub"] .dh-compare-dial-cap::after,
+body[data-page="datahub"] .dh-compare-dial-origin { content: ""; position: absolute; top: calc(var(--dial-width) / 2); left: 50%; width: 6px; height: 6px; border: 1px solid var(--dial-end); border-radius: 50%; background: #f8fbff; box-shadow: 0 0 5px var(--dial-end), 0 0 10px color-mix(in srgb, var(--dial-accent) 55%, transparent); transform: translate(-50%, -50%); }
+body[data-page="datahub"] .dh-compare-dial-origin { top: calc(var(--dial-inset) + var(--dial-width) / 2); z-index: 4; width: 3px; height: 3px; background: var(--dial-start); }
+body[data-page="datahub"] .dh-compare-consistency-dial[data-has-progress="false"] :is(.dh-compare-dial-origin, .dh-compare-dial-cap) { visibility: hidden; }
+body[data-page="datahub"] .dh-compare-dial-core { position: absolute; inset: calc(var(--dial-inset) + var(--dial-width) + 4px); z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 1px solid #ffffff16; border-radius: 50%; background: radial-gradient(circle at 33% 24%, #2c3d669e, transparent 40%), radial-gradient(circle at 52% 63%, color-mix(in srgb, var(--dial-accent) 8%, transparent), transparent 48%), linear-gradient(150deg, #0f1930, #050914 72%); box-shadow: inset 0 1px 1px #ffffff17, inset 0 -9px 14px #0008, 0 0 0 2px #0307117a, 0 6px 12px #0005; }
+body[data-page="datahub"] .dh-compare-dial-core::after { content: ""; position: absolute; inset: 3px; border-radius: inherit; border-top: 1px solid #ffffff0b; transform: rotate(-24deg); }
+body[data-page="datahub"] .dh-compare-dial-core strong { color: var(--dial-accent); font-size: 1.35rem; line-height: 1; font-weight: 750; letter-spacing: -.055em; }
+body[data-page="datahub"] .dh-compare-dial-core small { margin-left: 1px; font-size: .55rem; }
+body[data-page="datahub"] .dh-compare-dial-core > span { color: #a8b3cb; font-size: .43rem; font-weight: 650; letter-spacing: .035em; text-transform: uppercase; }
+
+/* Season charts have their own warm/cool palette, distinct from weekly lines.
+   Dumbbell positions and stacked lengths use actual CSV values; signed and
+   missing values remain explicit in labels and accessible chart descriptions. */
+body[data-page="datahub"] .dh-compare-season { min-width: 0; }
+body[data-page="datahub"] .dh-compare-season-heading { padding: 7px 5px 10px; }
+body[data-page="datahub"] .dh-compare-season-heading > span { color: #afa5cf; font-size: .49rem; font-weight: 850; letter-spacing: .18em; }
+body[data-page="datahub"] .dh-compare-season-heading h2 { margin: 4px 0 0; color: #f2f3fd; font-size: 1.11rem; line-height: 1.15; letter-spacing: -.025em; }
+body[data-page="datahub"] .dh-compare-season-heading p { margin: 4px 0 0; color: #8c9bb4; font-size: .65rem; }
+body[data-page="datahub"] .dh-compare-season-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+body[data-page="datahub"] .dh-compare-season-panel { min-width: 0; padding: 13px 11px 11px; border: 1px solid #b7bddf21; border-radius: 14px; background: radial-gradient(ellipse at 100% 0, #9c83d40b, transparent 60%), linear-gradient(150deg, #1a2030d9, #0b1220ed); box-shadow: inset 0 1px #ffffff08, 0 8px 22px #00000012; }
+body[data-page="datahub"] .dh-compare-section-heading { display: grid; gap: 10px; margin-bottom: 12px; min-width: 0; }
+body[data-page="datahub"] .dh-compare-section-heading__copy { display: flex; align-items: center; gap: 8px; min-width: 0; }
+body[data-page="datahub"] .dh-compare-section-index { display: grid; place-items: center; flex: 0 0 27px; height: 27px; border: 1px solid #c3b1e525; border-radius: 8px; color: #b6aacd; background: linear-gradient(145deg, #bd9bd415, #ffffff02); font-size: .6rem; font-weight: 850; }
+body[data-page="datahub"] .dh-compare-section-heading h3 { margin: 0; color: #eef2fc; font-size: .92rem; font-weight: 850; letter-spacing: -.015em; }
+body[data-page="datahub"] .dh-compare-section-heading p { margin: 3px 0 0; color: #8e9ab1; font-size: .61rem; line-height: 1.4; }
+body[data-page="datahub"] .dh-compare-segment { display: inline-flex; justify-self: start; gap: 3px; padding: 3px; border: 1px solid #d1c9ec1a; border-radius: 10px; background: #060b1499; }
+body[data-page="datahub"] .dh-compare-segment button { min-height: 30px; padding: 3px 13px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: #8d99b3; font: inherit; font-size: .65rem; font-weight: 800; cursor: pointer; }
+body[data-page="datahub"] .dh-compare-segment button.is-active { border-color: #c8b3e940; color: #eee8ff; background: linear-gradient(135deg, #78619463, #37476a70); box-shadow: inset 0 1px #ffffff0d; }
+body[data-page="datahub"] .dh-compare-segment button:focus-visible { outline: 2px solid #abc3ef; outline-offset: 1px; }
+body[data-page="datahub"] .dh-compare-season-legend { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin: 1px 0 10px; }
+body[data-page="datahub"] .dh-compare-season-legend > span { display: flex; align-items: center; gap: 5px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--season-start); font-size: .64rem; font-weight: 750; }
+body[data-page="datahub"] .dh-compare-season-legend i { flex: 0 0 15px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--season-start), var(--season-end)); }
+body[data-page="datahub"] .dh-compare-duel-rows { display: grid; gap: 2px; }
+body[data-page="datahub"] .dh-compare-duel-row { padding: 8px 0 6px; border-top: 1px solid #c3d1ef0c; }
+body[data-page="datahub"] .dh-compare-duel-row__values { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: baseline; gap: 6px; }
+body[data-page="datahub"] .dh-compare-duel-row__values > strong { justify-self: start; color: var(--season-start); font-size: .85rem; line-height: 1; font-weight: 650; }
+body[data-page="datahub"] .dh-compare-duel-row__values > strong:last-child { justify-self: end; }
+body[data-page="datahub"] .dh-compare-duel-row__values > strong.is-leading { font-weight: 950; text-decoration: underline; text-decoration-color: var(--season-end); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+body[data-page="datahub"] .dh-compare-duel-row__values > span { color: #b1bed4; font-size: .61rem; font-weight: 800; letter-spacing: .03em; }
+body[data-page="datahub"] .dh-compare-duel-row__values small { color: #92b6db; font-size: .65rem; }
+body[data-page="datahub"] .dh-compare-duel-row__plot { position: relative; height: 21px; margin-top: 5px; }
+body[data-page="datahub"] .dh-compare-duel-track { position: absolute; top: 10px; left: 4%; right: 4%; height: 2px; border-radius: 2px; background: #afc4e51a; }
+body[data-page="datahub"] .dh-compare-duel-zero { position: absolute; top: 5px; height: 12px; width: 1px; background: #d7dfec44; }
+body[data-page="datahub"] .dh-compare-duel-link { position: absolute; top: 8px; height: 5px; border-radius: 5px; opacity: .65; }
+body[data-page="datahub"] .dh-compare-duel-point { position: absolute; top: 11px; width: 10px; height: 10px; border: 2px solid var(--season-mid); border-radius: 50%; transform: translate(-50%, -50%); background: linear-gradient(140deg, var(--season-start), var(--season-end)); box-shadow: 0 0 12px color-mix(in srgb, var(--season-mid) 25%, transparent); }
+body[data-page="datahub"] .dh-compare-duel-point--0 { width: 14px; height: 14px; background: #1a1d2c; }
+body[data-page="datahub"] .dh-compare-chart-note { margin: 10px 0 0; color: #8392ac; font-size: .57rem; line-height: 1.45; }
+body[data-page="datahub"] .dh-compare-mix-rows { display: grid; gap: 19px; padding: 2px 0 15px; }
+body[data-page="datahub"] .dh-compare-mix-row__heading { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 7px; }
+body[data-page="datahub"] .dh-compare-mix-row__heading strong { color: var(--season-start); font-size: .7rem; }
+body[data-page="datahub"] .dh-compare-mix-row__heading > span { flex: 0 0 auto; color: #91a0b7; font-size: .58rem; }
+body[data-page="datahub"] .dh-compare-mix-row__heading b { color: #e0e9f8; font-size: .9rem; font-weight: 850; }
+body[data-page="datahub"] .dh-compare-mix-track { display: flex; height: 15px; overflow: hidden; border-radius: 5px; background: repeating-linear-gradient(90deg, transparent 0 24.6%, #bac8e40c 24.6% 25%), #02081380; box-shadow: inset 0 1px 3px #0006; }
+body[data-page="datahub"] .dh-compare-mix-part { height: 100%; border-right: 1px solid #111729; box-sizing: border-box; transition: width 250ms ease; }
+body[data-page="datahub"] .dh-compare-production-mix :is(.dh-compare-mix-part, i).is-passing { background: linear-gradient(90deg, #e8bd7c, #cd897a); }
+body[data-page="datahub"] .dh-compare-production-mix :is(.dh-compare-mix-part, i).is-rushing { background: linear-gradient(90deg, #c5b7ed, #8479c8); }
+body[data-page="datahub"] .dh-compare-production-mix :is(.dh-compare-mix-part, i).is-receiving { background: linear-gradient(90deg, #add8e3, #6590b3); }
+body[data-page="datahub"] .dh-compare-mix-table { width: 100%; border-collapse: collapse; table-layout: fixed; text-align: left; font-size: .62rem; }
+body[data-page="datahub"] .dh-compare-mix-table th { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 650; }
+body[data-page="datahub"] .dh-compare-mix-table thead th { padding: 5px 0 8px; color: var(--season-start, #8291ab); font-size: .58rem; }
+body[data-page="datahub"] .dh-compare-mix-table :is(td, th):not(:first-child) { text-align: right; }
+body[data-page="datahub"] .dh-compare-mix-table tbody :is(td, th) { padding: 8px 0; border-top: 1px solid #bec9e410; }
+body[data-page="datahub"] .dh-compare-mix-table tbody th { color: #98a6bf; }
+body[data-page="datahub"] .dh-compare-mix-table td { color: #d5dff0; font-variant-numeric: tabular-nums; }
+body[data-page="datahub"] .dh-compare-mix-table i { display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 2px; }
+body[data-page="datahub"] .dh-compare-volume-plot { display: block; width: 100%; height: auto; max-height: 280px; margin-top: 8px; overflow: visible; }
+body[data-page="datahub"] .dh-compare-volume-grid { stroke: #b8c9e515; stroke-width: .7; }
+body[data-page="datahub"] .dh-compare-volume-guide { stroke-width: .8; stroke-dasharray: 2 4; opacity: .35; }
+body[data-page="datahub"] .dh-compare-volume-tick { fill: #8e9db6; font-size: 9px; font-weight: 550; }
+body[data-page="datahub"] .dh-compare-volume-axis { fill: #a6b3cc; font-size: 10px; font-weight: 700; }
+body[data-page="datahub"] .dh-compare-volume-name { font-size: 10px; font-weight: 800; paint-order: stroke; stroke: #111a29; stroke-width: 3px; stroke-linejoin: round; }
+body[data-page="datahub"] .dh-compare-volume-readout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-top: 5px; }
+body[data-page="datahub"] .dh-compare-volume-readout > div { display: grid; gap: 5px; padding: 7px; border: 1px solid color-mix(in srgb, var(--season-mid) 20%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--season-mid) 4%, transparent); }
+body[data-page="datahub"] .dh-compare-volume-readout > div > span { display: flex; justify-content: space-between; align-items: baseline; gap: 5px; font-size: .58rem; color: #91a0b8; }
+body[data-page="datahub"] .dh-compare-volume-readout strong { color: var(--season-start); font-size: .68rem; font-variant-numeric: tabular-nums; }
+body[data-page="datahub"] .dh-compare-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Existing radar geometry/labels stay intact, with content-sized cards at the
+   bottom instead of a separate mode or a nested vertical scroll container. */
+body[data-page="datahub"] .dh-compare-report .dh-compare-chart-shell--season { height: auto; min-height: 0; max-height: none; overflow: hidden; border-radius: 13px; }
+body[data-page="datahub"] .dh-compare-radars .dh-compare-chart-grid--season { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; gap: 6px; padding: 4px; min-height: 0; }
+body[data-page="datahub"] .dh-compare-radars .dh-compare-chart-grid--season.dh-compare-chart-grid--single { grid-template-rows: none; min-height: 0; }
+body[data-page="datahub"] .dh-compare-radars .dh-compare-chart--season { height: auto; padding: 0; }
+body[data-page="datahub"] .dh-compare-radars .dh-compare-season-radar { width: min(100%, 640px); height: auto; }
+
+@media (min-width: 720px) {
+  body[data-page="datahub"] .dh-compare-modal__dialog--report:not(.dh-compare-modal__dialog--error) { width: min(1340px, calc(100vw - 24px)); height: min(940px, calc(100svh - 24px)); }
+  body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-header { padding: 14px 16px 0; gap: 9px 14px; }
+  body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-heading h2 { font-size: 1.65rem; }
+  body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-eyebrow { font-size: .58rem; }
+  body[data-page="datahub"] .dh-compare-modal__dialog--report .dh-compare-selector { grid-template-columns: minmax(0, 1fr) minmax(300px, 45%); gap: 14px; }
+  body[data-page="datahub"] .dh-compare-body--report { padding: 0 12px 14px; }
+  body[data-page="datahub"] .dh-compare-report { gap: 12px; }
+  body[data-page="datahub"] .dh-compare-report .dh-compare-summary-card { padding: 8px 14px; min-height: 60px; }
+  body[data-page="datahub"] .dh-compare-report .dh-compare-summary-card__identity strong { font-size: .82rem; }
+  body[data-page="datahub"] .dh-compare-consistency { gap: 12px; }
+  body[data-page="datahub"] .dh-compare-consistency-card { grid-template-columns: minmax(0, 1fr) 112px; grid-template-rows: 1fr 1fr; gap: 6px 18px; padding: 14px 22px; }
+  body[data-page="datahub"] .dh-compare-consistency-card__identity { justify-content: start; align-self: end; }
+  body[data-page="datahub"] .dh-compare-consistency-card__identity strong { font-size: .9rem; }
+  body[data-page="datahub"] .dh-compare-consistency-card__identity img { width: 27px; height: 27px; }
+  body[data-page="datahub"] .dh-compare-consistency-card__meta { grid-column: 1; grid-row: 2; align-self: start; justify-content: start; gap: 15px; font-size: .66rem; }
+  body[data-page="datahub"] .dh-compare-consistency-dial { --dial-size: 108px; grid-column: 2; grid-row: 1 / 3; }
+  body[data-page="datahub"] .dh-compare-dial-core strong { font-size: 1.7rem; }
+  body[data-page="datahub"] .dh-compare-dial-core > span { font-size: .5rem; }
+  body[data-page="datahub"] .dh-compare-report .dh-compare-weekly-chart { grid-template-rows: auto 330px; padding-inline: 4px; }
+  body[data-page="datahub"] .dh-compare-season-heading { padding: 12px 4px 15px; }
+  body[data-page="datahub"] .dh-compare-season-heading h2 { font-size: 1.45rem; }
+  body[data-page="datahub"] .dh-compare-season-heading > span { font-size: .57rem; }
+  body[data-page="datahub"] .dh-compare-radars .dh-compare-chart-grid--season { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 8px; }
+  body[data-page="datahub"] .dh-compare-radars .dh-compare-chart-grid--single { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (min-width: 1000px) {
+  body[data-page="datahub"] .dh-compare-season-grid { grid-template-columns: 1.05fr 1fr; gap: 12px; }
+  body[data-page="datahub"] .dh-compare-metric-duel { grid-row: span 2; display: flex; flex-direction: column; }
+  body[data-page="datahub"] .dh-compare-metric-duel .dh-compare-duel-rows { flex: 1; align-content: space-evenly; }
+  body[data-page="datahub"] .dh-compare-season-panel { padding: 18px; }
+  body[data-page="datahub"] .dh-compare-section-heading { grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 8px; margin-bottom: 18px; }
+  body[data-page="datahub"] .dh-compare-section-heading h3 { font-size: 1.02rem; }
+  body[data-page="datahub"] .dh-compare-section-heading p { font-size: .66rem; }
+  body[data-page="datahub"] .dh-compare-season-legend > span { font-size: .75rem; }
+  body[data-page="datahub"] .dh-compare-duel-row__values > strong { font-size: 1.08rem; }
+  body[data-page="datahub"] .dh-compare-duel-row__values > span { font-size: .72rem; }
+  body[data-page="datahub"] .dh-compare-mix-row__heading strong { font-size: .8rem; }
+  body[data-page="datahub"] .dh-compare-mix-table { font-size: .72rem; }
+  body[data-page="datahub"] .dh-compare-mix-table thead th { font-size: .65rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-page="datahub"] .dh-compare-mix-part { transition: none; }
+}
