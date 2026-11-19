@@ -17,10 +17,15 @@ function createLoader(tables, failures = {}, boot = false) {
   const window = { state: {}, location: { href: 'https://test.local/rosters/rosters.html' }, requests: [] };
   if (boot) window.document = { body: { dataset: { page: 'rosters' } } };
   const context = vm.createContext({ window, URL, console: { warn() {} }, fetch: async (url, init) => {
-    assert.equal(init.cache, 'no-store');
     const parsed = new URL(url);
     const sheet = parsed.searchParams.get('sheet');
     const filename = parsed.pathname.split('/').at(-1);
+    if (parsed.pathname.includes('/generated-2026/')) {
+      if (!(filename in tables)) return { ok: false, status: 404 };
+      window.requests.push({ pathname: parsed.pathname });
+      return { ok: true, json: async () => tables[filename] };
+    }
+    assert.equal(init.cache, 'no-store');
     const key = sheet || filename;
     window.requests.push({ sheet, pathname: parsed.pathname });
     if (failures[key] instanceof Error) throw failures[key];
@@ -449,6 +454,41 @@ test('Rosters boot reads PROJ once through Week 18 without delaying results or s
   assert.equal(window.state.playerProjectionWeeks[9], undefined);
   assert.deepEqual(window.requests.map(({ sheet }) => sheet).filter(Boolean), ['PROJ']);
   assert.equal(window.requests.filter(({ pathname }) => pathname.endsWith('2026_AllWKs.csv')).length, 1);
+});
+
+test('Rosters builds its first cards from generated data before requesting detailed Game Logs', async () => {
+  const file = 'rosters-1234567890abcdef.json';
+  const window = createLoader({
+    'index.json': { files: { rosters: file }, latestRecordedWeek: 10 },
+    [file]: {
+      seasonStats: { 4984: { games_played: 3, fpts_ppr: 35.66, ppg: 35.66 / 3 } },
+      cardSeasonRanks: { 4984: { fpts: 2, ppg: 3 } },
+      scheduleByTeam: { BUF: { 12: 'BYE' } },
+      scoringSchemas: [['snp', 'fpt_ppr']],
+      scoringCells: [[10, '4984', 0, 59, 0]],
+      latestRecordedWeek: 10,
+    },
+    '2026_Season.csv': season,
+    '2026_AllWKs.csv': 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP\n10,4984,QB,BUF,0,1,59',
+    PROJ: 'SZN,SLPR_ID,POS,TM,11\n2026,4984,QB,BUF,OUT',
+  }, {}, true);
+  const cards = await window.ensureRosters2026CardsLoaded();
+  await window.activateRosters2026Cards(cards);
+  await window.ensureRosters2026ProjectionsLoaded();
+  assert.equal(window.state.currentNflWeek, 11);
+  assert.equal(window.state.playerSeasonStats[4984].games_played, 3);
+  assert.equal(window.state.playerWeeklyStats[10][4984].fpt_ppr, 0);
+  assert.equal(window.state.playerWeeklyStats[10][4984].pass_td, undefined);
+  assert.equal(window.state.playerWeeklyStats[11][4984].proj, 'OUT');
+  assert.equal(cards.scheduleByTeam.BUF[12], 'BYE');
+  assert.equal(window.getRosters2026PlayerRanks(4984).posRank, 2);
+  assert.equal(window.state.rosters2026GameLogs, undefined);
+  assert.ok(window.requests.every(request => !/\.csv$/.test(request.pathname)));
+  assert.equal(window.requests.filter(request => request.sheet === 'PROJ').length, 1);
+  const detail = await window.activateRosters2026GameLogs();
+  assert.equal(detail.weeklyStats[10][4984].__hasRecordedStats, true);
+  assert.equal(detail.weeklyStats[11][4984].proj, 'OUT');
+  assert.equal(window.requests.filter(request => /2026_AllWKs\.csv$/.test(request.pathname)).length, 1);
 });
 
 test('Rosters PROJ preserves statuses, skips completed weeks and isolates missing numbered columns', async () => {

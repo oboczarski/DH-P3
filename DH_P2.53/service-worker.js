@@ -172,7 +172,8 @@
 // margin together with the compact, prefix-free player-name header styles.
 // Refresh DM-only comparisons, directed rounded arrows, initialed names and
 // real CSS-styled scoring chips together with their renderer and stylesheet.
-const CACHE_NAME = 'DH3.80-dm-comparison_data8';
+// Refresh the three first-view loaders together with their versioned data.
+const CACHE_NAME = 'DH3.81-generated-2026';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -231,6 +232,9 @@ const CORE_ASSET_PATHS = [
   // The period menu and weekly schema adapter belong only to DataHub Stats.
   '/scripts/datahub-stats-period.js',
   '/scripts/datahub-2026-data.js',
+  '/scripts/datahub-stat-source.js',
+  '/scripts/generated-2026-data.js',
+  '/scripts/rosters-2026-stats.js',
   // The DataHub team pane owns its lazy TM_STAT reader; the CSV stays uncached.
   '/scripts/datahub-team-stats.js',
   // Rosters retains its own lazy team-summary loader and league-wide rank model.
@@ -243,7 +247,7 @@ const CORE_ASSET_PATHS = [
   '/scripts/vendor/echarts-6.0.0.min.js',
   '/styles/leaguehub-analysis.css',
   '/scripts/dashboard.js',
-  // Home's season adapter is page-owned; preload code, then read fresh CSV at runtime.
+  // Home's season adapter remains page-owned, including static CSV previews.
   '/scripts/dashboard-data.js',
   '/scripts/dashboard-scatter-layout.js',
   '/scripts/syop.js',
@@ -298,6 +302,12 @@ function isVersionedAdpBuildAsset(url) {
   return pathname.startsWith('/adp/_next/static/');
 }
 
+// Only content-addressed data may bypass the normal freshness check. The
+// manifest itself is network-first so a deploy switches clients to new data.
+function isVersionedStatsData(url) {
+  return isSameOrigin(url) && /^\/data\/generated-2026\/[a-z]+-[0-9a-f]{16}\.json$/.test(new URL(url).pathname);
+}
+
 // ============================================================================
 // HELPER: Fetch with HTTP cache bypass
 // ============================================================================
@@ -337,9 +347,9 @@ async function cacheAdpBuildAssets(cache, indexResponse) {
   }));
 }
 
-// Hit-rate runtime delivery: reuse the current cache for hashed build files;
-// a cache miss still falls through to a fresh network request and is stored.
-async function fetchVersionedAdpBuildAsset(request) {
+// Hashed ADP and stats assets can be reused across visits. Download and store
+// the exact version on a cache miss.
+async function fetchVersionedAsset(request) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(request);
   if (cached) return cached;
@@ -418,10 +428,9 @@ self.addEventListener('fetch', event => {
   // Only handle GET
   if (request.method !== 'GET') return;
 
-  // The ADP app is an isolated static export. Its hashed build files are safe
-  // to serve cache-first and avoid repeat mobile downloads on every tab visit.
-  if (isVersionedAdpBuildAsset(request.url)) {
-    event.respondWith(fetchVersionedAdpBuildAsset(request));
+  // Serve hashed build files cache-first to avoid repeat mobile downloads.
+  if (isVersionedAdpBuildAsset(request.url) || isVersionedStatsData(request.url)) {
+    event.respondWith(fetchVersionedAsset(request));
     return;
   }
 

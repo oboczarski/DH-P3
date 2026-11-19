@@ -75,16 +75,68 @@ export function normalizeDashboardPlayer(row) {
   };
 }
 
+// The build and the unbuilt static preview use the same Home CSV normalization.
+export function buildDashboardPlayers(rows) {
+  const players = rows.filter(row => /^\d+$/.test(row.SLPR_ID) && POSITIONS.has(row.POS));
+  if (!players.length || players.some(row => row.SZN !== '2026')) throw new Error('Dashboard 2026_Season.csv has no valid 2026 season data.');
+  return players.map(normalizeDashboardPlayer).sort((a, b) => (b.stats.fpts ?? -Infinity) - (a.stats.fpts ?? -Infinity));
+}
+
 export async function loadDashboardPlayers(fetchImpl = fetch) {
-  // Read the maintained file once per dashboard initialization. Module-relative
-  // URLs support the root page; each reload gets fresh data without a Sheets fallback.
   const url = new URL('../data/NFL-2026_Stats/SeasonStats/2026_Season.csv', import.meta.url);
   const response = await fetchImpl(url, { cache: 'no-store' });
   if (!response.ok) throw new Error(`Dashboard 2026_Season.csv could not load (${response.status}).`);
-  const rows = parseDashboardCsv(await response.text()).filter(row =>
-    /^\d+$/.test(row.SLPR_ID) && POSITIONS.has(row.POS));
-  if (!rows.length || rows.some(row => row.SZN !== '2026')) throw new Error('Dashboard 2026_Season.csv has no valid 2026 season data.');
-  return rows.map(normalizeDashboardPlayer).sort((a, b) => (b.stats.fpts ?? -Infinity) - (a.stats.fpts ?? -Infinity));
+  return buildDashboardPlayers(parseDashboardCsv(await response.text()));
+}
+
+function computePositionalRanks(players) {
+  const byPos = { QB: [], RB: [], WR: [], TE: [] };
+  players.forEach(p => { if (byPos[p.position]) byPos[p.position].push(p); });
+
+  // Common ranks for FPTS/PPG
+  ['fpts','ppg'].forEach(stat => {
+    Object.values(byPos).forEach(list => {
+      // Home PPG ranks share the recorded-game minimum used by its leader charts.
+      const eligible = list.filter(p => Number.isFinite(p.stats[stat]) && p.stats[stat] > 0 && (stat !== 'ppg' || p.games >= 3))
+        .sort((a,b) => b.stats[stat] - a.stats[stat]);
+      eligible.forEach((p, idx) => {
+        if (stat === 'fpts') p.ranks.posRank = idx + 1;
+        else p.ranks.ppgPosRank = idx + 1;
+      });
+    });
+  });
+
+  const EFF_THRESH = 40; // 40% snap share
+  const statConfig = {
+    QB: [ ['pass_rtg', false], ['cmp_pct', false], ['epa_db', false], ['ttt', true], ['yds_total', false], ['cpoe', false], ['cl', false], ['csty', false] ],
+    RB: [ ['yds_total', false], ['snp_pct', false], ['ypc', false], ['rec_tgt', false], ['mtf_per_att', false], ['yco_per_att', false], ['cl', false], ['csty', false] ],
+    WR: [ ['rec', false], ['rec_ypg', false], ['ts_per_rr', false], ['yprr', false], ['first_down_rec_rate', false], ['imp_per_g', false], ['cl', false], ['csty', false] ],
+    TE: [ ['rec', false], ['rec_ypg', false], ['ts_per_rr', false], ['yprr', false], ['first_down_rec_rate', false], ['imp_per_g', false], ['cl', false], ['csty', false] ]
+  };
+
+  Object.entries(statConfig).forEach(([pos, stats]) => {
+    const list = byPos[pos] || [];
+    stats.forEach(([key, invert]) => {
+      const eligible = list.filter(p => {
+        const v = p.stats[key];
+        if (!Number.isFinite(v)) return false;
+        if ((pos === 'RB' || pos === 'WR' || pos === 'TE') && (!Number.isFinite(p.stats.snp_pct) || p.stats.snp_pct < EFF_THRESH)) return false;
+        return true;
+      });
+      eligible.sort((a,b) => invert ? a.stats[key] - b.stats[key] : b.stats[key] - a.stats[key]);
+      eligible.forEach((p, idx) => {
+        p.statRanks[key] = idx + 1;
+      });
+    });
+  });
+}
+
+// Ship Home's positional/radar ranks and summary picks ready to render.
+export function buildDashboardSnapshot(players) {
+  computePositionalRanks(players);
+  const leaderIds = Object.fromEntries(Object.entries(selectSummaryLeaders(players))
+    .map(([key, player]) => [key, player?.id ?? null]));
+  return { players, leaderIds };
 }
 
 // The CSTY card honors exactly 100% first, then selects the largest DH FPTS total.

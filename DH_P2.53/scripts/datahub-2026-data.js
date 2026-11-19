@@ -3,6 +3,7 @@
 // Matchup ranks/SOS are calculated from the same recorded weekly CSV.
 import { get2026ProjectionWeeks, get2026ProjectionCsvUrl } from './nfl-2026-sheets.js?v=DH3.76-proj-sheet';
 import { load2026WeeklyCsv, load2026ScheduleCsv, load2026MatchupData } from './nfl-2026-matchups.js';
+import { loadGenerated2026Data } from './generated-2026-data.js';
 
 const POSITIONS = new Set(['QB', 'RB', 'WR', 'TE']);
 const DEFENSE_COLUMNS = { QB: 'QBRK', RB: 'RBRK', WR: 'WRRK', TE: 'TERK' };
@@ -107,6 +108,26 @@ export async function load2026SourceData({ parseCsv, fetchImpl = fetch }) {
   };
 }
 
+// Read the build's columnar season rows and rank index. Recreate the same
+// page-owned raw row shape for Career, Compare, Team and later enrichment.
+export async function loadDataHub2026Season({ parseCsv, fetchImpl = fetch }) {
+  const snapshot = await loadGenerated2026Data('datahub', fetchImpl);
+  if (!snapshot) return load2026SourceData({ parseCsv, fetchImpl });
+  const { columns, cells, ranksByColumn, weeksOfData } = snapshot;
+  const defaultRanks = {};
+  const rankedColumns = Object.entries(ranksByColumn);
+  const rawRows = cells.map((values, index) => {
+    const row = Object.fromEntries(columns.map((column, i) => [column, values[i]]));
+    const ranks = {};
+    for (const [column, values] of rankedColumns) {
+      if (values[index]) ranks[column] = values[index];
+    }
+    defaultRanks[row.SLPR_ID] = ranks;
+    return { ...row, NM: row['PLAYER NAME'], G: row.GM_P };
+  });
+  return { rawRows, weeklyRows: {}, weeksOfData, defaultRanks };
+}
+
 // Background projection preparation reads the local CSV once to establish the
 // results cutoff. Game Logs/Compare reuse these same rows when opened later.
 export async function load2026WeeklyCsvData({
@@ -178,8 +199,8 @@ export async function load2026ProjectionSourceData({ weeklySource, parseCsv, fet
   return { projectionRows, projectionErrors };
 }
 
-// Schedule and matchup calculations remain modal-only. Reuse the background
-// weekly read; only future PROJ values can come from the workbook.
+// Schedule and matchup calculations remain modal-only. Reuse weekly rows if
+// the viewer has opened a Stats week; only future PROJ values come from Sheets.
 export async function load2026WeeklySourceData({
   seasonRows, parseCsv, weeklySource, projectionSource,
   scheduleUrl = new URL('../data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv', import.meta.url),

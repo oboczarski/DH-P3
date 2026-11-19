@@ -1,10 +1,12 @@
+import { normalizeSheetHeader, parseDataHubStatValue } from "./datahub-stat-source.js";
 import { createDataHubGameLogsProfile, historicalSosSource } from "./datahub-gamelogs-profile.js?v=DH3.72-local-matchups";
 import { get2026QualifierOptions } from "./datahub-stats-season.js";
 import { getDataHubStatsPeriodOptions, getDataHubWeeklyColumns, getDataHubWeeklyColumnGroups, getDataHubWeeklyTableSourceRows } from "./datahub-stats-period.js";
 import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSeasonRankQualified } from "./datahub-stats-positional-ranks.js";
 // Version the migrated loader too: standalone DataHub visits may not yet have
 // app.js's service worker to refresh an older unversioned module from HTTP cache.
-import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js?v=DH3.76-proj-sheet";
+import { loadDataHub2026Season, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js?v=DH3.81-generated-2026";
+import { load2026DataManifest } from "./generated-2026-data.js";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js?v=DH3.64a-air-yards-icon";
 import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js?v=DH3.62-datahub-gamelogs-parity";
 import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames, isConsistencyProductionStat, getConsistencyAverageLabelCenter } from "./datahub-gamelogs-controls.js?v=DH3.53-rosters-gamelogs";
@@ -2831,8 +2833,9 @@ const state = {
   // 2025 rows separate; season games played still drive qualifier progression.
   statsSeason: "2026",
   // A table-only week selection leaves the season snapshots used by Game Logs,
-  // Compare and Trade Values intact. The boot-time CSV read supplies these rows.
+  // Compare and Trade Values intact. The generated index lists recorded weeks.
   statsWeek: null,
+  statsRecordedWeeks: undefined,
   statsWeeklySource: null,
   statsWeeklyRows: {},
   statsWeeklyPositionalRanks: {},
@@ -3100,6 +3103,8 @@ const ROOKIE_CSV_URLS_BY_CATEGORY = Object.freeze({
 
 let supplementalDataPromise = null;
 let dataHub2026ProjectionPreparationPromise = null;
+let dataHub2026WeeklyPromise = null;
+let dataHubHistoricalSeasonPromise = null;
 let rookieDataPromise = null;
 let dataHubComparisonModulePromise = null;
 let dataHubComparisonStylesPromise = null;
@@ -3925,21 +3930,14 @@ function isElementVisible(element) {
 
 async function loadInitialData() {
   try {
-    // Load both season CSVs independently. A failed 2026 file never substitutes
-    // 2025 stats under a 2026 label; historical CSV data remains selectable.
-    const results = await Promise.allSettled([
-      fetchCsvText().then(applyCsvText),
-      ensureDataHub2026Data(),
-    ]);
-    if (results[state.statsSeason === "2026" ? 1 : 0].status === "rejected") {
-      throw results[state.statsSeason === "2026" ? 1 : 0].reason;
-    }
+    // Only the active season is on the first render's critical path.
+    if (state.statsSeason === "2026") await ensureDataHub2026Data();
+    else await ensureDataHubHistoricalSeason();
     hideOverlay();
 
-    // DataHub startup enrichment:
-    // Season CSVs are enough to render the Stats grid and enable lazy Compare.
-    // KTC, ADP, and rookie enrichments continue in the background and
-    // rebuild the same cached rows when those slower feeds finish.
+    // Warm the archive and retain the independent live enrichment. Switching
+    // to 2025 while it loads reuses this request.
+    void ensureDataHubHistoricalSeason().catch(error => console.warn("DataHub 2025 season preload failed.", error));
     ensureDataHubSupplementalData()
       .then(() => {
         rebuildDataHubRows();
@@ -3958,12 +3956,20 @@ async function loadInitialData() {
   }
 }
 
-// Keep this request shared by the table, Game Logs and Compare. Each full page
-// refresh re-reads 2026_Season.csv only; modal-only feeds stay lazy below.
+function ensureDataHubHistoricalSeason() {
+  if (!dataHubHistoricalSeasonPromise) {
+    dataHubHistoricalSeasonPromise = fetchCsvText().then(applyCsvText)
+      .catch(error => { dataHubHistoricalSeasonPromise = null; throw error; });
+  }
+  return dataHubHistoricalSeasonPromise;
+}
+
+// Stats, Game Logs and Compare share the season snapshot. Its single tracked
+// source is 2026_Season.csv, converted into browser-ready data at build time.
 async function ensureDataHub2026Data() {
   if (state.stats2026.loaded) return state.stats2026;
   if (!state.stats2026Promise) {
-    state.stats2026Promise = load2026SourceData({
+    state.stats2026Promise = loadDataHub2026Season({
       parseCsv,
     }).then((source) => {
       state.stats2026 = { ...source, rows: [], loaded: true };
@@ -3974,23 +3980,34 @@ async function ensureDataHub2026Data() {
   return state.stats2026Promise;
 }
 
-// Share only this page's background CSV/projection work with Game Logs and
-// Compare. Neither main Stats loading nor the 2025 snapshot waits for it.
+// The generated index populates the period menu and starts the live PROJ
+// request without downloading detailed results. Game Logs and Stats week
+// views share the detailed read when first requested.
+function ensureDataHubWeeklyRows() {
+  if (!dataHub2026WeeklyPromise) {
+    dataHub2026WeeklyPromise = load2026WeeklyCsvData({ parseCsv }).then(source => {
+      if (Object.keys(source.weekErrors).length) dataHub2026WeeklyPromise = null;
+      else state.statsWeeklySource = source;
+      return source;
+    }).catch(error => { dataHub2026WeeklyPromise = null; throw error; });
+  }
+  return dataHub2026WeeklyPromise;
+}
+
 function prepareDataHub2026Projections() {
   if (!dataHub2026ProjectionPreparationPromise) {
     dataHub2026ProjectionPreparationPromise = (async () => {
-      const weeklySource = await load2026WeeklyCsvData({ parseCsv });
-      // Publish completed-week choices as soon as CSV results arrive; slow
-      // future projection exports never delay the menu or its table data.
-      state.statsWeeklySource = weeklySource;
-      rebuildDataHubWeeklyStatsRows();
+      const manifest = await load2026DataManifest();
+      const cutoff = manifest
+        ? { latestRecordedWeek: manifest.latestRecordedWeek, weekErrors: {} }
+        : await ensureDataHubWeeklyRows();
+      state.statsRecordedWeeks = manifest?.recordedWeeks;
       syncUiState();
-      refreshGrid();
-      const projectionSource = await load2026ProjectionSourceData({ weeklySource, parseCsv });
+      const projectionSource = await load2026ProjectionSourceData({ weeklySource: cutoff, parseCsv });
       if (Object.keys(projectionSource.projectionErrors).length) {
         console.warn("DataHub skipped unavailable 2026 projections:", projectionSource.projectionErrors);
       }
-      return { weeklySource, projectionSource };
+      return projectionSource;
     })().catch((error) => { dataHub2026ProjectionPreparationPromise = null; throw error; });
   }
   return dataHub2026ProjectionPreparationPromise;
@@ -4015,7 +4032,8 @@ function getStatsTableQualifierWeeks() {
 }
 
 function selectDataHubStatsPeriod(value) {
-  const option = getDataHubStatsPeriodOptions(state.statsWeeklySource?.weeklyRows).find((item) => item.value === value);
+  const option = getDataHubStatsPeriodOptions(state.statsWeeklySource?.weeklyRows, state.statsRecordedWeeks)
+    .find((item) => item.value === value);
   if (state.activePageView !== "stats" || !option || value === getStatsPeriodValue()) return;
   state.statsFiltersBySeason[getStatsPeriodValue()] = { category: state.activeCategory, filters: state.statsFilters };
   state.statsSeason = option.season;
@@ -4026,8 +4044,20 @@ function selectDataHubStatsPeriod(value) {
   closeAllDataHubQualifierMenus();
   closeAllDataHubTeamMenus();
   closeSortMetaDropdown();
+  rebuildDataHubWeeklyStatsRows();
   syncUiState();
   refreshGrid();
+  const pending = option.week && !state.statsWeeklySource
+    ? ensureDataHubWeeklyRows().then(source => {
+      const error = source.weekErrors[option.week];
+      if (error) throw new Error(error);
+      if (!isDataHubWeeklyStatsView() || getStatsPeriodValue() !== value) return;
+      rebuildDataHubWeeklyStatsRows();
+      syncUiState();
+      refreshGrid();
+    })
+    : option.season === "2025" ? ensureDataHubHistoricalSeason() : null;
+  void pending?.catch(error => console.warn(`Unable to load DataHub period ${value}.`, error));
 }
 
 async function fetchCsvText() {
@@ -4216,14 +4246,6 @@ function getKtcSheetEntity(sheetData, playerId, entityKey) {
   }
 
   return null;
-}
-
-function normalizeSheetHeader(header) {
-  // DataHub share labels follow the renamed DH/WK headers. Accept historical
-  // TMS/YMS exports while preserving the existing internal stat/rank keys.
-  return String(header || "").replace(/[\u00a0\u202f]/g, " ").trim()
-    .replace(/^(pa|ru|rec)?TMS$/, "$1TDS%")
-    .replace(/^(pa|ru|rec)?YMS$/, "$1YS%");
 }
 
 function buildNormalizedSheetRow(row) {
@@ -4586,23 +4608,25 @@ function rebuildDataHubRows() {
 function rebuildStatsPositionalRanks() {
   const columns = [...Object.values(STATS_COLUMN_SETS).flat(), ...STATS_PASSING_COLUMNS_2026, ...STATS_RUSHING_COLUMNS_2026, ...STATS_RECEIVING_COLUMNS_2026];
   state.statsPositionalRanksBySeason["2025"] = buildStatsPositionalRanks(state.statsRowsBase, columns, "2025", 18, getStatsElapsedWeeks("2025"));
-  state.statsPositionalRanksBySeason["2026"] = buildStatsPositionalRanks(state.stats2026.rows, columns, "2026", state.stats2026.weeksOfData, getStatsElapsedWeeks("2026"));
+  const { rows, defaultRanks, weeksOfData } = state.stats2026;
+  const elapsedWeeks = getStatsElapsedWeeks("2026");
+  state.statsPositionalRanksBySeason["2026"] = defaultRanks && elapsedWeeks === weeksOfData
+    ? new WeakMap(rows.map(row => [row, defaultRanks[row.__meta.playerId] || {}]))
+    : buildStatsPositionalRanks(rows, columns, "2026", weeksOfData, elapsedWeeks);
 }
 
 // Normalize each completed week's own CSV lines through the existing table
 // formatter. Enrichment supplies market metadata only, never season statistics.
 function rebuildDataHubWeeklyStatsRows() {
   const sourceRows = state.statsWeeklySource?.weeklyRows || {};
+  const week = state.statsWeek;
+  if (!week || !sourceRows[week]) return;
   const lookups = { oneQbLookup: state.ktcSheetData["1-QB"]?.byPlayerId || {},
     sflxLookup: state.ktcSheetData.SFLX?.byPlayerId || {}, adpLookup: state.adpByPlayerId || {} };
   const columns = [...Object.values(STATS_COLUMN_SETS).flat(), ...STATS_PASSING_COLUMNS_2026, ...STATS_RUSHING_COLUMNS_2026, ...STATS_RECEIVING_COLUMNS_2026];
-  state.statsWeeklyRows = {};
-  state.statsWeeklyPositionalRanks = {};
-  getDataHubStatsPeriodOptions(sourceRows).filter((option) => option.week).forEach(({ week }) => {
-    const rows = getDataHubWeeklyTableSourceRows(sourceRows, week).map((row) => normalizeRow(enrichSeasonRow(row, lookups)));
-    state.statsWeeklyRows[week] = rows;
-    state.statsWeeklyPositionalRanks[week] = buildStatsPositionalRanks(rows, getDataHubWeeklyColumns(columns), "2026", 1, 1);
-  });
+  const rows = getDataHubWeeklyTableSourceRows(sourceRows, week).map(row => normalizeRow(enrichSeasonRow(row, lookups)));
+  state.statsWeeklyRows[week] = rows;
+  state.statsWeeklyPositionalRanks[week] = buildStatsPositionalRanks(rows, getDataHubWeeklyColumns(columns), "2026", 1, 1);
 }
 
 // Use the same recorded-week cutoff as Game Logs' divider when WK data exists.
@@ -9111,7 +9135,7 @@ function syncStatsSeasonMenu(mount) {
   const menu = mount.statsSeasonMenu;
   const toggle = mount.statsSeasonSelect;
   if (!menu || !toggle || !mount.statsSeasonValue) return;
-  const options = getDataHubStatsPeriodOptions(state.statsWeeklySource?.weeklyRows);
+  const options = getDataHubStatsPeriodOptions(state.statsWeeklySource?.weeklyRows, state.statsRecordedWeeks);
   const value = getStatsPeriodValue();
   const selected = options.find((option) => option.value === value) || options[0];
   mount.statsSeasonValue.textContent = selected.label;
@@ -13906,10 +13930,14 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
         // Weekly CSV/schedule are modal-only dependencies. Reuse the season CSV so
         // opening Game Logs or Compare does not change volume thresholds or
         // totals; recorded weeks refine only the Stats scoring exception.
+        const [recordedSource, projectionSource] = await Promise.all([
+          ensureDataHubWeeklyRows(), prepareDataHub2026Projections()
+        ]);
         const weeklySource = await load2026WeeklySourceData({
           seasonRows: source.rawRows,
           parseCsv,
-          ...await prepareDataHub2026Projections(),
+          weeklySource: recordedSource,
+          projectionSource,
           scheduleUrl: new URL("../data/NFL-2026_Stats/NFL-Schedule/Schedule2026.csv", window.location.href),
         });
         source.weeklyRows = weeklySource.weeklyRows;
@@ -14134,26 +14162,6 @@ function parseDataHubWeeklyStatsRows(rows) {
     weeklyStats[playerId] = stats;
   });
   return weeklyStats;
-}
-
-function parseDataHubStatValue(header, value) {
-  const trimmedValue = String(value ?? "").trim();
-  if (!trimmedValue || trimmedValue.toUpperCase() === "NA") {
-    return null;
-  }
-  // QB percentages and reception/yard/TD shares accept explicit percentages,
-  // fractions, or percentage points. TPRR remains a decimal ratio from DH/WK.
-  if (["SNP%", "BLTZ%", "TmPa%", "RECS%"].includes(header) || /^(pa|ru|rec)?(TDS|YS)%$/.test(normalizeSheetHeader(header))) {
-    const numericPortion = Number.parseFloat(trimmedValue.replace("%", ""));
-    if (!Number.isFinite(numericPortion)) {
-      return null;
-    }
-    return trimmedValue.includes("%") || numericPortion > 1.5
-      ? numericPortion
-      : numericPortion * 100;
-  }
-  const numericValue = Number.parseFloat(trimmedValue);
-  return Number.isFinite(numericValue) ? numericValue : null;
 }
 
 async function fetchDataHubJson(url) {

@@ -16,9 +16,9 @@
 # =============================================================================
 
 [build]
-  # Build the isolated Next.js ADP app, whose postbuild step publishes its
-  # static export into the existing DH_P2.53 site without changing app routing.
-  command = "npm ci --prefix adp-app && npm run build --prefix adp-app"
+  # Derive the first-view stats from the maintained CSVs, then publish the
+  # isolated Next.js ADP export into the same static site.
+  command = "node netlify/scripts/generate-2026-data.mjs && npm ci --prefix adp-app && npm run build --prefix adp-app"
   publish = "DH_P2.53"
 
 # =============================================================================
