@@ -7359,7 +7359,7 @@ function closeDataHubChartModal({ restoreFocus = true } = {}) {
 
 const DATAHUB_COMPARISON_REACT_URL = "https://cdn.jsdelivr.net/npm/react@18.3.1/+esm";
 const DATAHUB_COMPARISON_REACT_DOM_URL = "https://cdn.jsdelivr.net/npm/react-dom@18.3.1/client/+esm";
-const DATAHUB_COMPARISON_STYLES_URL = "../scripts/datahub-comparison/DataHubComparisonModal.css?v=DH3.81-compare";
+const DATAHUB_COMPARISON_STYLES_URL = "../scripts/datahub-comparison/DataHubComparisonModal.css?v=DH3.82-compare-previews";
 const DATAHUB_COMPARISON_WEEKLY_STAT_KEYS = Object.freeze([
   "fpts",
   "pass_yd",
@@ -7443,7 +7443,7 @@ async function ensureDataHubComparisonModule() {
     dataHubComparisonModulePromise = Promise.all([
       import(DATAHUB_COMPARISON_REACT_URL),
       import(DATAHUB_COMPARISON_REACT_DOM_URL),
-      import("./datahub-comparison/DataHubComparisonModal.js?v=DH3.81-compare"),
+      import("./datahub-comparison/DataHubComparisonModal.js?v=DH3.82-compare-previews"),
     ])
       .then(([reactModule, reactDomModule, comparisonModule]) => {
         const React = reactModule.default || reactModule;

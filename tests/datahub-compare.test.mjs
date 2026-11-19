@@ -4,7 +4,7 @@ import test from "node:test";
 import vm from "node:vm";
 import { getConsistencyDialTone } from "../DH_P2.53/scripts/datahub-gamelogs-controls.js";
 import { buildWeeklyChartOption, getWeeklyChartLayout, getWeeklyWeekEntry } from "../DH_P2.53/scripts/datahub-comparison/comparisonChartOptions.js";
-import { buildScoringProfile, buildSeasonMetricRows } from "../DH_P2.53/scripts/datahub-comparison/comparisonSeasonPanel.js";
+import { buildScoringProfile, buildScoringSpread, buildSeasonMetricRows, getSeasonPalettes } from "../DH_P2.53/scripts/datahub-comparison/comparisonSeasonPanel.js";
 
 const dataHubSource = readFileSync(new URL("../DH_P2.53/scripts/DataHub.js", import.meta.url), "utf8");
 
@@ -106,4 +106,30 @@ test("season charts preserve comparison direction, missing values, percentage un
   assert.ok(plot.fraction(-2) < plot.fraction(0));
   assert.ok(plot.fraction(2) < plot.fraction(12));
   assert.ok(plot.ticks[0] < 0);
+});
+
+test("the scoring distribution excludes unplayed weeks and preserves negatives, zero and ties", () => {
+  const game = (week, fpts, flags = {}) => ({ week, stats: { fpts }, played: true, ...flags });
+  const players = [
+    { weeklySeries: [game(1, -2), game(2, 0), game(3, 0), game(4, 18), game(5, 30, { isSkipped: true }), game(6, 15, { played: false }), game(7, 100)] },
+    { weeklySeries: [game(1, null)] },
+  ];
+  const spread = buildScoringSpread(players, [1, 2, 3, 4, 5, 6]);
+  const [a, b] = spread.rows;
+  assert.deepEqual(a.games.map(({ score }) => score), [-2, 0, 0, 18]);
+  assert.deepEqual([a.low, a.median, a.high], [-0.5, 0, 4.5]);
+  assert.equal(b.median, null);
+  assert.ok(spread.fraction(-2) < spread.fraction(0));
+});
+
+test("season previews keep the exact weekly position assignment and both Start/Sit spectra", () => {
+  const pair = [{ pos: "WR" }, { pos: "WR" }];
+  const [first, second] = getSeasonPalettes(pair, "weekly");
+  assert.deepEqual(first.colors, ["#FF0AA5", "#D747FF", "#8766FF", "#00DDFA"]);
+  assert.deepEqual(second.colors, ["#004CFF", "#00B3FF", "#00EDFF", "#00FFCB"]);
+  assert.deepEqual(getSeasonPalettes([{ pos: "RB" }, pair[0]], "weekly"), [second, first]);
+  const [startSitA, startSitB] = getSeasonPalettes(pair, "start-sit");
+  assert.deepEqual(startSitA.colors, ["#1264FF", "#118FFF", "#00C6EF", "#19EDDD"]);
+  assert.deepEqual(startSitB.offsets, [0, 0.52, 1]);
+  assert.notDeepEqual(getSeasonPalettes(pair, "default"), [first, second]);
 });

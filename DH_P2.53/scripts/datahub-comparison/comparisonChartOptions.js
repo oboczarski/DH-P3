@@ -24,7 +24,7 @@ function getWeeklyPlayerPalette(player, playerIndex) {
   return getPlayerPalette(player, playerIndex);
 }
 
-function getWeeklyPalette(players, index) {
+export function getWeeklyPalette(players, index) {
   const player = players[index];
   const slot = players.slice(0, index).filter((other) => other.pos === player.pos).length;
   return getWeeklyPlayerPalette(player, slot);
@@ -61,8 +61,6 @@ export function getWeeklyChartLayout(width, height, weekCount) {
     bottom: compact ? 20 : 23,
     spacing,
     tickStride: Math.max(1, Math.ceil(25 / spacing)),
-    valueStride: Math.max(1, Math.ceil((compact ? 34 : 39) / spacing)),
-    showRanks: spacing >= 68,
     xForIndex: (index) => weekCount <= 1 ? width / 2 : side + index * spacing,
     indexAtX: (x) => weekCount <= 1 ? 0 : Math.max(0, Math.min(weekCount - 1, Math.round((x - side) / spacing))),
   };
@@ -163,38 +161,6 @@ function keepWeekLabel(index, length, stride) {
   return index === 0 || index === length - 1 || (index % stride === 0 && length - 1 - index >= stride);
 }
 
-function buildWeeklyAnnotations({ row, otherRow, weeks, player, playerIndex, statKey, palette, layout, axis }) {
-  return row.flatMap(({ value, status, rank }, index) => {
-    const atEdge = index === 0 || index === weeks.length - 1;
-    const showValue = value !== null && keepWeekLabel(index, weeks.length, layout.valueStride);
-    if (!status && !showValue) return [];
-    const other = otherRow?.[index]?.value;
-    const near = value !== null && Number.isFinite(other) && Math.abs(value - other) < (axis.max - axis.min) * 0.18;
-    // Separate close value labels above and below the marks, leaving the
-    // actual points untouched. Status labels sit at the foot with no symbol.
-    const above = !near || (value === other ? playerIndex === 0 : (axis.inverse ? value < other : value > other));
-    const statusFraction = playerIndex === 0 ? 0.04 : 0.115;
-    const statusY = axis.inverse
-      ? axis.max - (axis.max - axis.min) * statusFraction
-      : axis.min + (axis.max - axis.min) * statusFraction;
-    const rankText = layout.showRanks && rank > 0 ? `  ${player.pos}·${rank}` : "";
-    return [{
-      value: [`wk${weeks[index]}`, value ?? statusY],
-      label: {
-        formatter: status || `${formatComparisonValue(statKey, value, { compact: true })}${rankText}`,
-        position: status || above ? "top" : "bottom",
-        align: atEdge && weeks.length > 1 ? (index === 0 ? "left" : "right") : "center",
-        // Keep the Week 1 callout beside the Y tick labels, with the mark
-        // itself still on the Week 1 coordinate.
-        offset: index === 0 && weeks.length > 1 ? [layout.compact ? 13 : 20, 0] : [0, 0],
-        color: status ? "#a1adc3" : "#edf3ff",
-        backgroundColor: status ? "#141c2c" : "#141d30",
-        borderColor: status ? "#3c475d" : translucent(palette.high, 0.36),
-      },
-    }];
-  });
-}
-
 export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, layout }) {
   const rows = players.map((player) => weeks.map((week) => getWeeklyWeekEntry(player, week, statKey)));
   const axis = getAxisConfig(players, rows, statKey, thresholds);
@@ -247,12 +213,12 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, la
         }),
       },
     },
-    series: players.flatMap((player, index) => {
+    series: players.map((player, index) => {
       const row = rows[index];
       const palette = getWeeklyPalette(players, index);
       const config = getThresholdConfig(thresholds, player.pos, statKey);
       const lowerBetter = isLowerBetterForPosition(player.pos, statKey);
-      const line = {
+      return {
         id: `weekly-${player.id}`,
         name: getPlayerName(player),
         type: "line",
@@ -286,34 +252,6 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, la
         },
         emphasis: { disabled: true },
       };
-      // The annotation layer can drop overlapping labels without dropping
-      // any data points. The week reader below the plot always shows both.
-      const annotations = {
-        id: `weekly-labels-${player.id}`,
-        name: `${getPlayerName(player)} weekly labels`,
-        type: "scatter",
-        data: buildWeeklyAnnotations({
-          row, otherRow: rows[1 - index], weeks, player, playerIndex: index, statKey, palette, layout, axis,
-        }),
-        z: 8,
-        silent: true,
-        clip: false,
-        symbolSize: 4,
-        itemStyle: { color: "transparent" },
-        label: {
-          show: true,
-          distance: 4,
-          borderWidth: 0.5,
-          borderRadius: 4,
-          padding: [2, 3],
-          fontFamily: CHART_FONT,
-          fontSize: layout.compact ? 9 : 10,
-          fontWeight: 650,
-        },
-        labelLayout: { hideOverlap: true },
-        emphasis: { disabled: true },
-      };
-      return [line, annotations];
     }),
   };
 }

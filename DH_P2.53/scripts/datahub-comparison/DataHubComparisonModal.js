@@ -14,9 +14,9 @@ import {
   normalizePlayerSearchText,
   toFiniteNumber,
 } from "./comparisonStats.js?v=DH3.81-compare";
-import { getWeeklyPlayerAccentColor } from "./comparisonChartOptions.js?v=DH3.81-compare";
-import { createWeeklyComparison } from "./comparisonWeeklyPanel.js?v=DH3.81-compare";
-import { createSeasonComparison } from "./comparisonSeasonPanel.js?v=DH3.81-compare";
+import { getWeeklyPlayerAccentColor } from "./comparisonChartOptions.js?v=DH3.82-compare-previews";
+import { createWeeklyComparison } from "./comparisonWeeklyPanel.js?v=DH3.82-compare-previews";
+import { createSeasonComparison } from "./comparisonSeasonPanel.js?v=DH3.82-compare-previews";
 
 const POSITION_FILTERS = Object.freeze([
   { key: "all", label: "All" },
@@ -793,6 +793,10 @@ export function createDataHubComparisonModal(React) {
     const [isStatOpen, setIsStatOpen] = useState(false);
     const [positionFilter, setPositionFilter] = useState("all");
     const [activeOptionIndex, setActiveOptionIndex] = useState(0);
+    // Temporary previews reset on reopen. The two season palettes share a
+    // setting, while the Game Logs surface theme has its own independent switch.
+    const [paletteMode, setPaletteMode] = useState("default");
+    const [darkTheme, setDarkTheme] = useState(false);
     const searchInputRef = useRef(null);
     const searchShellRef = useRef(null);
     const searchMenuRef = useRef(null);
@@ -1002,7 +1006,7 @@ export function createDataHubComparisonModal(React) {
 
     return h(
       "div",
-      { className: "dh-compare-modal" },
+      { className: "dh-compare-modal", "data-compare-theme": darkTheme ? "gamelogs" : undefined },
       // DataHub comparison backdrop:
       // closes only this lazy React modal and leaves the existing DataHub chart
       // and game-log modal event wiring untouched.
@@ -1027,7 +1031,21 @@ export function createDataHubComparisonModal(React) {
           h(
             "div",
             { className: "dh-compare-heading" },
-            h("span", { className: "dh-compare-eyebrow" }, `Data Hub / ${payload.season}`),
+            h("div", { className: "dh-compare-heading__top" },
+              h("span", { className: "dh-compare-eyebrow" }, `Data Hub / ${payload.season}`),
+              h("div", { className: "dh-compare-preview-controls", role: "group", "aria-label": "Appearance previews" },
+                [["weekly", "Weekly", "Use weekly position gradients"], ["start-sit", "Start/Sit", "Use Rosters Start/Sit gradients"]]
+                  .map(([mode, label, description]) => h("button", {
+                    type: "button", key: mode, title: description, "aria-label": description, "aria-pressed": paletteMode === mode,
+                    onClick: () => setPaletteMode((current) => current === mode ? "default" : mode),
+                  }, label)),
+                h("span", { className: "dh-compare-preview-controls__divider", "aria-hidden": true }),
+                h("button", {
+                  type: "button", title: "Dark Game Logs theme", "aria-label": "Dark Game Logs theme",
+                  "aria-pressed": darkTheme, onClick: () => setDarkTheme((enabled) => !enabled),
+                }, "Dark"),
+              ),
+            ),
             h("h2", { id: "dh-compare-title" }, "Compare players"),
           ),
           h(
@@ -1199,7 +1217,7 @@ export function createDataHubComparisonModal(React) {
               })),
             ),
             h(WeeklyComparison, { key: "weekly", players: selectedPlayers, statKey: weeklyStatKey, weeks, thresholds }),
-            h(SeasonComparison, { key: "season", players: selectedPlayers, season: payload.season },
+            h(SeasonComparison, { key: "season", players: selectedPlayers, season: payload.season, weeks, paletteMode },
               h(SeasonRadars, { players: selectedPlayers }),
             ),
           ] : h(EmptyComparison),

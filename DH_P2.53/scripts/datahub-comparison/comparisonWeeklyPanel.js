@@ -5,7 +5,43 @@ import {
   getWeeklyChartLayout,
   getWeeklyPlayerAccentColor,
   getWeeklyWeekEntry,
-} from "./comparisonChartOptions.js?v=DH3.81-compare";
+} from "./comparisonChartOptions.js?v=DH3.82-compare-previews";
+
+function placeWeeklyLabels(chart, layer, labels, layout, activeWeek) {
+  const grid = { top: 2, bottom: layout.height - layout.bottom };
+  // Start/Sit's chips are HTML anchored to the renderer's data coordinates.
+  // Fit their actual boxes here so a long season keeps its full-width plot,
+  // with the inspected week and endpoints taking priority when space is tight.
+  const measured = labels.map((label, index) => {
+    const node = layer.children[index];
+    return { ...label, node, width: node.offsetWidth, height: node.offsetHeight };
+  });
+  const priority = (item) => item.week === activeWeek ? 3 : item.atEdge ? 2 : item.status ? 0 : 1;
+  const occupied = [];
+  measured.sort((a, b) => priority(b) - priority(a)).forEach((item) => {
+    const target = item.status
+      ? [layout.xForIndex(item.weekIndex), grid.bottom - 6 - item.side * 12]
+      : chart.convertToPixel({ xAxisIndex: 0, yAxisIndex: 0 }, [`wk${item.week}`, item.value]);
+    if (!target?.every(Number.isFinite)) {
+      item.node.dataset.visible = "false";
+      return;
+    }
+    const left = Math.max(item.first ? layout.side + 17 : 3, Math.min(layout.width - item.width - 3, target[0] - item.width / 2));
+    const positions = item.status ? [target[1] - item.height] : [
+      target[1] - item.height - 4, target[1] + 4,
+    ];
+    if (item.below) positions.reverse();
+    const top = positions.find((y) => Number.isFinite(y) && y >= grid.top && y + item.height <= grid.bottom
+      && occupied.every((box) => left + item.width + 2 < box.left || left > box.right + 2
+        || y + item.height + 1 < box.top || y > box.bottom + 1));
+    item.node.dataset.visible = String(top !== undefined);
+    if (top !== undefined) {
+      item.node.style.left = `${left}px`;
+      item.node.style.top = `${top}px`;
+      occupied.push({ left, right: left + item.width, top, bottom: top + item.height });
+    }
+  });
+}
 
 export function createWeeklyComparison(React) {
   const { createElement: h, useLayoutEffect, useMemo, useRef, useState } = React;
@@ -61,6 +97,7 @@ export function createWeeklyComparison(React) {
   function SharedWeeklyPlot({ players, statKey, weeks, thresholds, activeWeek, onWeekChange }) {
     const canvas = useRef(null);
     const chartRef = useRef(null);
+    const labelLayer = useRef(null);
     const [size, setSize] = useState(null);
     const engine = window.echarts;
     const layout = useMemo(() => size && getWeeklyChartLayout(size.width, size.height, weeks.length), [size, weeks.length]);
@@ -72,6 +109,16 @@ export function createWeeklyComparison(React) {
       () => players.some((player) => weeks.some((week) => getWeeklyWeekEntry(player, week, statKey).value !== null)),
       [players, statKey, weeks],
     );
+    const labels = useMemo(() => weeks.flatMap((week, weekIndex) => {
+      const pair = players.map((player) => getWeeklyWeekEntry(player, week, statKey));
+      return pair.flatMap(({ value, status }, side) => value === null && !status ? [] : [{
+        value, status, side, week, weekIndex,
+        atEdge: weekIndex === 0 || weekIndex === weeks.length - 1,
+        first: weekIndex === 0 && weeks.length > 1,
+        otherValue: pair[1 - side]?.value,
+        text: status || formatComparisonValue(statKey, value, { compact: true }),
+      }]);
+    }), [weeks, players, statKey]);
 
     // One ECharts instance owns both lines. Observe the real plot dimensions
     // for label density and edge positions, and dispose it on Clear All/close.
@@ -103,6 +150,25 @@ export function createWeeklyComparison(React) {
       chartRef.current.setOption(option, true);
     }, [layout, option]);
 
+    useLayoutEffect(() => {
+      const chart = chartRef.current;
+      if (!chart || !layout || !labelLayer.current) return;
+      const layer = labelLayer.current;
+      const inverse = option.yAxis.inverse;
+      const entries = labels.map((label) => ({
+        ...label,
+        below: Number.isFinite(label.otherValue) && (label.value === label.otherValue
+          ? label.side === 1
+          : inverse ? label.value > label.otherValue : label.value < label.otherValue),
+      }));
+      const place = () => placeWeeklyLabels(chart, layer, entries, layout, activeWeek);
+      place();
+      // Font loading can change chip widths after the first draw.
+      let current = true;
+      if (document.fonts?.status === "loading") document.fonts.ready.then(() => { if (current) place(); });
+      return () => { current = false; };
+    }, [layout, option, labels, activeWeek]);
+
     const inspectPointer = (event) => {
       if (!layout || (event.type === "pointermove" && event.pointerType !== "mouse")) return;
       const position = event.clientX - event.currentTarget.getBoundingClientRect().left;
@@ -128,6 +194,12 @@ export function createWeeklyComparison(React) {
           style: { left: layout.xForIndex(activeIndex), top: layout.top, bottom: layout.bottom },
         })
         : null,
+      engine && layout ? h("div", { className: "dh-compare-weekly-labels", ref: labelLayer, "aria-hidden": "true" },
+        labels.map(({ week, side, status, text }) => h("span", {
+          key: `${week}-${side}`, className: `dh-compare-weekly-label${status ? " is-status" : ""}`,
+          style: { "--weekly-label-ink": getWeeklyPlayerAccentColor(players, side) },
+        }, text)),
+      ) : null,
     );
   }
 
