@@ -16824,15 +16824,15 @@ body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-circle {
   filter: drop-shadow(0 7px 13px color-mix(in srgb, var(--dial-accent) 14%, transparent));
 }
 
-/* Exact NFL Draft research stops, reversed by progress rather than by card
-   order: high rates / strong ranks are green, and low results are pink. */
-body[data-page="datahub"] #game-logs-modal .consistency-hud [data-dial-tone="green"] { --dial-accent: #55e58f; --dial-start: #8fffc0; --dial-mid: #55e58f; --dial-end: #00d9b0; }
-body[data-page="datahub"] #game-logs-modal .consistency-hud [data-dial-tone="teal"] { --dial-accent: #00dcca; --dial-start: #50e8ff; --dial-mid: #00dcca; --dial-end: #27ef9f; }
-body[data-page="datahub"] #game-logs-modal .consistency-hud [data-dial-tone="cyan"] { --dial-accent: #00a9ff; --dial-start: #69a9ff; --dial-mid: #009fff; --dial-end: #00d7f2; }
-body[data-page="datahub"] #game-logs-modal .consistency-hud [data-dial-tone="blue"] { --dial-accent: #4d79ff; --dial-start: #a68dff; --dial-mid: #6870ff; --dial-end: #16a9ff; }
-body[data-page="datahub"] #game-logs-modal .consistency-hud [data-dial-tone="violet"] { --dial-accent: #8b6cff; --dial-start: #d09bff; --dial-mid: #8b6cff; --dial-end: #5f79ff; }
-body[data-page="datahub"] #game-logs-modal .consistency-hud [data-dial-tone="magenta"] { --dial-accent: #d747ff; --dial-start: #ef83ff; --dial-mid: #d747ff; --dial-end: #986cff; }
-body[data-page="datahub"] #game-logs-modal .consistency-hud [data-dial-tone="pink"] { --dial-accent: #ff0aa5; --dial-start: #ff82d7; --dial-mid: #ff0aa5; --dial-end: #bc3dff; }
+/* Both DataHub Consistency and Compare use the NFL Draft study's exact
+   gradient stops. Progress sets the band from low pink to high green. */
+body[data-page="datahub"] :is(#game-logs-modal .consistency-hud, .dh-compare-consistency) [data-dial-tone="green"] { --dial-accent: #55e58f; --dial-start: #8fffc0; --dial-mid: #55e58f; --dial-end: #00d9b0; }
+body[data-page="datahub"] :is(#game-logs-modal .consistency-hud, .dh-compare-consistency) [data-dial-tone="teal"] { --dial-accent: #00dcca; --dial-start: #50e8ff; --dial-mid: #00dcca; --dial-end: #27ef9f; }
+body[data-page="datahub"] :is(#game-logs-modal .consistency-hud, .dh-compare-consistency) [data-dial-tone="cyan"] { --dial-accent: #00a9ff; --dial-start: #69a9ff; --dial-mid: #009fff; --dial-end: #00d7f2; }
+body[data-page="datahub"] :is(#game-logs-modal .consistency-hud, .dh-compare-consistency) [data-dial-tone="blue"] { --dial-accent: #4d79ff; --dial-start: #a68dff; --dial-mid: #6870ff; --dial-end: #16a9ff; }
+body[data-page="datahub"] :is(#game-logs-modal .consistency-hud, .dh-compare-consistency) [data-dial-tone="violet"] { --dial-accent: #8b6cff; --dial-start: #d09bff; --dial-mid: #8b6cff; --dial-end: #5f79ff; }
+body[data-page="datahub"] :is(#game-logs-modal .consistency-hud, .dh-compare-consistency) [data-dial-tone="magenta"] { --dial-accent: #d747ff; --dial-start: #ef83ff; --dial-mid: #d747ff; --dial-end: #986cff; }
+body[data-page="datahub"] :is(#game-logs-modal .consistency-hud, .dh-compare-consistency) [data-dial-tone="pink"] { --dial-accent: #ff0aa5; --dial-start: #ff82d7; --dial-mid: #ff0aa5; --dial-end: #bc3dff; }
 
 body[data-page="datahub"] #game-logs-modal .consistency-hud .progress-circle::before {
   content: "";

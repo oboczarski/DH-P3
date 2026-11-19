@@ -99,6 +99,15 @@ export function summarizeConsistencyGames(series, thresholds, gamesPlayed, lower
   };
 }
 
+// Game Logs and Compare share the research dial's seven equal progress bands.
+// Higher rates use the green end of the palette. A genuine zero stays pink.
+export function getConsistencyDialTone(progress) {
+  const tones = ["pink", "magenta", "violet", "blue", "cyan", "teal", "green"];
+  if (!Number.isFinite(progress)) return "neutral";
+  const band = Math.floor(Math.max(0, Math.min(1, progress)) * tones.length);
+  return tones[Math.min(tones.length - 1, band)];
+}
+
 export function buildConsistencyRankChart(series, position, statKey = "") {
   const zones = getConsistencyRankZones(position);
   const rankMax = Math.max(position === "WR" ? 60 : 48, ...series.map(({ rank }) => rank));

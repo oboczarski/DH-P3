@@ -242,6 +242,7 @@ const STAT_DEFINITIONS = Object.freeze({
   yds_total: Object.freeze({ key: "yds_total", label: "YDS(t)", decimals: 0 }),
   imp: Object.freeze({ key: "imp", label: "IMP", decimals: 0 }),
   opp: Object.freeze({ key: "opp", label: "OPP", decimals: 0 }),
+  imp_per_opp: Object.freeze({ key: "imp_per_opp", label: "IMP/OPP", unit: "%", decimals: 1, percent: true }),
   imp_per_g: Object.freeze({ key: "imp_per_g", label: "IMP/G", decimals: 2 }),
   fpoe: Object.freeze({ key: "fpoe", label: "FPOE", decimals: 1, signed: true }),
   csty_pct: Object.freeze({ key: "csty_pct", label: "CSTY%", unit: "%", decimals: 1, percent: true }),
@@ -339,7 +340,7 @@ export function getWeeklyComparisonEdges(players, statKey, weeks) {
   if (!Array.isArray(players) || players.length !== 2) {
     return new Map();
   }
-  const safeWeeks = Array.isArray(weeks) && weeks.length
+  const safeWeeks = Array.isArray(weeks)
     ? weeks
     : Array.from({ length: 18 }, (_, index) => index + 1);
   const lowerBetter = players.every((player) => isLowerBetterForPosition(player.pos, statKey));
@@ -436,10 +437,6 @@ export function getPlayerPalette(player, playerIndex) {
     highMid: base.high,
     high: COMPARISON_PLAYER_FALLBACK_COLORS[playerIndex % COMPARISON_PLAYER_FALLBACK_COLORS.length],
   };
-}
-
-export function getPlayerAccentColor(player, playerIndex) {
-  return getPlayerPalette(player, playerIndex).high || COMPARISON_PLAYER_FALLBACK_COLORS[playerIndex % COMPARISON_PLAYER_FALLBACK_COLORS.length];
 }
 
 export function getRadarRankValue(rank, pos) {

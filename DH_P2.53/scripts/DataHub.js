@@ -7,7 +7,7 @@ import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSe
 import { load2026SourceData, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js?v=DH3.76-proj-sheet";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js?v=DH3.64a-air-yards-icon";
 import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js?v=DH3.62-datahub-gamelogs-parity";
-import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames, isConsistencyProductionStat, getConsistencyAverageLabelCenter } from "./datahub-gamelogs-controls.js?v=DH3.53-rosters-gamelogs";
+import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames, isConsistencyProductionStat, getConsistencyAverageLabelCenter, getConsistencyDialTone } from "./datahub-gamelogs-controls.js?v=DH3.81-compare";
 
 // ---------------------------------------------------------------------------
 // Hero copy and filter labels that drive the surrounding page shell.
@@ -7359,7 +7359,7 @@ function closeDataHubChartModal({ restoreFocus = true } = {}) {
 
 const DATAHUB_COMPARISON_REACT_URL = "https://cdn.jsdelivr.net/npm/react@18.3.1/+esm";
 const DATAHUB_COMPARISON_REACT_DOM_URL = "https://cdn.jsdelivr.net/npm/react-dom@18.3.1/client/+esm";
-const DATAHUB_COMPARISON_STYLES_URL = "../scripts/datahub-comparison/DataHubComparisonModal.css";
+const DATAHUB_COMPARISON_STYLES_URL = "../scripts/datahub-comparison/DataHubComparisonModal.css?v=DH3.81-compare";
 const DATAHUB_COMPARISON_WEEKLY_STAT_KEYS = Object.freeze([
   "fpts",
   "pass_yd",
@@ -7443,7 +7443,7 @@ async function ensureDataHubComparisonModule() {
     dataHubComparisonModulePromise = Promise.all([
       import(DATAHUB_COMPARISON_REACT_URL),
       import(DATAHUB_COMPARISON_REACT_DOM_URL),
-      import("./datahub-comparison/DataHubComparisonModal.js?v=DH3.49y-compare-area-gradients"),
+      import("./datahub-comparison/DataHubComparisonModal.js?v=DH3.81-compare"),
     ])
       .then(([reactModule, reactDomModule, comparisonModule]) => {
         const React = reactModule.default || reactModule;
@@ -7923,15 +7923,13 @@ function computeDataHubComparisonSeasonRankSets(players, qualifiedIds = null) {
 
 function buildDataHubComparisonPayload() {
   const players = buildDataHubComparisonPlayers();
-  // Compare weekly charts share one nine-week calendar window. For 2026,
-  // pre-created future rows are ignored until a week has recorded results.
+  // Compare's shared chart starts at Week 1 for both seasons. For 2026, stop
+  // at the last recorded CSV week so projection rows never extend the axis.
   const latestWeek = state.statsSeason === "2026"
     ? (state.comparisonData?.weeklyRows || []).reduce((latest, entry) =>
       entry.stats?.__hasRecordedStats ? Math.max(latest, entry.week) : latest, 0)
-      || Math.max(1, Math.min(DATAHUB_MAX_WEEKS, state.stats2026.weeksOfData))
     : DATAHUB_MAX_WEEKS;
-  const firstWeek = Math.max(1, latestWeek - 8);
-  const chartWeeks = Array.from({ length: latestWeek - firstWeek + 1 }, (_, index) => firstWeek + index);
+  const chartWeeks = Array.from({ length: Math.min(latestWeek, DATAHUB_MAX_WEEKS) }, (_, index) => index + 1);
   const qualifiedIds = getDataHubGameLogsQualifiedIds(state.statsSeason);
   const computedRanks = computeDataHubComparisonSeasonRankSets(players, qualifiedIds);
   const enrichedPlayers = players.map((player) => {
@@ -7968,7 +7966,6 @@ function buildDataHubComparisonPayload() {
     maxPlayers: 2,
     weeks: chartWeeks,
     defaults: {
-      mode: "weekly",
       weeklyStat: "fpts",
       // Compare modal initial state:
       // begin empty so the user explicitly owns both head-to-head slots.
@@ -8127,6 +8124,8 @@ function getDataHubComparisonRowAlias(statKey) {
     fpts: "FPTS",
     ppg: "PPG",
     yds_total: "YDS(t)",
+    // Compare's mixed-position efficiency chart uses season opportunity counts.
+    opp: "OPP",
     imp_per_g: "IMP/G",
     csty_pct: "CSTY%",
     ceiling: "CL",
@@ -17773,13 +17772,9 @@ function renderDataHubConsistencyPoints(data) {
 
 function styleDataHubConsistencyDial(circle, progress, hasValue) {
   if (!circle) return;
-  // DataHub HUD only: seven equal progress bands reverse the NFL Draft
-  // research palette (low pink through blue to high green). A real zero uses
-  // the low palette; missing values retain a neutral track and text instead.
-  const tones = ["pink", "magenta", "violet", "blue", "cyan", "teal", "green"];
   circle.style.setProperty("--progress", String(progress));
   circle.dataset.hasProgress = String(hasValue && progress > 0);
-  circle.dataset.dialTone = hasValue ? tones[Math.min(tones.length - 1, Math.floor(progress * tones.length))] : "neutral";
+  circle.dataset.dialTone = getConsistencyDialTone(hasValue ? progress : null);
 }
 
 function hydrateDataHubConsistencyProgressCircles(data) {

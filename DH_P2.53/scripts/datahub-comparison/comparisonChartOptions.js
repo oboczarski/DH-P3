@@ -1,22 +1,19 @@
 import {
   COMPARISON_GRADIENT_PALETTES,
   formatComparisonValue,
-  formatRank,
   getPlayerName,
   getPlayerPalette,
-  getStatLabel,
+  getStatDefinition,
   getThresholdConfig,
   isLowerBetterForPosition,
   toFiniteNumber,
-} from "./comparisonStats.js";
+} from "./comparisonStats.js?v=DH3.81-compare";
 
-const COMPARISON_CHART_FONT_FAMILY = '"Product Sans", "Google Sans", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+const CHART_FONT = '"Product Sans", "Google Sans", Inter, system-ui, sans-serif';
 
 function getWeeklyPlayerPalette(player, playerIndex) {
-  // DataHub Compare weekly line charts: RB keeps its first blue/mint palette
-  // and uses the original second WR pink/cyan palette for its second player.
-  // WR uses those palettes in the opposite order. Keep this mapping local so
-  // season radars and the modal's other player colors retain their palettes.
+  // Only the weekly chart uses this WR/RB mapping. Count earlier players of the
+  // same position so the first WR keeps its palette even after a different position.
   const position = String(player?.pos || "").toUpperCase();
   if ((position === "RB" && playerIndex === 1) || (position === "WR" && playerIndex === 0)) {
     return COMPARISON_GRADIENT_PALETTES.WR[1];
@@ -27,873 +24,296 @@ function getWeeklyPlayerPalette(player, playerIndex) {
   return getPlayerPalette(player, playerIndex);
 }
 
-function getWeeklyPlayerAccentColor(player, playerIndex) {
-  return getWeeklyPlayerPalette(player, playerIndex).high;
+function getWeeklyPalette(players, index) {
+  const player = players[index];
+  const slot = players.slice(0, index).filter((other) => other.pos === player.pos).length;
+  return getWeeklyPlayerPalette(player, slot);
 }
 
-function clamp(value, min, max) {
-  if (value === null) {
-    return null;
-  }
-  return Math.max(min, Math.min(max, value));
+export function getWeeklyPlayerAccentColor(players, index) {
+  return getWeeklyPalette(players, index).high;
 }
 
-function isMobileComparisonChart() {
-  return typeof window !== "undefined"
-    && typeof window.matchMedia === "function"
-    && window.matchMedia("(max-width: 540px)").matches;
+export function getWeeklyWeekEntry(player, week, statKey) {
+  const entry = player?.weeklySeries?.find((item) => item.week === week);
+  const skipped = Boolean(entry?.skipped || entry?.isSkipped);
+  return {
+    value: skipped ? null : toFiniteNumber(entry?.stats?.[statKey]),
+    status: skipped ? entry.skipLabel || entry.skipReason || "DNP" : "",
+    rank: toFiniteNumber(entry?.ranks?.[statKey]),
+    opponent: entry?.opponent || "",
+  };
 }
 
-function getWeeklyEntry(player, week) {
-  return (player?.weeklySeries || []).find((item) => item.week === week) || null;
+export function getWeeklyChartLayout(width, height, weekCount) {
+  // The first/last weeks sit on the plot edges. Reserve only enough room to
+  // keep their symbols and ticks inside the SVG, and draw Y labels in the plot.
+  const compact = width < 620;
+  const side = compact ? 13 : 17;
+  const span = Math.max(1, width - side * 2);
+  const spacing = weekCount > 1 ? span / (weekCount - 1) : span;
+  return {
+    width,
+    height,
+    compact,
+    side,
+    top: compact ? 19 : 23,
+    bottom: compact ? 20 : 23,
+    spacing,
+    tickStride: Math.max(1, Math.ceil(25 / spacing)),
+    valueStride: Math.max(1, Math.ceil((compact ? 34 : 39) / spacing)),
+    showRanks: spacing >= 68,
+    xForIndex: (index) => weekCount <= 1 ? width / 2 : side + index * spacing,
+    indexAtX: (x) => weekCount <= 1 ? 0 : Math.max(0, Math.min(weekCount - 1, Math.round((x - side) / spacing))),
+  };
 }
 
-function getThresholdValue(config, category) {
+function getThreshold(config, category) {
   return toFiniteNumber(config?.[category]?.value);
 }
 
-function hexToRgba(color, alpha) {
-  const hex = String(color || "").trim();
-  if (!hex.startsWith("#")) {
-    return `rgba(114, 239, 255, ${alpha})`;
-  }
-  const normalized = hex.length === 4
-    ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
-    : hex;
-  const value = Number.parseInt(normalized.slice(1), 16);
-  if (!Number.isFinite(value)) {
-    return `rgba(114, 239, 255, ${alpha})`;
-  }
-  const red = (value >> 16) & 255;
-  const green = (value >> 8) & 255;
-  const blue = value & 255;
-  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-}
-
-function getReadableValueLabelColor(color, pos) {
-  // RB/TE threshold palettes include deep violet values that lose contrast
-  // against the opaque navy label pill. Preserve the hue while lifting only
-  // colors whose perceived brightness is too low for compact text.
-  const position = String(pos || "").trim().toUpperCase();
-  const hex = String(color || "").trim();
-  if ((position !== "RB" && position !== "TE") || !/^#[0-9a-f]{6}$/i.test(hex)) {
-    return color;
-  }
-  const value = Number.parseInt(hex.slice(1), 16);
-  const red = (value >> 16) & 255;
-  const green = (value >> 8) & 255;
-  const blue = value & 255;
-  const perceivedBrightness = ((red * 0.2126) + (green * 0.7152) + (blue * 0.0722)) / 255;
-  if (perceivedBrightness >= 0.42) {
-    return color;
-  }
-  const lift = perceivedBrightness < 0.2 ? 0.52 : 0.42;
-  const liftChannel = (channel) => Math.round(channel + ((255 - channel) * lift));
-  return `rgb(${liftChannel(red)}, ${liftChannel(green)}, ${liftChannel(blue)})`;
-}
-
-function getSeriesRawValue(entry, statKey) {
-  if (!entry || entry.isSkipped || entry.skipped) {
-    return null;
-  }
-  return toFiniteNumber(entry?.stats?.[statKey]);
-}
-
-function getAxisConfig(players, statKey, thresholds) {
-  const configs = players
-    .map((player) => getThresholdConfig(thresholds, player.pos, statKey))
-    .filter(Boolean);
-  const values = [];
-  configs.forEach((config) => {
-    const yMin = getThresholdValue(config, "Y-MIN");
-    const yMax = getThresholdValue(config, "Y-MAX");
-    if (yMin !== null) values.push(yMin);
-    if (yMax !== null) values.push(yMax);
-  });
+function getAxisConfig(players, rows, statKey, thresholds) {
+  const values = rows.flatMap((row) => row.map((entry) => entry.value).filter(Number.isFinite));
   players.forEach((player) => {
-    (player.weeklySeries || []).forEach((entry) => {
-      const value = getSeriesRawValue(entry, statKey);
-      if (value !== null) {
-        values.push(value);
-      }
-    });
+    const config = getThresholdConfig(thresholds, player.pos, statKey);
+    for (const category of ["Y-MIN", "Y-MAX"]) {
+      const value = getThreshold(config, category);
+      if (value !== null) values.push(value);
+    }
   });
+  if (!values.length) return { min: 0, max: 1, interval: 0.25, inverse: false };
 
-  if (!values.length) {
-    return { min: 0, max: 1, inverse: false };
-  }
-
-  const rawMin = Math.min(...values);
-  const rawMax = Math.max(...values);
-  const range = Math.max(1, rawMax - rawMin);
-  const padding = range * 0.08;
-  const min = rawMin >= 0 ? Math.max(0, rawMin - padding) : rawMin - padding;
-  const lowerBetter = players.length > 0 && players.every((player) => isLowerBetterForPosition(player.pos, statKey));
+  const low = Math.min(...values);
+  const high = Math.max(...values);
+  const precision = 10 ** -getStatDefinition(statKey).decimals;
+  const span = Math.max(high - low, Math.abs(high) * 0.08, precision * 4);
+  const target = Math.max(precision, span / 5);
+  const magnitude = 10 ** Math.floor(Math.log10(target));
+  const interval = [1, 2, 5, 10].map((step) => step * magnitude).find((step) => step >= target);
+  // Calibrated limits leave space for annotations. A flat or all-zero series
+  // still has a usable scale, and signed values retain their real positions.
+  const min = Math.floor((low >= 0 ? Math.max(0, low - span * 0.04) : low - span * 0.04) / interval) * interval;
+  const max = Math.ceil((high + span * 0.04) / interval) * interval;
   return {
     min,
-    max: rawMax + padding,
-    inverse: lowerBetter,
+    max,
+    interval,
+    inverse: players.length > 0 && players.every((player) => isLowerBetterForPosition(player.pos, statKey)),
   };
 }
 
-function gradientOffset(value, axis, inverse) {
-  const numericValue = toFiniteNumber(value);
-  if (numericValue === null || !Number.isFinite(axis.max - axis.min) || axis.max === axis.min) {
-    return inverse ? 0 : 1;
-  }
-  const pct = Math.max(0, Math.min(1, (numericValue - axis.min) / (axis.max - axis.min)));
-  return inverse ? pct : 1 - pct;
+function gradientOffset(value, axis) {
+  const ratio = (value - axis.min) / (axis.max - axis.min);
+  return Math.max(0, Math.min(1, axis.inverse ? ratio : 1 - ratio));
 }
 
-function getSamePositionPaletteIndex(players, player, playerIndex) {
-  const pos = String(player?.pos || "").toUpperCase();
-  if (!pos) {
-    return playerIndex;
-  }
-  return players
-    .slice(0, playerIndex)
-    .filter((previous) => String(previous?.pos || "").toUpperCase() === pos)
-    .length;
-}
-
-function buildThresholdGradient(player, playerIndex, statKey, thresholds, axis) {
-  const palette = getWeeklyPlayerPalette(player, playerIndex);
-  const config = getThresholdConfig(thresholds, player.pos, statKey);
-  const fallback = getWeeklyPlayerAccentColor(player, playerIndex);
-  if (!config) {
-    return fallback;
-  }
-
-  const inverse = isLowerBetterForPosition(player.pos, statKey);
+function buildLineGradient(palette, config, lowerBetter, axis, layout) {
+  if (!config) return palette.high;
   const stops = [
-    { value: axis.max, color: inverse ? palette.low : palette.high },
-    { value: getThresholdValue(config, "HIGH"), color: palette.high },
-    { value: getThresholdValue(config, "MID-HIGH"), color: palette.highMid },
-    { value: getThresholdValue(config, "MID-LOW"), color: palette.lowMid },
-    { value: getThresholdValue(config, "LOW"), color: palette.low },
-    { value: axis.min, color: inverse ? palette.high : palette.low },
-  ]
-    .filter((stop) => stop.value !== null)
-    .map((stop) => ({ offset: gradientOffset(stop.value, axis, inverse), color: stop.color }))
-    .sort((left, right) => left.offset - right.offset);
-
-  const deduped = [];
-  stops.forEach((stop) => {
-    const previous = deduped[deduped.length - 1];
-    if (previous && Math.abs(previous.offset - stop.offset) < 0.01) {
-      previous.color = stop.color;
-      return;
-    }
-    deduped.push(stop);
-  });
-
-  if (deduped.length < 2) {
-    return fallback;
-  }
-
+    { value: axis.max, color: lowerBetter ? palette.low : palette.high },
+    { value: getThreshold(config, "HIGH"), color: palette.high },
+    { value: getThreshold(config, "MID-HIGH"), color: palette.highMid },
+    { value: getThreshold(config, "MID-LOW"), color: palette.lowMid },
+    { value: getThreshold(config, "LOW"), color: palette.low },
+    { value: axis.min, color: lowerBetter ? palette.high : palette.low },
+  ].filter(({ value }) => value !== null);
+  // Use SVG plot coordinates for both players so a threshold has the same
+  // vertical location even if one player's line covers a much smaller range.
   return {
     type: "linear",
+    global: true,
     x: 0,
-    y: 0,
     x2: 0,
-    y2: 1,
-    colorStops: deduped,
+    y: layout.top,
+    y2: layout.height - layout.bottom,
+    colorStops: stops.map(({ value, color }) => ({ offset: gradientOffset(value, axis), color }))
+      .sort((a, b) => a.offset - b.offset),
   };
 }
 
-function buildWeeklyAreaGradient(player, playerIndex, isMobile) {
-  // DataHub Compare weekly areas: carry each player's existing palette into
-  // a richer tint beneath the curve, then ease to fully transparent at the
-  // plot floor. Relative coordinates keep the fade proportional on resize;
-  // compact charts use less opacity so their dense labels remain prominent.
-  const palette = getWeeklyPlayerPalette(player, playerIndex);
-  const peakOpacity = isMobile ? 0.3 : 0.38;
+function translucent(hex, opacity) {
+  return `${hex}${Math.round(opacity * 255).toString(16).padStart(2, "0")}`;
+}
+
+function buildAreaGradient(palette, twoPlayers) {
+  // Layer the two existing fills more lightly on the shared plot so their
+  // overlap stays readable, and keep the gradient fade toward the chart floor.
+  const opacity = twoPlayers ? 0.16 : 0.24;
   return {
-    type: "linear",
-    x: 0,
-    y: 0,
-    x2: 0,
-    y2: 1,
-    global: false,
+    type: "linear", x: 0, x2: 0, y: 0, y2: 1,
     colorStops: [
-      { offset: 0, color: hexToRgba(palette.high, peakOpacity) },
-      { offset: 0.34, color: hexToRgba(palette.highMid, peakOpacity * 0.58) },
-      { offset: 0.66, color: hexToRgba(palette.lowMid, peakOpacity * 0.22) },
-      { offset: 0.88, color: hexToRgba(palette.low, peakOpacity * 0.045) },
-      { offset: 1, color: hexToRgba(palette.low, 0) },
+      { offset: 0, color: translucent(palette.high, opacity) },
+      { offset: 0.38, color: translucent(palette.highMid, opacity * 0.56) },
+      { offset: 0.74, color: translucent(palette.lowMid, opacity * 0.16) },
+      { offset: 1, color: translucent(palette.low, 0) },
     ],
   };
 }
 
-function getPointThresholdColor(player, playerIndex, statKey, thresholds, rawValue) {
-  const value = toFiniteNumber(rawValue);
-  const palette = getWeeklyPlayerPalette(player, playerIndex);
-  const config = getThresholdConfig(thresholds, player.pos, statKey);
-  if (value === null || !config) {
-    return getWeeklyPlayerAccentColor(player, playerIndex);
+function getPointColor(value, palette, config, lowerBetter) {
+  if (!config) return palette.high;
+  for (const [threshold, color] of [["HIGH", palette.high], ["MID-HIGH", palette.highMid], ["MID-LOW", palette.lowMid], ["LOW", palette.lowMid]]) {
+    const limit = getThreshold(config, threshold);
+    if (limit !== null && (lowerBetter ? value <= limit : value >= limit)) return color;
   }
-  const lowerBetter = isLowerBetterForPosition(player.pos, statKey);
-  const high = getThresholdValue(config, "HIGH");
-  const midHigh = getThresholdValue(config, "MID-HIGH");
-  const midLow = getThresholdValue(config, "MID-LOW");
-  const low = getThresholdValue(config, "LOW");
-  if (lowerBetter) {
-    if (high !== null && value <= high) return palette.high;
-    if (midHigh !== null && value <= midHigh) return palette.highMid;
-    if (midLow !== null && value <= midLow) return palette.lowMid;
-    if (low !== null && value <= low) return palette.lowMid;
-    return palette.low;
-  }
-  if (high !== null && value >= high) return palette.high;
-  if (midHigh !== null && value >= midHigh) return palette.highMid;
-  if (midLow !== null && value >= midLow) return palette.lowMid;
-  if (low !== null && value >= low) return palette.lowMid;
   return palette.low;
 }
 
-function getTooltipWeek(params) {
-  const entries = Array.isArray(params) ? params : [params];
-  const rawWeek = entries.find((entry) => (
-    entry?.axisValue !== undefined
-    || entry?.axisValueLabel
-    || entry?.name
-    || Array.isArray(entry?.data?.value)
-  ));
-  const source = rawWeek?.axisValue
-    ?? rawWeek?.axisValueLabel
-    ?? rawWeek?.name
-    ?? rawWeek?.data?.value?.[0]
-    ?? "";
-  const match = String(source).match(/(\d+)/);
-  return match ? Number(match[1]) : null;
+function keepWeekLabel(index, length, stride) {
+  return index === 0 || index === length - 1 || (index % stride === 0 && length - 1 - index >= stride);
 }
 
-function buildWeeklyTooltip(params, statKey, players, thresholds) {
-  // Weekly comparison tooltip:
-  // build one row from each selected player's actual weekly record instead of
-  // reading ECharts' line/logo/label helper layers, which repeated one value.
-  const week = getTooltipWeek(params);
-  const safePlayers = Array.isArray(players) ? players : [];
-  const lines = safePlayers.map((player, playerIndex) => {
-    const entry = getWeeklyEntry(player, week);
-    const skipped = Boolean(entry?.isSkipped || entry?.skipped);
-    const rawValue = getSeriesRawValue(entry, statKey);
-    const paletteIndex = getSamePositionPaletteIndex(safePlayers, player, playerIndex);
-    const pointColor = rawValue === null
-      ? getWeeklyPlayerAccentColor(player, paletteIndex)
-      : getPointThresholdColor(player, paletteIndex, statKey, thresholds, rawValue);
-    const rankValue = entry?.ranks?.[statKey];
-    const rank = rankValue
-      ? ` <span style="opacity:.58">(${player.pos}·${formatRank(rankValue)})</span>`
-      : "";
-    const opponent = entry?.opponent
-      ? ` <span style="opacity:.58">${entry.opponent}</span>`
-      : "";
-    const displayValue = skipped
-      ? (entry?.skipLabel || entry?.skipReason || "DNP")
-      : formatComparisonValue(statKey, rawValue);
-    const valueColor = skipped || rawValue === null
-      ? "rgba(255,214,176,.92)"
-      : "rgba(245,249,255,.98)";
-    return `
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:8px;">
-        <span><span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:${pointColor};margin-right:6px;"></span>${getPlayerName(player)}${opponent}${rank}</span>
-        <strong style="color:${valueColor};">${displayValue}</strong>
-      </div>
-    `;
-  }).join("");
-
-  return `
-    <div style="min-width:220px;font-family:Product Sans,Google Sans,sans-serif;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:rgba(226,238,255,.58);">${week ? `Week ${week}` : "Week"}</div>
-      ${lines || '<div style="margin-top:6px;color:rgba(226,238,255,.68);">No stat recorded</div>'}
-    </div>
-  `;
-}
-
-function buildCollisionLanes(players, statKey, weeks, axis, isMobile) {
-  const lanes = new Map();
-  const range = Math.max(1, axis.max - axis.min);
-  const closeThreshold = range * (isMobile ? 0.07 : 0.06);
-  weeks.forEach((week) => {
-    const points = players
-      .map((player, playerIndex) => {
-        const entry = getWeeklyEntry(player, week);
-        const rawValue = getSeriesRawValue(entry, statKey);
-        if (rawValue === null) {
-          return null;
-        }
-        return {
-          key: `${player.id}:${week}`,
-          playerIndex,
-          value: clamp(rawValue, axis.min, axis.max),
-        };
-      })
-      .filter(Boolean)
-      .sort((left, right) => right.value - left.value || left.playerIndex - right.playerIndex);
-    let group = [];
-    const flushGroup = () => {
-      if (!group.length) return;
-      const laneOrder = group.length === 1 ? [0] : [-1, 1, -2];
-      group.forEach((item, index) => {
-        lanes.set(item.key, laneOrder[index] ?? 0);
-      });
-      group = [];
-    };
-    points.forEach((point) => {
-      const previous = group[group.length - 1];
-      if (previous && Math.abs(previous.value - point.value) > closeThreshold) {
-        flushGroup();
-      }
-      group.push(point);
-    });
-    flushGroup();
-  });
-  return lanes;
-}
-
-function getVisualPlotValue(rawValue, lane, axis, isMobile) {
-  const baseValue = clamp(rawValue, axis.min, axis.max);
-  if (baseValue === null || !lane) {
-    return baseValue;
-  }
-  const range = Math.max(1, axis.max - axis.min);
-  const valueStep = range * (isMobile ? 0.04 : 0.035);
-  const direction = axis.inverse ? lane : -lane;
-  return clamp(baseValue + (direction * valueStep), axis.min, axis.max);
-}
-
-function interpolateSkippedValue(seriesPoints, skippedWeek, axis) {
-  const previous = [...seriesPoints].reverse().find((point) => point.week < skippedWeek && point.rawValue !== null);
-  const next = seriesPoints.find((point) => point.week > skippedWeek && point.rawValue !== null);
-  if (previous && next && next.week !== previous.week) {
-    const t = (skippedWeek - previous.week) / (next.week - previous.week);
-    return previous.value + ((next.value - previous.value) * t);
-  }
-  if (previous) {
-    return previous.value;
-  }
-  if (next) {
-    return next.value;
-  }
-  return null;
-}
-
-function buildSkipLabelPoints({ player, statKey, weeks, axis, isMobile, logoSymbolSize, seriesPoints }) {
-  const points = Array.isArray(seriesPoints) && seriesPoints.length
-    ? seriesPoints
-    : weeks.map((week) => {
-      const entry = getWeeklyEntry(player, week);
-      const rawValue = getSeriesRawValue(entry, statKey);
-      return {
-        week,
-        rawValue,
-        value: rawValue === null ? null : clamp(rawValue, axis.min, axis.max),
-        skipLabel: entry?.skipLabel || entry?.skipReason || "",
-        skipped: Boolean(entry?.isSkipped || entry?.skipped),
-      };
-    });
-  return points
-    .filter((point) => point.skipped && point.skipLabel)
-    .map((point) => {
-      const interpolated = interpolateSkippedValue(points, point.week, axis);
-      if (interpolated === null) {
-        return null;
-      }
-      return {
-        name: `${getPlayerName(player)} ${point.skipLabel}`,
-        value: [`wk${point.week}`, interpolated],
-        skipLabel: point.skipLabel,
-        isLabelOnly: true,
-        itemStyle: {
-          color: "rgba(150,160,176,0.01)",
-          borderColor: "rgba(150,160,176,0)",
-          borderWidth: 0,
-        },
-        label: {
-          position: "top",
-          distance: isMobile ? 1 : 1,
-          offset: [0, 0],
-          color: "#9090a0",
-          backgroundColor: "rgba(17,21,31,0.92)",
-          borderColor: "rgba(184,194,210,0.46)",
-          // ECharts doubles this label-border value in its SVG stroke output;
-          // 0.5 renders the requested 1px skipped-week pill outline.
-          borderWidth: 0.5,
-          borderRadius: 5,
-          // Keep BYE/IR/OUT pills proportional to their one-pixel-smaller text.
-          padding: isMobile ? [1, 4, 1, 4] : [2, 5, 2, 5],
-          shadowColor: "rgba(0,0,0,0.42)",
-          shadowBlur: 6,
-          shadowOffsetY: 1,
-        },
-      };
-    })
-    .filter(Boolean);
-}
-
-function buildSkipLogoPoints({ player, statKey, weeks, axis, seriesPoints }) {
-  if (!player?.teamLogoSrc) {
-    return [];
-  }
-  const points = Array.isArray(seriesPoints) && seriesPoints.length
-    ? seriesPoints
-    : weeks.map((week) => {
-      const entry = getWeeklyEntry(player, week);
-      const rawValue = getSeriesRawValue(entry, statKey);
-      return {
-        week,
-        rawValue,
-        value: rawValue === null ? null : clamp(rawValue, axis.min, axis.max),
-        skipped: Boolean(entry?.isSkipped || entry?.skipped),
-        skipLabel: entry?.skipLabel || entry?.skipReason || "",
-      };
-    });
-  return points
-    .filter((point) => point.skipped && point.skipLabel)
-    .map((point) => {
-      const interpolated = interpolateSkippedValue(points, point.week, axis);
-      return interpolated === null
-        ? null
-        : {
-          value: [`wk${point.week}`, interpolated],
-          skipLabel: point.skipLabel,
-          isLabelOnly: true,
-        };
-    })
-    .filter(Boolean);
-}
-
-export function buildWeeklyChartOption({ players, axisPlayers = players, statKey, weeks, thresholds, isCompact = null, colorIndex = null, showXAxis = true }) {
-  const safeWeeks = Array.isArray(weeks) && weeks.length
-    ? weeks
-    : Array.from({ length: 18 }, (_, index) => index + 1);
-  const isMobile = typeof isCompact === "boolean" ? isCompact : isMobileComparisonChart();
-  // Per-player weekly chart scale:
-  // derive both dedicated charts from the full selected-player set so the
-  // visual scale remains directly comparable even though each chart renders
-  // only one player's line.
-  const axis = getAxisConfig(axisPlayers, statKey, thresholds);
-  const lanes = buildCollisionLanes(players, statKey, safeWeeks, axis, isMobile);
-  // Weekly comparison data-point logos:
-  // keep team marks subordinate to the value/rank labels so adjacent weeks stay
-  // readable in both the desktop pair and the compact stacked mobile charts.
-  const symbolSize = isMobile ? 12 : 15;
-  const labelPadding = isMobile ? [2, 3, 2, 3] : [3, 5, 3, 5];
-
-  return {
-    animationDuration: 620,
-    animationEasing: "cubicOut",
-    backgroundColor: "transparent",
-    grid: isMobile
-      ? { top: 10, right: 6, bottom: showXAxis ? 15 : 4, left: 24, containLabel: false }
-      : { top: 12, right: 22, bottom: showXAxis ? 32 : 8, left: 48, containLabel: false },
-    tooltip: {
-      trigger: "axis",
-      confine: true,
-      backgroundColor: "rgba(7, 12, 24, 0.96)",
-      borderColor: "rgba(142, 221, 255, 0.2)",
-      borderWidth: 1,
-      padding: [10, 12],
-      textStyle: {
-        color: "rgba(240, 247, 255, 0.94)",
-        fontFamily: COMPARISON_CHART_FONT_FAMILY,
+function buildWeeklyAnnotations({ row, otherRow, weeks, player, playerIndex, statKey, palette, layout, axis }) {
+  return row.flatMap(({ value, status, rank }, index) => {
+    const atEdge = index === 0 || index === weeks.length - 1;
+    const showValue = value !== null && keepWeekLabel(index, weeks.length, layout.valueStride);
+    if (!status && !showValue) return [];
+    const other = otherRow?.[index]?.value;
+    const near = value !== null && Number.isFinite(other) && Math.abs(value - other) < (axis.max - axis.min) * 0.18;
+    // Separate close value labels above and below the marks, leaving the
+    // actual points untouched. Status labels sit at the foot with no symbol.
+    const above = !near || (value === other ? playerIndex === 0 : (axis.inverse ? value < other : value > other));
+    const statusFraction = playerIndex === 0 ? 0.04 : 0.115;
+    const statusY = axis.inverse
+      ? axis.max - (axis.max - axis.min) * statusFraction
+      : axis.min + (axis.max - axis.min) * statusFraction;
+    const rankText = layout.showRanks && rank > 0 ? `  ${player.pos}·${rank}` : "";
+    return [{
+      value: [`wk${weeks[index]}`, value ?? statusY],
+      label: {
+        formatter: status || `${formatComparisonValue(statKey, value, { compact: true })}${rankText}`,
+        position: status || above ? "top" : "bottom",
+        align: atEdge && weeks.length > 1 ? (index === 0 ? "left" : "right") : "center",
+        // Keep the Week 1 callout beside the Y tick labels, with the mark
+        // itself still on the Week 1 coordinate.
+        offset: index === 0 && weeks.length > 1 ? [layout.compact ? 13 : 20, 0] : [0, 0],
+        color: status ? "#a1adc3" : "#edf3ff",
+        backgroundColor: status ? "#141c2c" : "#141d30",
+        borderColor: status ? "#3c475d" : translucent(palette.high, 0.36),
       },
-      extraCssText: "border-radius:16px;box-shadow:0 20px 48px rgba(0,0,0,.38);",
-      formatter: (params) => buildWeeklyTooltip(params, statKey, axisPlayers, thresholds),
+    }];
+  });
+}
+
+export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, layout }) {
+  const rows = players.map((player) => weeks.map((week) => getWeeklyWeekEntry(player, week, statKey)));
+  const axis = getAxisConfig(players, rows, statKey, thresholds);
+  const categories = weeks.map((week) => `wk${week}`);
+  return {
+    animation: false,
+    backgroundColor: "transparent",
+    grid: {
+      top: layout.top,
+      bottom: layout.bottom,
+      left: layout.side,
+      right: layout.side,
+      containLabel: false,
     },
-    legend: { show: false },
     xAxis: {
       type: "category",
-      show: showXAxis,
-      boundaryGap: true,
-      data: safeWeeks.map((week) => `wk${week}`),
-      axisLine: { show: showXAxis, lineStyle: { color: "rgba(190, 218, 255, 0.16)" } },
+      data: categories,
+      boundaryGap: weeks.length === 1,
+      axisLine: { onZero: false, lineStyle: { color: "#3c486337" } },
       axisTick: { show: false },
       axisLabel: {
-        show: showXAxis,
-        interval: 0,
-        color: "rgba(205, 220, 245, 0.58)",
-        fontFamily: COMPARISON_CHART_FONT_FAMILY,
-        // Mobile week labels:
-        // add the requested lowercase `wk` as a smaller rich-text prefix while
-        // keeping the 2px margin and one-line shallow axis on both charts.
-        fontSize: isMobile ? 7 : 11,
-        margin: isMobile ? 2 : 7,
-        rotate: 0,
-        align: "center",
-        formatter: isMobile
-          ? (value) => `{weekPrefix|wk}{weekNumber|${String(value).replace(/^wk/i, "")}}`
-          : undefined,
-        rich: isMobile
-          ? {
-            weekPrefix: {
-              color: "rgba(205, 220, 245, 0.52)",
-              fontFamily: COMPARISON_CHART_FONT_FAMILY,
-              // Mobile weekly x-axis: keep the "wk" prefix legible while preserving the compact axis height.
-              fontSize: 6,
-              fontWeight: 800,
-              lineHeight: 8,
-              // ECharts rich-text padding order is top, right, bottom, left; right controls the prefix-to-number gap.
-              padding: [0, 0, 0, 0],
-              verticalAlign: "bottom",
-            },
-            weekNumber: {
-              color: "rgba(205, 220, 245, 0.62)",
-              fontFamily: COMPARISON_CHART_FONT_FAMILY,
-              fontSize: 7,
-              fontWeight: 800,
-              lineHeight: 8,
-              verticalAlign: "bottom",
-            },
-          }
-          : undefined,
+        interval: (index) => keepWeekLabel(index, weeks.length, layout.tickStride),
+        showMinLabel: true,
+        showMaxLabel: true,
+        color: "#abb8d1",
+        fontFamily: CHART_FONT,
+        fontSize: layout.compact ? 9 : 10,
+        margin: 7,
       },
     },
     yAxis: {
       type: "value",
-      min: axis.min,
-      max: axis.max,
-      inverse: axis.inverse,
-      splitLine: { lineStyle: { color: "rgba(190, 218, 255, 0.1)" } },
+      ...axis,
+      splitLine: { lineStyle: { color: "#a0b5e321", type: "dashed" } },
       axisLine: { show: false },
       axisTick: { show: false },
       axisLabel: {
-        color: "rgba(205, 220, 245, 0.5)",
-        fontFamily: COMPARISON_CHART_FONT_FAMILY,
-        fontSize: isMobile ? 9 : 10,
-        margin: isMobile ? 4 : 8,
-        formatter: (value) => formatComparisonValue(statKey, value, { compact: true }),
+        inside: true,
+        align: "left",
+        verticalAlign: "bottom",
+        showMinLabel: true,
+        margin: 2,
+        color: "#a8b5cd",
+        backgroundColor: "#0d1522d9",
+        padding: [0, 2, 1, 0],
+        fontFamily: CHART_FONT,
+        fontSize: layout.compact ? 9 : 10,
+        formatter: (value) => formatComparisonValue(statKey, value, {
+          compact: true, decimals: Number.isInteger(value) ? 0 : null,
+        }),
       },
     },
     series: players.flatMap((player, index) => {
-      // Weekly color selection:
-      // use secondary position gradients only when this player follows another
-      // selected player at the same position. Mixed-position comparisons keep
-      // every position on its primary gradient.
-      const paletteIndex = Number.isInteger(colorIndex)
-        ? colorIndex
-        : getSamePositionPaletteIndex(players, player, index);
-      const accent = getWeeklyPlayerAccentColor(player, paletteIndex);
-      const gradient = buildThresholdGradient(player, paletteIndex, statKey, thresholds, axis);
-      const skipLogoSymbolSize = symbolSize;
-      const dataPoints = safeWeeks.map((week) => {
-        const entry = getWeeklyEntry(player, week);
-        const rawValue = getSeriesRawValue(entry, statKey);
-        const rank = entry?.ranks?.[statKey] || null;
-        const lane = lanes.get(`${player.id}:${week}`) || 0;
-        const pointColor = rawValue === null
-          ? accent
-          : getPointThresholdColor(player, paletteIndex, statKey, thresholds, rawValue);
-        const skipped = Boolean(entry?.isSkipped || entry?.skipped);
-        // Weekly overlap plotting:
-        // move close points in value space, not pixel space, so the line,
-        // logo marker, and label all share one visual coordinate while the
-        // original stat stays available as rawValue for labels/tooltips.
-        const plottedValue = getVisualPlotValue(rawValue, lane, axis, isMobile);
-        return {
-          week,
-          value: plottedValue,
-          realValue: rawValue === null ? null : clamp(rawValue, axis.min, axis.max),
-          rawValue,
-          rank,
-          pos: player.pos,
-          opponent: entry?.opponent || "",
-          skipped,
-          skipLabel: entry?.skipLabel || entry?.skipReason || "",
-          pointColor,
-          symbolOffset: [0, 0],
-          label: { show: false },
-        };
-      });
-      const skipLabelPoints = buildSkipLabelPoints({
-        player,
-        statKey,
-        weeks: safeWeeks,
-        axis,
-        isMobile,
-        logoSymbolSize: skipLogoSymbolSize,
-        seriesPoints: dataPoints,
-      });
-      const skipLogoPoints = buildSkipLogoPoints({
-        player,
-        statKey,
-        weeks: safeWeeks,
-        axis,
-        seriesPoints: dataPoints,
-      });
-      const playedLogoPoints = player.teamLogoSrc
-        ? dataPoints
-          .filter((point) => point.rawValue !== null && !point.skipped)
-          .map((point) => ({
-            value: [`wk${point.week}`, point.value],
-            rawValue: point.rawValue,
-          }))
-        : [];
-      // Weekly data labels:
-      // labels are now a permanent part of each player's dedicated chart;
-      // the previous modal toggle was removed to keep the compact layout
-      // predictable and the values immediately readable.
-      const labelPoints = dataPoints
-        .map((point, weekIndex) => {
-          if (point.rawValue === null || point.skipped) {
-            return null;
-          }
-          const labelTextColor = getReadableValueLabelColor(point.pointColor, player.pos);
-          return {
-            name: `${getPlayerName(player)} wk${safeWeeks[weekIndex]} ${getStatLabel(statKey)}`,
-            value: [`wk${safeWeeks[weekIndex]}`, point.value],
-            rawValue: point.rawValue,
-            rank: point.rank,
-            pos: point.pos,
-            pointColor: point.pointColor,
-            labelTextColor,
-            isLabelOnly: true,
-            itemStyle: { color: "rgba(150,160,176,0.01)" },
-            label: {
-              show: true,
-              position: "top",
-              distance: 1,
-              offset: [0, 0],
-              backgroundColor: {
-                type: "linear",
-                x: 0,
-                y: 0,
-                x2: 0,
-                y2: 1,
-                colorStops: [
-                  { offset: 0, color: "rgb(39, 50, 73)" },
-                  { offset: 1, color: "rgb(28, 35, 50)" },
-                ],
-                global: false,
-              },
-              borderColor: "rgba(255, 255, 255, 0.05)",
-              borderWidth: 1,
-              borderRadius: 6,
-              padding: labelPadding,
-              shadowColor: "rgba(0, 0, 0, 0.16)",
-              shadowBlur: 16,
-              shadowOffsetY: 8,
-              fontFamily: COMPARISON_CHART_FONT_FAMILY,
-              rich: {
-                value: {
-                  color: labelTextColor,
-                  fontFamily: COMPARISON_CHART_FONT_FAMILY,
-                  fontSize: isMobile ? 7 : 10,
-                  fontWeight: 950,
-                  textShadowColor: "rgba(0, 0, 0, 0.58)",
-                  textShadowBlur: 4,
-                },
-                rank: {
-                  color: "rgba(226,236,250,.9)",
-                  fontFamily: COMPARISON_CHART_FONT_FAMILY,
-                  fontSize: isMobile ? 5.5 : 8,
-                  fontWeight: 850,
-                  lineHeight: isMobile ? 8 : 12,
-                  padding: isMobile ? [0, 0, 0, 0] : [1, 0, 0, 1],
-                  verticalAlign: "middle",
-                },
-              },
-            },
-          };
-        })
-        .filter(Boolean);
-      const lineSeries = {
+      const row = rows[index];
+      const palette = getWeeklyPalette(players, index);
+      const config = getThresholdConfig(thresholds, player.pos, statKey);
+      const lowerBetter = isLowerBetterForPosition(player.pos, statKey);
+      const line = {
+        id: `weekly-${player.id}`,
         name: getPlayerName(player),
         type: "line",
-        smooth: 0.42,
+        smooth: 0.3,
+        smoothMonotone: "x",
         connectNulls: true,
-        symbol: player.teamLogoSrc ? `image://${player.teamLogoSrc}` : "circle",
-        symbolSize: player.teamLogoSrc ? symbolSize : (isMobile ? 5 : 7),
-        // Played-week team logos are rendered in a dedicated scatter layer
-        // below so compact chart clipping cannot make the upper chart lose
-        // its point markers. Circle fallbacks remain owned by this line.
-        showSymbol: !player.teamLogoSrc,
-        zlevel: 0,
-        z: 6 + index,
+        // Hollow circle vs diamond and solid vs dash distinguish players even
+        // where a pair overlaps or two threshold colors happen to look alike.
+        symbol: index === 0 ? "emptyCircle" : "diamond",
+        symbolSize: index === 0 ? (layout.compact ? 6 : 7) : (layout.compact ? 5 : 6),
+        showSymbol: true,
+        clip: false,
+        silent: true,
+        z: 4,
+        data: row.map(({ value }) => ({
+          value,
+          itemStyle: { color: value === null ? palette.high : getPointColor(value, palette, config, lowerBetter) },
+        })),
         lineStyle: {
-          width: isMobile ? 2.55 : 2.95,
-          color: gradient,
-          opacity: 1,
-          shadowColor: accent,
-          shadowBlur: isMobile ? 7 : 11,
-          shadowOffsetY: 3,
-        },
-        itemStyle: {
-          color: accent,
-          borderColor: "rgba(4,8,16,.96)",
-          borderWidth: player.teamLogoSrc ? 4 : 2,
-          opacity: 1,
+          color: buildLineGradient(palette, config, lowerBetter, axis, layout),
+          width: layout.compact ? 2.1 : 2.5,
+          type: index === 0 ? "solid" : [6, 4],
+          shadowColor: translucent(palette.high, 0.46),
+          shadowBlur: layout.compact ? 4 : 6,
+          shadowOffsetY: 1,
         },
         areaStyle: {
-          // Fill to the visible plot floor, including negative-valued stats
-          // and inverted lower-is-better axes. Keeping the area on this line
-          // series preserves its exact smoothing and skipped-week behavior.
           origin: axis.inverse ? "end" : "start",
           opacity: 1,
-          color: buildWeeklyAreaGradient(player, paletteIndex, isMobile),
+          color: buildAreaGradient(palette, players.length > 1),
         },
-        label: {
-          show: false,
-          color: "rgba(244,248,255,.9)",
-          fontFamily: COMPARISON_CHART_FONT_FAMILY,
-          fontWeight: 900,
-          padding: labelPadding,
-          borderRadius: 6,
-          borderWidth: 1,
-          formatter: (params) => {
-            if (!params.data || params.data.rawValue === null || params.data.skipped) return "";
-            const rank = params.data.rank ? `{rank|(${params.data.pos}·${params.data.rank})}` : "";
-            return `{value|${formatComparisonValue(statKey, params.data.rawValue, { compact: true })}}${rank}`;
-          },
-          rich: {
-            value: {
-              color: "rgba(248,252,255,.96)",
-              fontFamily: COMPARISON_CHART_FONT_FAMILY,
-              fontSize: isMobile ? 7 : 10,
-              fontWeight: 950,
-            },
-            rank: {
-              color: "rgba(218,232,250,.76)",
-              fontFamily: COMPARISON_CHART_FONT_FAMILY,
-              fontSize: isMobile ? 5.5 : 8,
-              fontWeight: 850,
-            },
-          },
-        },
-        emphasis: {
-          focus: "series",
-          lineStyle: { width: isMobile ? 3.2 : 3.8 },
-          // The gradient's stops own its alpha; hover must retain that fade.
-          areaStyle: { opacity: 1 },
-        },
-        data: dataPoints,
+        emphasis: { disabled: true },
       };
-      const series = [lineSeries];
-      if (playedLogoPoints.length) {
-        series.push({
-          name: `${getPlayerName(player)} played week logos`,
-          type: "scatter",
-          coordinateSystem: "cartesian2d",
-          data: playedLogoPoints,
-          symbol: `image://${player.teamLogoSrc}`,
-          symbolSize,
-          silent: true,
-          clip: false,
-          zlevel: 6,
-          z: 82 + index,
-          itemStyle: {
-            opacity: 1,
-          },
-          emphasis: {
-            disabled: true,
-          },
-        });
-      }
-      if (skipLogoPoints.length) {
-        // Skipped-week markers:
-        // use the same direct image symbol path as normal data points. Avoid a
-        // separate circular backing so BYE/DNP markers do not look like a
-        // different point type.
-        series.push({
-          name: `${getPlayerName(player)} skipped week logo`,
-          type: "scatter",
-          coordinateSystem: "cartesian2d",
-          data: skipLogoPoints,
-          symbol: player.teamLogoSrc ? `image://${player.teamLogoSrc}` : "circle",
-          symbolSize: player.teamLogoSrc ? skipLogoSymbolSize : Math.max(7, skipLogoSymbolSize - 8),
-          silent: true,
-          zlevel: 2,
-          z: 28 + index,
-          itemStyle: {
-            color: "rgba(178,186,198,0.96)",
-            borderColor: "rgba(10,14,22,0.9)",
-            borderWidth: player.teamLogoSrc ? 0 : 1,
-            opacity: 1,
-          },
-          emphasis: {
-            disabled: true,
-          },
-        });
-      }
-      if (labelPoints.length) {
-        // Weekly labels:
-        // render chip labels as their own high-layer scatter series so labels
-        // always sit above comparison lines and logo markers.
-        series.push({
-          name: `${getPlayerName(player)} weekly labels`,
-          type: "scatter",
-          coordinateSystem: "cartesian2d",
-          data: labelPoints,
-          symbol: "circle",
-          symbolSize,
-          silent: true,
-          zlevel: 10,
-          z: 140 + index,
-          itemStyle: {
-            color: "rgba(150,160,176,0.01)",
-          },
-          label: {
-            show: true,
-            color: "rgba(244,248,255,.9)",
-            fontFamily: COMPARISON_CHART_FONT_FAMILY,
-            fontWeight: 900,
-            formatter: (params) => {
-              if (!params.data || params.data.rawValue === null) return "";
-              const rank = !isMobile && params.data.rank ? `{rank|(${params.data.pos}·${params.data.rank})}` : "";
-              return `{value|${formatComparisonValue(statKey, params.data.rawValue, { compact: true })}}${rank}`;
-            },
-            rich: {
-              value: {
-                color: "rgba(255,255,255,.99)",
-                fontFamily: COMPARISON_CHART_FONT_FAMILY,
-                fontSize: isMobile ? 7 : 10,
-                fontWeight: 950,
-              },
-              rank: {
-                color: "rgba(226,236,250,.9)",
-                fontFamily: COMPARISON_CHART_FONT_FAMILY,
-                fontSize: isMobile ? 5.5 : 8,
-                fontWeight: 850,
-                lineHeight: isMobile ? 8 : 12,
-                padding: isMobile ? [0, 0, 0, 0] : [1, 0, 0, 1],
-                verticalAlign: "middle",
-              },
-            },
-          },
-          emphasis: {
-            disabled: true,
-          },
-        });
-      }
-      if (skipLabelPoints.length) {
-        series.push({
-          name: `${getPlayerName(player)} skipped week labels`,
-          type: "scatter",
-          coordinateSystem: "cartesian2d",
-          data: skipLabelPoints,
-          symbol: "circle",
-          symbolSize: skipLogoSymbolSize,
-          silent: true,
-          zlevel: 11,
-          z: 160 + index,
-          itemStyle: {
-            color: "rgba(150,160,176,0.01)",
-          },
-          label: {
-            show: true,
-            formatter: (params) => params.data?.skipLabel || "",
-            fontFamily: COMPARISON_CHART_FONT_FAMILY,
-            fontSize: isMobile ? 7 : 8,
-            fontWeight: 950,
-            color: "#9090a0",
-          },
-          emphasis: {
-            disabled: true,
-          },
-        });
-      }
-      return series;
+      // The annotation layer can drop overlapping labels without dropping
+      // any data points. The week reader below the plot always shows both.
+      const annotations = {
+        id: `weekly-labels-${player.id}`,
+        name: `${getPlayerName(player)} weekly labels`,
+        type: "scatter",
+        data: buildWeeklyAnnotations({
+          row, otherRow: rows[1 - index], weeks, player, playerIndex: index, statKey, palette, layout, axis,
+        }),
+        z: 8,
+        silent: true,
+        clip: false,
+        symbolSize: 4,
+        itemStyle: { color: "transparent" },
+        label: {
+          show: true,
+          distance: 4,
+          borderWidth: 0.5,
+          borderRadius: 4,
+          padding: [2, 3],
+          fontFamily: CHART_FONT,
+          fontSize: layout.compact ? 9 : 10,
+          fontWeight: 650,
+        },
+        labelLayout: { hideOverlap: true },
+        emphasis: { disabled: true },
+      };
+      return [line, annotations];
     }),
   };
 }
