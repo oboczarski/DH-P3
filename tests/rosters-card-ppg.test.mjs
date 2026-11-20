@@ -138,7 +138,10 @@ test('2026 league selection prepares current-league scores after activation and 
     fetchLeagueMatchupData: async (id, week) => { calls.push(`scores:${id}:${week}`); context.state.matchupDataLoaded = true; },
     renderAllTeamData: () => { assert.equal(context.state.matchupDataLoaded, true); calls.push('render'); },
   });
-  context.window.activateRosters2026GameLogs = async () => {
+  const cardSnapshot = {};
+  context.window.ensureRosters2026CardsLoaded = async () => cardSnapshot;
+  context.window.activateRosters2026Cards = async snapshot => {
+    assert.equal(snapshot, cardSnapshot);
     calls.push('activate'); context.state.matchupDataLoaded = false;
   };
   context.state.currentGameLogsSeason = '2025';

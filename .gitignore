@@ -7,3 +7,6 @@ adp-app/node_modules/
 adp-app/.next/
 adp-app/out/
 DH_P2.53/adp/
+
+# Netlify regenerates the browser snapshots from the tracked NFL CSVs.
+DH_P2.53/data/generated-2026/

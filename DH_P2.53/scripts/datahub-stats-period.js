@@ -2,8 +2,8 @@ import { has2026WeekResults } from './datahub-2026-data.js';
 
 // DataHub's Stats period menu uses only recorded CSV weeks. Future projections
 // and empty pre-created weeks cannot become selectable results periods.
-export function getDataHubStatsPeriodOptions(weeklyRows = {}) {
-  const weeks = Object.entries(weeklyRows)
+export function getDataHubStatsPeriodOptions(weeklyRows = {}, recordedWeeks) {
+  const weeks = recordedWeeks ?? Object.entries(weeklyRows)
     .filter(([week, rows]) => Number.isInteger(Number(week)) && Number(week) >= 1 && Number(week) <= 18
       && rows.some((row) => /^\d+$/.test(String(row.SLPR_ID || ''))
         && ['QB', 'RB', 'WR', 'TE'].includes(row.POS) && has2026WeekResults(row)))

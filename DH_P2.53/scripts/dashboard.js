@@ -1,11 +1,12 @@
 (function() {
-// Dashboard season data is loaded independently from the maintained 2026 season CSV.
+// Home starts its generated season data request before DOMContentLoaded.
 // === State ===
 let players = [];
 let scatterAll = [];
 let dashboardData;
 let dashboardLayout;
 let dashboardInitPromise;
+let summaryLeaderIds;
 let scatterTooltipCleanup;
 const dashState = { selectedPlayerId: null, filter: 'all', scatterFilter: 'ALL' };
 
@@ -221,48 +222,6 @@ const getRadarRankColor = (rank) => {
   return '#FF2EB2';
 };
 
-function computePositionalRanks(players) {
-  const byPos = { QB: [], RB: [], WR: [], TE: [] };
-  players.forEach(p => { if (byPos[p.position]) byPos[p.position].push(p); });
-
-  // Common ranks for FPTS/PPG
-  ['fpts','ppg'].forEach(stat => {
-    Object.values(byPos).forEach(list => {
-      // Home PPG ranks share the recorded-game minimum used by its leader charts.
-      const eligible = list.filter(p => Number.isFinite(p.stats[stat]) && p.stats[stat] > 0 && (stat !== 'ppg' || p.games >= 3))
-        .sort((a,b) => b.stats[stat] - a.stats[stat]);
-      eligible.forEach((p, idx) => {
-        if (stat === 'fpts') p.ranks.posRank = idx + 1;
-        else p.ranks.ppgPosRank = idx + 1;
-      });
-    });
-  });
-
-  const EFF_THRESH = 40; // 40% snap share
-  const statConfig = {
-    QB: [ ['pass_rtg', false], ['cmp_pct', false], ['epa_db', false], ['ttt', true], ['yds_total', false], ['cpoe', false], ['cl', false], ['csty', false] ],
-    RB: [ ['yds_total', false], ['snp_pct', false], ['ypc', false], ['rec_tgt', false], ['mtf_per_att', false], ['yco_per_att', false], ['cl', false], ['csty', false] ],
-    WR: [ ['rec', false], ['rec_ypg', false], ['ts_per_rr', false], ['yprr', false], ['first_down_rec_rate', false], ['imp_per_g', false], ['cl', false], ['csty', false] ],
-    TE: [ ['rec', false], ['rec_ypg', false], ['ts_per_rr', false], ['yprr', false], ['first_down_rec_rate', false], ['imp_per_g', false], ['cl', false], ['csty', false] ]
-  };
-
-  Object.entries(statConfig).forEach(([pos, stats]) => {
-    const list = byPos[pos] || [];
-    stats.forEach(([key, invert]) => {
-      const eligible = list.filter(p => {
-        const v = p.stats[key];
-        if (!Number.isFinite(v)) return false;
-        if ((pos === 'RB' || pos === 'WR' || pos === 'TE') && (!Number.isFinite(p.stats.snp_pct) || p.stats.snp_pct < EFF_THRESH)) return false;
-        return true;
-      });
-      eligible.sort((a,b) => invert ? a.stats[key] - b.stats[key] : b.stats[key] - a.stats[key]);
-      eligible.forEach((p, idx) => {
-        p.statRanks[key] = idx + 1;
-      });
-    });
-  });
-}
-
 // Build radar dataset using provided ranks; fill scales to rank (1 = 100%)
 function buildRadarDataset(player) {
   const cfg = RADAR_STATS_CONFIG[player.position];
@@ -298,7 +257,9 @@ function renderSummary() {
   if (!players.length) return;
   // Each summary leader must qualify for DataHub's default positional ranks;
   // a high metric or inclusion in the top-100 picker does not bypass that gate.
-  const { topFpts, topEPAQB, topCstyRB, topTSWR } = dashboardData.selectSummaryLeaders(players);
+  const { topFpts, topEPAQB, topCstyRB, topTSWR } = Object.fromEntries(
+    Object.entries(summaryLeaderIds).map(([key, id]) => [key, players.find(player => player.id === id)])
+  );
 
   const projectedMax = Math.max(450, topFpts?.stats.fpts || 0);
 
@@ -409,18 +370,18 @@ function renderSelectedDetails() {
   setText('rating-meta', 'POS•RK');
 }
 
-function renderRadar() {
+function renderRadar(animate = true) {
   const player = getSelected();
   const data = buildRadarDataset(player);
   setRadarPalette(player.position);
   updateLegendForPosition(player.position);
-  drawRadarChart('radar-chart', data);
+  drawRadarChart('radar-chart', data, animate);
 }
 
-function renderBar() {
+function renderBar(animate = true) {
   const data = ppgBarData(dashState.filter);
   if (!data.length) return;
-  drawBarChart('bar-chart', data);
+  drawBarChart('bar-chart', data, animate);
 }
 
 // Update legend labels to match selected position's radar rings
@@ -438,16 +399,16 @@ function updateLegendForPosition(pos) {
   });
 }
 
-function renderScatter() {
+function renderScatter(animate = true) {
   scatterAll = dashboardData.selectScatterPlayers(players);
-  return applyScatterFilter(dashState.scatterFilter);
+  return applyScatterFilter(dashState.scatterFilter, animate);
 }
 
-function applyScatterFilter(pos) {
+function applyScatterFilter(pos, animate = true) {
   const selected = pos && pos !== 'ALL' ? pos : 'ALL';
   dashState.scatterFilter = selected;
   const filtered = selected === 'ALL' ? scatterAll : scatterAll.filter(p => p.position === selected);
-  const ready = drawScatterChart('scatter-chart', filtered);
+  const ready = drawScatterChart('scatter-chart', filtered, animate);
   updateScatterLegend(selected);
   return ready;
 }
@@ -670,7 +631,7 @@ function trendSvg(trend) {
 }
 
 // D3 radar, bar, scatter (unchanged visuals)
-function drawRadarChart(containerId, data) {
+function drawRadarChart(containerId, data, animate) {
   const container = document.getElementById(containerId);
   if (!container || !data || !data.length) return;
   container.innerHTML = '';
@@ -701,14 +662,14 @@ function drawRadarChart(containerId, data) {
     const maxFill = 0.97;
     const endAngle = (d.value / 100) * 2 * Math.PI * maxFill;
     const fgArc = d3.arc().innerRadius(rInner).outerRadius(rOuter).startAngle(0).endAngle(endAngle).cornerRadius(ringWidth / 2);
-    svg.append('path')
+    const ring = svg.append('path')
       .attr('fill', color)
       .attr('fill-opacity', 0.95)
       .attr('stroke', color)
       .attr('stroke-width', strokeWidth)
       .attr('stroke-opacity', 0.6)
-      .attr('d', fgArc)
-      .transition()
+      .attr('d', fgArc);
+    if (animate) ring.transition()
       .duration(1200)
       .ease(d3.easeCubicOut)
       .attrTween('d', function() {
@@ -732,7 +693,7 @@ function drawRadarChart(containerId, data) {
   });
 }
 
-function drawBarChart(containerId, data) {
+function drawBarChart(containerId, data, animate) {
   const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = '';
@@ -804,7 +765,6 @@ function drawBarChart(containerId, data) {
   const barWidth = x.bandwidth();
   const radius = barWidth / 2;
   const strokeMain = Math.max(1, width * 0.008);
-  const strokeGlow = Math.max(2, width * 0.015);
   // Font sizes — mobile: slightly larger data labels & player names
   const fontSizeVal = isMobile ? Math.max(8.5, width * 0.022) : Math.max(14, width * 0.024);
   const fontSizeAxis = isMobile ? Math.max(7, width * 0.021) : Math.max(11, width * 0.02);
@@ -822,16 +782,27 @@ function drawBarChart(containerId, data) {
   }
   
   // Outer glow rect
-  barGroups.append('rect').attr('x', d => x(d.label)).attr('y', innerHeight).attr('width', barWidth).attr('height', 0).attr('rx', radius).attr('ry', radius).attr('fill', 'none').attr('stroke', (d, i) => colorScale(i)).attr('stroke-width', strokeGlow).attr('stroke-opacity', 0.18).style('filter', 'url(#neon-glow)') // opacity reduced from 0.3 for tighter outline.transition().duration(1000).delay((d, i) => i * 50).ease(d3.easeCubicOut).attr('y', d => y(d.value)).attr('height', d => innerHeight - y(d.value));
-  // Gradient fill rect
-  barGroups.append('rect').attr('x', d => x(d.label)).attr('y', innerHeight).attr('width', barWidth).attr('height', 0).attr('rx', radius).attr('ry', radius).attr('fill', (d, i) => `url(#bar-grad-${uid}-${i})`).transition().duration(1000).delay((d, i) => i * 50).ease(d3.easeCubicOut).attr('y', d => y(d.value)).attr('height', d => innerHeight - y(d.value));
-  // Main stroke rect
-  barGroups.append('rect').attr('x', d => x(d.label)).attr('y', innerHeight).attr('width', barWidth).attr('height', 0).attr('rx', radius).attr('ry', radius).attr('fill', 'none').attr('stroke', (d, i) => colorScale(i)).attr('stroke-width', strokeMain).transition().duration(1000).delay((d, i) => i * 50).ease(d3.easeCubicOut).attr('y', d => y(d.value)).attr('height', d => innerHeight - y(d.value));
-  
-  // Data labels ABOVE the bars (original position)
-  barGroups.append('text').text(d => d.value.toFixed(1)).attr('x', d => x(d.label) + barWidth / 2).attr('y', innerHeight).attr('text-anchor', 'middle').attr('fill', (d, i) => colorScale(i)).attr('font-size', `${fontSizeVal}px`).attr('font-weight', '700').style('text-shadow', '0 0 10px rgba(0,0,0,1)').style('opacity', 0).transition().duration(1000).delay((d, i) => i * 50 + 400).attr('y', d => y(d.value) - (isMobile ? height * 0.02 : height * 0.02)).style('opacity', 1);
-  
-  // X-axis with formatted names at bottom
+  const growBar = bars => {
+    const yValue = d => y(d.value);
+    const barHeight = d => innerHeight - y(d.value);
+    const positioned = animate ? bars.attr('y', innerHeight).attr('height', 0)
+      .transition().duration(1000).delay((d, i) => i * 50).ease(d3.easeCubicOut) : bars;
+    positioned.attr('y', yValue).attr('height', barHeight);
+  };
+  growBar(barGroups.append('rect').attr('x', d => x(d.label)).attr('width', barWidth)
+    .attr('rx', radius).attr('ry', radius).attr('fill', (d, i) => `url(#bar-grad-${uid}-${i})`));
+  growBar(barGroups.append('rect').attr('x', d => x(d.label)).attr('width', barWidth)
+    .attr('rx', radius).attr('ry', radius).attr('fill', 'none')
+    .attr('stroke', (d, i) => colorScale(i)).attr('stroke-width', strokeMain));
+
+  const values = barGroups.append('text').text(d => d.value.toFixed(1))
+    .attr('x', d => x(d.label) + barWidth / 2).attr('text-anchor', 'middle')
+    .attr('fill', (d, i) => colorScale(i)).attr('font-size', `${fontSizeVal}px`)
+    .attr('font-weight', '700').style('text-shadow', '0 0 10px rgba(0,0,0,1)');
+  const positionedValues = animate ? values.attr('y', innerHeight).style('opacity', 0)
+    .transition().duration(1000).delay((d, i) => i * 50 + 400) : values;
+  positionedValues.attr('y', d => y(d.value) - height * 0.02).style('opacity', 1);
+
   const xAxis = g.append('g').attr('transform', `translate(0,${innerHeight})`).call(d3.axisBottom(x).tickSize(0).tickFormat((d, i) => formatBarLabel(d)));
   xAxis.selectAll('text')
     .style('text-anchor', isMobile ? 'end' : 'middle')
@@ -844,7 +815,7 @@ function drawBarChart(containerId, data) {
   g.select('.domain').remove();
 }
 
-function drawScatterChart(containerId, data) {
+function drawScatterChart(containerId, data, animate) {
   const container = document.getElementById(containerId);
   if (!container) return;
   // Dashboard position changes and resizes replace one tooltip/listener together.
@@ -1024,13 +995,12 @@ function drawScatterChart(containerId, data) {
     .attr('filter', d => `url(#glow-${d.position.toLowerCase()})`)
     .attr('cx', (d, i) => dotPositions[i].cx)
     .attr('cy', (d, i) => dotPositions[i].cy)
-    .attr('r', 0)
-    .transition()
+    .attr('r', animate ? 0 : dotRadius);
+  if (animate) circles.transition()
     .duration(1000)
     .delay((d, i) => i * 30)
     .ease(d3.easeBackOut)
-    .attr('r', dotRadius)
-    .selection();
+    .attr('r', dotRadius);
 
   let activeTooltipId = null;
 
@@ -1135,6 +1105,10 @@ function drawScatterChart(containerId, data) {
       hideTooltip();
       showTooltip(event,d);
     });
+  }
+  if (!animate) {
+    labels.attr('opacity', 1);
+    return;
   }
   return labels.transition()
     .duration(900)
@@ -1304,8 +1278,21 @@ async function dismissDashboardBoot() {
   document.getElementById('legalFootnote')?.removeAttribute('inert');
 }
 
-// Initialize the home dashboard once from its CSV; failures stay explicit and never
-// fall back to the retired 2025 snapshot or another page's loaded stats/state.
+// Fetch data and layout in parallel with D3 loading. A raw static preview
+// without a Netlify build can still derive the same model from its season CSV.
+const dashboardDataReady = import('./dashboard-data.js?v=DH3.81-generated-2026');
+const dashboardLayoutReady = import('./dashboard-scatter-layout.js?v=DH3.61j-scatter-neighbor-clearance');
+const dashboardSnapshotReady = import('./generated-2026-data.js')
+  .then(module => module.loadGenerated2026Data('home'))
+  .then(async snapshot => {
+    if (snapshot) return snapshot;
+    const adapter = await dashboardDataReady;
+    return adapter.buildDashboardSnapshot(await adapter.loadDashboardPlayers());
+  });
+const dashboardReady = Promise.all([dashboardDataReady, dashboardLayoutReady, dashboardSnapshotReady]);
+// DOMContentLoaded below reports any early request error in the boot UI.
+void dashboardReady.catch(() => {});
+
 window.initFantasyDashboard = function() {
   if (dashboardInitPromise) return dashboardInitPromise;
   dashboardInitPromise = initializeDashboard();
@@ -1317,13 +1304,11 @@ async function initializeDashboard() {
   document.getElementById('fc-dashboard-root')?.setAttribute('aria-busy', 'true');
   try {
     setDashboardBootPhase(0, 'Connecting to the 2026 season');
-    [dashboardData, dashboardLayout] = await Promise.all([
-      import('./dashboard-data.js?v=DH3.70-local-2026-season'),
-      import('./dashboard-scatter-layout.js?v=DH3.61j-scatter-neighbor-clearance')
-    ]);
-    players = await dashboardData.loadDashboardPlayers();
+    const [adapter, layout, snapshot] = await dashboardReady;
+    dashboardData = adapter;
+    dashboardLayout = layout;
+    ({ players, leaderIds: summaryLeaderIds } = snapshot);
     setDashboardBootPhase(1, 'Finding the league leaders');
-    computePositionalRanks(players);
     dashState.selectedPlayerId = players[0].id;
     // Begin with unavailable values so absent source metrics never look like zero.
     ['total-points-value', 'ppg-value', 'consistency-value', 'share-value'].forEach(id => setText(id, '—'));
@@ -1336,9 +1321,11 @@ async function initializeDashboard() {
     // stays visible while the real data and chart preparation are underway.
     if (document.fonts) await document.fonts.ready;
     setDashboardBootPhase(2, 'Bringing your dashboard into focus');
-    renderRadar();
-    renderBar();
-    const scatterReady = renderScatter();
+    // Draw the complete first frame behind the overlay. Later chart changes
+    // keep their animations and the first reveal waits for all three charts.
+    renderRadar(false);
+    renderBar(false);
+    const scatterReady = renderScatter(false);
     updateFilterButtons();
     wireEvents();
     await scatterReady;

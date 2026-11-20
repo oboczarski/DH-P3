@@ -772,12 +772,14 @@
       let wasSuccessful = false;
 
       try {
-        await Promise.all([fetchSleeperPlayers(), fetchKTCData()]);
-        await fetchUserAndLeagues(username);
-
-        if (state.leagues.length === 0) {
-          throw new Error('No active dynasty leagues found for this user in the current season.');
-        }
+        // League lookup is independent of the player index and KTC feeds.
+        // Commit the account only after all three startup reads succeed.
+        const [, , account] = await Promise.all([
+          fetchSleeperPlayers(), fetchKTCData(), fetchUserAndLeagues(username),
+        ]);
+        state.userId = account.userId;
+        state.leagues = account.leagues;
+        populateLeagueSelect(state.leagues);
 
         setLoading(true, 'Loading Dynasty values and rest-of-season projections...');
 
@@ -2736,12 +2738,7 @@
         throw new Error('No active dynasty leagues found for this user in the current season.');
       }
 
-      // Username switch commit point:
-      // do not replace the active LeagueHub identity until Sleeper has returned
-      // a valid dynasty league set, allowing Change user -> Go back to be lossless.
-      state.userId = nextUserId;
-      state.leagues = dynastyOnlyLeagues.sort((a, b) => a.name.localeCompare(b.name));
-      populateLeagueSelect(state.leagues);
+      return { userId: nextUserId, leagues: dynastyOnlyLeagues.sort((a, b) => a.name.localeCompare(b.name)) };
     }
 
     function toNumber(value) {
@@ -3167,22 +3164,26 @@
             fetchWithCache(`https://api.sleeper.app/v1/league/${analyzerSources.standingsLeagueId}/users`),
           ]);
 
-        const [rosters, users, tradedPicks, championData, standingsData, careerStatsByOwner] = await Promise.all([
-          loadJson(`https://api.sleeper.app/v1/league/${analyzerSources.rosterLeagueId}/rosters`),
+        // Forecasts need the current roster, but can run while historical
+        // standings and career records load. Keep the shared forecast cache.
+        const rosterPromise = loadJson(`https://api.sleeper.app/v1/league/${analyzerSources.rosterLeagueId}/rosters`);
+        let schedule;
+        const loadSchedule = () => schedule || (schedule = fetchProjectionSchedule(leagueInfo));
+        const projectionPromise = rosterPromise.then(rosters => {
+          if (requestToken !== state.analysisRequestToken) return [];
+          return Promise.all([
+            fetchAnalysisProjections(leagueInfo, rosters, loadJson, loadSchedule),
+            fetchSeasonOutlookData(leagueInfo, rosters, loadJson, loadSchedule),
+          ]);
+        });
+        const [rosters, users, tradedPicks, championData, standingsData, careerStatsByOwner, [projections, outlookData]] = await Promise.all([
+          rosterPromise,
           fetchWithCache(`https://api.sleeper.app/v1/league/${analyzerSources.rosterLeagueId}/users`),
           fetchWithCache(`https://api.sleeper.app/v1/league/${analyzerSources.rosterLeagueId}/traded_picks`),
           fetchAnalyzerChampionData(leagueInfo),
           standingsDataPromise,
           fetchAnalyzerCareerStats(leagueInfo),
-        ]);
-
-        // Both projection consumers share fresh weekly requests and the same bye
-        // schedule, while retaining their NFL-season and fantasy-season horizons.
-        let schedule;
-        const loadSchedule = () => schedule || (schedule = fetchProjectionSchedule(leagueInfo));
-        const [projections, outlookData] = await Promise.all([
-          fetchAnalysisProjections(leagueInfo, rosters, loadJson, loadSchedule),
-          fetchSeasonOutlookData(leagueInfo, rosters, loadJson, loadSchedule),
+          projectionPromise,
         ]);
         if (requestToken !== state.analysisRequestToken) return false;
         state.playerProjections = projections.values;

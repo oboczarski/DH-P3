@@ -53,3 +53,33 @@ test('Netlify revalidates only the maintained season CSV without changing unrela
   const otherData = headers.find(block => block.includes('for = "/data/*"'));
   assert.match(otherData, /max-age=86400, stale-while-revalidate=604800/);
 });
+
+test('the service worker rechecks the stats manifest and reuses each exact snapshot', async () => {
+  const source = fs.readFileSync(new URL('../DH_P2.53/service-worker.js', import.meta.url), 'utf8');
+  const listeners = {};
+  const stored = new Map();
+  const requests = [];
+  let hash = '1234567890abcdef';
+  const cache = { match: async request => stored.get(request.url), put: (request, response) => stored.set(request.url, response) };
+  vm.runInNewContext(source, {
+    URL, console,
+    self: { location: { origin: 'https://test.local' }, addEventListener(name, listener) { listeners[name] = listener; } },
+    caches: { open: async () => cache },
+    fetch: async url => {
+      requests.push(url);
+      return new Response(url.endsWith('index.json') ? hash : url);
+    },
+  });
+  const root = 'https://test.local/data/generated-2026/';
+  const read = file => new Promise(resolve => listeners.fetch({
+    request: { url: root + file, method: 'GET' }, respondWith: resolve,
+  }));
+  const first = await (await read('index.json')).text();
+  const file = `home-${first}.json`;
+  assert.equal(await (await read(file)).text(), root + file);
+  assert.equal(await (await read(file)).text(), root + file);
+  hash = 'abcdef1234567890';
+  assert.equal(await (await read('index.json')).text(), hash);
+  await read(`home-${hash}.json`);
+  assert.deepEqual(requests, ['index.json', file, 'index.json', `home-${hash}.json`].map(name => root + name));
+});

@@ -2523,20 +2523,24 @@ async function handleLeagueSelect() {
         const superflexSlots = rosterPositions.filter(p => p === 'SUPER_FLEX').length;
         const qbSlots = rosterPositions.filter(p => p === 'QB').length;
         state.isSuperflex = (superflexSlots > 0) || (qbSlots > 1);
-        const [rosters, users, tradedPicks, drafts] = await Promise.all([
+        const leagueSeason = parseInt(leagueInfo?.season, 10);
+        const usesCurrentRosters = pageType === 'rosters' && leagueSeason === 2026;
+        // Fetch card inputs alongside the selected league. The full local
+        // Game Logs model and calculated opponent ranks hydrate on demand.
+        const [rosters, users, tradedPicks, drafts, cardSnapshot] = await Promise.all([
             fetchWithCache(`${API_BASE}/league/${leagueId}/rosters`),
             fetchWithCache(`${API_BASE}/league/${leagueId}/users`),
             fetchWithCache(`${API_BASE}/league/${leagueId}/traded_picks`),
             fetchWithCache(`${API_BASE}/league/${leagueId}/drafts`),
+            usesCurrentRosters ? window.ensureRosters2026CardsLoaded() : null,
         ]);
 
-        const leagueSeason = parseInt(leagueInfo?.season, 10);
-        if (pageType === 'rosters' && leagueSeason === 2026 && typeof window.activateRosters2026GameLogs === 'function') {
+        if (usesCurrentRosters) {
             // Rosters card PPG shares the Game Logs summary's current-season
             // league scores and qualifier pool. Activation clears old matchup
             // data, so load this league's scores afterward, before the first card.
             setGameLogsSelectedSeason('2026');
-            await window.activateRosters2026GameLogs();
+            await window.activateRosters2026Cards(cardSnapshot);
             await ensureSleeperLiveStats();
             await fetchLeagueMatchupData(leagueId, state.currentNflWeek || 18);
         } else {
@@ -4886,7 +4890,8 @@ function isRostersGameLogsPpgRankQualified(stats) {
 // This cutoff also places the Rosters week divider; projection-only future
 // rows do not count, and an injured player's final game cannot shorten it.
 function getRostersGameLogsElapsedWeeks() {
-    const snapshot = state.currentGameLogsSeason === '2026' ? state.rosters2026GameLogs : state.rosters2025GameLogs;
+    const snapshot = state.currentGameLogsSeason === '2026'
+        ? state.rosters2026GameLogs ?? state.rosters2026Cards : state.rosters2025GameLogs;
     return Math.max(1, snapshot?.latestRecordedWeek || (state.currentGameLogsSeason === '2025' ? 18 : state.currentNflWeek || 1));
 }
 
@@ -9493,7 +9498,8 @@ function buildRosterAvailabilityBadge(player, injuryDesignation, includeBye = fa
     const season = String(league?.season || state.currentGameLogsSeason);
     const rawTeam = String(player.team || state.players[player.id]?.team || '').toUpperCase();
     const team = ({ WSH: 'WAS', JAC: 'JAX', LA: 'LAR' })[rawTeam] || rawTeam;
-    const scheduleOpponent = season === '2026' ? state.rosters2026GameLogs?.scheduleByTeam?.[team]?.[week] : null;
+    const currentSchedule = (state.rosters2026GameLogs ?? state.rosters2026Cards)?.scheduleByTeam;
+    const scheduleOpponent = season === '2026' ? currentSchedule?.[team]?.[week] : null;
     const matchup = scheduleOpponent == null ? getPlayerMatchupForWeek(player.id, week) : null;
     const isBye = includeBye && (scheduleOpponent != null
         ? String(scheduleOpponent).trim().toUpperCase() === 'BYE'

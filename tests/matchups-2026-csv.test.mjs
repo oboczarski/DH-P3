@@ -3,13 +3,34 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import { parse2026Csv, build2026MatchupData, load2026MatchupData, load2026WeeklyCsv, MATCHUP_TEAMS } from '../DH_P2.53/scripts/nfl-2026-matchups.js';
-import { load2026MatchupSources } from '../DH_P2.53/matchups/data/2026-csv.js';
+import { buildMatchupsPageSnapshot, load2026MatchupSources, loadMatchupsPageData } from '../DH_P2.53/matchups/data/2026-csv.js';
 import { get2026SheetCsvUrl } from '../DH_P2.53/scripts/nfl-2026-sheets.js';
 import { positions, schedule, weekly, fixtureFetch, response } from './fixtures/matchup-csv.mjs';
 const require = createRequire(import.meta.url);
 const Data = require('../DH_P2.53/matchups/data-model.js');
 const View = require('../DH_P2.53/matchups/chart-lab-model.js');
 const build = (csv = weekly) => build2026MatchupData({ weeklyRows: parse2026Csv(csv), scheduleRows: parse2026Csv(schedule) });
+
+test('Matchups loads the generated snapshot without CSV requests and keeps venue metrics and box scores', async () => {
+  const original = build();
+  const payload = JSON.stringify(buildMatchupsPageSnapshot(original));
+  const file = 'matchups-1234567890abcdef.json';
+  const requests = [];
+  const generated = await loadMatchupsPageData({ fetchImpl: async url => {
+    const name = new URL(url).pathname.split('/').at(-1);
+    requests.push(name);
+    if (name === 'index.json') return new Response(JSON.stringify({ files: { matchups: file } }));
+    assert.equal(name, file);
+    return new Response(payload);
+  } });
+  assert.deepEqual(requests, ['index.json', file]);
+  assert.deepEqual(generated.model.audit, original.model.audit);
+  assert.deepEqual(Data.selectResults(generated.model, { team: 'BAL' }), Data.selectResults(original.model, { team: 'BAL' }));
+  for (const venue of ['all', 'home', 'away']) {
+    const analyze = source => Data.matchupAnalysis(source.model, source.summary, { venue }, source.offenses).byTeam;
+    assert.deepEqual(analyze(generated), analyze(original));
+  }
+});
 
 test('matchup/defense Sheets URLs are retired, including indirect callers', () => {
   for (const name of ['DRK', 'FPF', 'FPFA', 'FPA', 'AllWKs', ' fpfa ']) assert.throws(() => get2026SheetCsvUrl(name), /2026_AllWKs.csv/);

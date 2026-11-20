@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import { buildStatsPositionalRanks } from '../DH_P2.53/scripts/datahub-stats-positional-ranks.js';
 import { getStatLabel } from '../DH_P2.53/scripts/datahub-comparison/comparisonStats.js';
 import { DATAHUB_STAT_SECTIONS } from '../DH_P2.53/scripts/datahub-stats-help.js';
+import { normalizeSheetHeader, parseDataHubStatValue } from '../DH_P2.53/scripts/datahub-stat-source.js';
 
 const datahub = fs.readFileSync(new URL('../DH_P2.53/scripts/DataHub.js', import.meta.url), 'utf8');
 const rosters = fs.readFileSync(new URL('../DH_P2.53/scripts/rosters-gamelogs.js', import.meta.url), 'utf8');
@@ -35,9 +36,10 @@ function datahubHarness() {
     FPTS_COLUMN: 'FPTS',
     isDataHubRookiesView: () => false,
     buildDataHubRowMeta: () => ({}),
+    normalizeSheetHeader, parseDataHubStatValue,
   });
   const names = [
-    'normalizeSheetHeader', 'parseDataHubStatValue', 'normalizeRow', 'sanitizeValue',
+    'normalizeRow', 'sanitizeValue',
     'toComparableNumber', 'isMissingValue', 'formatDisplayValue', 'formatCellValue',
     'formatDataHubPercentage', 'parseDataHubSeasonStatsRows', 'parseDataHubWeeklyStatsRows',
     'parseDataHubSeasonRanksRows', 'getDataHubGamesPlayedValue', 'computePpgValue', 'buildDataHubStatLabels',

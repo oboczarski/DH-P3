@@ -181,7 +181,7 @@ test('DataHub table, detail and Career consumers share one in-flight season snap
   const ctx = vm.createContext({
     parseCsv, state: { stats2026: { loaded: false } },
     rebuildDataHubRows() { rebuilds++; },
-    load2026SourceData: async () => {
+    loadDataHub2026Season: async () => {
       requests++;
       if (fail) throw new Error('Season CSV unavailable');
       await held;
@@ -189,7 +189,7 @@ test('DataHub table, detail and Career consumers share one in-flight season snap
     },
   });
   vm.runInContext(source.slice(source.indexOf('async function ensureDataHub2026Data()'),
-    source.indexOf('// Share only this page\'s background CSV/projection work')), ctx);
+    source.indexOf('// The generated index populates the period menu')), ctx);
   const pending = [ctx.ensureDataHub2026Data(), ctx.ensureDataHub2026Data(), ctx.ensureDataHub2026Data()];
   assert.equal(requests, 1);
   release();
@@ -355,7 +355,7 @@ test('DataHub skips completed PROJ columns and isolates a missing column while k
   assert.deepEqual(data.weeksWithResults, [10]);
 });
 
-test('DataHub background preparation is single-flight and cannot block initial Stats readiness', async () => {
+test('DataHub renders the 2026 Stats grid while the 2025 archive and PROJ export are pending', async () => {
   let release;
   const held = new Promise((resolve) => { release = resolve; });
   let csvCalls = 0;
@@ -363,21 +363,23 @@ test('DataHub background preparation is single-flight and cannot block initial S
   let hidden = false;
   const ctx = vm.createContext({
     parseCsv, state: { statsSeason: '2026' }, console: { warn() {}, error() {} },
-    load2026WeeklyCsvData: async () => { csvCalls++; return { weeklyRows: {}, weekErrors: {}, latestRecordedWeek: 4 }; },
+    load2026DataManifest: async () => ({ recordedWeeks: [4], latestRecordedWeek: 4 }),
+    load2026WeeklyCsvData: async () => { csvCalls++; },
     load2026ProjectionSourceData: async () => { projectionCalls++; await held; return { projectionRows: {}, projectionErrors: {} }; },
-    fetchCsvText: async () => '', applyCsvText() {}, ensureDataHub2026Data: async () => ({}),
+    fetchCsvText: async () => { await held; return ''; }, applyCsvText() {}, ensureDataHub2026Data: async () => ({}),
     rebuildDataHubWeeklyStatsRows() {}, syncUiState() {}, refreshGrid() {},
     hideOverlay() { hidden = true; }, ensureDataHubSupplementalData: async () => {}, rebuildDataHubRows() {}, ensureDataHubRookieData: async () => {},
   });
   vm.runInContext('let dataHub2026ProjectionPreparationPromise = null;'
+    + 'let dataHubHistoricalSeasonPromise = null;'
     + source.slice(source.indexOf('function prepareDataHub2026Projections()'), source.indexOf('function getDataHubStatsRowsForSeason('))
-    + source.slice(source.indexOf('async function loadInitialData()'), source.indexOf('// Keep this request shared by the table')), ctx);
+    + source.slice(source.indexOf('async function loadInitialData()'), source.indexOf('// Stats, Game Logs and Compare share the season snapshot.')), ctx);
   const pending = ctx.prepareDataHub2026Projections();
   assert.equal(ctx.prepareDataHub2026Projections(), pending);
   await ctx.loadInitialData();
-  assert.equal(hidden, true, 'Stats must become ready while projection response is still pending');
+  assert.equal(hidden, true, 'Stats must become ready while nonessential responses are pending');
   release();
   await pending;
-  assert.equal(csvCalls, 1);
+  assert.equal(csvCalls, 0, 'The build index supplies the projection cutoff without loading weekly rows');
   assert.equal(projectionCalls, 1);
 });
