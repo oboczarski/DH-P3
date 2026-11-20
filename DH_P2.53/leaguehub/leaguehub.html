@@ -35,9 +35,10 @@
   <link rel="shortcut icon" href="../assets/icons/favicon.ico?v=20250926r5c" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <!-- Chart.js retains the existing radar; Apache ECharts renders the redesigned bars. -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js"></script>
-  <script src="../scripts/vendor/echarts-6.0.0.min.js"></script>
+  <!-- LeagueHub initializes after DOMContentLoaded. Let the page markup parse
+       while Chart.js and ECharts download for the existing analysis charts. -->
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js"></script>
+  <script defer src="../scripts/vendor/echarts-6.0.0.min.js"></script>
   <!-- Cloudflare Web Analytics: tracks visits for the current Dynasty Hub Cloudflare property; kept deferred so it does not block app rendering. -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
     data-cf-beacon='{"token": "0a02235754b046f389fb57f26b46f13a"}'></script>
@@ -508,7 +509,7 @@
   </div>
 
   <script src="../scripts/leaguehub-analysis.js?v=DH3.50-weekly-ros"></script>
-  <script src="../scripts/leaguehub.js?v=DH3.50-weekly-ros"></script>
+  <script src="../scripts/leaguehub.js?v=DH3.82-startup"></script>
   <script defer src="../scripts/app.js?v=DH3.49n-local-weekly-stats"></script>
 </body>
 

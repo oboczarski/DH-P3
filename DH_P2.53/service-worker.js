@@ -173,7 +173,7 @@
 // Refresh DM-only comparisons, directed rounded arrows, initialed names and
 // real CSS-styled scoring chips together with their renderer and stylesheet.
 // Refresh the three first-view loaders together with their versioned data.
-const CACHE_NAME = 'DH3.81-generated-2026';
+const CACHE_NAME = 'DH3.82-matchups-leaguehub-startup';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

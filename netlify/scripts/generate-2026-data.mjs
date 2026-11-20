@@ -4,7 +4,8 @@ import { buildDashboardPlayers, buildDashboardSnapshot, parseDashboardCsv } from
 import { get2026WeeksOfData } from '../../DH_P2.53/scripts/datahub-2026-data.js';
 import { normalizeSheetHeader, parseDataHubStatValue } from '../../DH_P2.53/scripts/datahub-stat-source.js';
 import { buildStatsPositionalRanks } from '../../DH_P2.53/scripts/datahub-stats-positional-ranks.js';
-import { parse2026Csv } from '../../DH_P2.53/scripts/nfl-2026-matchups.js';
+import { build2026MatchupData, parse2026Csv } from '../../DH_P2.53/scripts/nfl-2026-matchups.js';
+import { buildMatchupsPageSnapshot } from '../../DH_P2.53/matchups/data/2026-csv.js';
 import { buildRanks, hasRecordedStats, isPlayer, normalizeTeam, numberValue, parseStats } from '../../DH_P2.53/scripts/rosters-2026-stats.js';
 
 const dataPath = new URL('../../DH_P2.53/data/', import.meta.url);
@@ -20,7 +21,8 @@ const rawRows = parse2026Csv(seasonCsv).filter(isPlayer);
 if (!rawRows.length || rawRows.some(row => row.SZN !== '2026' || !('GM_P' in row) || !('FPT_PPR' in row))) {
   throw new Error('Expected 2026 season player stats.');
 }
-const weeklyRows = parse2026Csv(weeklyCsv).filter(isPlayer);
+const allWeeklyRows = parse2026Csv(weeklyCsv);
+const weeklyRows = allWeeklyRows.filter(isPlayer);
 if (!weeklyRows.length || weeklyRows.some(row => !/^(?:[1-9]|1[0-8])$/.test(row.WK))) {
   throw new Error('Expected 2026 weekly player stats with valid WK values.');
 }
@@ -88,6 +90,13 @@ const rosters = {
 };
 
 const snapshots = { home: buildDashboardSnapshot(buildDashboardPlayers(parseDashboardCsv(seasonCsv))), datahub, rosters };
+try {
+  snapshots.matchups = buildMatchupsPageSnapshot(build2026MatchupData({ weeklyRows: allWeeklyRows, scheduleRows: schedule }));
+} catch (error) {
+  // A Matchups-only validation error should surface on that page without
+  // blocking publication of the other independently generated snapshots.
+  console.warn(`Skipping generated Matchups data: ${error.message}`);
+}
 await mkdir(output, { recursive: true });
 async function publishFile(name, contents) {
   const temporary = new URL(`${randomUUID()}.tmp`, output);

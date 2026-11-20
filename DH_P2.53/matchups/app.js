@@ -590,8 +590,8 @@
     try {
       // One local snapshot supplies all charts, Players Faced box scores and
       // offense/defense summaries. Future projections cannot advance coverage.
-      const { load2026MatchupSources } = await import("./data/2026-csv.js?v=DH3.72-local-matchups");
-      const sources = await load2026MatchupSources();
+      const { loadMatchupsPageData } = await import("./data/2026-csv.js?v=DH3.82-startup");
+      const sources = await loadMatchupsPageData();
       if (!Data || sources?.season !== 2026 || !sources.model || !sources.summary || !sources.offenses) throw new Error("The 2026 local matchup data is unavailable.");
       model = sources.model; summary = sources.summary; offenses = sources.offenses; readURL();
       buildPickers();
