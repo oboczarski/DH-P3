@@ -172,8 +172,8 @@
 // margin together with the compact, prefix-free player-name header styles.
 // Refresh DM-only comparisons, directed rounded arrows, initialed names and
 // real CSS-styled scoring chips together with their renderer and stylesheet.
-// Refresh Data Hub Compare's scoring charts, rank bars and weekly chip CSS together.
-const CACHE_NAME = 'DH3.84-compare-scoring2';
+// Refresh the new Scoring Profile and Stat Matchups renderers with their CSS.
+const CACHE_NAME = 'DH3.85-compare-charts';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
