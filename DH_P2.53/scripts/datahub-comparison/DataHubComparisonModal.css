@@ -1624,7 +1624,7 @@ body[data-page="datahub"] .dh-compare-body {
   color: var(--compare-text);
 }
 
-body[data-page="datahub"] .dh-compare-body :is(h3, h4, p, dl, dd) { margin: 0; }
+body[data-page="datahub"] .dh-compare-body :is(h3, h4, p, dl, dd) {margin: 0;}
 
 body[data-page="datahub"] :is(.dh-compare-weekly, .dh-compare-season, .dh-compare-radars) {
   display: grid;
@@ -2259,8 +2259,8 @@ body[data-page="datahub"] .dh-compare-season-name {
   gap: 6px;
   min-width: 0;
   color: var(--season-light);
-  font-size: clamp(0.74rem, 2.75vw, 0.9rem);
-  font-weight: 650;
+  font-size: clamp(0.74rem, 4.75vw, 0.93rem);
+  font-weight: 500;
   line-height: 1.14;
   overflow-wrap: anywhere;
 }
@@ -2291,9 +2291,9 @@ body[data-page="datahub"] .dh-compare-score-gauges {
 body[data-page="datahub"] .dh-compare-score-gauge {
   display: grid;
   grid-template-rows: 1fr auto auto;
-  gap: 5px;
+  gap: 0;
   min-width: 0;
-  padding: 8px clamp(5px, 1.5vw, 15px) 10px;
+  padding: 2px clamp(2px, 2vw, 4px) 6px;
   border: 1px solid color-mix(in srgb, var(--season-accent) 26%, var(--compare-border));
   border-radius: 12px;
   background:
@@ -2308,6 +2308,7 @@ body[data-page="datahub"] .dh-compare-score-gauge:only-child { grid-column: 1 / 
 body[data-page="datahub"] .dh-compare-score-gauge > .dh-compare-season-name {
   justify-content: center;
   min-height: 2.1em;
+  font-size: clamp(0.74rem, 4.75vw, 0.9rem);
   text-align: center;
 }
 
@@ -2391,8 +2392,8 @@ body[data-page="datahub"] .dh-compare-score-gauge__stats {
   gap: 2px;
   width: min(100%, 284px);
   justify-self: center;
-  margin: 1px 0 0;
-  padding-top: 7px;
+  margin: 4px 0 0 !important;
+  padding-top: 5px;
   border-top: 1px solid #a8c1df26;
   text-align: center;
 }
@@ -2544,7 +2545,7 @@ body[data-page="datahub"] .dh-compare-rank-side__readout {
   gap: 0px;
   max-width: var(--rank-readout);
   text-align: center;
-  line-height: 1;
+  line-height: 0.99;
   overflow-wrap: anywhere;
 }
 
@@ -2552,7 +2553,7 @@ body[data-page="datahub"] .dh-compare-rank-side[data-season-slot="1"] .dh-compar
 
 body[data-page="datahub"] .dh-compare-rank-side__readout strong {
   color: var(--season-light);
-  font-size: clamp(0.75rem, 2vw, 0.97rem);
+  font-size: clamp(0.7rem, 2vw, 0.97rem);
   font-weight: 670;
   white-space: nowrap;
 }
@@ -2569,7 +2570,7 @@ body[data-page="datahub"] .dh-compare-rank-side__chevrons {
   flex: 0 0 var(--rank-chevron);
   width: var(--rank-chevron);
   height: var(--rank-chevron);
-  color: #8c9ebc70;
+  color: #8c9ebc49;
   fill: none;
   stroke: currentColor;
   stroke-width: 2.15;
