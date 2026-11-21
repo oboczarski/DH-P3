@@ -7383,7 +7383,7 @@ function closeDataHubChartModal({ restoreFocus = true } = {}) {
 
 const DATAHUB_COMPARISON_REACT_URL = "https://cdn.jsdelivr.net/npm/react@18.3.1/+esm";
 const DATAHUB_COMPARISON_REACT_DOM_URL = "https://cdn.jsdelivr.net/npm/react-dom@18.3.1/client/+esm";
-const DATAHUB_COMPARISON_STYLES_URL = "../scripts/datahub-comparison/DataHubComparisonModal.css?v=DH3.85-compare-charts";
+const DATAHUB_COMPARISON_STYLES_URL = "../scripts/datahub-comparison/DataHubComparisonModal.css?v=DH3.86-compare-gauges";
 const DATAHUB_COMPARISON_WEEKLY_STAT_KEYS = Object.freeze([
   "fpts",
   "pass_yd",
@@ -7467,7 +7467,7 @@ async function ensureDataHubComparisonModule() {
     dataHubComparisonModulePromise = Promise.all([
       import(DATAHUB_COMPARISON_REACT_URL),
       import(DATAHUB_COMPARISON_REACT_DOM_URL),
-      import("./datahub-comparison/DataHubComparisonModal.js?v=DH3.85-compare-charts"),
+      import("./datahub-comparison/DataHubComparisonModal.js?v=DH3.86-compare-gauges"),
     ])
       .then(([reactModule, reactDomModule, comparisonModule]) => {
         const React = reactModule.default || reactModule;
@@ -8028,6 +8028,14 @@ function buildDataHubComparisonPlayer(row, combinedWeeklyStats = getDataHubCombi
   const team = String(meta.team || row.TM || "FA").trim().toUpperCase() || "FA";
   const seasonStats = buildDataHubComparisonSeasonStats(playerId, row);
   const sourceSeasonRanks = buildDataHubComparisonSeasonRanks(playerId);
+  // The new matchup rows for PPG, FUM, and DP% use the Stats table's
+  // three-game eligibility or lower-is-better ordering, as applicable.
+  const tableRanks = state.statsPositionalRanksBySeason?.[state.statsSeason]?.get(row);
+  const seasonMatchupRanks = {
+    ppg: tableRanks?.PPG ?? null,
+    fum: tableRanks?.FUM ?? null,
+    dp_pct: tableRanks?.["DP%"] ?? null,
+  };
 
   return {
     id: playerId,
@@ -8046,6 +8054,7 @@ function buildDataHubComparisonPlayer(row, combinedWeeklyStats = getDataHubCombi
     hasGameLogsSupport: true,
     searchText: [name, fullName, pos, team].filter(Boolean).join(" ").toLowerCase(),
     seasonStats,
+    seasonMatchupRanks,
     sourceSeasonRanks,
     weeklySeries: buildDataHubComparisonWeeklySeries(playerId, combinedWeeklyStats),
   };
@@ -8095,6 +8104,10 @@ function buildDataHubComparisonSeasonStats(playerId, row) {
   // Include the count-derived percentage before ranking so mixed-position
   // efficiency bars compare the same rate the row displays.
   setDataHubComparisonRatio(stats, "imp_per_opp", "imp", "opp", 100);
+  // These receiving fields are already normalized on the season Stats row.
+  for (const column of ["AY", "recIMP/R"]) {
+    setDataHubComparisonStat(stats, column, row[column]);
+  }
   return stats;
 }
 

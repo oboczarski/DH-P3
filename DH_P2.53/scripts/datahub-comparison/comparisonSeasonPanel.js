@@ -1,64 +1,67 @@
 import {
   COMPARISON_RADAR_MAX_RANK_BY_POS,
+  COMPARISON_STAT_DEFINITIONS,
   formatComparisonValue,
   getComparisonPositions,
   getPlayerName,
   getStatDefinition,
+  getStatLabel,
   toFiniteNumber,
 } from "./comparisonStats.js?v=DH3.81-compare";
+import { getDataHubStatDefinition } from "../datahub-stats-help.js?v=DH3.64a-air-yards-icon";
 import { getWeeklyPalette } from "./comparisonChartOptions.js?v=DH3.82-compare-previews";
 
-const SEASON_METRIC_LABELS = Object.freeze({
-  pass_yd: "Passing yards", pass_td: "Passing TDs", pass_cmp: "Completions", pass_rtg: "Passer rating",
-  cmp_pct: "Completion rate", epa_per_db: "EPA / dropback", cpoe: "CPOE", ttt: "Time to throw", prs_pct: "Pressure rate",
-  rush_yd: "Rushing yards", rush_td: "Rushing TDs", rush_att: "Carries", ypc: "Yards / carry",
-  yco_per_att: "YAC / carry", mtf_per_att: "Missed tackles / carry", expl_ru_pct: "Explosive rush rate",
-  rec_tgt: "Targets", rec: "Receptions", rec_yd: "Receiving yards", rec_td: "Receiving TDs", rec_fd: "Receiving first downs",
-  rr: "Routes run", yprr: "Yards / route", ypr: "Yards / reception", ts_per_rr: "Target share",
-  first_down_rec_rate: "First downs / route", rec_yms: "Receiving yards share",
-  fpoe: "Points over expected", yds_total: "Total yards", imp: "Impact plays", imp_per_g: "Impact plays / game",
-  snp_pct: "Snap share", imp_per_opp: "Impact plays / opportunity",
-});
+// Stat Matchups groups the season fields by their position and role. Mixed
+// comparisons use the shared families; any field absent for both players is
+// skipped, including current-season columns the 2025 archive never published.
+const PASSING = {
+  production: [
+    "pass_att", "pass_cmp", "pass_yd", "pass_td", "pass_fd", "epa",
+    "pass_imp", "pass_sack", "pass_int", "dropbacks",
+  ],
+  efficiency: [
+    "cmp_pct", "pass_rtg", "epa_per_db", "cpoe", "ttt", "prs_pct", "blitz_pct",
+    "dp_pct", "adjusted_ypa", "pa_ypg", "pass_imp_per_att", "team_pass_pct",
+  ],
+};
 
-// The matchup's center column stays narrow on phones. Full names stay
-// available in the row heading's accessible name and on wider screens.
-const COMPACT_METRIC_LABELS = Object.freeze({
-  pass_yd: "Pass yds", pass_td: "Pass TDs", pass_cmp: "Comp", pass_rtg: "Pass rtg",
-  cmp_pct: "CMP%", epa_per_db: "EPA/DB", ttt: "TTT", prs_pct: "PRS%",
-  rush_yd: "Rush yds", rush_td: "Rush TDs", ypc: "YPC", yco_per_att: "YAC/att",
-  mtf_per_att: "MTF/att", expl_ru_pct: "Expl rush%",
-  rec_tgt: "Targets", rec: "Rec", rec_yd: "Rec yds", rec_td: "Rec TDs", rec_fd: "Rec 1D",
-  rr: "Routes", yprr: "Yds/route", ypr: "Yds/rec", ts_per_rr: "TGT share",
-  first_down_rec_rate: "1D/route", rec_yms: "Rec yd share",
-  fpoe: "FPOE", yds_total: "Total yds", imp: "Impact", imp_per_g: "IMP/game",
-  snp_pct: "Snap share", imp_per_opp: "IMP/opp",
-});
+const SHARED_RUSHING = {
+  production: ["rush_att", "rush_yd", "rush_td", "rush_fd"],
+  efficiency: ["ypc", "ru_ypg"],
+};
+
+const RUSHING = {
+  production: [...SHARED_RUSHING.production, "mtf", "rush_yac", "rush_ybc", "ryoe", "rz_att", "gl_att"],
+  efficiency: [
+    "ypc", "elu", "mtf_per_att", "yco_per_att", "expl_ru_pct", "ryoe_per_att", "ybc_per_att",
+    "ru_ypg", "car_per_g", "rush_yms", "rush_tms",
+  ],
+};
 
 const RECEIVING = {
-  production: ["rec_yd", "rec_td", "rec", "rec_tgt", "rec_fd", "rr"],
-  efficiency: ["yprr", "ypr", "ts_per_rr", "first_down_rec_rate", "rec_yms", "imp_per_g"],
+  production: ["rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd", "rec_yar", "rr", "rz_tgt", "tgt_10_plus", "AY"],
+  efficiency: [
+    "ts_per_rr", "yprr", "tprr", "first_down_rec_rate", "rec_ypg", "tgt_per_g", "recIMP/R",
+    "rec_yacr", "ay_pct", "ay_per_tgt", "ypr", "rec_per_g", "recs_pct", "rec_yms", "rec_tms",
+  ],
 };
 
-const METRICS = {
-  QB: {
-    production: ["pass_yd", "pass_td", "pass_cmp", "rush_yd", "rush_td", "imp"],
-    efficiency: ["epa_per_db", "cpoe", "pass_rtg", "cmp_pct", "ttt", "prs_pct"],
-  },
-  RB: {
-    production: ["rush_yd", "rush_td", "rush_att", "rec_yd", "rec", "imp"],
-    efficiency: ["ypc", "yco_per_att", "mtf_per_att", "expl_ru_pct", "yprr", "imp_per_g"],
-  },
-  WR: RECEIVING,
-  TE: RECEIVING,
-  SKILL: {
-    production: ["yds_total", "rec_yd", "rec_td", "rec", "rec_tgt", "imp"],
-    efficiency: ["yprr", "ypr", "ts_per_rr", "first_down_rec_rate", "snp_pct", "imp_per_g"],
-  },
-  MIXED: {
-    production: ["yds_total", "imp", "fpoe", "rush_yd", "rush_td"],
-    efficiency: ["imp_per_opp", "imp_per_g", "snp_pct"],
-  },
+const GENERAL = {
+  production: ["yds_total", "td_total", "opp", "imp", "fum"],
+  efficiency: ["snp_pct", "ypg", "imp_per_g", "imp_per_opp", "ys_pct", "tds_pct", "fpoe"],
 };
+
+const RECEIVER_GROUPS = [RECEIVING, SHARED_RUSHING, GENERAL];
+const MATCHUP_GROUPS = {
+  QB: [PASSING, SHARED_RUSHING, GENERAL],
+  RB: [RUSHING, RECEIVING, GENERAL],
+  WR: RECEIVER_GROUPS,
+  TE: RECEIVER_GROUPS,
+  SKILL: RECEIVER_GROUPS,
+  MIXED: [SHARED_RUSHING, GENERAL],
+};
+
+const MATCHUP_PRECISE_RATES = new Set(["tprr", "first_down_rec_rate", "recIMP/R"]);
 
 function getSeasonValue(player, key) {
   return toFiniteNumber(player.seasonStats?.[key]);
@@ -66,17 +69,24 @@ function getSeasonValue(player, key) {
 
 export function buildSeasonMetricRows(players, mode) {
   const positions = getComparisonPositions(players);
-  const set = positions.length === 1 ? METRICS[positions[0]] : positions.includes("QB") ? METRICS.MIXED : METRICS.SKILL;
-  const rows = (set || METRICS.MIXED)[mode].flatMap((key) => {
+  const positionGroup = positions.length === 1 ? positions[0] : positions.includes("QB") ? "MIXED" : "SKILL";
+  const groups = MATCHUP_GROUPS[positionGroup] || MATCHUP_GROUPS.MIXED;
+  const keys = [mode === "production" ? "fpts" : "ppg", ...groups.flatMap((group) => group[mode])];
+  const rows = keys.flatMap((key) => {
     const values = players.map((player) => getSeasonValue(player, key));
     if (values.every((value) => value === null)) return [];
     // Use Data Hub's qualified positional ranks. The raw values stay visible
     // even when a player has no rank, and a recorded zero can still be ranked.
     const ranks = players.map((player, index) => {
-      const rank = toFiniteNumber(player.seasonPosRanks?.[key]);
+      const rankSource = Object.hasOwn(player.seasonMatchupRanks || {}, key) ? player.seasonMatchupRanks : player.seasonPosRanks;
+      const rank = toFiniteNumber(rankSource?.[key]);
       return values[index] !== null && Number.isInteger(rank) && rank > 0 ? rank : null;
     });
-    return [{ key, values, label: SEASON_METRIC_LABELS[key], ranks }];
+    // Use the glossary's primary abbreviation at every width. Some entries
+    // also list alternate labels for other views after a spaced slash.
+    const definition = getDataHubStatDefinition(key);
+    const label = definition?.abbr.split(" / ")[0] ?? getStatLabel(key);
+    return [{ key, values, label, name: definition?.name ?? label, ranks }];
   });
 
   // Keep one rank scale across the category so the same rank always occupies
@@ -100,8 +110,7 @@ export function buildSeasonMetricRows(players, mode) {
 }
 
 export function buildScoringProfile(players) {
-  // Both scoring views share a points scale for PPG and top-three-game
-  // ceilings. Season totals and games have their own units in the readouts.
+  // The scoring gauges use one points scale for the PPG arc and ceiling marker.
   const rows = players.map((player) => ({
     player,
     ppg: getSeasonValue(player, "ppg"),
@@ -116,11 +125,17 @@ export function buildScoringProfile(players) {
 function pointsScale(scores) {
   const low = Math.min(0, ...scores);
   const high = Math.max(0, ...scores);
-  const step = Math.max(5, Math.ceil((high - low) / 20) * 5);
-  const min = Math.floor(low / step) * step;
-  const max = Math.max(min + step, Math.ceil(high / step) * step);
+  // Round to a readable step that fits at least four full intervals.
+  // Both endpoints get labels, including in a tiny or all-zero sample.
+  const target = Math.max(1, (high - low) / 4);
+  const magnitude = 10 ** Math.floor(Math.log10(target));
+  const step = [5, 2.5, 2, 1].find((size) => size * magnitude <= target) * magnitude;
+  const first = Math.floor(low / step);
+  const last = Math.max(first + 4, Math.ceil(high / step));
+  const min = first * step;
+  const max = last * step;
   return {
-    ticks: Array.from({ length: Math.round((max - min) / step) + 1 }, (_, index) => min + index * step),
+    ticks: Array.from({ length: last - first + 1 }, (_, index) => (first + index) * step),
     fraction: (value) => (value - min) / (max - min),
   };
 }
@@ -168,9 +183,23 @@ export function buildScoringSpread(players, weeks) {
       const lower = Math.floor(index);
       return games[lower].score + (games[Math.ceil(index)].score - games[lower].score) * (index - lower);
     };
-    return { player, games, low: percentile(0.25), median: percentile(0.5), high: percentile(0.75) };
+    return { player, games, ceiling: getSeasonValue(player, "ceiling"), low: percentile(0.25), median: percentile(0.5), high: percentile(0.75) };
   });
-  return { rows, ...pointsScale(rows.flatMap(({ games }) => games.map(({ score }) => score))) };
+  // The published season ceiling lives on the same axis as the weekly scores,
+  // even if the loaded points don't reach that value.
+  const scores = rows.flatMap(({ games, ceiling }) => [ceiling, ...games.map(({ score }) => score)]).filter(Number.isFinite);
+  return { rows, ...pointsScale(scores) };
+}
+
+function formatMatchupValue({ key, label }, value) {
+  if (value === null) return "—";
+  if (COMPARISON_STAT_DEFINITIONS[key] && !MATCHUP_PRECISE_RATES.has(key)) return formatMetric(key, value);
+  const digits = MATCHUP_PRECISE_RATES.has(key) ? 3 : 2;
+  const display = value.toLocaleString("en-US", {
+    maximumFractionDigits: digits,
+    signDisplay: key === "epa" ? "exceptZero" : "auto",
+  });
+  return label.endsWith("%") || key === "pass_imp_per_att" ? `${display}%` : display;
 }
 
 function formatMetric(key, value) {
@@ -180,42 +209,19 @@ function formatMetric(key, value) {
   return formatComparisonValue(key, value, { compact: unit !== "s" });
 }
 
-const SCORING_FIELDS = [
-  { key: "ppg", label: "PPG" },
-  { key: "ceiling", label: "Ceiling" },
-];
+const SCORE_GAUGE_CENTER = { x: 86, y: 82 };
+const SCORE_GAUGE_RADIUS = 60;
 
-const ROSE_CENTER = { x: 166, y: 119 };
-
-function rosePoint(radius, angle) {
-  const radians = angle * Math.PI / 180;
+function gaugePoint(fraction, radius = SCORE_GAUGE_RADIUS) {
+  const angle = Math.PI * (1 - fraction);
   return [
-    ROSE_CENTER.x + radius * Math.sin(radians),
-    ROSE_CENTER.y - radius * Math.cos(radians),
-  ].join(" ");
+    SCORE_GAUGE_CENTER.x + radius * Math.cos(angle),
+    SCORE_GAUGE_CENTER.y - radius * Math.sin(angle),
+  ];
 }
 
-function roseArc(radius, start, end) {
-  return `M${rosePoint(radius, start)} A${radius} ${radius} 0 0 1 ${rosePoint(radius, end)}`;
-}
-
-function roseSector(inner, outer, start, end) {
-  return `${roseArc(outer, start, end)} L${rosePoint(inner, end)} A${inner} ${inner} 0 0 0 ${rosePoint(inner, start)}Z`;
-}
-
-function positionTowerLabels(row, yFor, top, bottom) {
-  const labels = SCORING_FIELDS.flatMap(({ key }) => row[key] === null ? [] : [{
-    key, value: row[key], scoreY: yFor(row[key]), labelY: yFor(row[key]),
-  }]).sort((a, b) => a.scoreY - b.scoreY);
-  // Tight averages and ceilings share the tower but keep independently
-  // readable labels. Their connector lines retain the exact score heights.
-  const [upper, lower] = labels;
-  const spacing = 17;
-  if (lower && lower.scoreY - upper.scoreY < spacing) {
-    upper.labelY = Math.min(bottom - spacing, Math.max(top, (upper.scoreY + lower.scoreY - spacing) / 2));
-    lower.labelY = upper.labelY + spacing;
-  }
-  return labels;
+function gaugeArc(from, to, radius = SCORE_GAUGE_RADIUS) {
+  return `M${gaugePoint(from, radius).join(" ")} A${radius} ${radius} 0 0 1 ${gaugePoint(to, radius).join(" ")}`;
 }
 
 function placeSpreadMarks(games, fraction) {
@@ -244,212 +250,85 @@ export function createSeasonComparison(React) {
       h("i", { "aria-hidden": true }), getPlayerName(player));
   }
 
-  function ScoringRose({ profile, palettes, description }) {
-    const inner = 27;
-    const outer = 95;
-    const radiusFor = (value) => inner + profile.fraction(value) * (outer - inner);
-    const origin = radiusFor(0);
-    const solo = profile.rows.length === 1;
-    const petals = SCORING_FIELDS.flatMap(({ key, label }, fieldIndex) => profile.rows.map((row, slot) => {
-      const onLeft = (solo ? fieldIndex : slot) === 0;
-      const angle = (onLeft ? -1 : 1) * (solo ? 90 : fieldIndex === 0 ? 46 : 134);
-      const value = row[key];
-      return {
-        id: `dh-compare-rose-${key}-${slot}`, key, label, slot, value, onLeft,
-        start: angle - 30, end: angle + 30, valueY: solo ? 132 : fieldIndex === 0 ? 76 : 175,
-      };
-    }));
+  function ScoringGauge({ row, slot, palette, profile }) {
+    const { player, ppg, ceiling, fpts, games } = row;
+    const { ticks, fraction } = profile;
+    const track = gaugeArc(0, 1);
+    const zero = fraction(0);
+    const score = ppg === null ? zero : fraction(ppg);
+    const from = Math.min(zero, score);
+    const to = Math.max(zero, score);
+    const [startX, startY] = gaugePoint(from);
+    const [endX, endY] = gaugePoint(to);
+    const [scoreX, scoreY] = gaugePoint(score);
+    const gradientId = `dh-compare-score-fill-${slot}`;
+    const hasFill = to > from;
+    const ceilingPosition = ceiling === null ? null : fraction(ceiling);
+    const [ceilingX, ceilingY] = ceilingPosition === null ? [] : gaugePoint(ceilingPosition, 76);
+    const metrics = [["ceiling", "Ceiling", ceiling], ["fpts", "FPTS", fpts], ["games_played", "Games", games]];
 
-    return h("figure", { className: "dh-compare-score-view dh-compare-score-view--rose" },
-      h("figcaption", null, "Scoring rose"),
+    return h("article", { className: "dh-compare-score-gauge", "data-season-slot": slot },
+      h(PlayerKey, { player, slot }),
       h("svg", {
-        className: "dh-compare-score-plot", viewBox: "0 0 332 238", role: "img",
-        "aria-label": `Radial columns for PPG and ceiling on the same points scale. ${description}`,
+        className: "dh-compare-score-gauge__plot", viewBox: "0 0 172 111", role: "img",
+        "aria-label": `${getPlayerName(player)}: ${formatMetric("ppg", ppg)} PPG, ceiling ${formatMetric("ceiling", ceiling)}. Scale ${ticks[0]} to ${ticks.at(-1)} PPR points.`,
       },
-        // Each equal-angle petal grows by radius from the same true zero.
-        // Fill the player's full spectrum over that radius, even in a short petal.
-        h("defs", null, petals.filter(({ value }) => value !== null && value !== 0).map(({ id, slot, value }) => {
-          const radius = radiusFor(value);
-          const low = Math.min(origin, radius);
-          const high = Math.max(origin, radius);
-          return h("radialGradient", { key: id, id, gradientUnits: "userSpaceOnUse", cx: ROSE_CENTER.x, cy: ROSE_CENTER.y, r: high },
-            gradientStops(palettes[slot]).map(({ color, offset }) => h("stop", {
-              key: offset, offset: (low + (high - low) * offset) / high, stopColor: color,
-            })),
-          );
-        })),
-        ...petals.map(({ id, start, end }) => h("path", {
-          key: `track-${id}`, className: "dh-compare-rose__track", d: roseSector(inner, outer, start, end),
-        })),
-        ...profile.ticks.map((tick) => h("circle", {
-          key: `ring-${tick}`, className: `dh-compare-score-grid${tick === 0 ? " is-zero" : ""}`,
-          cx: ROSE_CENTER.x, cy: ROSE_CENTER.y, r: radiusFor(tick),
-        })),
-        ...petals.map(({ id, slot, start, end, value }) => {
-          if (value === null) return null;
-          const radius = radiusFor(value);
-          return h("g", { key: `petal-${id}`, "data-season-slot": slot },
-            value === 0 ? null : h("path", {
-              className: "dh-compare-rose__petal",
-              d: roseSector(Math.min(origin, radius), Math.max(origin, radius), start, end), fill: `url(#${id})`,
-            }),
-            h("path", { className: "dh-compare-rose__edge", d: roseArc(radius, start, end) }),
-          );
+        // Fill the semicircle only between zero and the average. The ceiling
+        // is its own marker on the same scale, even for signed scoring data.
+        hasFill ? h("defs", null, h("linearGradient", {
+          id: gradientId, gradientUnits: "userSpaceOnUse", x1: startX, y1: startY, x2: endX, y2: endY,
+        }, gradientStops(palette).map(({ color, offset }) => h("stop", { key: offset, offset, stopColor: color })))) : null,
+        h("path", { className: "dh-compare-score-gauge__rim", d: track }),
+        h("path", { className: "dh-compare-score-gauge__track", d: track }),
+        ticks.map((tick) => {
+          const position = fraction(tick);
+          return h("path", {
+            key: tick, className: `dh-compare-score-gauge__tick${tick === 0 ? " is-zero" : ""}`,
+            d: `M${gaugePoint(position, 73.5).join(" ")} L${gaugePoint(position, tick === 0 ? 80 : 77.5).join(" ")}`,
+          });
         }),
-        h("circle", { className: "dh-compare-rose__hub", cx: ROSE_CENTER.x, cy: ROSE_CENTER.y, r: 18 }),
-        h("text", { className: "dh-compare-score-axis", x: ROSE_CENTER.x, y: ROSE_CENTER.y + 4, textAnchor: "middle" }, "PPR"),
-        ...profile.ticks.map((tick) => h("text", {
-          key: `tick-${tick}`, x: ROSE_CENTER.x, y: ROSE_CENTER.y - radiusFor(tick) + 3,
-          textAnchor: "middle", className: "dh-compare-score-tick dh-compare-rose__tick",
-        }, tick)),
-        solo ? null : SCORING_FIELDS.map(({ key, label }, index) => h("text", {
-          key, className: "dh-compare-score-axis", x: ROSE_CENTER.x, y: index === 0 ? 12 : 232, textAnchor: "middle",
-        }, label)),
-        ...petals.map(({ id, key, label, value, onLeft, valueY, slot }) => {
-          const x = onLeft ? 11 : 321;
-          const textAnchor = onLeft ? "start" : "end";
-          return h("g", { key: `label-${id}`, "data-season-slot": slot },
-            solo ? h("text", { className: "dh-compare-score-axis", x, y: valueY - 23, textAnchor }, label) : null,
-            h("text", { className: "dh-compare-score-number dh-compare-rose__number", x, y: valueY, textAnchor }, formatMetric(key, value)),
-          );
+        hasFill ? h("path", { className: "dh-compare-score-gauge__fill", d: gaugeArc(from, to), stroke: `url(#${gradientId})` }) : null,
+        hasFill ? h("path", { className: "dh-compare-score-gauge__shine", d: gaugeArc(from, to, 66) }) : null,
+        ppg === null ? null : h("circle", { className: "dh-compare-score-gauge__cap", cx: scoreX, cy: scoreY, r: 3.1 }),
+        ceilingPosition === null ? null : h("rect", {
+          className: "dh-compare-score-gauge__ceiling", x: ceilingX - 3.2, y: ceilingY - 3.2,
+          width: 6.4, height: 6.4, rx: 0.8, transform: `rotate(45 ${ceilingX} ${ceilingY})`,
         }),
+        h("text", { className: "dh-compare-score-gauge__value", x: 86, y: 66, textAnchor: "middle" }, formatMetric("ppg", ppg)),
+        h("text", { className: "dh-compare-score-gauge__label", x: 86, y: 83, textAnchor: "middle" }, "PPG"),
+        h("text", { className: "dh-compare-score-gauge__end", x: 26, y: 108, textAnchor: "middle" }, ticks[0]),
+        h("text", { className: "dh-compare-score-gauge__end", x: 146, y: 108, textAnchor: "middle" }, ticks.at(-1)),
       ),
-    );
-  }
-
-  function ScoringColumns({ profile, palettes, description }) {
-    const top = 15;
-    const bottom = 222;
-    const width = 58;
-    const yFor = (value) => bottom - profile.fraction(value) * (bottom - top);
-    const solo = profile.rows.length === 1;
-
-    return h("figure", { className: "dh-compare-score-view dh-compare-score-view--range" },
-      h("figcaption", null, "Scoring range"),
-      h("svg", {
-        className: "dh-compare-score-plot", viewBox: "0 0 332 238", role: "img",
-        "aria-label": `Scoring columns with PPG filled solid and the ceiling shown in the lighter layer. ${description}`,
-      },
-        h("defs", null,
-          h("pattern", { id: "dh-compare-range-glass", width: 7, height: 7, patternUnits: "userSpaceOnUse", patternTransform: "rotate(24)" },
-            h("path", { d: "M0 0V7", stroke: "#e6f1ff", strokeOpacity: 0.36, strokeWidth: 1.35 })),
-          palettes.map((palette, slot) => h("linearGradient", {
-            key: slot, id: `dh-compare-range-fill-${slot}`, x1: "3%", y1: "100%", x2: "100%", y2: "3%",
-          }, gradientStops(palette).map(({ color, offset }) => h("stop", { key: offset, offset, stopColor: color })))),
-        ),
-        ...profile.ticks.map((tick) => h("g", { key: tick },
-          h("path", { className: `dh-compare-score-grid${tick === 0 ? " is-zero" : ""}`, d: `M28 ${yFor(tick)}H316` }),
-          h("text", { className: "dh-compare-score-tick", x: 21, y: yFor(tick) + 4, textAnchor: "end" }, tick),
+      h("dl", { className: "dh-compare-score-gauge__stats" },
+        metrics.map(([key, label, value]) => h("div", { key, "data-score-stat": key },
+          h("dt", null, label), h("dd", null, formatMetric(key, value)),
         )),
-        ...profile.rows.map((row, slot) => {
-          const x = (solo ? 166 : slot === 0 ? 109 : 229) - width / 2;
-          const mask = `dh-compare-range-tiles-${slot}`;
-          const gradient = `url(#dh-compare-range-fill-${slot})`;
-          // The volume between zero and each score is continuous. Mask it
-          // with etched intervals, keeping the two caps at their actual values.
-          const tile = (value, className, fill, start = 0) => {
-            if (value === null || value === start) return null;
-            const y = yFor(value);
-            const startY = yFor(start);
-            return h("rect", { className, x, y: Math.min(startY, y), width, height: Math.abs(startY - y), fill });
-          };
-          const ceilingStart = row.ceiling > 0
-            ? Math.max(0, Math.min(row.ppg ?? 0, row.ceiling))
-            : Math.min(0, Math.max(row.ppg ?? 0, row.ceiling ?? 0));
-          const alignLeft = !solo && slot === 0;
-          const edge = alignLeft ? x : x + width;
-          const direction = alignLeft ? -1 : 1;
-          return h("g", { key: row.player.id, "data-season-slot": slot },
-            h("defs", null, h("mask", { id: mask, maskUnits: "userSpaceOnUse", x, y: top, width, height: bottom - top },
-              profile.ticks.slice(1).map((tick, index) => h("rect", {
-                key: tick, x, y: yFor(tick) + 0.8, width, height: yFor(profile.ticks[index]) - yFor(tick) - 1.6, rx: 3.1, fill: "#fff",
-              })),
-            )),
-            h("rect", { className: "dh-compare-range__case", x: x - 3, y: top - 3, width: width + 6, height: bottom - top + 6, rx: 7 }),
-            h("g", { mask: `url(#${mask})` },
-              h("rect", { className: "dh-compare-range__track", x, y: top, width, height: bottom - top }),
-              tile(row.ceiling, "dh-compare-range__ceiling", gradient, ceilingStart),
-              tile(row.ceiling, "dh-compare-range__texture", "url(#dh-compare-range-glass)", ceilingStart),
-              tile(row.ppg, "dh-compare-range__average", gradient),
-            ),
-            ...positionTowerLabels(row, yFor, top, bottom).map(({ key, value, scoreY, labelY }) => h("g", {
-              key, className: "dh-compare-range__marker", "data-scoring-stat": key,
-            },
-              h("path", { className: "dh-compare-range__cap", d: `M${x} ${scoreY}h${width}` }),
-              h("path", {
-                className: "dh-compare-range__leader",
-                d: `M${edge} ${scoreY}h${direction * 3}L${edge + direction * 7} ${labelY}`,
-              }),
-              h("text", {
-                className: "dh-compare-score-number", x: edge + direction * 11, y: labelY + 4.5,
-                textAnchor: alignLeft ? "end" : "start",
-              }, formatMetric(key, value)),
-            )),
-          );
-        }),
-      ),
-      h("div", { className: "dh-compare-range__footer" },
-        h("div", { className: "dh-compare-range__key" },
-          h("span", null, h("i", { "aria-hidden": true }), "PPG"),
-          h("span", null, h("i", { "aria-hidden": true }), "Ceiling"),
-        ),
-        h("div", { className: "dh-compare-range__difference" },
-          h("span", null, "Ceiling − PPG"),
-          ...profile.rows.map(({ player, ppg, ceiling }, slot) => {
-            const delta = ppg === null || ceiling === null ? null : Number((ceiling - ppg).toFixed(1));
-            const label = `${delta > 0 ? "+" : ""}${formatMetric("ppg", delta)}`;
-            return h("b", { key: player.id, "data-season-slot": slot, title: getPlayerName(player) }, label);
-          }),
-        ),
       ),
     );
   }
 
   function ScoringProfile({ players, palettes }) {
     const profile = useMemo(() => buildScoringProfile(players), [players]);
-    const description = profile.rows.map(({ player, ppg, ceiling }) =>
-      `${getPlayerName(player)}. PPG ${ppg === null ? "unavailable" : formatMetric("ppg", ppg)}. Ceiling ${ceiling === null ? "unavailable" : formatMetric("ceiling", ceiling)}.`,
-    ).join(" ");
-    const hasScores = profile.rows.some(({ ppg, ceiling }) => ppg !== null || ceiling !== null);
-
     return h("section", { className: "dh-compare-scoring", "aria-labelledby": "dh-compare-scoring-title" },
       h("header", { className: "dh-compare-season-panel__header" },
         h("h4", { id: "dh-compare-scoring-title" }, "Scoring profile"),
         h("span", { className: "dh-compare-season-panel__unit" }, "PPR"),
       ),
-      h("div", { className: "dh-compare-scoring__players" },
-        profile.rows.map(({ player, fpts, games }, slot) => h("div", { key: player.id, "data-season-slot": slot },
-          h(PlayerKey, { player, slot }),
-          h("span", null,
-            h("span", null, h("b", null, formatMetric("fpts", fpts)), " FPTS"),
-            h("i", { "aria-hidden": true }),
-            h("span", null, h("b", null, formatMetric("games_played", games)), games === 1 ? " game" : " games"),
-          ),
-        )),
+      h("div", { className: "dh-compare-score-gauges" },
+        profile.rows.map((row, slot) => h(ScoringGauge, { key: row.player.id, row, slot, palette: palettes[slot], profile })),
       ),
-      hasScores ? [
-        h("div", { key: "charts", className: "dh-compare-score-views" },
-          h(ScoringRose, { profile, palettes, description }),
-          h(ScoringColumns, { profile, palettes, description }),
-        ),
-        h("p", { key: "ceiling", className: "dh-compare-season-note" }, "Ceiling is the average of the player’s best three games."),
-      ] : h("p", { className: "dh-compare-no-data" }, "No scoring rates are available."),
+      h("p", { className: "dh-compare-season-note" }, "Ceiling is the average of the player’s best three games."),
     );
   }
 
   function StatMatchupRow({ row, players }) {
-    const compact = COMPACT_METRIC_LABELS[row.key];
-    const showCompact = compact && compact !== row.label;
     return h("div", { className: "dh-compare-rank-row" },
-      h("h5", { className: "dh-compare-rank-row__metric", title: row.label, "aria-label": row.label },
-        h("span", { className: showCompact ? "is-full" : undefined }, row.label),
-        showCompact ? h("span", { className: "is-compact" }, compact) : null,
-      ),
+      h("h5", { className: "dh-compare-rank-row__metric", title: row.name }, row.label),
       // Each side starts at the center label. The readout follows its bar tip,
       // and only a ranked head-to-head loss dims the player's fill.
       players.map((player, slot) => {
         const rank = row.ranks[slot];
-        const value = formatMetric(row.key, row.values[slot]);
+        const value = formatMatchupValue(row, row.values[slot]);
         const edge = row.trailing === null ? undefined : row.trailing === slot ? "trailing" : "leading";
         return h("div", {
           key: player.id, className: "dh-compare-rank-side", "data-season-slot": slot, "data-rank-edge": edge,
@@ -499,23 +378,32 @@ export function createSeasonComparison(React) {
 
   function ScoringSpread({ players, weeks }) {
     const { rows, ticks, fraction } = useMemo(() => buildScoringSpread(players, weeks), [players, weeks]);
-    const hasGames = rows.some((row) => row.games.length);
+    const hasData = rows.some(({ games, ceiling }) => games.length || ceiling !== null);
     const xFor = (value) => `${100 * fraction(value)}%`;
     return h("section", { className: "dh-compare-season-panel dh-compare-spread", "aria-labelledby": "dh-compare-spread-title" },
       h("header", { className: "dh-compare-season-panel__header" },
         h("h4", { id: "dh-compare-spread-title" }, "Scoring distribution"),
         h("span", { className: "dh-compare-season-panel__unit" }, "Weekly PPR"),
       ),
-      hasGames ? h("div", { className: "dh-compare-spread__rows" },
-        rows.map(({ player, games, low, median, high }, index) => h("article", {
+      hasData ? h("div", { className: "dh-compare-spread__rows" },
+        rows.map(({ player, games, low, median, high, ceiling }, index) => h("article", {
           key: player.id, className: "dh-compare-spread__row", "data-season-slot": index,
         },
           h("div", { className: "dh-compare-spread__identity" },
             h(PlayerKey, { player, slot: index }),
-            h("span", null, median === null ? "No recorded games" : `${formatMetric("fpts", median)} median · ${games.length} ${games.length === 1 ? "game" : "games"}`),
+            h("div", { className: "dh-compare-spread__facts" },
+              h("span", null, median === null ? "No recorded games" : `${formatMetric("fpts", median)} median · ${games.length} ${games.length === 1 ? "game" : "games"}`),
+              ceiling === null ? null : h("span", { className: "dh-compare-spread__ceiling-label" },
+                h("i", { "aria-hidden": true }), "Ceiling ", h("b", null, formatMetric("ceiling", ceiling))),
+            ),
           ),
-          h("div", { className: "dh-compare-spread__strip", role: "img", "aria-label": games.length
-            ? games.map(({ week, score }) => `Week ${week}: ${score}`).join(", ") : "No recorded games" },
+          h("div", {
+            className: "dh-compare-spread__strip", role: "img",
+            "aria-label": [
+              games.length ? games.map(({ week, score }) => `Week ${week}: ${score}`).join(", ") : "No recorded games",
+              ceiling === null ? null : `Ceiling: ${formatMetric("ceiling", ceiling)} PPR points`,
+            ].filter(Boolean).join(". "),
+          },
             ticks.map((tick) => h("span", { key: tick, className: "dh-compare-spread__gridline", style: { left: xFor(tick) } })),
             median !== null ? [
               h("span", { key: "band", className: "dh-compare-spread__band", style: { left: xFor(low), width: `${100 * (fraction(high) - fraction(low))}%` },
@@ -527,13 +415,18 @@ export function createSeasonComparison(React) {
                 title: `${weeks.length === 1 ? "Week" : "Weeks"} ${weeks.join(", ")}: ${formatMetric("fpts", score)} PPR`,
               })),
             ] : null,
+            ceiling === null ? null : h("i", {
+              className: "dh-compare-spread__ceiling",
+              style: { left: xFor(ceiling) },
+              title: `Ceiling: ${formatMetric("ceiling", ceiling)} PPR points`,
+            }),
           ),
         )),
         h("div", { className: "dh-compare-spread__axis", "aria-hidden": true },
           ticks.map((tick) => h("span", { key: tick, style: { left: xFor(tick) } }, tick)),
         ),
       ) : h("p", { className: "dh-compare-no-data" }, "No recorded weekly scores are available."),
-      hasGames ? h("p", { className: "dh-compare-season-note" }, "Dots show played weeks. The band covers the middle half of scores, with a line at the median.") : null,
+      hasData ? h("p", { className: "dh-compare-season-note" }, "The band covers the middle half of weekly scores. The solid line marks the median and the diamond marks the season ceiling.") : null,
     );
   }
 

@@ -97,15 +97,18 @@ test("season bars compare qualified positional ranks and preserve tie, missing a
   const a = {
     pos: "QB",
     seasonStats: { pass_yd: 300, pass_td: 0, ttt: 2.3, epa_per_db: -0.4, ppg: -2, ceiling: 12, imp_per_opp: 30 },
-    seasonPosRanks: { pass_yd: 4, pass_td: 31, ttt: 2 },
+    seasonPosRanks: { pass_yd: 4, pass_td: 31, ttt: 2, ppg: 16 },
+    seasonMatchupRanks: { ppg: null },
   };
   const b = {
     pos: "QB",
     seasonStats: { pass_yd: 300, pass_td: null, ttt: 2.6, epa_per_db: 0.4, ppg: 2 },
     seasonPosRanks: { pass_yd: 4, pass_td: 12, ttt: 26, epa_per_db: 8 },
+    seasonMatchupRanks: { ppg: 21 },
   };
   const production = buildSeasonMetricRows([a, b], "production");
   const yards = production.find(({ key }) => key === "pass_yd");
+  assert.equal(yards.label, "paYDS");
   assert.deepEqual(yards.ranks, [4, 4]);
   assert.equal(yards.barFractions[0], yards.barFractions[1]);
   assert.equal(yards.trailing, null);
@@ -117,10 +120,12 @@ test("season bars compare qualified positional ranks and preserve tie, missing a
   assert.equal(touchdowns.trailing, null);
 
   const efficiency = buildSeasonMetricRows([a, b], "efficiency");
+  assert.deepEqual(efficiency.find(({ key }) => key === "ppg").ranks, [null, 21]);
   const time = efficiency.find(({ key }) => key === "ttt");
   assert.equal(time.trailing, 1);
   assert.ok(time.barFractions[0] > time.barFractions[1]);
   const epa = efficiency.find(({ key }) => key === "epa_per_db");
+  assert.equal(epa.label, "EPA/DB");
   assert.deepEqual(epa.values, [-0.4, 0.4]);
   assert.deepEqual(epa.ranks, [null, 8]);
   assert.equal(epa.trailing, null);
@@ -134,7 +139,7 @@ test("season bars compare qualified positional ranks and preserve tie, missing a
   assert.equal(mixed.some(({ key }) => key === "ttt"), false);
 });
 
-test("both scoring views share a signed points scale and distinguish zero from missing", () => {
+test("scoring gauges share a signed points scale and distinguish zero from missing", () => {
   const plot = buildScoringProfile([
     { seasonStats: { ppg: -2, ceiling: 12 } },
     { seasonStats: { ppg: 0 } },
@@ -146,10 +151,10 @@ test("both scoring views share a signed points scale and distinguish zero from m
   assert.ok(plot.ticks[0] < 0);
 });
 
-test("the scoring distribution excludes unplayed weeks and preserves negatives, zero and ties", () => {
+test("the scoring distribution includes the ceiling and keeps an evenly spaced axis with at least five ticks", () => {
   const game = (week, fpts, flags = {}) => ({ week, stats: { fpts }, played: true, ...flags });
   const players = [
-    { weeklySeries: [game(1, -2), game(2, 0), game(3, 0), game(4, 18), game(5, 30, { isSkipped: true }), game(6, 15, { played: false }), game(7, 100)] },
+    { seasonStats: { ceiling: 23.5 }, weeklySeries: [game(1, -2), game(2, 0), game(3, 0), game(4, 18), game(5, 30, { isSkipped: true }), game(6, 15, { played: false }), game(7, 100)] },
     { weeklySeries: [game(1, null)] },
   ];
   const spread = buildScoringSpread(players, [1, 2, 3, 4, 5, 6]);
@@ -158,6 +163,16 @@ test("the scoring distribution excludes unplayed weeks and preserves negatives, 
   assert.deepEqual([a.low, a.median, a.high], [-0.5, 0, 4.5]);
   assert.equal(b.median, null);
   assert.ok(spread.fraction(-2) < spread.fraction(0));
+  assert.equal(a.ceiling, 23.5);
+  assert.equal(b.ceiling, null);
+  assert.ok(spread.fraction(a.ceiling) > spread.fraction(18) && spread.fraction(a.ceiling) <= 1);
+
+  const narrow = buildScoringSpread([{ seasonStats: { ceiling: 1.5 }, weeklySeries: [game(1, 0)] }], [1]);
+  assert.ok(narrow.ticks.length >= 5);
+  const step = narrow.ticks[1] - narrow.ticks[0];
+  assert.ok(narrow.ticks.every((tick, index) => index === 0 || tick - narrow.ticks[index - 1] === step));
+  assert.equal(narrow.fraction(narrow.ticks[0]), 0);
+  assert.equal(narrow.fraction(narrow.ticks.at(-1)), 1);
 });
 
 test("season previews keep the exact weekly position assignment and both Start/Sit spectra", () => {
