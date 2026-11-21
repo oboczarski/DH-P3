@@ -1,10 +1,9 @@
 import {
+  COMPARISON_RADAR_MAX_RANK_BY_POS,
   formatComparisonValue,
-  formatRank,
   getComparisonPositions,
   getPlayerName,
   getStatDefinition,
-  isLowerBetterForPosition,
   toFiniteNumber,
 } from "./comparisonStats.js?v=DH3.81-compare";
 import { getWeeklyPalette } from "./comparisonChartOptions.js?v=DH3.82-compare-previews";
@@ -48,44 +47,47 @@ const METRICS = {
 };
 
 function getSeasonValue(player, key) {
-  if (key === "imp_per_opp") {
-    // The two season CSVs export IMP/OPP with different units. Derive the
-    // percentage from their same-season counts so mixed comparisons agree.
-    const impact = toFiniteNumber(player.seasonStats?.imp);
-    const opportunities = toFiniteNumber(player.seasonStats?.opp);
-    return impact !== null && opportunities > 0 ? impact / opportunities * 100 : null;
-  }
   return toFiniteNumber(player.seasonStats?.[key]);
 }
 
 export function buildSeasonMetricRows(players, mode) {
   const positions = getComparisonPositions(players);
   const set = positions.length === 1 ? METRICS[positions[0]] : positions.includes("QB") ? METRICS.MIXED : METRICS.SKILL;
-  return (set || METRICS.MIXED)[mode].flatMap((key) => {
+  const rows = (set || METRICS.MIXED)[mode].flatMap((key) => {
     const values = players.map((player) => getSeasonValue(player, key));
-    const available = values.filter(Number.isFinite);
-    if (!available.length) return [];
-    // Both tracks use zero and the same raw domain, including negatives.
-    // Missing data has no endpoint and never participates in declaring a lead.
-    const min = Math.min(0, ...available);
-    const max = Math.max(0, ...available);
-    const fraction = (value) => max > min ? (value - min) / (max - min) : 0;
-    const lowerBetter = players.every((player) => isLowerBetterForPosition(player.pos, key));
-    const comparable = values.length === 2 && available.length === 2;
-    const difference = comparable ? values[0] - values[1] : null;
-    const winner = difference === null || difference === 0 ? null : (lowerBetter ? difference < 0 : difference > 0) ? 0 : 1;
-    return [{
-      key, values, label: SEASON_METRIC_LABELS[key], lowerBetter,
-      zero: fraction(0),
-      ends: values.map((value) => value === null ? null : fraction(value)),
-      difference, winner,
-    }];
+    if (values.every((value) => value === null)) return [];
+    // Use Data Hub's qualified positional ranks. The raw values stay visible
+    // even when a player has no rank, and a recorded zero can still be ranked.
+    const ranks = players.map((player, index) => {
+      const rank = toFiniteNumber(player.seasonPosRanks?.[key]);
+      return values[index] !== null && Number.isInteger(rank) && rank > 0 ? rank : null;
+    });
+    return [{ key, values, label: SEASON_METRIC_LABELS[key], ranks }];
+  });
+
+  // Keep one rank scale across the category so the same rank always occupies
+  // the same length on either side, including in mixed-position comparisons.
+  const rankLimit = Math.max(
+    1,
+    ...positions.map((pos) => COMPARISON_RADAR_MAX_RANK_BY_POS[pos] || 72),
+    ...rows.flatMap(({ ranks }) => ranks.filter(Number.isInteger)),
+  );
+  return rows.map((row) => {
+    const [firstRank, secondRank] = row.ranks;
+    const trailing = row.ranks.length === 2 && row.ranks.every(Number.isInteger) && firstRank !== secondRank
+      ? (secondRank > firstRank ? 1 : 0)
+      : null;
+    return {
+      ...row,
+      trailing,
+      barFractions: row.ranks.map((rank) => rank === null ? null : (rankLimit - rank + 1) / rankLimit),
+    };
   });
 }
 
 export function buildScoringProfile(players) {
-  // Use one points scale for both PPG columns and top-three-game ceilings.
-  // Totals and games stay in the readouts because they have different units.
+  // Both scoring views share a points scale for PPG and top-three-game
+  // ceilings. Season totals and games have their own units in the readouts.
   const rows = players.map((player) => ({
     player,
     ppg: getSeasonValue(player, "ppg"),
@@ -94,7 +96,7 @@ export function buildScoringProfile(players) {
     games: getSeasonValue(player, "games_played"),
   }));
   const scores = rows.flatMap(({ ppg, ceiling }) => [ppg, ceiling]).filter(Number.isFinite);
-  return { rows, ...pointsScale(scores), hasScores: scores.length > 0 };
+  return { rows, ...pointsScale(scores) };
 }
 
 function pointsScale(scores) {
@@ -164,28 +166,7 @@ function formatMetric(key, value) {
   return formatComparisonValue(key, value, { compact: unit !== "s" });
 }
 
-function formatGap(row) {
-  if (row.difference === null) return "";
-  if (row.difference === 0) return "Tie";
-  const gap = Number(Math.abs(row.difference).toPrecision(12));
-  const { decimals, percent, unit } = getStatDefinition(row.key);
-  const minimum = 10 ** -decimals;
-  const text = gap < minimum ? `<${minimum}` : gap.toLocaleString("en-US", { maximumFractionDigits: decimals });
-  return `${text}${percent ? " pp" : unit === "s" ? " s" : ""}`;
-}
-
-const DIAL_ANGLES = [-115, 115];
-
-function arcPoint(radius, angle) {
-  const radians = angle * Math.PI / 180;
-  return [172 + radius * Math.sin(radians), 116 - radius * Math.cos(radians)];
-}
-
-function arcPath(radius, from, to) {
-  const [x1, y1] = arcPoint(radius, from);
-  const [x2, y2] = arcPoint(radius, to);
-  return `M ${x1} ${y1} A ${radius} ${radius} 0 ${Math.abs(to - from) > 180 ? 1 : 0} ${to >= from ? 1 : 0} ${x2} ${y2}`;
-}
+const SCORING_DIAL_SWEEP = 272;
 
 function placeSpreadMarks(games, fraction) {
   // Exact ties share a mark and a count. Near neighbors are stacked in lanes
@@ -213,178 +194,168 @@ export function createSeasonComparison(React) {
       h("i", { "aria-hidden": true }), getPlayerName(player));
   }
 
-  function SpectrumDefs({ palettes, prefix }) {
-    return h("defs", null, palettes.map((palette, index) => h("linearGradient", {
-      id: `${prefix}-${index}`, key: index,
-      // A flat slope still needs a nonzero gradient coordinate space.
-      ...(prefix === "dh-score-slope" ? { gradientUnits: "userSpaceOnUse", x1: 61, y1: 137, x2: 287, y2: 17 }
-        : { x1: "0%", x2: "100%", y1: "100%", y2: "0%" }),
-    }, gradientStops(palette).map(({ color, offset }) => h("stop", { key: offset, offset, stopColor: color })))));
-  }
+  function ScoreDial({ row, slot, palette, profile }) {
+    const { player, ppg, ceiling, fpts, games } = row;
+    const toAngle = (value) => profile.fraction(value) * SCORING_DIAL_SWEEP;
+    const min = profile.ticks[0];
+    const max = profile.ticks.at(-1);
+    const stats = [["ceiling", "Ceiling", ceiling], ["fpts", "FPTS", fpts], ["games_played", "Games", games]];
+    let sweepFill;
+    if (ppg !== null && ppg !== 0) {
+      // Each player gets one ring. Its fill starts at zero, including on a
+      // signed scale, and the separate index mark locates their ceiling.
+      const from = toAngle(Math.min(0, ppg));
+      const to = toAngle(Math.max(0, ppg));
+      const stops = gradientStops(palette).map(({ color, offset }) => `${color} ${from + offset * (to - from)}deg`);
+      sweepFill = `conic-gradient(from var(--score-origin), transparent ${from}deg, ${stops.join(", ")}, transparent ${to}deg)`;
+    }
+    const marker = (name, value) => value === null ? null : h("i", {
+      className: `dh-compare-score-dial__index is-${name}`,
+      style: { "--score-angle": `${toAngle(value)}deg` },
+      "aria-hidden": "true",
+    });
 
-  function ScoreMark({ point: [x, y], ceiling, index }) {
-    return ceiling
-      ? h("rect", { x: x - 3.2, y: y - 3.2, width: 6.4, height: 6.4, rx: 0.8,
-        transform: `rotate(45 ${x} ${y})`, className: "dh-compare-score-mark is-ceiling", "data-season-slot": index })
-      : h("circle", { cx: x, cy: y, r: 3.6, className: "dh-compare-score-mark", "data-season-slot": index });
-  }
-
-  function ScoringArcs({ profile, palettes }) {
-    const { rows, fraction, ticks } = profile;
-    const [start, end] = DIAL_ANGLES;
-    const theta = (value) => start + fraction(value) * (end - start);
-    return h("svg", { className: "dh-compare-score-svg dh-compare-score-svg--arcs", viewBox: "0 0 344 175", "aria-hidden": true },
-      h(SpectrumDefs, { palettes, prefix: "dh-score-arc" }),
-      h("path", { className: "dh-compare-arc__rim", d: arcPath(96, start, end) }),
-      ticks.map((tick) => {
-        const angle = theta(tick);
-        const [x1, y1] = arcPoint(57, angle);
-        const [x2, y2] = arcPoint(95, angle);
-        const [x, y] = arcPoint(108, angle);
-        return h("g", { key: tick },
-          h("line", { className: "dh-compare-score-grid", x1, y1, x2, y2 }),
-          h("text", { className: "dh-compare-score-tick", x, y: y + 3, textAnchor: "middle" }, tick));
-      }),
-      rows.map(({ player, ppg, ceiling }, index) => {
-        const radius = index === 0 ? 85 : 66;
-        const gradient = `url(#dh-score-arc-${index})`;
-        // Each concentric lane shares the angle and zero used by both players.
-        // The dim extension shows the ceiling and the solid arc shows PPG.
-        return h("g", { key: player.id, "data-season-slot": index },
-          h("path", { className: "dh-compare-arc__track", d: arcPath(radius, start, end) }),
-          ceiling !== null && ceiling !== (ppg ?? 0) ? h("path", {
-            className: "dh-compare-arc__ceiling", d: arcPath(radius, theta(ppg ?? 0), theta(ceiling)), stroke: gradient,
-          }) : null,
-          ppg !== null && ppg !== 0 ? h("path", {
-            className: "dh-compare-arc__average", d: arcPath(radius, theta(0), theta(ppg)), stroke: gradient,
-          }) : null,
-          ppg !== null ? h(ScoreMark, { point: arcPoint(radius, theta(ppg)), index }) : null,
-          ceiling !== null ? h(ScoreMark, { point: arcPoint(radius, theta(ceiling)), ceiling: true, index }) : null);
-      }),
-      h("text", { className: "dh-compare-score-center", x: 172, y: 114, textAnchor: "middle" }, "PPR"),
-      h("text", { className: "dh-compare-score-tick", x: 172, y: 127, textAnchor: "middle" }, "points"),
+    return h("div", { className: "dh-compare-score-player", "data-season-slot": slot },
+      h(PlayerKey, { player, slot }),
+      h("div", {
+        className: "dh-compare-score-dial",
+        style: { "--score-sweep": `${SCORING_DIAL_SWEEP}deg` },
+      },
+        h("div", { className: "dh-compare-score-dial__track", "aria-hidden": "true" }),
+        sweepFill ? h("div", {
+          className: "dh-compare-score-dial__fill", style: { "--score-fill": sweepFill }, "aria-hidden": "true",
+        }) : null,
+        h("div", { className: "dh-compare-score-dial__face" },
+          h("strong", null, formatMetric("ppg", ppg)),
+          h("span", null, "PPG")),
+        min < 0 ? marker("zero", 0) : null,
+        marker("average", ppg),
+        marker("ceiling", ceiling),
+        h("div", { className: "dh-compare-score-dial__scale", "aria-hidden": "true" },
+          h("span", null, min), h("span", null, max)),
+      ),
+      h("dl", { className: "dh-compare-score-player__stats" }, stats.map(([key, label, value]) => h("div", { key },
+        h("dt", null, label), h("dd", null, formatMetric(key, value)),
+      ))),
     );
   }
 
-  function ScoringSlope({ profile, palettes }) {
-    const x1 = 61;
-    const x2 = 287;
-    const yFor = (value) => 17 + (1 - profile.fraction(value)) * 120;
-    return h("svg", { className: "dh-compare-score-svg dh-compare-score-svg--slope", viewBox: "0 0 344 175", "aria-hidden": true },
-      h(SpectrumDefs, { palettes, prefix: "dh-score-slope" }),
-      profile.ticks.map((tick) => h("g", { key: tick },
-        h("path", { className: "dh-compare-score-grid", d: `M35 ${yFor(tick)}H318` }),
-        h("text", { className: "dh-compare-score-tick", x: 29, y: yFor(tick) + 3, textAnchor: "end" }, tick),
-      )),
-      h("path", { className: "dh-compare-score-guide", d: `M${x1} 14V142 M${x2} 14V142` }),
-      profile.rows.map(({ player, ppg, ceiling }, index) => h("g", { key: player.id },
-        // The slope connects two distinct stats. The dots stay at their exact
-        // positions on the same points scale as the scoring arcs.
-        ppg !== null && ceiling !== null ? h("path", {
-          className: "dh-compare-score-slope", stroke: `url(#dh-score-slope-${index})`,
-          d: `M${x1} ${yFor(ppg)}L${x2} ${yFor(ceiling)}`,
-          strokeDasharray: index === 1 ? "5 3" : undefined,
-        }) : null,
-        ppg !== null ? h(ScoreMark, { point: [x1, yFor(ppg)], index }) : null,
-        ceiling !== null ? h(ScoreMark, { point: [x2, yFor(ceiling)], ceiling: true, index }) : null,
-      )),
-      h("text", { className: "dh-compare-score-caption", x: x1, y: 159, textAnchor: "middle" }, "PPG"),
-      h("text", { className: "dh-compare-score-caption", x: x2, y: 159, textAnchor: "middle" }, "Ceiling"),
+  function ScoringMap({ profile, palettes }) {
+    const left = 30;
+    const right = 316;
+    const top = 25;
+    const bottom = 140;
+    const xFor = (value) => left + profile.fraction(value) * (right - left);
+    const yFor = (value) => bottom - profile.fraction(value) * (bottom - top);
+    const points = profile.rows.flatMap((row, slot) => {
+      if (row.ppg === null || row.ceiling === null) return [];
+      return [{ ...row, slot, x: xFor(row.ppg), y: yFor(row.ceiling) }];
+    });
+    const max = profile.ticks.at(-1);
+    const ticks = profile.ticks.filter((_, index) => profile.ticks.length < 6 || index % 2 === 0);
+    if (ticks.at(-1) !== max) ticks.push(max);
+    const description = points.map(({ player, ppg, ceiling }) =>
+      `${getPlayerName(player)}: ${formatMetric("ppg", ppg)} PPG, ${formatMetric("ceiling", ceiling)} ceiling`).join(". ");
+
+    return h("figure", { className: "dh-compare-score-view dh-compare-score-map" },
+      h("figcaption", null, "Ceiling vs. average"),
+      points.length ? h("svg", {
+        className: "dh-compare-score-map__plot", viewBox: "0 0 336 183", role: "img",
+        "aria-label": `Ceiling versus PPG. The diagonal marks where they are equal. ${description}`,
+      },
+        h("defs", null, palettes.map((palette, slot) => h("linearGradient", {
+          key: slot, id: `dh-compare-score-map-gradient-${slot}`, x1: "0%", x2: "100%", y1: "100%", y2: "0%",
+        }, gradientStops(palette).map(({ color, offset }) => h("stop", { key: offset, offset, stopColor: color }))))),
+        h("rect", {
+          x: left, y: top, width: right - left, height: bottom - top, rx: 3,
+          className: "dh-compare-score-map__field",
+        }),
+        ticks.map((tick) => h("g", { key: tick },
+          h("path", {
+            className: `dh-compare-score-map__grid${tick === 0 ? " is-zero" : ""}`,
+            d: `M${left} ${yFor(tick)}H${right} M${xFor(tick)} ${top}V${bottom}`,
+          }),
+          h("text", { x: left - 8, y: yFor(tick) + 3.7, textAnchor: "end" }, tick),
+          h("text", { x: xFor(tick), y: bottom + 17, textAnchor: "middle" }, tick),
+        )),
+        // With the same domain on both axes, the diagonal is ceiling = PPG.
+        // The vertical guide to each point encodes its ceiling above average.
+        h("path", { className: "dh-compare-score-map__equal", d: `M${left} ${bottom}L${right} ${top}` }),
+        points.map(({ player, slot, ppg, x, y }) => h("path", {
+          key: player.id, className: "dh-compare-score-map__lift",
+          "data-season-slot": slot, d: `M${x} ${yFor(ppg)}V${y}`,
+        })),
+        points.map(({ player, slot, x, y, ppg, ceiling }) => {
+          const gradient = `url(#dh-compare-score-map-gradient-${slot})`;
+          // An outlined circle and a smaller solid diamond remain distinct
+          // even when both players land on exactly the same coordinates.
+          return h("g", { key: player.id, transform: `translate(${x} ${y})`, className: "dh-compare-score-map__mark", "data-season-slot": slot },
+            h("title", null, `${getPlayerName(player)} · ${formatMetric("ppg", ppg)} PPG · ${formatMetric("ceiling", ceiling)} ceiling`),
+            slot === 0
+              ? h("circle", { r: 8, stroke: gradient, fill: "var(--compare-inset-fill)" })
+              : h("path", { d: "M0 -5.5 5.5 0 0 5.5 -5.5 0Z", fill: gradient, stroke: "var(--season-light)" }),
+          );
+        }),
+        h("text", { className: "dh-compare-score-map__axis", x: left, y: top - 11 }, "Ceiling"),
+        h("text", { className: "dh-compare-score-map__axis", x: right, y: bottom + 33, textAnchor: "end" }, "PPG"),
+      ) : h("p", { className: "dh-compare-no-data" }, "A scoring average and ceiling are needed to plot a player."),
+      points.length ? h("div", { className: "dh-compare-score-map__key" },
+        h("span", null, "Ceiling − PPG"),
+        profile.rows.map(({ player, ppg, ceiling }, slot) => {
+          const gap = ppg === null || ceiling === null ? null : Number((ceiling - ppg).toFixed(1));
+          const label = gap === null ? "—" : `${gap > 0 ? "+" : ""}${formatMetric("ppg", gap)}`;
+          return h("span", {
+            key: player.id, className: "dh-compare-score-map__gap", "data-season-slot": slot,
+            title: getPlayerName(player), "aria-label": `${getPlayerName(player)} ceiling minus PPG: ${label}`,
+          }, h("i", { "aria-hidden": "true" }), label);
+        }),
+      ) : null,
     );
   }
 
   function ScoringProfile({ players, palettes }) {
     const profile = useMemo(() => buildScoringProfile(players), [players]);
-    const lifts = profile.rows.flatMap(({ player, ppg, ceiling }, index) => {
-      if (ppg === null || ceiling === null) return [];
-      const delta = Number((ceiling - ppg).toFixed(1));
-      return [{ player, index, text: `${delta > 0 ? "+" : ""}${delta.toFixed(1)}` }];
-    });
-    const fields = [
-      ["PPG", "ppg", "ppg"], ["Ceiling", "ceiling", "ceiling"], ["FPTS", "fpts", "fpts"], ["Games", "games_played", "games"],
-    ];
     return h("section", { className: "dh-compare-scoring", "aria-labelledby": "dh-compare-scoring-title" },
       h("header", { className: "dh-compare-season-panel__header" },
         h("h4", { id: "dh-compare-scoring-title" }, "Scoring profile"),
         h("span", { className: "dh-compare-season-panel__unit" }, "PPR"),
       ),
-      h("div", { className: "dh-compare-scoring__readouts" },
-        profile.rows.map((row, index) => h("div", {
-          key: row.player.id, className: "dh-compare-scoring__readout", "data-season-slot": index,
-        },
-          h(PlayerKey, { player: row.player, slot: index }),
-          h("dl", null, fields.map(([label, key, field]) => h("div", { key },
-            h("dt", null, label), h("dd", null, formatMetric(key, row[field])),
-          ))),
-        )),
+      h("div", { className: "dh-compare-score-views" },
+        h("figure", { className: "dh-compare-score-view" },
+          h("figcaption", null, "Scoring dials",
+            h("span", { className: "dh-compare-score-dial__key" }, h("i", { "aria-hidden": "true" }), "Ceiling")),
+          h("div", { className: "dh-compare-score-dials" },
+            profile.rows.map((row, slot) => h(ScoreDial, { key: row.player.id, row, slot, palette: palettes[slot], profile })),
+          ),
+        ),
+        h(ScoringMap, { profile, palettes }),
       ),
-      profile.hasScores
-        ? h("div", { className: "dh-compare-score-views" },
-          h("figure", { className: "dh-compare-score-view" },
-            h("figcaption", null, "Scoring arcs"),
-            h(ScoringArcs, { profile, palettes }),
-            h("div", { className: "dh-compare-score-legend" }, h("span", null, h("i"), "PPG"), h("span", null, h("i"), "Ceiling")),
-          ),
-          h("figure", { className: "dh-compare-score-view" },
-            h("figcaption", null, "Average to ceiling"),
-            h(ScoringSlope, { profile, palettes }),
-            lifts.length ? h("div", { className: "dh-compare-score-legend dh-compare-score-lift" },
-              h("span", null, "Ceiling lift"),
-              lifts.map(({ player, index, text }) => h("span", {
-                key: player.id, "data-season-slot": index, title: `${getPlayerName(player)}: ${text} PPR points`,
-                "aria-label": `${getPlayerName(player)} ceiling lift: ${text} PPR points`,
-              }, h("i", { "aria-hidden": true }), text)),
-            ) : null,
-          ),
-        )
-        : h("p", { className: "dh-compare-no-data" }, "Scoring rates are unavailable."),
       h("p", { className: "dh-compare-season-note" }, "Ceiling is the average of the player’s best three games."),
     );
   }
 
-  function StatMatchupTile({ row, players }) {
-    const gap = formatGap(row);
-    const leader = row.winner === null ? null : getPlayerName(players[row.winner]);
-    const delta = leader && !gap.startsWith("<") ? `${row.lowerBetter ? "−" : "+"}${gap}` : gap;
-    const domainX = (fraction) => `${8 + fraction * 84}%`;
-    const comparable = row.ends.length === 2 && row.ends.every(Number.isFinite);
-    const [start, end] = comparable ? [...row.ends].sort((a, b) => a - b) : [];
-    return h("article", { className: "dh-compare-duel" },
-      h("div", { className: "dh-compare-duel__header" },
-        h("h5", null, row.label, row.lowerBetter ? h("span", { title: "Lower is better", "aria-label": "Lower is better" }, "↓") : null),
-        gap ? h("span", {
-          className: "dh-compare-duel__delta", "data-season-slot": row.winner ?? undefined,
-          title: leader ? `${leader} leads by ${gap}` : "Tied",
-          "aria-label": leader ? `${leader} leads by ${gap}` : "Tied",
-        }, delta) : null,
-      ),
-      // Both players use the same per-stat scale. The joined span encodes the
-      // difference between their actual marks, with a distinct origin for signed stats.
-      h("div", { className: "dh-compare-duel__plot", "aria-hidden": true },
-        h("span", { className: "dh-compare-duel__zero", style: { left: domainX(row.zero) } }),
-        comparable && start !== end ? h("span", {
-          className: "dh-compare-duel__bridge", "data-season-slot": row.winner,
-          style: { left: domainX(start), width: `${(end - start) * 84}%` },
-        }) : null,
-        row.ends.map((point, index) => point === null ? null : h("i", {
-          key: players[index].id, className: "dh-compare-duel__mark", "data-season-slot": index,
-          style: { left: domainX(point) },
-        })),
-      ),
-      h("div", { className: "dh-compare-duel__values" },
-        players.map((player, index) => {
-          const value = row.values[index];
-          const rank = player.seasonPosRanks?.[row.key];
-          return h("div", {
-            key: player.id, "data-season-slot": index,
-            "aria-label": `${getPlayerName(player)} ${row.label}: ${formatMetric(row.key, value)}`,
+  function StatMatchupRow({ row, players }) {
+    return h("div", { className: "dh-compare-rank-row" },
+      h("h5", null, row.label),
+      players.map((player, slot) => {
+        const rank = row.ranks[slot];
+        const value = formatMetric(row.key, row.values[slot]);
+        return h("div", {
+          key: player.id, className: "dh-compare-rank-side", "data-season-slot": slot,
+          "data-trailing": row.trailing === slot || undefined,
+        },
+          h("div", {
+            className: "dh-compare-rank-side__readout", role: "group",
+            "aria-label": `${getPlayerName(player)} ${row.label}`,
           },
-            h("i", { "aria-hidden": true }),
-            h("strong", null, formatMetric(row.key, value)),
-            Number.isFinite(rank) && rank > 0 && value !== null ? h("small", null, formatRank(rank, player.pos)) : null,
-          );
-        }),
-      ),
+            h("strong", null, `${player.pos}·${rank ?? "—"}`),
+            h("small", null, value),
+          ),
+          h("div", { className: "dh-compare-rank-side__track", "aria-hidden": "true" },
+            rank === null ? null : h("i", { style: { "--rank-length": `${row.barFractions[slot] * 100}%` } }),
+          ),
+        );
+      }),
     );
   }
 
@@ -404,8 +375,8 @@ export function createSeasonComparison(React) {
       h("div", { className: "dh-compare-matchups__legend" },
         players.map((player, index) => h(PlayerKey, { key: player.id, player, slot: index })),
       ),
-      h("div", { id: "dh-compare-season-metrics", className: "dh-compare-matchups__tiles" },
-        rows.length ? rows.map((row) => h(StatMatchupTile, { key: row.key, row, players }))
+      h("div", { id: "dh-compare-season-metrics", className: "dh-compare-matchups__rows" },
+        rows.length ? rows.map((row) => h(StatMatchupRow, { key: row.key, row, players }))
           : h("p", { className: "dh-compare-no-data" }, "No season values are available for these stats."),
       ),
     );

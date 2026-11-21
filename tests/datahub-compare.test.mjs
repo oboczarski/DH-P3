@@ -34,19 +34,29 @@ test("Compare keeps Week 1 when the current season passes nine games and stops b
   assert.deepEqual(weeks(), Array.from({ length: 18 }, (_, i) => i + 1));
 });
 
-test("the season payload carries CSV opportunity counts into mixed-position efficiency rows", () => {
+test("the season payload ranks the count-derived impact rate for qualified players", () => {
   const context = vm.createContext({
-    state: {},
+    state: { comparisonData: { seasonStats: { rb: { imp_per_opp: 0.25 } } } },
     toComparableNumber: (value) => value == null || value === "" ? null : Number(value),
+    isDataHubComparisonLowerBetter: () => false,
     DATAHUB_COMPARISON_SEASON_VALUE_KEYS: ["opp", "imp"],
   });
   const functions = ["setDataHubComparisonStat", "setDataHubComparisonRatio",
-    "getDataHubComparisonRowAlias", "buildDataHubComparisonSeasonStats"];
+    "getDataHubComparisonRowAlias", "buildDataHubComparisonSeasonStats",
+    "assignDataHubComparisonRanks", "computeDataHubComparisonSeasonRankSets"];
   vm.runInContext(functions.map((name) => dataHubSource.match(new RegExp(`function ${name}\\([^]*?\\n\\}`))[0]).join("\n"), context);
-  const rbStats = context.buildDataHubComparisonSeasonStats("rb", { OPP: "200", imp: "50" });
-  const qbStats = context.buildDataHubComparisonSeasonStats("qb", { OPP: "400", imp: "80" });
-  const rows = buildSeasonMetricRows([{ pos: "RB", seasonStats: rbStats }, { pos: "QB", seasonStats: qbStats }], "efficiency");
-  assert.deepEqual(rows.find(({ key }) => key === "imp_per_opp").values, [25, 20]);
+  const players = [
+    ["rb", "RB", "200", "50"], ["qb", "QB", "400", "80"],
+    ["other", "RB", "4", "4"], ["zero", "RB", "0", "0"],
+  ].map(([id, pos, OPP, IMP]) => ({ id, pos, seasonStats: context.buildDataHubComparisonSeasonStats(id, { OPP, IMP }) }));
+  const { positional } = context.computeDataHubComparisonSeasonRankSets(players, new Set(["rb", "qb"]));
+  const ranked = players.slice(0, 2).map((player) => ({ ...player, seasonPosRanks: positional[player.id] }));
+  const row = buildSeasonMetricRows(ranked, "efficiency").find(({ key }) => key === "imp_per_opp");
+  assert.deepEqual(row.values, [25, 20]);
+  assert.deepEqual(row.ranks, [1, 1]);
+  assert.equal(row.trailing, null);
+  assert.equal(positional.other, undefined);
+  assert.equal(players[3].seasonStats.imp_per_opp, undefined);
 });
 
 test("the shared plot preserves tied, negative, zero and missing values with both endpoints and both line styles", () => {
@@ -83,28 +93,56 @@ test("Compare's consistency meters share all seven Game Logs bands and distingui
   assert.equal(getConsistencyDialTone(null), "neutral");
 });
 
-test("season charts preserve comparison direction, missing values, percentage units and a shared signed scale", () => {
-  const a = { pos: "QB", seasonStats: { pass_yd: 300, pass_td: 0, ttt: 2.3, epa_per_db: -0.4, ppg: -2, ceiling: 12, imp: 9, opp: 30 } };
-  const b = { pos: "QB", seasonStats: { pass_yd: 300, pass_td: null, ttt: 2.6, epa_per_db: 0.4, ppg: 2 } };
+test("season bars compare qualified positional ranks and preserve tie, missing and zero values", () => {
+  const a = {
+    pos: "QB",
+    seasonStats: { pass_yd: 300, pass_td: 0, ttt: 2.3, epa_per_db: -0.4, ppg: -2, ceiling: 12, imp_per_opp: 30 },
+    seasonPosRanks: { pass_yd: 4, pass_td: 31, ttt: 2 },
+  };
+  const b = {
+    pos: "QB",
+    seasonStats: { pass_yd: 300, pass_td: null, ttt: 2.6, epa_per_db: 0.4, ppg: 2 },
+    seasonPosRanks: { pass_yd: 4, pass_td: 12, ttt: 26, epa_per_db: 8 },
+  };
   const production = buildSeasonMetricRows([a, b], "production");
-  assert.equal(production.find(({ key }) => key === "pass_yd").difference, 0);
-  assert.deepEqual(production.find(({ key }) => key === "pass_td").ends, [0, null]);
-  assert.equal(production.find(({ key }) => key === "pass_td").winner, null);
+  const yards = production.find(({ key }) => key === "pass_yd");
+  assert.deepEqual(yards.ranks, [4, 4]);
+  assert.equal(yards.barFractions[0], yards.barFractions[1]);
+  assert.equal(yards.trailing, null);
+  const touchdowns = production.find(({ key }) => key === "pass_td");
+  assert.deepEqual(touchdowns.values, [0, null]);
+  assert.deepEqual(touchdowns.ranks, [31, null]);
+  assert.ok(touchdowns.barFractions[0] > 0);
+  assert.equal(touchdowns.barFractions[1], null);
+  assert.equal(touchdowns.trailing, null);
+
   const efficiency = buildSeasonMetricRows([a, b], "efficiency");
   const time = efficiency.find(({ key }) => key === "ttt");
-  assert.equal(time.lowerBetter, true);
-  assert.equal(time.winner, 0);
-  assert.equal(efficiency.find(({ key }) => key === "epa_per_db").zero, 0.5);
+  assert.equal(time.trailing, 1);
+  assert.ok(time.barFractions[0] > time.barFractions[1]);
+  const epa = efficiency.find(({ key }) => key === "epa_per_db");
+  assert.deepEqual(epa.values, [-0.4, 0.4]);
+  assert.deepEqual(epa.ranks, [null, 8]);
+  assert.equal(epa.trailing, null);
 
-  const wr = { pos: "WR", seasonStats: { imp: 3, opp: 4, rec_yd: 30 } };
-  const mixed = buildSeasonMetricRows([a, wr], "efficiency");
-  assert.deepEqual(mixed.find(({ key }) => key === "imp_per_opp").values, [30, 75]);
+  const wr = { pos: "WR", seasonStats: { imp_per_opp: 75, rec_yd: 30 }, seasonPosRanks: { imp_per_opp: 80 } };
+  const mixed = buildSeasonMetricRows([{ ...a, seasonPosRanks: { imp_per_opp: 1 } }, wr], "efficiency");
+  const impact = mixed.find(({ key }) => key === "imp_per_opp");
+  assert.deepEqual(impact.values, [30, 75]);
+  assert.deepEqual(impact.barFractions, [1, 1 / 80]);
+  assert.equal(impact.trailing, 1);
   assert.equal(mixed.some(({ key }) => key === "ttt"), false);
+});
 
-  const plot = buildScoringProfile([a, b]);
+test("both scoring views share a signed points scale and distinguish zero from missing", () => {
+  const plot = buildScoringProfile([
+    { seasonStats: { ppg: -2, ceiling: 12 } },
+    { seasonStats: { ppg: 0 } },
+  ]);
+  assert.equal(plot.rows[1].ppg, 0);
   assert.equal(plot.rows[1].ceiling, null);
   assert.ok(plot.fraction(-2) < plot.fraction(0));
-  assert.ok(plot.fraction(2) < plot.fraction(12));
+  assert.ok(plot.fraction(0) < plot.fraction(12));
   assert.ok(plot.ticks[0] < 0);
 });
 

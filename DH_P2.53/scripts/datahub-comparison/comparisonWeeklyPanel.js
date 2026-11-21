@@ -194,10 +194,17 @@ export function createWeeklyComparison(React) {
           style: { left: layout.xForIndex(activeIndex), top: layout.top, bottom: layout.bottom },
         })
         : null,
-      engine && layout ? h("div", { className: "dh-compare-weekly-labels", ref: labelLayer, "aria-hidden": "true" },
+      // Keep these as measurable HTML chips. The slot hooks let CSS style
+      // the two players independently while JS supplies the line colors.
+      engine && layout ? h("div", {
+        className: "dh-compare-weekly-labels", ref: labelLayer, "aria-hidden": "true",
+        style: Object.fromEntries(players.map((_, slot) => [
+          `--weekly-label-ink-${slot}`, getWeeklyPlayerAccentColor(players, slot),
+        ])),
+      },
         labels.map(({ week, side, status, text }) => h("span", {
           key: `${week}-${side}`, className: `dh-compare-weekly-label${status ? " is-status" : ""}`,
-          style: { "--weekly-label-ink": getWeeklyPlayerAccentColor(players, side) },
+          "data-weekly-label-side": side,
         }, text)),
       ) : null,
     );

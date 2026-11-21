@@ -15,8 +15,8 @@ import {
   toFiniteNumber,
 } from "./comparisonStats.js?v=DH3.81-compare";
 import { getWeeklyPlayerAccentColor } from "./comparisonChartOptions.js?v=DH3.82-compare-previews";
-import { createWeeklyComparison } from "./comparisonWeeklyPanel.js?v=DH3.82-compare-previews";
-import { createSeasonComparison } from "./comparisonSeasonPanel.js?v=DH3.82-compare-previews";
+import { createWeeklyComparison } from "./comparisonWeeklyPanel.js?v=DH3.84-compare-scoring";
+import { createSeasonComparison } from "./comparisonSeasonPanel.js?v=DH3.84-compare-scoring";
 
 const POSITION_FILTERS = Object.freeze([
   { key: "all", label: "All" },

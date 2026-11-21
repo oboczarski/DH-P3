@@ -7383,7 +7383,7 @@ function closeDataHubChartModal({ restoreFocus = true } = {}) {
 
 const DATAHUB_COMPARISON_REACT_URL = "https://cdn.jsdelivr.net/npm/react@18.3.1/+esm";
 const DATAHUB_COMPARISON_REACT_DOM_URL = "https://cdn.jsdelivr.net/npm/react-dom@18.3.1/client/+esm";
-const DATAHUB_COMPARISON_STYLES_URL = "../scripts/datahub-comparison/DataHubComparisonModal.css?v=DH3.82-compare-previews";
+const DATAHUB_COMPARISON_STYLES_URL = "../scripts/datahub-comparison/DataHubComparisonModal.css?v=DH3.84-compare-scoring";
 const DATAHUB_COMPARISON_WEEKLY_STAT_KEYS = Object.freeze([
   "fpts",
   "pass_yd",
@@ -7467,7 +7467,7 @@ async function ensureDataHubComparisonModule() {
     dataHubComparisonModulePromise = Promise.all([
       import(DATAHUB_COMPARISON_REACT_URL),
       import(DATAHUB_COMPARISON_REACT_DOM_URL),
-      import("./datahub-comparison/DataHubComparisonModal.js?v=DH3.82-compare-previews"),
+      import("./datahub-comparison/DataHubComparisonModal.js?v=DH3.84-compare-scoring"),
     ])
       .then(([reactModule, reactDomModule, comparisonModule]) => {
         const React = reactModule.default || reactModule;
@@ -8057,7 +8057,9 @@ function buildDataHubComparisonSeasonStats(playerId, row) {
   const stats = {};
 
   Object.entries(sourceStats).forEach(([key, value]) => {
-    if (Number.isFinite(value)) {
+    // Compare normalizes IMP/OPP from season counts below because the
+    // published rate uses different units across the season exports.
+    if (key !== "imp_per_opp" && Number.isFinite(value)) {
       stats[key] = value;
     }
   });
@@ -8090,6 +8092,9 @@ function buildDataHubComparisonSeasonStats(playerId, row) {
   setDataHubComparisonRatio(stats, "yprr", "rec_yd", "rr");
   setDataHubComparisonRatio(stats, "first_down_rec_rate", "rec_fd", "rr");
   setDataHubComparisonRatio(stats, "imp_per_g", "imp", "games_played");
+  // Include the count-derived percentage before ranking so mixed-position
+  // efficiency bars compare the same rate the row displays.
+  setDataHubComparisonRatio(stats, "imp_per_opp", "imp", "opp", 100);
   return stats;
 }
 
@@ -8149,6 +8154,7 @@ function getDataHubComparisonRowAlias(statKey) {
     ppg: "PPG",
     yds_total: "YDS(t)",
     // Compare's mixed-position efficiency chart uses season opportunity counts.
+    imp: "IMP",
     opp: "OPP",
     imp_per_g: "IMP/G",
     csty_pct: "CSTY%",
