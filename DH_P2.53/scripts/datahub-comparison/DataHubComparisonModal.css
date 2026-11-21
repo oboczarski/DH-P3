@@ -2208,9 +2208,9 @@ body[data-page="datahub"] .dh-compare-season-name {
   gap: 6px;
   min-width: 0;
   color: var(--season-light);
-  font-size: clamp(0.74rem, 4.75vw, 0.93rem);
+  font-size: clamp(0.74rem, 4.75vw, 0.9rem);
   font-weight: 500;
-  line-height: 1.14;
+  line-height: 1;
   overflow-wrap: anywhere;
 }
 
@@ -2390,11 +2390,11 @@ body[data-page="datahub"] .dh-compare-matchups > .dh-compare-season-panel__heade
 
 body[data-page="datahub"] .dh-compare-stat-segment {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 3px;
   padding: 3px;
   border: 1px solid var(--compare-border);
-  border-radius: 8px;
+  border-radius: 13px;
   background: var(--compare-inset-fill);
 }
 
@@ -2408,16 +2408,19 @@ body[data-page="datahub"] .dh-compare-stat-segment button {
   justify-content: center;
   gap: 4px;
   min-width: 0;
-  min-height: 38px;
-  padding: 3px clamp(3px, 1.4vw, 10px);
+  min-height: 35px;
+  padding: 4px;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: 10px;
   background: #111b2b;
   color: var(--compare-muted);
-  font: 650 clamp(0.62rem, 2.5vw, 0.78rem)/1.15 "Google Sans", Arial, sans-serif;
+  font-weight: 400;
+  font-size: 10.4px;
   text-align: center;
   text-wrap: balance;
   cursor: pointer;
+  font-family: ;
+  word-spacing: -0.08em;
 }
 
 body[data-page="datahub"] :is(.dh-compare-stat-segment__icon, .dh-compare-rank-row__icon) {
@@ -2458,11 +2461,11 @@ body[data-page="datahub"] .dh-compare-rank-row__icon :is(
 /* Mirror the reference around each metric: rank and value at the moving
    bar tips, chevrons at the center, and the same fill scale on both sides. */
 body[data-page="datahub"] .dh-compare-matchups__board {
-  --rank-center: clamp(54px, 17vw, 105px);
+  --rank-center: clamp(3px, 0vw, 15px);
   /* Allow room for position prefixes and the table's full numeric values. */
-  --rank-readout: clamp(36px, 9.4vw, 50px);
+  --rank-readout: clamp(26px, 7vw, 40px);
   --rank-chevron: clamp(8px, 2.5vw, 13px);
-  --rank-gap: clamp(3px, 1vw, 7px);
+  --rank-gap: clamp(3px, 0.9vw, 7px);
   display: grid;
   min-width: 0;
   padding: 4px clamp(3px, 1.2vw, 16px) 5px;
@@ -2503,7 +2506,7 @@ body[data-page="datahub"] .dh-compare-matchups__rows { display: grid; min-width:
 body[data-page="datahub"] .dh-compare-rank-row {
   display: grid;
   /* Keep the narrow center column wide enough for canonical codes on phones. */
-  grid-template-columns: minmax(0, 1.3fr) minmax(43px, 0.3fr) minmax(0, 1.3fr);
+  grid-template-columns: minmax(0, 1.4fr) minmax(53px, 0.3fr) minmax(0, 1.4fr);
   align-items: center;
   column-gap: 2px;
   min-width: 0;
@@ -2513,12 +2516,12 @@ body[data-page="datahub"] .dh-compare-rank-row {
 }
 
 body[data-page="datahub"] .dh-compare-rank-row__metric {
-  grid-area: 1 / 2;
+  grid-area: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
   margin: 0;
   color: var(--compare-text);
   font-size: clamp(0.57rem, 1.85vw, 0.87rem);
