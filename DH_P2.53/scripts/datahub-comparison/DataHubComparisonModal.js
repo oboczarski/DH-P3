@@ -15,7 +15,7 @@ import {
 } from "./comparisonStats.js?v=DH3.87-compare-groups";
 import { getWeeklyPalette, getWeeklyPaletteStops, getWeeklyPlayerAccentColor } from "./comparisonChartOptions.js?v=DH3.87-compare-groups";
 import { createWeeklyComparison } from "./comparisonWeeklyPanel.js?v=DH3.87-compare-groups";
-import { createSeasonComparison } from "./comparisonSeasonPanel.js?v=DH3.87-compare-groups";
+import { createSeasonComparison } from "./comparisonSeasonPanel.js?v=DH3.88-compare-gamelogs-nav";
 
 const POSITION_FILTERS = Object.freeze([
   { key: "all", label: "All" },

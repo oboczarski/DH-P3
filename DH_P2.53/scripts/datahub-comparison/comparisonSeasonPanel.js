@@ -232,10 +232,12 @@ export function createSeasonComparison(React) {
   }
 
   function StatMatchupRow({ row, players }) {
+    // Stat Matchups uses a shorter abbreviation with the same table key and icon.
+    const label = row.key === "EXPLSV%" ? "XPLSV%" : row.label;
     return h("div", { className: "dh-compare-rank-row" },
       h("h5", { className: "dh-compare-rank-row__metric", title: row.name, "data-column-name": row.key },
         h(TableHeaderIcon, { icon: row.icon, className: "dh-compare-rank-row__icon" }),
-        h("span", null, row.label),
+        h("span", null, label),
       ),
       // Each side starts at the center label. The readout follows its bar tip,
       // and only a ranked head-to-head loss dims the player's fill.
@@ -246,8 +248,8 @@ export function createSeasonComparison(React) {
           key: player.id, className: "dh-compare-rank-side", "data-season-slot": slot, "data-rank-edge": edge,
         },
           h("div", {
-            className: "dh-compare-rank-side__readout", role: "group", title: `${getPlayerName(player)} · ${row.label}`,
-            "aria-label": `${getPlayerName(player)} ${row.label}`,
+            className: "dh-compare-rank-side__readout", role: "group", title: `${getPlayerName(player)} · ${label}`,
+            "aria-label": `${getPlayerName(player)} ${label}`,
           },
             h("strong", null, `${player.pos}·${rank ?? "—"}`),
             h("small", null, display),
@@ -270,7 +272,11 @@ export function createSeasonComparison(React) {
     return h("section", { className: "dh-compare-season-panel dh-compare-matchups", "aria-labelledby": "dh-compare-matchups-title" },
       h("header", { className: "dh-compare-season-panel__header" },
         h("h4", { id: "dh-compare-matchups-title" }, "Stat matchups"),
-        h("div", { className: "dh-compare-stat-segment", role: "group", "aria-label": "Season stat group", "data-group-count": groups.length },
+        // Drop the Game Logs modifier to restore the original Stat Matchups switcher style.
+        h("div", {
+          className: "dh-compare-stat-segment dh-compare-stat-segment--gamelogs",
+          role: "group", "aria-label": "Season stat group", "data-group-count": groups.length,
+        },
           groups.map(({ key, label, icon }) => h("button", {
             type: "button", key, "aria-pressed": selectedGroup?.key === key,
             onClick: () => setSelectedKey(key), "aria-controls": "dh-compare-season-metrics",

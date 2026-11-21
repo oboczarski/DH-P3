@@ -2458,6 +2458,89 @@ body[data-page="datahub"] .dh-compare-rank-row__icon :is(
   body[data-page="datahub"] .dh-compare-stat-segment button { min-height: 34px; }
 }
 
+/* Use Data Hub's Game Logs dock treatment in the Stat Matchups switcher.
+   The modifier leaves the original switcher styles available for restoration. */
+body[data-page="datahub"] .dh-compare-stat-segment.dh-compare-stat-segment--gamelogs {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+  padding: 3px;
+  border: 1px solid rgba(188, 208, 255, 0.22);
+  border-radius: 35px;
+  background:
+    radial-gradient(ellipse at 17% 0%, rgba(183, 227, 255, 0.13), transparent 55%),
+    linear-gradient(145deg, rgba(68, 81, 114, 0.54), rgba(21, 29, 49, 0.66) 60%, rgba(65, 52, 96, 0.4));
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35), 0 3px 7px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(244, 249, 255, 0.2), inset 0 -1px 0 rgba(215, 227, 255, 0.05);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+}
+
+body[data-page="datahub"] .dh-compare-stat-segment--gamelogs button {
+  position: relative;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 52px;
+  padding: 4px 3px;
+  border-radius: 30px;
+  background: transparent;
+  color: #a3b0cb;
+  font: inherit;
+  font-size: clamp(0.64rem, 2.75vw, 0.74rem);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  word-spacing: normal;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Reserve two lines for the names so the table glyphs share a baseline,
+   including when the narrower buttons wrap Rushing or Receiving groups. */
+body[data-page="datahub"] .dh-compare-stat-segment--gamelogs button > span:last-child {
+  display: grid;
+  place-items: center;
+  min-height: 2.16em;
+  max-width: 100%;
+}
+
+body[data-page="datahub"] .dh-compare-stat-segment--gamelogs .stats-table__group-header-icon {
+  width: 21px;
+  height: 21px;
+}
+
+body[data-page="datahub"] .dh-compare-modal .dh-compare-stat-segment--gamelogs button[aria-pressed="true"] {
+  color: #e0efff;
+  background:
+    linear-gradient(165deg, rgba(126, 171, 225, 0.23), rgba(78, 103, 176, 0.2) 55%, rgba(141, 105, 203, 0.19)) padding-box,
+    linear-gradient(140deg, rgba(164, 236, 255, 0.48), rgba(135, 157, 255, 0.25) 55%, rgba(207, 157, 255, 0.38)) border-box;
+  box-shadow: inset 0 1px 0 rgba(242, 249, 255, 0.22), inset 0 -6px 18px rgba(101, 128, 219, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.15), 0 0 15px rgba(116, 160, 244, 0.1);
+}
+
+body[data-page="datahub"] .dh-compare-stat-segment--gamelogs button[aria-pressed="true"] .stats-table__group-header-icon {
+  filter: drop-shadow(0 0 5px rgba(143, 198, 255, 0.3));
+}
+
+body[data-page="datahub"] .dh-compare-stat-segment--gamelogs button:focus-visible {
+  z-index: 1;
+  outline-offset: 1px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  body[data-page="datahub"] .dh-compare-stat-segment--gamelogs button[aria-pressed="false"]:hover {
+    background-color: rgba(175, 199, 255, 0.08);
+    color: #e0efff;
+  }
+}
+
+@media (min-width: 720px) {
+  body[data-page="datahub"] .dh-compare-stat-segment--gamelogs { flex: 0 1 32rem; }
+  body[data-page="datahub"] .dh-compare-stat-segment--gamelogs[data-group-count="3"] { flex-basis: 24rem; }
+  body[data-page="datahub"] .dh-compare-stat-segment--gamelogs .stats-table__group-header-icon { width: 24px; height: 24px; }
+}
+
 /* Mirror the reference around each metric: rank and value at the moving
    bar tips, chevrons at the center, and the same fill scale on both sides. */
 body[data-page="datahub"] .dh-compare-matchups__board {
