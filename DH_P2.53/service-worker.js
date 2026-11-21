@@ -172,8 +172,8 @@
 // margin together with the compact, prefix-free player-name header styles.
 // Refresh DM-only comparisons, directed rounded arrows, initialed names and
 // real CSS-styled scoring chips together with their renderer and stylesheet.
-// Refresh Compare's expanded season stats, scoring gauges and axis together.
-const CACHE_NAME = 'DH3.86-compare-gauges';
+// Refresh Compare's table groups, rank gradients and permanent dark theme together.
+const CACHE_NAME = 'DH3.87-compare-groups';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

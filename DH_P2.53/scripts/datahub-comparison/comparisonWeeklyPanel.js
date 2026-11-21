@@ -1,11 +1,11 @@
 import { getConsistencyDialTone } from "../datahub-gamelogs-controls.js?v=DH3.81-compare";
-import { formatComparisonValue, formatRank, getPlayerName, getStatLabel, getWeeklyComparisonEdges, toFiniteNumber } from "./comparisonStats.js?v=DH3.81-compare";
+import { formatComparisonValue, formatRank, getPlayerName, getStatLabel, getWeeklyComparisonEdges, toFiniteNumber } from "./comparisonStats.js?v=DH3.87-compare-groups";
 import {
   buildWeeklyChartOption,
   getWeeklyChartLayout,
   getWeeklyPlayerAccentColor,
   getWeeklyWeekEntry,
-} from "./comparisonChartOptions.js?v=DH3.82-compare-previews";
+} from "./comparisonChartOptions.js?v=DH3.87-compare-groups";
 
 function placeWeeklyLabels(chart, layer, labels, layout, activeWeek) {
   const grid = { top: 2, bottom: layout.height - layout.bottom };

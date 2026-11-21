@@ -457,32 +457,6 @@ export function getRadarRankValue(rank, pos) {
   return 73 - (((numericRank - 7) / Math.max(1, maxRank - 7)) * 63);
 }
 
-export function getComparisonRankColor(rank, position) {
-  const numericRank = toFiniteNumber(rank);
-  if (numericRank === null || numericRank <= 0) {
-    return "#767693";
-  }
-  const pos = String(position || "").trim().toUpperCase();
-  const thresholds = pos === "WR"
-    ? [
-      { value: 12, color: "#51cba5" },
-      { value: 24, color: "#34aabf" },
-      { value: 36, color: "#4798fc" },
-      { value: 48, color: "#957cff" },
-      { value: 60, color: "#ff6fe1" },
-      { value: 72, color: "#ff2eb9" },
-    ]
-    : [
-      { value: 8, color: "#51cba5" },
-      { value: 16, color: "#34aabf" },
-      { value: 24, color: "#4798fc" },
-      { value: 32, color: "#957cff" },
-      { value: 44, color: "#ff6fe1" },
-      { value: 60, color: "#ff2eb2" },
-    ];
-  return thresholds.find((entry) => numericRank <= entry.value)?.color || "#767693";
-}
-
 export function getOrdinalSuffix(value) {
   const numericValue = Number(value);
   if (!Number.isFinite(numericValue)) {

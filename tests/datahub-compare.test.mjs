@@ -3,8 +3,9 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import { getConsistencyDialTone } from "../DH_P2.53/scripts/datahub-gamelogs-controls.js";
-import { buildWeeklyChartOption, getWeeklyChartLayout, getWeeklyWeekEntry } from "../DH_P2.53/scripts/datahub-comparison/comparisonChartOptions.js";
-import { buildScoringProfile, buildScoringSpread, buildSeasonMetricRows, getSeasonPalettes } from "../DH_P2.53/scripts/datahub-comparison/comparisonSeasonPanel.js";
+import { buildWeeklyChartOption, getWeeklyChartLayout, getWeeklyPalette, getWeeklyPaletteStops, getWeeklyWeekEntry } from "../DH_P2.53/scripts/datahub-comparison/comparisonChartOptions.js";
+import { getSeasonRadarEdgeStops } from "../DH_P2.53/scripts/datahub-comparison/DataHubComparisonModal.js";
+import { buildScoringProfile, buildScoringSpread, buildSeasonMetricRows } from "../DH_P2.53/scripts/datahub-comparison/comparisonSeasonPanel.js";
 
 const dataHubSource = readFileSync(new URL("../DH_P2.53/scripts/DataHub.js", import.meta.url), "utf8");
 
@@ -21,6 +22,7 @@ test("Compare keeps Week 1 when the current season passes nine games and stops b
   const context = vm.createContext({
     state,
     DATAHUB_MAX_WEEKS: 18,
+    buildDataHubComparisonStatGroups: () => ({}),
     buildDataHubComparisonPlayers: () => [],
     getDataHubGameLogsQualifiedIds: () => new Set(),
     computeDataHubComparisonSeasonRankSets: () => ({ overall: {}, positional: {} }),
@@ -50,11 +52,8 @@ test("the season payload ranks the count-derived impact rate for qualified playe
     ["other", "RB", "4", "4"], ["zero", "RB", "0", "0"],
   ].map(([id, pos, OPP, IMP]) => ({ id, pos, seasonStats: context.buildDataHubComparisonSeasonStats(id, { OPP, IMP }) }));
   const { positional } = context.computeDataHubComparisonSeasonRankSets(players, new Set(["rb", "qb"]));
-  const ranked = players.slice(0, 2).map((player) => ({ ...player, seasonPosRanks: positional[player.id] }));
-  const row = buildSeasonMetricRows(ranked, "efficiency").find(({ key }) => key === "imp_per_opp");
-  assert.deepEqual(row.values, [25, 20]);
-  assert.deepEqual(row.ranks, [1, 1]);
-  assert.equal(row.trailing, null);
+  assert.deepEqual(players.slice(0, 2).map(({ seasonStats }) => seasonStats.imp_per_opp), [25, 20]);
+  assert.deepEqual([positional.rb.imp_per_opp, positional.qb.imp_per_opp], [1, 1]);
   assert.equal(positional.other, undefined);
   assert.equal(players[3].seasonStats.imp_per_opp, undefined);
 });
@@ -93,50 +92,49 @@ test("Compare's consistency meters share all seven Game Logs bands and distingui
   assert.equal(getConsistencyDialTone(null), "neutral");
 });
 
-test("season bars compare qualified positional ranks and preserve tie, missing and zero values", () => {
+test("season matchup rows keep table order, exact values and qualified ranks", () => {
+  const stat = (value, rank, display = String(value)) => ({ value, rank, display });
+  const columns = ["DB", "paYDS", "paTD", "TTT", "EPA/DB", "FPTS", "PPG"].map((key) => ({ key, label: key }));
   const a = {
     pos: "QB",
-    seasonStats: { pass_yd: 300, pass_td: 0, ttt: 2.3, epa_per_db: -0.4, ppg: -2, ceiling: 12, imp_per_opp: 30 },
-    seasonPosRanks: { pass_yd: 4, pass_td: 31, ttt: 2, ppg: 16 },
-    seasonMatchupRanks: { ppg: null },
+    seasonPosRanks: { ppg: 16, fpts: 1 },
+    seasonMatchupStats: {
+      paYDS: stat(300, 4), paTD: stat(0, 31), TTT: stat(2.3, 2),
+      "EPA/DB": stat(-0.4, null, "-0.40"), FPTS: stat(180, null, "180.0"), PPG: stat(-2, null),
+    },
   };
   const b = {
     pos: "QB",
-    seasonStats: { pass_yd: 300, pass_td: null, ttt: 2.6, epa_per_db: 0.4, ppg: 2 },
-    seasonPosRanks: { pass_yd: 4, pass_td: 12, ttt: 26, epa_per_db: 8 },
-    seasonMatchupRanks: { ppg: 21 },
+    seasonMatchupStats: {
+      paYDS: stat(300, 4), TTT: stat(2.6, 26), "EPA/DB": stat(0.4, 8, "+0.40"), PPG: stat(2, 21),
+    },
   };
-  const production = buildSeasonMetricRows([a, b], "production");
-  const yards = production.find(({ key }) => key === "pass_yd");
-  assert.equal(yards.label, "paYDS");
-  assert.deepEqual(yards.ranks, [4, 4]);
-  assert.equal(yards.barFractions[0], yards.barFractions[1]);
+  const rows = buildSeasonMetricRows([a, b], columns);
+  assert.deepEqual(rows.map(({ key }) => key), columns.map(({ key }) => key));
+  const [dropbacks, yards, touchdowns, time, epa, fpts, ppg] = rows;
+  assert.deepEqual(dropbacks.sides.map(({ display }) => display), ["—", "—"]);
+  assert.deepEqual(yards.sides.map(({ rank }) => rank), [4, 4]);
+  assert.equal(yards.sides[0].barFraction, yards.sides[1].barFraction);
   assert.equal(yards.trailing, null);
-  const touchdowns = production.find(({ key }) => key === "pass_td");
-  assert.deepEqual(touchdowns.values, [0, null]);
-  assert.deepEqual(touchdowns.ranks, [31, null]);
-  assert.ok(touchdowns.barFractions[0] > 0);
-  assert.equal(touchdowns.barFractions[1], null);
+  assert.deepEqual(touchdowns.sides.map(({ value }) => value), [0, null]);
+  assert.deepEqual(touchdowns.sides.map(({ rank }) => rank), [31, null]);
+  assert.ok(touchdowns.sides[0].barFraction > 0);
+  assert.equal(touchdowns.sides[1].barFraction, null);
   assert.equal(touchdowns.trailing, null);
-
-  const efficiency = buildSeasonMetricRows([a, b], "efficiency");
-  assert.deepEqual(efficiency.find(({ key }) => key === "ppg").ranks, [null, 21]);
-  const time = efficiency.find(({ key }) => key === "ttt");
   assert.equal(time.trailing, 1);
-  assert.ok(time.barFractions[0] > time.barFractions[1]);
-  const epa = efficiency.find(({ key }) => key === "epa_per_db");
-  assert.equal(epa.label, "EPA/DB");
-  assert.deepEqual(epa.values, [-0.4, 0.4]);
-  assert.deepEqual(epa.ranks, [null, 8]);
+  assert.ok(time.sides[0].barFraction > time.sides[1].barFraction);
+  assert.deepEqual(epa.sides.map(({ display }) => display), ["-0.40", "+0.40"]);
+  assert.deepEqual(epa.sides.map(({ rank }) => rank), [null, 8]);
   assert.equal(epa.trailing, null);
+  assert.deepEqual(fpts.sides.map(({ rank }) => rank), [1, null]);
+  assert.deepEqual(ppg.sides.map(({ rank }) => rank), [null, 21]);
 
-  const wr = { pos: "WR", seasonStats: { imp_per_opp: 75, rec_yd: 30 }, seasonPosRanks: { imp_per_opp: 80 } };
-  const mixed = buildSeasonMetricRows([{ ...a, seasonPosRanks: { imp_per_opp: 1 } }, wr], "efficiency");
-  const impact = mixed.find(({ key }) => key === "imp_per_opp");
-  assert.deepEqual(impact.values, [30, 75]);
-  assert.deepEqual(impact.barFractions, [1, 1 / 80]);
-  assert.equal(impact.trailing, 1);
-  assert.equal(mixed.some(({ key }) => key === "ttt"), false);
+  const mixed = buildSeasonMetricRows([
+    { pos: "QB", seasonMatchupStats: { IMP: stat(30, 1) } },
+    { pos: "WR", seasonMatchupStats: { IMP: stat(75, 80) } },
+  ], [{ key: "IMP", label: "IMP" }]);
+  assert.deepEqual(mixed[0].sides.map(({ barFraction }) => barFraction), [1, 1 / 80]);
+  assert.equal(mixed[0].trailing, 1);
 });
 
 test("scoring gauges share a signed points scale and distinguish zero from missing", () => {
@@ -175,14 +173,22 @@ test("the scoring distribution includes the ceiling and keeps an evenly spaced a
   assert.equal(narrow.fraction(narrow.ticks.at(-1)), 1);
 });
 
-test("season previews keep the exact weekly position assignment and both Start/Sit spectra", () => {
+test("the permanent season colors follow weekly slots and each radar edge crosses the right stops", () => {
   const pair = [{ pos: "WR" }, { pos: "WR" }];
-  const [first, second] = getSeasonPalettes(pair, "weekly");
-  assert.deepEqual(first.colors, ["#FF0AA5", "#D747FF", "#8766FF", "#00DDFA"]);
-  assert.deepEqual(second.colors, ["#004CFF", "#00B3FF", "#00EDFF", "#00FFCB"]);
-  assert.deepEqual(getSeasonPalettes([{ pos: "RB" }, pair[0]], "weekly"), [second, first]);
-  const [startSitA, startSitB] = getSeasonPalettes(pair, "start-sit");
-  assert.deepEqual(startSitA.colors, ["#1264FF", "#118FFF", "#00C6EF", "#19EDDD"]);
-  assert.deepEqual(startSitB.offsets, [0, 0.52, 1]);
-  assert.notDeepEqual(getSeasonPalettes(pair, "default"), [first, second]);
+  const first = getWeeklyPaletteStops(getWeeklyPalette(pair, 0));
+  const second = getWeeklyPaletteStops(getWeeklyPalette(pair, 1));
+  assert.deepEqual(first.map(({ color }) => color), ["#FF0AA5", "#D747FF", "#8766FF", "#00DDFA"]);
+  assert.deepEqual(second.map(({ color }) => color), ["#004CFF", "#00B3FF", "#00EDFF", "#00FFCB"]);
+  const mixed = [{ pos: "RB" }, pair[0]];
+  assert.deepEqual(getWeeklyPaletteStops(getWeeklyPalette(mixed, 0)), second);
+  assert.deepEqual(getWeeklyPaletteStops(getWeeklyPalette(mixed, 1)), first);
+
+  assert.deepEqual(getSeasonRadarEdgeStops(first, 0, 1), first);
+  const reversed = getSeasonRadarEdgeStops(first, 1, 0);
+  assert.deepEqual(reversed.map(({ color }) => color), first.map(({ color }) => color).reverse());
+  assert.ok(reversed.every(({ offset }, index) => index === 0 || offset > reversed[index - 1].offset));
+  const partial = getSeasonRadarEdgeStops(second, 0.24, 0.8);
+  assert.deepEqual(partial.slice(1, -1).map(({ color }) => color), ["#00B3FF", "#00EDFF"]);
+  assert.deepEqual(getSeasonRadarEdgeStops(first, 1, 1).map(({ color }) => color), ["#00DDFA", "#00DDFA"]);
+  assert.deepEqual(getSeasonRadarEdgeStops(first, null, 1), []);
 });

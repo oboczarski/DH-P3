@@ -21,7 +21,7 @@ function harness() {
     + source.slice(source.indexOf('const ONE_QB_MARKET_DATA_COLUMNS'), source.indexOf('const state = {'));
   const names = ['is2026PassingStatsView', 'is2026RushingStatsView', 'is2026ReceivingStatsView',
     'isDataHubWeeklyStatsView',
-    'getActiveColumnSet', 'getActiveColumnGroups', 'getFocusColumnGroups', 'getFocusViewKey',
+    'getActiveColumnSet', 'getDataHubStatsSeasonColumnGroups', 'getActiveColumnGroups', 'getFocusColumnGroups', 'getFocusViewKey',
     'getFocusHiddenGroups', 'toggleAllFocusGroups', 'getFocusedColumnSet', 'getFocusedColumnGroups',
     'shouldFilterTradeMarketColumns', 'isTradeMarketColumnVisible', 'getVisibleTradeMarketColumns',
     'getVisibleTradeMarketColumnGroups', 'getDefaultCategory', 'getViewFilterConfig', 'getActiveFrozenColumnGroups',

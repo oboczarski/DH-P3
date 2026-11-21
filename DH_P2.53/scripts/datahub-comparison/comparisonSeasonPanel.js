@@ -1,110 +1,51 @@
 import {
   COMPARISON_RADAR_MAX_RANK_BY_POS,
-  COMPARISON_STAT_DEFINITIONS,
   formatComparisonValue,
+  getComparisonPosition,
   getComparisonPositions,
   getPlayerName,
   getStatDefinition,
-  getStatLabel,
   toFiniteNumber,
-} from "./comparisonStats.js?v=DH3.81-compare";
-import { getDataHubStatDefinition } from "../datahub-stats-help.js?v=DH3.64a-air-yards-icon";
-import { getWeeklyPalette } from "./comparisonChartOptions.js?v=DH3.82-compare-previews";
-
-// Stat Matchups groups the season fields by their position and role. Mixed
-// comparisons use the shared families; any field absent for both players is
-// skipped, including current-season columns the 2025 archive never published.
-const PASSING = {
-  production: [
-    "pass_att", "pass_cmp", "pass_yd", "pass_td", "pass_fd", "epa",
-    "pass_imp", "pass_sack", "pass_int", "dropbacks",
-  ],
-  efficiency: [
-    "cmp_pct", "pass_rtg", "epa_per_db", "cpoe", "ttt", "prs_pct", "blitz_pct",
-    "dp_pct", "adjusted_ypa", "pa_ypg", "pass_imp_per_att", "team_pass_pct",
-  ],
-};
-
-const SHARED_RUSHING = {
-  production: ["rush_att", "rush_yd", "rush_td", "rush_fd"],
-  efficiency: ["ypc", "ru_ypg"],
-};
-
-const RUSHING = {
-  production: [...SHARED_RUSHING.production, "mtf", "rush_yac", "rush_ybc", "ryoe", "rz_att", "gl_att"],
-  efficiency: [
-    "ypc", "elu", "mtf_per_att", "yco_per_att", "expl_ru_pct", "ryoe_per_att", "ybc_per_att",
-    "ru_ypg", "car_per_g", "rush_yms", "rush_tms",
-  ],
-};
-
-const RECEIVING = {
-  production: ["rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd", "rec_yar", "rr", "rz_tgt", "tgt_10_plus", "AY"],
-  efficiency: [
-    "ts_per_rr", "yprr", "tprr", "first_down_rec_rate", "rec_ypg", "tgt_per_g", "recIMP/R",
-    "rec_yacr", "ay_pct", "ay_per_tgt", "ypr", "rec_per_g", "recs_pct", "rec_yms", "rec_tms",
-  ],
-};
-
-const GENERAL = {
-  production: ["yds_total", "td_total", "opp", "imp", "fum"],
-  efficiency: ["snp_pct", "ypg", "imp_per_g", "imp_per_opp", "ys_pct", "tds_pct", "fpoe"],
-};
-
-const RECEIVER_GROUPS = [RECEIVING, SHARED_RUSHING, GENERAL];
-const MATCHUP_GROUPS = {
-  QB: [PASSING, SHARED_RUSHING, GENERAL],
-  RB: [RUSHING, RECEIVING, GENERAL],
-  WR: RECEIVER_GROUPS,
-  TE: RECEIVER_GROUPS,
-  SKILL: RECEIVER_GROUPS,
-  MIXED: [SHARED_RUSHING, GENERAL],
-};
-
-const MATCHUP_PRECISE_RATES = new Set(["tprr", "first_down_rec_rate", "recIMP/R"]);
+} from "./comparisonStats.js?v=DH3.87-compare-groups";
+import { getWeeklyPalette, getWeeklyPaletteStops } from "./comparisonChartOptions.js?v=DH3.87-compare-groups";
 
 function getSeasonValue(player, key) {
   return toFiniteNumber(player.seasonStats?.[key]);
 }
 
-export function buildSeasonMetricRows(players, mode) {
-  const positions = getComparisonPositions(players);
-  const positionGroup = positions.length === 1 ? positions[0] : positions.includes("QB") ? "MIXED" : "SKILL";
-  const groups = MATCHUP_GROUPS[positionGroup] || MATCHUP_GROUPS.MIXED;
-  const keys = [mode === "production" ? "fpts" : "ppg", ...groups.flatMap((group) => group[mode])];
-  const rows = keys.flatMap((key) => {
-    const values = players.map((player) => getSeasonValue(player, key));
-    if (values.every((value) => value === null)) return [];
-    // Use Data Hub's qualified positional ranks. The raw values stay visible
-    // even when a player has no rank, and a recorded zero can still be ranked.
-    const ranks = players.map((player, index) => {
-      const rankSource = Object.hasOwn(player.seasonMatchupRanks || {}, key) ? player.seasonMatchupRanks : player.seasonPosRanks;
-      const rank = toFiniteNumber(rankSource?.[key]);
-      return values[index] !== null && Number.isInteger(rank) && rank > 0 ? rank : null;
+export function buildSeasonMetricRows(players, columns) {
+  // Keep each Stats group's column order, including missing cells. FPTS uses
+  // Compare's positional rank because the table shows a dedicated FPTS chip.
+  const rows = columns.map((column) => {
+    const sides = players.map((player) => {
+      const stat = player.seasonMatchupStats?.[column.key];
+      const value = toFiniteNumber(stat?.value);
+      const rank = toFiniteNumber(column.key === "FPTS" ? player.seasonPosRanks?.fpts : stat?.rank);
+      return {
+        value,
+        display: value === null ? "—" : stat.display,
+        rank: value !== null && Number.isInteger(rank) && rank > 0 ? rank : null,
+      };
     });
-    // Use the glossary's primary abbreviation at every width. Some entries
-    // also list alternate labels for other views after a spaced slash.
-    const definition = getDataHubStatDefinition(key);
-    const label = definition?.abbr.split(" / ")[0] ?? getStatLabel(key);
-    return [{ key, values, label, name: definition?.name ?? label, ranks }];
+    return { ...column, sides };
   });
 
-  // Keep one rank scale across the category so the same rank always occupies
-  // the same length on either side, including in mixed-position comparisons.
+  // One scale per group keeps equal positional ranks the same length, even
+  // when the players have different positions or one has unavailable ranks.
   const rankLimit = Math.max(
     1,
-    ...positions.map((pos) => COMPARISON_RADAR_MAX_RANK_BY_POS[pos] || 72),
-    ...rows.flatMap(({ ranks }) => ranks.filter(Number.isInteger)),
+    ...getComparisonPositions(players).map((pos) => COMPARISON_RADAR_MAX_RANK_BY_POS[pos] || 72),
+    ...rows.flatMap(({ sides }) => sides.map(({ rank }) => rank).filter(Number.isInteger)),
   );
   return rows.map((row) => {
-    const [firstRank, secondRank] = row.ranks;
-    const trailing = row.ranks.length === 2 && row.ranks.every(Number.isInteger) && firstRank !== secondRank
-      ? (secondRank > firstRank ? 1 : 0)
+    const [first, second] = row.sides;
+    const trailing = first?.rank != null && second?.rank != null && first.rank !== second.rank
+      ? (first.rank > second.rank ? 0 : 1)
       : null;
     return {
       ...row,
       trailing,
-      barFractions: row.ranks.map((rank) => rank === null ? null : (rankLimit - rank + 1) / rankLimit),
+      sides: row.sides.map((side) => ({ ...side, barFraction: side.rank === null ? null : (rankLimit - side.rank + 1) / rankLimit })),
     };
   });
 }
@@ -140,33 +81,6 @@ function pointsScale(scores) {
   };
 }
 
-const SEASON_SPECTRA = [
-  { colors: ["#126966", "#19b397", "#64e9c4", "#dcffe1"], accent: "#78eacc" },
-  { colors: ["#8f244b", "#dc4678", "#ff7884", "#ffe1cb"], accent: "#ff95a2" },
-];
-
-// The Start/Sit comparison's current scoring spectra (including the second
-// series' authored stops/alpha). Compare owns these values locally and does
-// not initialize the Rosters renderer or its theme on DataHub.
-const START_SIT_SPECTRA = [
-  { colors: ["#1264FF", "#118FFF", "#00C6EF", "#19EDDD"], accent: "#18ebdc" },
-  { colors: ["rgba(115,244,255,.72)", "rgba(91,127,255,.72)", "rgba(219,109,255,.82)"], offsets: [0, 0.52, 1], accent: "#b69aff" },
-];
-
-export function getSeasonPalettes(players, mode) {
-  return players.map((_, index) => {
-    if (mode === "weekly") {
-      const { low, lowMid, highMid, high } = getWeeklyPalette(players, index);
-      return { colors: [low, lowMid, highMid, high], accent: high };
-    }
-    return (mode === "start-sit" ? START_SIT_SPECTRA : SEASON_SPECTRA)[index];
-  });
-}
-
-function gradientStops({ colors, offsets }) {
-  return colors.map((color, index) => ({ color, offset: offsets?.[index] ?? index / (colors.length - 1) }));
-}
-
 export function buildScoringSpread(players, weeks) {
   // Each point is a recorded PPR score in this season's calendar. Show zero
   // and negative games, and leave BYEs, injury placeholders and future rows out.
@@ -189,17 +103,6 @@ export function buildScoringSpread(players, weeks) {
   // even if the loaded points don't reach that value.
   const scores = rows.flatMap(({ games, ceiling }) => [ceiling, ...games.map(({ score }) => score)]).filter(Number.isFinite);
   return { rows, ...pointsScale(scores) };
-}
-
-function formatMatchupValue({ key, label }, value) {
-  if (value === null) return "—";
-  if (COMPARISON_STAT_DEFINITIONS[key] && !MATCHUP_PRECISE_RATES.has(key)) return formatMetric(key, value);
-  const digits = MATCHUP_PRECISE_RATES.has(key) ? 3 : 2;
-  const display = value.toLocaleString("en-US", {
-    maximumFractionDigits: digits,
-    signDisplay: key === "epa" ? "exceptZero" : "auto",
-  });
-  return label.endsWith("%") || key === "pass_imp_per_att" ? `${display}%` : display;
 }
 
 function formatMetric(key, value) {
@@ -277,7 +180,7 @@ export function createSeasonComparison(React) {
         // is its own marker on the same scale, even for signed scoring data.
         hasFill ? h("defs", null, h("linearGradient", {
           id: gradientId, gradientUnits: "userSpaceOnUse", x1: startX, y1: startY, x2: endX, y2: endY,
-        }, gradientStops(palette).map(({ color, offset }) => h("stop", { key: offset, offset, stopColor: color })))) : null,
+        }, getWeeklyPaletteStops(palette).map(({ color, offset }) => h("stop", { key: offset, offset, stopColor: color })))) : null,
         h("path", { className: "dh-compare-score-gauge__rim", d: track }),
         h("path", { className: "dh-compare-score-gauge__track", d: track }),
         ticks.map((tick) => {
@@ -321,14 +224,23 @@ export function createSeasonComparison(React) {
     );
   }
 
+  function TableHeaderIcon({ icon, className }) {
+    // Only locally generated Stats header SVG markup reaches this wrapper.
+    return icon ? h("span", {
+      className, "aria-hidden": "true", dangerouslySetInnerHTML: { __html: icon },
+    }) : null;
+  }
+
   function StatMatchupRow({ row, players }) {
     return h("div", { className: "dh-compare-rank-row" },
-      h("h5", { className: "dh-compare-rank-row__metric", title: row.name }, row.label),
+      h("h5", { className: "dh-compare-rank-row__metric", title: row.name, "data-column-name": row.key },
+        h(TableHeaderIcon, { icon: row.icon, className: "dh-compare-rank-row__icon" }),
+        h("span", null, row.label),
+      ),
       // Each side starts at the center label. The readout follows its bar tip,
       // and only a ranked head-to-head loss dims the player's fill.
       players.map((player, slot) => {
-        const rank = row.ranks[slot];
-        const value = formatMatchupValue(row, row.values[slot]);
+        const { rank, display, barFraction } = row.sides[slot];
         const edge = row.trailing === null ? undefined : row.trailing === slot ? "trailing" : "leading";
         return h("div", {
           key: player.id, className: "dh-compare-rank-side", "data-season-slot": slot, "data-rank-edge": edge,
@@ -338,10 +250,10 @@ export function createSeasonComparison(React) {
             "aria-label": `${getPlayerName(player)} ${row.label}`,
           },
             h("strong", null, `${player.pos}·${rank ?? "—"}`),
-            h("small", null, value),
+            h("small", null, display),
           ),
           rank === null ? null : h("i", { className: "dh-compare-rank-side__fill", "aria-hidden": "true",
-            style: { "--rank-length": row.barFractions[slot] },
+            style: { "--rank-length": barFraction },
           }),
           h("svg", {
             className: "dh-compare-rank-side__chevrons", viewBox: "0 0 14 14", "aria-hidden": "true",
@@ -351,17 +263,21 @@ export function createSeasonComparison(React) {
     );
   }
 
-  function SeasonMatchupChart({ players }) {
-    const [mode, setMode] = useState("production");
-    const rows = useMemo(() => buildSeasonMetricRows(players, mode), [players, mode]);
+  function SeasonMatchupChart({ players, groups }) {
+    const [selectedKey, setSelectedKey] = useState(groups[0]?.key);
+    const selectedGroup = groups.find(({ key }) => key === selectedKey) || groups[0];
+    const rows = useMemo(() => buildSeasonMetricRows(players, selectedGroup?.columns || []), [players, selectedGroup]);
     return h("section", { className: "dh-compare-season-panel dh-compare-matchups", "aria-labelledby": "dh-compare-matchups-title" },
       h("header", { className: "dh-compare-season-panel__header" },
         h("h4", { id: "dh-compare-matchups-title" }, "Stat matchups"),
-        h("div", { className: "dh-compare-stat-segment", role: "group", "aria-label": "Season stat category" },
-          ["production", "efficiency"].map((category) => h("button", {
-            type: "button", key: category,
-            "aria-pressed": mode === category, onClick: () => setMode(category), "aria-controls": "dh-compare-season-metrics",
-          }, category === "production" ? "Production" : "Efficiency")),
+        h("div", { className: "dh-compare-stat-segment", role: "group", "aria-label": "Season stat group", "data-group-count": groups.length },
+          groups.map(({ key, label, icon }) => h("button", {
+            type: "button", key, "aria-pressed": selectedGroup?.key === key,
+            onClick: () => setSelectedKey(key), "aria-controls": "dh-compare-season-metrics",
+          },
+            h(TableHeaderIcon, { icon, className: "dh-compare-stat-segment__icon" }),
+            h("span", null, label),
+          )),
         ),
       ),
       h("div", { className: "dh-compare-matchups__board", "data-player-count": players.length },
@@ -430,20 +346,24 @@ export function createSeasonComparison(React) {
     );
   }
 
-  return function SeasonComparison({ players, season, weeks, paletteMode, children }) {
-    const palettes = useMemo(() => getSeasonPalettes(players, paletteMode), [players, paletteMode]);
+  return function SeasonComparison({ players, season, weeks, matchupGroups, children }) {
+    const palettes = useMemo(() => players.map((_, index) => getWeeklyPalette(players, index)), [players]);
+    const groupKey = getComparisonPosition(players) || "overview";
+    const groups = matchupGroups?.[groupKey] || matchupGroups?.overview || [];
     const colors = Object.fromEntries(palettes.flatMap((palette, index) => [
-      [`--season-accent-${index}`, palette.accent],
-      [`--season-deep-${index}`, palette.colors[0]],
-      [`--season-spectrum-${index}`, `linear-gradient(105deg, ${gradientStops(palette).map(({ color, offset }) => `${color} ${offset * 100}%`).join(", ")})`],
+      [`--season-accent-${index}`, palette.high],
+      [`--season-deep-${index}`, palette.low],
+      [`--season-spectrum-${index}`, `linear-gradient(105deg, ${getWeeklyPaletteStops(palette).map(({ color, offset }) => `${color} ${offset * 100}%`).join(", ")})`],
     ]));
-    return h("section", { className: "dh-compare-season", "aria-labelledby": "dh-compare-season-title", style: colors, "data-chart-palette": paletteMode },
+    return h("section", { className: "dh-compare-season", "aria-labelledby": "dh-compare-season-title", style: colors },
       h("header", { className: "dh-compare-section-heading dh-compare-season__heading" },
         h("h3", { id: "dh-compare-season-title" }, "Season comparison"),
         h("span", { className: "dh-compare-section-context" }, season),
       ),
       h(ScoringProfile, { players, palettes }),
-      h(SeasonMatchupChart, { players }),
+      // Remount the switcher when the selected positions change categories,
+      // so mixed pairs start on Overview Stats instead of a stale group.
+      h(SeasonMatchupChart, { key: `${season}-${groupKey}`, players, groups }),
       h(ScoringSpread, { players, weeks }),
       children,
     );

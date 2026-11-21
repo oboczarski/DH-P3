@@ -34,6 +34,7 @@ function datahubHarness() {
     BLANK_PLACEHOLDER_COLUMNS: new Set(),
     SOURCE_ALIASES: {},
     FPTS_COLUMN: 'FPTS',
+    state: { activePageView: 'stats', activeCategory: 'overview', statsSeason: '2026' },
     isDataHubRookiesView: () => false,
     buildDataHubRowMeta: () => ({}),
     normalizeSheetHeader, parseDataHubStatValue,

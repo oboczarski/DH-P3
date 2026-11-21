@@ -7,13 +7,13 @@ import {
   getThresholdConfig,
   isLowerBetterForPosition,
   toFiniteNumber,
-} from "./comparisonStats.js?v=DH3.81-compare";
+} from "./comparisonStats.js?v=DH3.87-compare-groups";
 
 const CHART_FONT = '"Product Sans", "Google Sans", Inter, system-ui, sans-serif';
 
 function getWeeklyPlayerPalette(player, playerIndex) {
-  // Only the weekly chart uses this WR/RB mapping. Count earlier players of the
-  // same position so the first WR keeps its palette even after a different position.
+  // Compare uses the weekly WR/RB mapping across all charts. Count earlier
+  // players of the same position so the palette follows the position slot.
   const position = String(player?.pos || "").toUpperCase();
   if ((position === "RB" && playerIndex === 1) || (position === "WR" && playerIndex === 0)) {
     return COMPARISON_GRADIENT_PALETTES.WR[1];
@@ -32,6 +32,11 @@ export function getWeeklyPalette(players, index) {
 
 export function getWeeklyPlayerAccentColor(players, index) {
   return getWeeklyPalette(players, index).high;
+}
+
+// Season views spread the same four weekly colors across their own domains.
+export function getWeeklyPaletteStops({ low, lowMid, highMid, high }) {
+  return [low, lowMid, highMid, high].map((color, index) => ({ color, offset: index / 3 }));
 }
 
 export function getWeeklyWeekEntry(player, week, statKey) {

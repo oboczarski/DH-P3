@@ -7,7 +7,7 @@ import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSe
 // app.js's service worker to refresh an older unversioned module from HTTP cache.
 import { loadDataHub2026Season, load2026WeeklySourceData, load2026WeeklyCsvData, load2026ProjectionSourceData } from "./datahub-2026-data.js?v=DH3.81-generated-2026";
 import { load2026DataManifest } from "./generated-2026-data.js";
-import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js?v=DH3.64a-air-yards-icon";
+import { attachDataHubStatsHelp, getDataHubStatDefinition, setDataHubStatTooltip } from "./datahub-stats-help.js?v=DH3.64a-air-yards-icon";
 import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js?v=DH3.62-datahub-gamelogs-parity";
 import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames, isConsistencyProductionStat, getConsistencyAverageLabelCenter, getConsistencyDialTone } from "./datahub-gamelogs-controls.js?v=DH3.81-compare";
 
@@ -7383,7 +7383,7 @@ function closeDataHubChartModal({ restoreFocus = true } = {}) {
 
 const DATAHUB_COMPARISON_REACT_URL = "https://cdn.jsdelivr.net/npm/react@18.3.1/+esm";
 const DATAHUB_COMPARISON_REACT_DOM_URL = "https://cdn.jsdelivr.net/npm/react-dom@18.3.1/client/+esm";
-const DATAHUB_COMPARISON_STYLES_URL = "../scripts/datahub-comparison/DataHubComparisonModal.css?v=DH3.86-compare-gauges";
+const DATAHUB_COMPARISON_STYLES_URL = "../scripts/datahub-comparison/DataHubComparisonModal.css?v=DH3.87-compare-groups";
 const DATAHUB_COMPARISON_WEEKLY_STAT_KEYS = Object.freeze([
   "fpts",
   "pass_yd",
@@ -7467,7 +7467,7 @@ async function ensureDataHubComparisonModule() {
     dataHubComparisonModulePromise = Promise.all([
       import(DATAHUB_COMPARISON_REACT_URL),
       import(DATAHUB_COMPARISON_REACT_DOM_URL),
-      import("./datahub-comparison/DataHubComparisonModal.js?v=DH3.86-compare-gauges"),
+      import("./datahub-comparison/DataHubComparisonModal.js?v=DH3.87-compare-groups"),
     ])
       .then(([reactModule, reactDomModule, comparisonModule]) => {
         const React = reactModule.default || reactModule;
@@ -7674,6 +7674,9 @@ const DATAHUB_COMPARISON_SEASON_VALUE_KEYS = Object.freeze([
   "rec_yar", "rec_ypg", "rec_yms", "team_pass_pct", "rr", "ypr", "yprr", "ts_per_rr", "first_down_rec_rate",
 ]);
 const DATAHUB_COMPARISON_QB_LOWER_BETTER = new Set(["ttt", "prs_pct", "pass_sack", "pass_int"]);
+const DATAHUB_COMPARISON_STATS_CATEGORIES = Object.freeze({
+  overview: "overview", QB: "passing", RB: "rushing", WR: "receiving", TE: "receiving",
+});
 
 // DataHub comparison full-prompt data bridge:
 // supersedes the first lightweight comparison payload while keeping the same
@@ -7945,8 +7948,38 @@ function computeDataHubComparisonSeasonRankSets(players, qualifiedIds = null) {
   return { overall, positional };
 }
 
+function buildDataHubComparisonStatGroups(season) {
+  // Compare uses full-season Stats groups, even when opened from a weekly
+  // table, another category, or Trade Values. Reuse the exact header SVGs.
+  const overviewGroups = ["OVERVIEW STATS", "FANTASY", "CEILING & CONSISTENCY"];
+  const groupsByCategory = Object.fromEntries([...new Set(Object.values(DATAHUB_COMPARISON_STATS_CATEGORIES))].map((category) => {
+    const tableGroups = getDataHubStatsSeasonColumnGroups(category, season);
+    const groups = category === "overview"
+      ? overviewGroups.map((label) => tableGroups.find((group) => group.label === label)).filter(Boolean)
+      : tableGroups.filter((group) => group.label !== "INFO" && !overviewGroups.includes(group.label));
+    const columnColors = buildColumnIconColorMap(tableGroups);
+    return [category, groups.map((group) => ({
+      key: group.label,
+      label: group.label.toLowerCase().replace(/\b[a-z]/g, (initial) => initial.toUpperCase()),
+      icon: buildGroupHeaderRow([], [group]).querySelector("svg")?.outerHTML,
+      columns: group.columns.map((columnName) => ({
+        key: columnName,
+        label: COLUMN_LABELS[columnName] || columnName,
+        name: getDataHubStatDefinition(columnName)?.name || columnName,
+        icon: createHeaderCell({ name: columnName, width: 0 }, columnColors.get(columnName), category, season)
+          .querySelector("svg.stats-table__head-icon")?.outerHTML,
+      })),
+    }))];
+  }));
+  return Object.fromEntries(Object.entries(DATAHUB_COMPARISON_STATS_CATEGORIES).map(([position, category]) =>
+    [position, groupsByCategory[category]],
+  ));
+}
+
 function buildDataHubComparisonPayload() {
-  const players = buildDataHubComparisonPlayers();
+  const matchupGroups = buildDataHubComparisonStatGroups(state.statsSeason);
+  const matchupColumns = new Set(Object.values(matchupGroups).flat().flatMap((group) => group.columns.map(({ key }) => key)));
+  const players = buildDataHubComparisonPlayers(matchupColumns);
   // Compare's shared chart starts at Week 1 for both seasons. For 2026, stop
   // at the last recorded CSV week so projection rows never extend the axis.
   const latestWeek = state.statsSeason === "2026"
@@ -7996,14 +8029,15 @@ function buildDataHubComparisonPayload() {
       selectedPlayerIds: [],
     },
     thresholds: state.comparisonData?.thresholds || Object.create(null),
+    matchupGroups,
     players: enrichedPlayers,
   };
 }
 
-function buildDataHubComparisonPlayers() {
+function buildDataHubComparisonPlayers(matchupColumns) {
   const combinedWeeklyStats = getDataHubCombinedWeeklyStats();
   return getDataHubStatsRowsForSeason()
-    .map((row) => buildDataHubComparisonPlayer(row, combinedWeeklyStats))
+    .map((row) => buildDataHubComparisonPlayer(row, combinedWeeklyStats, matchupColumns))
     .filter(Boolean)
     .sort((left, right) => {
       const leftFpts = Number.isFinite(left.fpts) ? left.fpts : -Infinity;
@@ -8013,7 +8047,7 @@ function buildDataHubComparisonPlayers() {
     });
 }
 
-function buildDataHubComparisonPlayer(row, combinedWeeklyStats = getDataHubCombinedWeeklyStats()) {
+function buildDataHubComparisonPlayer(row, combinedWeeklyStats, matchupColumns) {
   const meta = row?.__meta || {};
   const playerId = String(meta.playerId || row?.SLPR_ID || "").trim();
   const pos = String(meta.pos || row?.POS || "").trim().toUpperCase();
@@ -8028,14 +8062,23 @@ function buildDataHubComparisonPlayer(row, combinedWeeklyStats = getDataHubCombi
   const team = String(meta.team || row.TM || "FA").trim().toUpperCase() || "FA";
   const seasonStats = buildDataHubComparisonSeasonStats(playerId, row);
   const sourceSeasonRanks = buildDataHubComparisonSeasonRanks(playerId);
-  // The new matchup rows for PPG, FUM, and DP% use the Stats table's
-  // three-game eligibility or lower-is-better ordering, as applicable.
+  // Stat Matchups uses the table's season values and qualified positional
+  // ranks. Use its category's formatter regardless of the originating view.
+  const category = DATAHUB_COMPARISON_STATS_CATEGORIES[pos] || "overview";
   const tableRanks = state.statsPositionalRanksBySeason?.[state.statsSeason]?.get(row);
-  const seasonMatchupRanks = {
-    ppg: tableRanks?.PPG ?? null,
-    fum: tableRanks?.FUM ?? null,
-    dp_pct: tableRanks?.["DP%"] ?? null,
-  };
+  const seasonMatchupStats = Object.create(null);
+  for (const column of matchupColumns) {
+    const sourceValue = toComparableNumber(row[column]);
+    if (!Number.isFinite(sourceValue)) continue;
+    // Archived IMP/OPP uses a fraction in the CSV. Keep the comparison
+    // display in percentage points while preserving the table's rank.
+    const impactRate = column === "IMP/OPP" ? seasonStats.imp_per_opp : null;
+    seasonMatchupStats[column] = {
+      value: impactRate ?? sourceValue,
+      rank: tableRanks?.[column] ?? null,
+      display: impactRate == null ? formatDisplayValue(column, row[column], category) : formatDataHubPercentage(impactRate),
+    };
+  }
 
   return {
     id: playerId,
@@ -8054,7 +8097,7 @@ function buildDataHubComparisonPlayer(row, combinedWeeklyStats = getDataHubCombi
     hasGameLogsSupport: true,
     searchText: [name, fullName, pos, team].filter(Boolean).join(" ").toLowerCase(),
     seasonStats,
-    seasonMatchupRanks,
+    seasonMatchupStats,
     sourceSeasonRanks,
     weeklySeries: buildDataHubComparisonWeeklySeries(playerId, combinedWeeklyStats),
   };
@@ -8104,10 +8147,6 @@ function buildDataHubComparisonSeasonStats(playerId, row) {
   // Include the count-derived percentage before ranking so mixed-position
   // efficiency bars compare the same rate the row displays.
   setDataHubComparisonRatio(stats, "imp_per_opp", "imp", "opp", 100);
-  // These receiving fields are already normalized on the season Stats row.
-  for (const column of ["AY", "recIMP/R"]) {
-    setDataHubComparisonStat(stats, column, row[column]);
-  }
   return stats;
 }
 
@@ -8240,14 +8279,20 @@ function getActiveColumnSet() {
   return isDataHubWeeklyStatsView() ? getDataHubWeeklyColumns(columns) : getVisibleTradeMarketColumns(columns);
 }
 
+function getDataHubStatsSeasonColumnGroups(category, season) {
+  if (season === "2026") {
+    if (category === "receiving") return STATS_RECEIVING_COLUMN_GROUPS_2026;
+    if (category === "rushing") return STATS_RUSHING_COLUMN_GROUPS_2026;
+    if (category === "passing") return STATS_PASSING_COLUMN_GROUPS_2026;
+  }
+  return BASE_COLUMN_GROUPS[category] || BASE_COLUMN_GROUPS.overview;
+}
+
 function getActiveColumnGroups() {
   const viewGroups = PAGE_VIEW_COLUMN_GROUPS[state.activePageView] || PAGE_VIEW_COLUMN_GROUPS.stats;
-  const groups = is2026ReceivingStatsView() ? STATS_RECEIVING_COLUMN_GROUPS_2026
-    : is2026RushingStatsView() ? STATS_RUSHING_COLUMN_GROUPS_2026
-    : is2026PassingStatsView() ? STATS_PASSING_COLUMN_GROUPS_2026
-    : viewGroups[state.activeCategory]
-    || viewGroups[getDefaultCategory(state.activePageView)]
-    || PAGE_VIEW_COLUMN_GROUPS.stats.overview;
+  const groups = state.activePageView === "stats"
+    ? getDataHubStatsSeasonColumnGroups(state.activeCategory, state.statsSeason)
+    : viewGroups[state.activeCategory] || viewGroups[getDefaultCategory(state.activePageView)] || BASE_COLUMN_GROUPS.overview;
   return isDataHubWeeklyStatsView() ? getDataHubWeeklyColumnGroups(groups) : getVisibleTradeMarketColumnGroups(groups);
 }
 
@@ -8369,15 +8414,15 @@ function getActiveFrozenColumnGroups() {
 // a handful of column names appear in multiple category tables with different
 // requested icons, so resolve the active icon from the current stats category
 // before falling back to the shared column icon registry.
-function getActiveColumnIconMarkup(columnName) {
-  if (is2026ReceivingStatsView() && STATS_RECEIVING_COLUMN_ICON_OVERRIDES_2026[columnName]) {
+function getActiveColumnIconMarkup(columnName, statsCategory = state.activePageView === "stats" ? state.activeCategory : null, season = state.statsSeason) {
+  if (season === "2026" && statsCategory === "receiving" && STATS_RECEIVING_COLUMN_ICON_OVERRIDES_2026[columnName]) {
     return STATS_RECEIVING_COLUMN_ICON_OVERRIDES_2026[columnName];
   }
-  if (state.activePageView === "stats") {
+  if (statsCategory !== null) {
     // The touchdown-share column keeps its Overview glyph in all four Stats
     // categories; the existing Material fill hook supplies each group's color.
     if (columnName === "TDS%") return STATS_COLUMN_ICON_OVERRIDES.overview["TDS%"];
-    const categoryOverrides = STATS_COLUMN_ICON_OVERRIDES[state.activeCategory];
+    const categoryOverrides = STATS_COLUMN_ICON_OVERRIDES[statsCategory];
     if (categoryOverrides?.[columnName]) {
       return categoryOverrides[columnName];
     }
@@ -8386,7 +8431,7 @@ function getActiveColumnIconMarkup(columnName) {
   // Rookie header icon swaps:
   // the rookie tab owns custom RK and selected header glyphs so both subviews can
   // share the requested Tabler icons without changing non-rookie table headers.
-  if (isDataHubRookiesView()) {
+  if (statsCategory === null && isDataHubRookiesView()) {
     if (columnName === RK_COLUMN) {
       return ROOKIE_RK_HEADER_ICON_MARKUP;
     }
@@ -10143,7 +10188,11 @@ function appendDataHubIconMarkup(svg, iconMarkup) {
   svg.append(path);
 }
 
-function createHeaderCell(column, columnIconColor) {
+function createHeaderCell(column, columnIconColor, statsCategory = state.activePageView === "stats" ? state.activeCategory : null, season = state.statsSeason) {
+  // An explicit Stats context lets Compare render another category's icons
+  // while leaving the active table and its sort controls in place.
+  const category2026 = season === "2026" ? statsCategory : null;
+  const rookieHeader = statsCategory === null && isDataHubRookiesView();
   const th = document.createElement("th");
   th.className = "stats-table__header-cell";
   th.dataset.columnName = column.name;
@@ -10159,7 +10208,7 @@ function createHeaderCell(column, columnIconColor) {
   headerControl.className = "stats-table__head-button";
   // Resolve the source column, rather than the shortened rookie display label,
   // so every Stats/Market/Rookies header gets the correct full stat name.
-  setDataHubStatTooltip(headerControl, column.name, { rookie: isDataHubRookiesView() });
+  setDataHubStatTooltip(headerControl, column.name, { rookie: rookieHeader });
   if (isSortable) {
     headerControl.type = "button";
     headerControl.setAttribute("aria-label", `Sort by ${getColumnLabel(column.name)}`);
@@ -10176,20 +10225,20 @@ function createHeaderCell(column, columnIconColor) {
   // Column icon coloring:
   // the Stats rebuild uses group-owned column colors that are separate from the
   // group-header icon color so future header-icon recolors stay isolated.
-  const iconMarkup = getActiveColumnIconMarkup(column.name);
+  const iconMarkup = getActiveColumnIconMarkup(column.name, statsCategory, season);
   if (iconMarkup) {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("aria-hidden", "true");
     svg.setAttribute("focusable", "false");
     svg.classList.add("stats-table__head-icon");
-    if (column.name === RK_COLUMN && isDataHubRookiesView()) {
+    if (column.name === RK_COLUMN && rookieHeader) {
       // Rookie RK header icon:
       // the denser laurel-wreath markup gets a dedicated class so both rookie
       // subviews can keep the approved compact 18px treatment.
       svg.classList.add("stats-table__head-icon--rookie-rk");
     }
-    if ((column.name === "RD & PK#" || column.name === "OVR_PK") && isDataHubRookiesView()) {
+    if ((column.name === "RD & PK#" || column.name === "OVR_PK") && rookieHeader) {
       // Rookie draft column header icons:
       // RD/PK and PK# use requested Material-style filled glyphs with separate
       // classes so each icon can be tuned independently on desktop and mobile.
@@ -10204,7 +10253,7 @@ function createHeaderCell(column, columnIconColor) {
     }
     if (
       column.name === "AGE"
-      && isDataHubRookiesView()
+      && rookieHeader
       && (isDataHubRookiesTradeView() || state.activeCategory !== "overview")
     ) {
       // Rookies Draft AGE header icon:
@@ -10212,7 +10261,7 @@ function createHeaderCell(column, columnIconColor) {
       // overview keeps AGE in Info; this class only targets the Draft cases.
       svg.classList.add("stats-table__head-icon--rookie-draft-age");
     }
-    if ((column.name === "HT" || column.name === "WT") && isDataHubRookiesView()) {
+    if ((column.name === "HT" || column.name === "WT") && rookieHeader) {
       // Rookie Info column header icons:
       // HT and WT use requested Material-style filled glyphs with separate
       // classes so each can be tuned independently on desktop and mobile.
@@ -10225,19 +10274,19 @@ function createHeaderCell(column, columnIconColor) {
         svg.classList.add("stats-table__head-icon--rookie-wt");
       }
     }
-    if (is2026PassingStatsView() && STATS_COLUMN_ICON_OVERRIDES.passing[column.name]) {
+    if (category2026 === "passing" && STATS_COLUMN_ICON_OVERRIDES.passing[column.name]) {
       // New QB headers follow the existing inline Material viewBox/fill method
       // and inherit the icon color from their production/efficiency/rushing group.
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--qb-2026-material");
     }
-    if (is2026RushingStatsView() && STATS_COLUMN_ICON_OVERRIDES.rushing[column.name]) {
+    if (category2026 === "rushing" && STATS_COLUMN_ICON_OVERRIDES.rushing[column.name]) {
       // 2026 RB additions use the existing inline SVG renderer, Material viewBox,
       // and a page-local filled-icon hook with the active group color.
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--rb-2026-material");
     }
-    if (is2026ReceivingStatsView() && STATS_RECEIVING_COLUMN_ICON_OVERRIDES_2026[column.name]) {
+    if (category2026 === "receiving" && STATS_RECEIVING_COLUMN_ICON_OVERRIDES_2026[column.name]) {
       // W/T additions and reused RB icons keep their Material coordinates and
       // fill treatment while inheriting the current receiving group color.
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
@@ -10386,7 +10435,7 @@ function createHeaderCell(column, columnIconColor) {
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--yac-material");
     }
-    if (column.name === "AY" && !is2026ReceivingStatsView()) {
+    if (column.name === "AY" && category2026 !== "receiving") {
       // AY column header icon:
       // historical/rookie tables keep the stroke glyph's sizing hook;
       // current W/T uses the filled Material hook above.
@@ -11810,9 +11859,12 @@ function getRookieTierStyleLevel(value) {
   return parsedTier >= 1 && parsedTier <= 8 ? parsedTier : 0;
 }
 
-function formatDisplayValue(columnName, value) {
+function formatDisplayValue(columnName, value, statsCategory = state.activePageView === "stats" ? state.activeCategory : null) {
+  // Stat Matchups can format a season stat using its table category even
+  // when the user opened Compare from another part of Data Hub.
+  const category2026 = state.statsSeason === "2026" ? statsCategory : null;
   // 2026 QB Stats: AY/A is a source-backed rate; round only its display.
-  if (columnName === "AY/A" && is2026PassingStatsView()) {
+  if (columnName === "AY/A" && category2026 === "passing") {
     const numericValue = toComparableNumber(value);
     return numericValue == null ? formatCellValue(value) : numericValue.toFixed(2);
   }
@@ -11847,7 +11899,7 @@ function formatDisplayValue(columnName, value) {
 
   // New QB table fields use the Game Logs parsing/formatting contract, keeping
   // missing cells unavailable and underlying DH values unrounded for sorting.
-  if (is2026PassingStatsView() && ["EPA", "DB", "BLTZ%", "TmPa%", "CAR/G"].includes(columnName)) {
+  if (category2026 === "passing" && ["EPA", "DB", "BLTZ%", "TmPa%", "CAR/G"].includes(columnName)) {
     const numericValue = ["BLTZ%", "TmPa%"].includes(columnName)
       ? parseDataHubStatValue(columnName, value) : toComparableNumber(value);
     if (numericValue == null) return formatCellValue(value);
@@ -11859,14 +11911,14 @@ function formatDisplayValue(columnName, value) {
 
   // DataHub 2026 Rushing table: per-game /G and YPG columns display one
   // decimal place. Keep the unrounded source for sorting/heat tiers and preserve NA.
-  if (is2026RushingStatsView() && (columnName.endsWith("/G") || columnName.endsWith("YPG"))) {
+  if (category2026 === "rushing" && (columnName.endsWith("/G") || columnName.endsWith("YPG"))) {
     const numericValue = toComparableNumber(value);
     return numericValue == null ? formatCellValue(value) : numericValue.toFixed(1);
   }
 
   // RB receiving rates keep the workbook's units: TPRR is a decimal ratio,
   // and YACR is yards per reception. Shares are formatted above for every view.
-  if (is2026RushingStatsView() && ["TPRR", "YACR"].includes(columnName)) {
+  if (category2026 === "rushing" && ["TPRR", "YACR"].includes(columnName)) {
     const numericValue = parseDataHubStatValue(columnName, value);
     if (numericValue == null) return formatCellValue(value);
     return numericValue.toFixed(columnName === "TPRR" ? 3 : 1);
@@ -11874,7 +11926,7 @@ function formatDisplayValue(columnName, value) {
 
   // W/T Stats uses DH units without rounding the stored sorting/rank values.
   // Route/reception ratios retain three decimals; yards/per-game values retain tenths.
-  if (is2026ReceivingStatsView() && ["TS%", "AY%", "TPRR", "1DRR", "recIMP/R", "recYPG", "TGT/G", "REC/G", "YACR", "AY/Tgt"].includes(columnName)) {
+  if (category2026 === "receiving" && ["TS%", "AY%", "TPRR", "1DRR", "recIMP/R", "recYPG", "TGT/G", "REC/G", "YACR", "AY/Tgt"].includes(columnName)) {
     const numericValue = parseDataHubStatValue(columnName, value);
     if (numericValue == null) return formatCellValue(value);
     if (["TS%", "AY%"].includes(columnName)) return formatDataHubPercentage(numericValue);

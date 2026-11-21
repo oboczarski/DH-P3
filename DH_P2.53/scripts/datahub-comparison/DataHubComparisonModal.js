@@ -3,7 +3,6 @@ import {
   formatComparisonValue,
   formatRank,
   getComparisonPosition,
-  getComparisonRankColor,
   getOrdinalSuffix,
   getPlayerName,
   getRadarRankValue,
@@ -13,10 +12,10 @@ import {
   getWeeklyStatOptions,
   normalizePlayerSearchText,
   toFiniteNumber,
-} from "./comparisonStats.js?v=DH3.81-compare";
-import { getWeeklyPlayerAccentColor } from "./comparisonChartOptions.js?v=DH3.82-compare-previews";
-import { createWeeklyComparison } from "./comparisonWeeklyPanel.js?v=DH3.84-compare-scoring";
-import { createSeasonComparison } from "./comparisonSeasonPanel.js?v=DH3.86-compare-gauges";
+} from "./comparisonStats.js?v=DH3.87-compare-groups";
+import { getWeeklyPalette, getWeeklyPaletteStops, getWeeklyPlayerAccentColor } from "./comparisonChartOptions.js?v=DH3.87-compare-groups";
+import { createWeeklyComparison } from "./comparisonWeeklyPanel.js?v=DH3.87-compare-groups";
+import { createSeasonComparison } from "./comparisonSeasonPanel.js?v=DH3.87-compare-groups";
 
 const POSITION_FILTERS = Object.freeze([
   { key: "all", label: "All" },
@@ -162,6 +161,35 @@ function getSeasonRadarTextAnchor(cos) {
 function getSeasonRadarId(playerId, suffix) {
   const safePlayerId = String(playerId || "player").replace(/[^a-z0-9_-]/gi, "-");
   return `dh-compare-radar-${safePlayerId}-${suffix}`;
+}
+
+function getRadarPaletteColor(stops, strength) {
+  const index = stops.findIndex(({ offset }) => offset >= strength);
+  const upper = stops[index];
+  if (index === 0 || upper.offset === strength) return upper.color;
+  const lower = stops[index - 1];
+  const fraction = (strength - lower.offset) / (upper.offset - lower.offset);
+  const channels = [1, 3, 5].map((start) => {
+    const low = Number.parseInt(lower.color.slice(start, start + 2), 16);
+    const high = Number.parseInt(upper.color.slice(start, start + 2), 16);
+    return Math.round(low + fraction * (high - low));
+  });
+  return `rgb(${channels.join(", ")})`;
+}
+
+export function getSeasonRadarEdgeStops(stops, from, to) {
+  // Carry every crossed palette stop onto the edge. This mirrors the weekly
+  // line's value-driven ramp, including a segment drawn from strong to weak.
+  if (from === null || to === null) return [];
+  const interior = from === to ? [] : stops
+    .map(({ color, offset }) => ({ color, offset: (offset - from) / (to - from) }))
+    .filter(({ offset }) => offset > 0 && offset < 1)
+    .sort((a, b) => a.offset - b.offset);
+  return [
+    { offset: 0, color: getRadarPaletteColor(stops, from) },
+    ...interior,
+    { offset: 1, color: getRadarPaletteColor(stops, to) },
+  ];
 }
 
 function formatSeasonRadarValue(statKey, value) {
@@ -515,17 +543,25 @@ export function createDataHubComparisonModal(React) {
     );
   }
 
-  function SeasonRadarChart({ player, colorIndex, statKeys, isCompact }) {
+  function SeasonRadarChart({ player, colorIndex, palette, statKeys, isCompact }) {
     if (!statKeys.length) {
       return h("p", { className: "dh-compare-no-data" }, "No ranked season stats available.");
     }
 
     const gradientId = getSeasonRadarId(player.id, `fill-${colorIndex}`);
+    const paletteStops = getWeeklyPaletteStops(palette);
+    const lowestScore = getRadarRankValue(null, player.pos);
+    const scoreSpan = getRadarRankValue(1, player.pos) - lowestScore;
     const totalAxes = statKeys.length;
     const dataPoints = statKeys.map((statKey, index) => {
-      const rawValue = player?.seasonStats?.[statKey];
-      const rank = toFiniteNumber(player?.seasonPosRanks?.[statKey]);
+      const rawValue = toFiniteNumber(player.seasonStats?.[statKey]);
+      // The table's PPG rank uses the recorded-game qualifier. A raw value
+      // without a valid rank stays neutral instead of getting a palette color.
+      const suppliedRank = toFiniteNumber(statKey === "ppg" ? player.seasonMatchupStats?.PPG?.rank : player.seasonPosRanks?.[statKey]);
+      const rank = rawValue !== null && Number.isInteger(suppliedRank) && suppliedRank > 0 ? suppliedRank : null;
       const score = getRadarRankValue(rank, player.pos);
+      const strength = rank === null ? null : (score - lowestScore) / scoreSpan;
+      const rankColor = strength === null ? "#7d8aa4" : getRadarPaletteColor(paletteStops, strength);
       const pointRadius = SEASON_RADAR_LAYOUT.radius * (score / 100);
       const point = getSeasonRadarPoint(index, totalAxes, pointRadius);
       // Twelve/thirteen-axis season layout: place ranks relative to their points, and
@@ -539,14 +575,13 @@ export function createDataHubComparisonModal(React) {
       const verticalWeight = Math.pow(Math.abs(point.sin), 4);
       const labelRadius = SEASON_RADAR_LAYOUT.labelRadius + ((point.sin < 0 ? 2 : -3) * verticalWeight);
       const labelPoint = getSeasonRadarPoint(index, totalAxes, labelRadius);
-      const rankNumber = rank === null ? null : Math.round(rank);
       return {
         statKey,
-        rawValue,
         formattedValue: formatSeasonRadarValue(statKey, rawValue),
-        rank,
-        rankNumber,
-        rankColor: getComparisonRankColor(rank, player.pos),
+        strength,
+        rankNumber: rank,
+        rankColor,
+        rankTextColor: `color-mix(in srgb, ${rankColor} 64%, #eef4ff)`,
         point,
         rankPoint,
         labelPoint,
@@ -556,11 +591,14 @@ export function createDataHubComparisonModal(React) {
     const polygonPoints = dataPoints
       .map(({ point }) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`)
       .join(" ");
-    const outlineSegments = dataPoints.map((item, index) => ({
-      item,
-      nextItem: dataPoints[(index + 1) % dataPoints.length],
-      gradientId: getSeasonRadarId(player.id, `edge-${colorIndex}-${index}`),
-    }));
+    const outlineSegments = dataPoints.map((item, index) => {
+      const nextItem = dataPoints[(index + 1) % dataPoints.length];
+      return {
+        item, nextItem,
+        gradientId: getSeasonRadarId(player.id, `edge-${colorIndex}-${index}`),
+        stops: getSeasonRadarEdgeStops(paletteStops, item.strength, nextItem.strength),
+      };
+    });
     const accessibleDetails = dataPoints
       .map((item) => `${getStatLabel(item.statKey)} ${item.formattedValue}, ${player.pos} rank ${item.rankNumber ?? "not available"}`)
       .join("; ");
@@ -588,9 +626,7 @@ export function createDataHubComparisonModal(React) {
           "defs",
           null,
           h(
-            // Anchor the faint fill to the rank scale, not the shape's bounding
-            // box: weaker ranks stay near the low-color center and stronger
-            // ranks reach the high-color outer bands. No duplicated glow fill.
+            // The area uses the same stop colors at the matching rank radii.
             "radialGradient",
             {
               id: gradientId,
@@ -599,16 +635,14 @@ export function createDataHubComparisonModal(React) {
               cy: SEASON_RADAR_LAYOUT.centerY,
               r: SEASON_RADAR_LAYOUT.radius,
             },
-            h("stop", { offset: "0%", stopColor: "var(--season-deep)", stopOpacity: "0.02" }),
-            h("stop", { offset: "35%", stopColor: "var(--season-deep)", stopOpacity: "0.045" }),
-            h("stop", { offset: "65%", stopColor: "var(--season-accent)", stopOpacity: "0.085" }),
-            h("stop", { offset: "85%", stopColor: "var(--season-light)", stopOpacity: "0.14" }),
-            h("stop", { offset: "100%", stopColor: "var(--season-light)", stopOpacity: "0.14" }),
+            ...paletteStops.map(({ offset, color }, index) => h("stop", {
+              key: offset,
+              offset: (lowestScore + offset * scoreSpan) / 100,
+              stopColor: color,
+              stopOpacity: [0.025, 0.085, 0.16, 0.28][index],
+            })),
           ),
-          // Conditional radar outline: each edge blends between the rank-band
-          // colors of its two stats, mirroring the weekly chart's conditional
-          // line treatment while using positional rank as the shared scale.
-          ...outlineSegments.map(({ item, nextItem, gradientId: edgeGradientId }) => h(
+          ...outlineSegments.filter(({ stops }) => stops.length).map(({ item, nextItem, gradientId: edgeGradientId, stops }) => h(
             "linearGradient",
             {
               key: edgeGradientId,
@@ -619,8 +653,7 @@ export function createDataHubComparisonModal(React) {
               x2: nextItem.point.x,
               y2: nextItem.point.y,
             },
-            h("stop", { offset: "0%", stopColor: item.rankColor }),
-            h("stop", { offset: "100%", stopColor: nextItem.rankColor }),
+            ...stops.map(({ offset, color }) => h("stop", { key: offset, offset, stopColor: color })),
           )),
         ),
         ...SEASON_RADAR_RING_LEVELS.map((level, index) => h("polygon", {
@@ -647,14 +680,15 @@ export function createDataHubComparisonModal(React) {
           fill: `url(#${gradientId})`,
           stroke: "none",
         }),
-        ...outlineSegments.map(({ item, nextItem, gradientId: edgeGradientId }, index) => h("line", {
+        ...outlineSegments.map(({ item, nextItem, gradientId: edgeGradientId, stops }, index) => h("line", {
           key: `edge-${item.statKey}-${nextItem.statKey}-${index}`,
           className: "dh-compare-season-radar__edge",
           x1: item.point.x,
           y1: item.point.y,
           x2: nextItem.point.x,
           y2: nextItem.point.y,
-          stroke: `url(#${edgeGradientId})`,
+          stroke: stops.length ? `url(#${edgeGradientId})` : "#7788a780",
+          strokeDasharray: stops.length ? undefined : "2.5 3.5",
         })),
         ...dataPoints.map((item) => h(
           "g",
@@ -685,7 +719,7 @@ export function createDataHubComparisonModal(React) {
               y: item.rankPoint.y,
               textAnchor: getSeasonRadarTextAnchor(item.rankPoint.cos),
               dominantBaseline: "middle",
-              fill: item.rankColor,
+              fill: item.rankTextColor,
             },
             h("tspan", null, item.rankNumber === null ? "NA" : String(item.rankNumber)),
             item.rankNumber === null
@@ -721,7 +755,7 @@ export function createDataHubComparisonModal(React) {
               x: item.labelPoint.x,
               y: item.labelPoint.y + 15,
               textAnchor: item.textAnchor,
-              fill: item.rankColor,
+              fill: item.rankTextColor,
             },
             `• ${item.formattedValue} •`,
           ),
@@ -755,7 +789,7 @@ export function createDataHubComparisonModal(React) {
             player.teamLogoSrc ? h("img", { src: player.teamLogoSrc, alt: "" }) : null,
             h("strong", { className: "dh-compare-season-name" }, h("i"), getPlayerName(player)),
           ),
-          h(SeasonRadarChart, { player, colorIndex: index, statKeys, isCompact }),
+          h(SeasonRadarChart, { player, colorIndex: index, palette: getWeeklyPalette(players, index), statKeys, isCompact }),
         )),
       ),
     );
@@ -793,10 +827,6 @@ export function createDataHubComparisonModal(React) {
     const [isStatOpen, setIsStatOpen] = useState(false);
     const [positionFilter, setPositionFilter] = useState("all");
     const [activeOptionIndex, setActiveOptionIndex] = useState(0);
-    // Temporary previews reset on reopen. The two season palettes share a
-    // setting, while the Game Logs surface theme has its own independent switch.
-    const [paletteMode, setPaletteMode] = useState("default");
-    const [darkTheme, setDarkTheme] = useState(false);
     const searchInputRef = useRef(null);
     const searchShellRef = useRef(null);
     const searchMenuRef = useRef(null);
@@ -1006,7 +1036,7 @@ export function createDataHubComparisonModal(React) {
 
     return h(
       "div",
-      { className: "dh-compare-modal", "data-compare-theme": darkTheme ? "gamelogs" : undefined },
+      { className: "dh-compare-modal" },
       // DataHub comparison backdrop:
       // closes only this lazy React modal and leaves the existing DataHub chart
       // and game-log modal event wiring untouched.
@@ -1031,21 +1061,7 @@ export function createDataHubComparisonModal(React) {
           h(
             "div",
             { className: "dh-compare-heading" },
-            h("div", { className: "dh-compare-heading__top" },
-              h("span", { className: "dh-compare-eyebrow" }, `Data Hub / ${payload.season}`),
-              h("div", { className: "dh-compare-preview-controls", role: "group", "aria-label": "Appearance previews" },
-                [["weekly", "Weekly", "Use weekly position gradients"], ["start-sit", "Start/Sit", "Use Rosters Start/Sit gradients"]]
-                  .map(([mode, label, description]) => h("button", {
-                    type: "button", key: mode, title: description, "aria-label": description, "aria-pressed": paletteMode === mode,
-                    onClick: () => setPaletteMode((current) => current === mode ? "default" : mode),
-                  }, label)),
-                h("span", { className: "dh-compare-preview-controls__divider", "aria-hidden": true }),
-                h("button", {
-                  type: "button", title: "Dark Game Logs theme", "aria-label": "Dark Game Logs theme",
-                  "aria-pressed": darkTheme, onClick: () => setDarkTheme((enabled) => !enabled),
-                }, "Dark"),
-              ),
-            ),
+            h("span", { className: "dh-compare-eyebrow" }, `Data Hub / ${payload.season}`),
             h("h2", { id: "dh-compare-title" }, "Compare players"),
           ),
           h(
@@ -1217,7 +1233,7 @@ export function createDataHubComparisonModal(React) {
               })),
             ),
             h(WeeklyComparison, { key: "weekly", players: selectedPlayers, statKey: weeklyStatKey, weeks, thresholds }),
-            h(SeasonComparison, { key: "season", players: selectedPlayers, season: payload.season, weeks, paletteMode },
+            h(SeasonComparison, { key: "season", players: selectedPlayers, season: payload.season, weeks, matchupGroups: payload.matchupGroups },
               h(SeasonRadars, { players: selectedPlayers }),
             ),
           ] : h(EmptyComparison),

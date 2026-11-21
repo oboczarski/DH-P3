@@ -13,6 +13,12 @@ body[data-page="datahub"] .dh-compare-modal * {
 }
 
 body[data-page="datahub"] .dh-compare-modal {
+  --compare-control-fill: linear-gradient(180deg, #131e32, #080e1d);
+  --compare-control-edge: linear-gradient(135deg, #73f4ffce 0%, #5b7fefd9 52%, #db6dffcf 100%);
+  --compare-control-ring: 0 0 0 1px #73f4ff17, 0 0 15px #5b7fff47, inset 0 0 12px #5b7fff24;
+  --compare-panel-fill: linear-gradient(155deg, #0e1728, #070d19 80%);
+  --compare-inset-fill: #070d18;
+  font-variant-numeric: proportional-nums;
   position: fixed;
   inset: 0;
   z-index: 1600;
@@ -2061,74 +2067,17 @@ body[data-page="datahub"] .dh-compare-radar-card .dh-compare-season-radar {
   body[data-page="datahub"] .dh-compare-radar-card:only-child { grid-column: 1 / -1; }
 }
 
-/* Temporary appearance previews sit beside the Compare eyebrow. The color
-   selectors affect the season section, while Dark only swaps modal surfaces. */
-body[data-page="datahub"] .dh-compare-modal {
-  --compare-control-fill: linear-gradient(180deg, #27344b, #172032);
-  --compare-control-edge: linear-gradient(135deg, #92aacf55, #54708d42);
-  --compare-control-ring: 0 0 0 1px #a5c5ff0f;
-  --compare-panel-fill: linear-gradient(155deg, #132132, #0d1625 76%);
-  --compare-inset-fill: #0b1421;
-  font-variant-numeric: proportional-nums;
-}
-
-body[data-page="datahub"] .dh-compare-heading__top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 3px 8px;
-  min-width: 0;
-}
-
-body[data-page="datahub"] .dh-compare-heading__top .dh-compare-eyebrow {
-  flex: none;
-  white-space: nowrap;
-}
-
-body[data-page="datahub"] .dh-compare-preview-controls {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  flex: none;
-}
-
-body[data-page="datahub"] .dh-compare-preview-controls button {
-  min-height: 26px;
-  padding: 0 6px;
-  border: 1px solid #adc8f02b;
-  border-radius: 6px;
-  background: #0b13268a;
-  color: #b5c3dc;
-  font: 600 0.66rem "Google Sans", Arial, sans-serif;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-body[data-page="datahub"] .dh-compare-preview-controls__divider {
-  width: 1px;
-  height: 15px;
-  margin-inline: 1px;
-  background: #a7b9dd49;
-}
-
-body[data-page="datahub"] .dh-compare-modal :is(.dh-compare-preview-controls, .dh-compare-stat-segment) button[aria-pressed="true"] {
+body[data-page="datahub"] .dh-compare-modal .dh-compare-stat-segment button[aria-pressed="true"] {
   border: 1px solid transparent;
   background: var(--compare-control-fill) padding-box, var(--compare-control-edge) border-box;
   box-shadow: var(--compare-control-ring), inset 0 1px 0 #d7e9ff1a;
   color: #eff6ff;
 }
 
-body[data-page="datahub"] .dh-compare-preview-controls button:focus-visible,
 body[data-page="datahub"] .dh-compare-stat-segment button:focus-visible,
 body[data-page="datahub"] .dh-compare-week-readout select:focus-visible {
   outline: 2px solid #a7d2ff;
   outline-offset: 2px;
-}
-
-@media (max-width: 380px) {
-  body[data-page="datahub"] .dh-compare-heading__top { gap: 3px 5px; }
-  body[data-page="datahub"] .dh-compare-preview-controls { gap: 3px; }
-  body[data-page="datahub"] .dh-compare-preview-controls button { padding-inline: 5px; font-size: 0.61rem; }
 }
 
 /* Weekly chips are independently styled by selection slot. Both use
@@ -2185,8 +2134,8 @@ body[data-page="datahub"] .dh-compare-weekly-label.is-status {
   body[data-page="datahub"] .dh-compare-weekly-label.is-status { min-height: 0; font-size: 9px; }
 }
 
-/* Season chart colors are selection-slot properties supplied by React.
-   Only the palette preview writes them, including when a player is replaced. */
+/* Each slot uses the weekly palette for its season charts and player key.
+   React updates the stops when the selected positions change. */
 body[data-page="datahub"] .dh-compare-season {
   gap: 12px;
   --season-accent: #b1c3df;
@@ -2431,33 +2380,87 @@ body[data-page="datahub"] .dh-compare-body .dh-compare-season-note {
   line-height: 1.38;
 }
 
-/* Stat Matchups keeps the existing category control and chart palettes. */
+/* The Stats table's group icons lead each switcher. Use two rows for four
+   groups on phones so the full group names can stay visible. */
+body[data-page="datahub"] .dh-compare-matchups > .dh-compare-season-panel__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
 body[data-page="datahub"] .dh-compare-stat-segment {
-  display: flex;
-  flex: none;
-  gap: 2px;
-  padding: 2px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px;
+  padding: 3px;
   border: 1px solid var(--compare-border);
   border-radius: 8px;
   background: var(--compare-inset-fill);
 }
 
+body[data-page="datahub"] .dh-compare-stat-segment[data-group-count="3"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 body[data-page="datahub"] .dh-compare-stat-segment button {
-  min-height: 32px;
-  padding: 2px clamp(5px, 1.65vw, 12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 38px;
+  padding: 3px clamp(3px, 1.4vw, 10px);
   border: 1px solid transparent;
   border-radius: 6px;
-  background: transparent;
+  background: #111b2b;
   color: var(--compare-muted);
-  font: 650 clamp(0.64rem, 2.6vw, 0.76rem)/1 "Google Sans", Arial, sans-serif;
+  font: 650 clamp(0.62rem, 2.5vw, 0.78rem)/1.15 "Google Sans", Arial, sans-serif;
+  text-align: center;
+  text-wrap: balance;
   cursor: pointer;
+}
+
+body[data-page="datahub"] :is(.dh-compare-stat-segment__icon, .dh-compare-rank-row__icon) {
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+body[data-page="datahub"] .dh-compare-stat-segment__icon .stats-table__group-header-icon {
+  width: clamp(12px, 3.5vw, 17px);
+  height: clamp(12px, 3.5vw, 17px);
+}
+
+body[data-page="datahub"] .dh-compare-rank-row__icon .stats-table__head-icon {
+  display: block;
+  width: clamp(11px, 2.6vw, 15px);
+  height: clamp(11px, 2.6vw, 15px);
+  margin: 0;
+}
+
+body[data-page="datahub"] .dh-compare-rank-row__icon :is(
+  .stats-table__head-icon--qb-2026-material,
+  .stats-table__head-icon--rb-2026-material,
+  .stats-table__head-icon--wt-2026-material
+) {
+  /* Filled table glyphs retain their paint when Compare is opened off Stats. */
+  fill: var(--column-icon-color);
+  stroke: none;
+  stroke-width: 0;
+}
+
+@media (min-width: 720px) {
+  body[data-page="datahub"] .dh-compare-matchups > .dh-compare-season-panel__header { display: flex; }
+  body[data-page="datahub"] .dh-compare-stat-segment { display: flex; flex-wrap: wrap; justify-content: flex-end; }
+  body[data-page="datahub"] .dh-compare-stat-segment button { min-height: 34px; }
 }
 
 /* Mirror the reference around each metric: rank and value at the moving
    bar tips, chevrons at the center, and the same fill scale on both sides. */
 body[data-page="datahub"] .dh-compare-matchups__board {
   --rank-center: clamp(54px, 17vw, 105px);
-  --rank-readout: clamp(27px, 6.7vw, 45px);
+  /* Allow room for position prefixes and the table's full numeric values. */
+  --rank-readout: clamp(36px, 9.4vw, 50px);
   --rank-chevron: clamp(8px, 2.5vw, 13px);
   --rank-gap: clamp(3px, 1vw, 7px);
   display: grid;
@@ -2511,6 +2514,11 @@ body[data-page="datahub"] .dh-compare-rank-row {
 
 body[data-page="datahub"] .dh-compare-rank-row__metric {
   grid-area: 1 / 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
   margin: 0;
   color: var(--compare-text);
   font-size: clamp(0.57rem, 1.85vw, 0.87rem);
@@ -2523,6 +2531,11 @@ body[data-page="datahub"] .dh-compare-rank-row__metric {
   background: linear-gradient( 161deg, #3b4a5780, #28334be6 62%, #191c2580);
   padding: 3px 0px;
   border-radius: 5px;
+}
+
+@media (min-width: 720px) {
+  body[data-page="datahub"] .dh-compare-rank-row { grid-template-columns: minmax(0, 1.3fr) minmax(76px, 0.3fr) minmax(0, 1.3fr); }
+  body[data-page="datahub"] .dh-compare-rank-row__metric { flex-direction: row; gap: 4px; }
 }
 
 body[data-page="datahub"] .dh-compare-rank-side {
@@ -2671,17 +2684,9 @@ body[data-page="datahub"] .dh-compare-radars__grid { display: grid; gap: 8px; mi
   body[data-page="datahub"] :is(.dh-compare-season-panel, .dh-compare-scoring) { padding: 13px 15px; }
 }
 
-/* Game Logs-inspired preview. The cyan/blue/violet treatment belongs to
-   active controls. Deeper backgrounds never rewrite a chart's palette. */
-body[data-page="datahub"] .dh-compare-modal[data-compare-theme="gamelogs"] {
-  --compare-control-fill: linear-gradient(180deg, #131e32, #080e1d);
-  --compare-control-edge: linear-gradient(135deg, #73f4ffce 0%, #5b7fefd9 52%, #db6dffcf 100%);
-  --compare-control-ring: 0 0 0 1px #73f4ff17, 0 0 15px #5b7fff47, inset 0 0 12px #5b7fff24;
-  --compare-panel-fill: linear-gradient(155deg, #0e1728, #070d19 80%);
-  --compare-inset-fill: #070d18;
-}
+/* The dark Game Logs surfaces are the permanent Compare theme. */
 
-body[data-page="datahub"] .dh-compare-modal[data-compare-theme="gamelogs"] .dh-compare-modal__overlay {
+body[data-page="datahub"] .dh-compare-modal .dh-compare-modal__overlay {
   background:
     radial-gradient(ellipse at 18% 14%, #3452a330, transparent 48%),
     radial-gradient(ellipse at 83% 12%, #407d8d23, transparent 44%),
@@ -2689,38 +2694,38 @@ body[data-page="datahub"] .dh-compare-modal[data-compare-theme="gamelogs"] .dh-c
     linear-gradient(180deg, #02050cf2, #010308fa);
 }
 
-body[data-page="datahub"] .dh-compare-modal[data-compare-theme="gamelogs"] .dh-compare-modal__dialog {
+body[data-page="datahub"] .dh-compare-modal .dh-compare-modal__dialog {
   background: linear-gradient(160deg, #0d1424, #050912 62%, #04070e) padding-box,
     linear-gradient(145deg, #73f4ff52, #5b7fff21 50%, #db6dff40) border-box;
   box-shadow: 0 28px 80px #000b, inset 0 1px 0 #d0dfff12, inset 0 20px 50px #40558f15;
 }
 
-body[data-page="datahub"] .dh-compare-modal[data-compare-theme="gamelogs"] .dh-compare-modal__dialog::before {
+body[data-page="datahub"] .dh-compare-modal .dh-compare-modal__dialog::before {
   background: radial-gradient(ellipse at 54% 0, #b3c5ff13, transparent 47%),
     linear-gradient(180deg, #73f4ff07, transparent 22%, transparent 78%, #db6dff08);
 }
 
-body[data-page="datahub"] .dh-compare-modal[data-compare-theme="gamelogs"] .dh-compare-header {
+body[data-page="datahub"] .dh-compare-modal .dh-compare-header {
   background: linear-gradient(180deg, #121b2c, #0b111e);
   border-bottom-color: #90adf233;
 }
 
-body[data-page="datahub"] .dh-compare-modal[data-compare-theme="gamelogs"] .dh-compare-body {
+body[data-page="datahub"] .dh-compare-modal .dh-compare-body {
   --compare-text: #ebf1fc;
   --compare-muted: #a8b7d1;
   --compare-border: #829ee33d;
   scrollbar-color: #6682c778 transparent;
 }
 
-body[data-page="datahub"] .dh-compare-modal[data-compare-theme="gamelogs"] :is(
-  .dh-compare-stat-trigger, .dh-compare-search__launcher, .dh-compare-search__input, .dh-compare-close, .dh-compare-preview-controls button[aria-pressed="false"],
+body[data-page="datahub"] .dh-compare-modal :is(
+  .dh-compare-stat-trigger, .dh-compare-search__launcher, .dh-compare-search__input, .dh-compare-close,
   .dh-compare-week-readout select
 ) {
   background: linear-gradient(180deg, #151f33, #080e1b);
   border-color: #92acf34a;
 }
 
-body[data-page="datahub"] .dh-compare-modal[data-compare-theme="gamelogs"] :is(
+body[data-page="datahub"] .dh-compare-modal :is(
   .dh-compare-stat-trigger[aria-expanded="true"], .dh-compare-search__input:focus,
   .dh-compare-position-filter.is-active, .dh-compare-stat-option.is-active, .dh-compare-search-option.is-selected
 ) {
@@ -2729,25 +2734,25 @@ body[data-page="datahub"] .dh-compare-modal[data-compare-theme="gamelogs"] :is(
   box-shadow: var(--compare-control-ring);
 }
 
-body[data-page="datahub"] .dh-compare-modal[data-compare-theme="gamelogs"] :is(.dh-compare-search__menu, .dh-compare-stat-menu, .dh-compare-search-tools) {
+body[data-page="datahub"] .dh-compare-modal :is(.dh-compare-search__menu, .dh-compare-stat-menu, .dh-compare-search-tools) {
   background: linear-gradient(165deg, #141e33, #080e1c);
   border-color: #8ea8eb4b;
 }
 
-body[data-page="datahub"] .dh-compare-modal[data-compare-theme="gamelogs"] :is(
+body[data-page="datahub"] .dh-compare-modal :is(
   .dh-compare-player-chip, .dh-compare-summary-card, .dh-compare-consistency-card, .dh-compare-week-readout__player
 ) {
   background: linear-gradient(145deg, color-mix(in srgb, var(--compare-player-color) 9%, #10192b), #08101d);
 }
 
-body[data-page="datahub"] .dh-compare-modal[data-compare-theme="gamelogs"] .dh-compare-weekly-card {
+body[data-page="datahub"] .dh-compare-modal .dh-compare-weekly-card {
   background: linear-gradient(162deg, #0f1a2d, #070d18 78%);
 }
 
-body[data-page="datahub"] .dh-compare-modal[data-compare-theme="gamelogs"] .dh-compare-week-readout {
+body[data-page="datahub"] .dh-compare-modal .dh-compare-week-readout {
   background: #050a14;
 }
 
-body[data-page="datahub"] .dh-compare-modal[data-compare-theme="gamelogs"] .dh-compare-empty__panel {
+body[data-page="datahub"] .dh-compare-modal .dh-compare-empty__panel {
   background: radial-gradient(ellipse at 45% 24%, #20345f5e, transparent 72%), linear-gradient(160deg, #0a1424, #050a13);
 }
