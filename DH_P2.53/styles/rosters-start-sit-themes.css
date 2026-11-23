@@ -57,7 +57,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero { gap: 6px; bord
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-player { padding: 4px 9px 0; border-radius: 12px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-player.ss-side-1 { background: radial-gradient(ellipse at 100% 0,rgba(var(--ss-player-rgb),.18),transparent 70%),linear-gradient(205deg,#30233e,#19182e 60%,#201c32) padding-box,linear-gradient(215deg,rgba(var(--ss-player-rgb),.58),#b9a0e71a 55%,rgba(var(--ss-player-rgb),.23)) border-box; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero h2 {min-height: 0;margin: 1px 0 5px;font-size: 17px;line-height: 1.08;letter-spacing: -.5px;text-wrap: nowrap;}
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-score strong {font-size: 30px;line-height: 1;background-image: linear-gradient(125deg,var(--ss-player-bright),var(--ss-player) 58%,var(--ss-player-mid));}
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-score strong {font-size: 27px;line-height: 1;background-image: linear-gradient(125deg,var(--ss-player-bright),var(--ss-player) 58%,var(--ss-player-mid));}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-score .ss-eyebrow {font-size: 9px;letter-spacing: .45px;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-player-id { gap: 6px; font-size: 10px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-player-id .ss-logo { height: 24px; width: 24px; }
@@ -101,7 +101,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-production-legend { m
    Edit these rules directly for font, padding, surface, border, radius and
    shadow. The clean navy gradient/inset highlight follows Game Logs' actual
    .career-stats-fantasy-chip; only the text hue identifies each player. */
-body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-timeline-chart { position: relative; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-timeline-chart {position: relative;margin-top: -12px;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-labels { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-labels.is-measuring { visibility: hidden; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-label {
@@ -189,9 +189,9 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-help {display:
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-help > span {max-width: 100%;white-space: nowrap;line-height: 0.9;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-label small {min-height: 0;margin: 0;color: var(--ss-player,#8fa3bf);font-size: 7px;line-height: 1;font-weight: 500;letter-spacing: 0;font-family: 'Google Sans Flex', 'Google Sans Code';word-spacing: -0.15em;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-text-row { min-height: 29px; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-text-row .ss-stat-plot { display: flex; align-items: center; height: auto; min-height: 26px; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-text-row .ss-stat-plot {display: flex;align-items: center;height: auto;min-height: 26px;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-text-row .ss-stat-plot.ss-side-1 { justify-content: flex-end; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-text-row .ss-metric-value { position: static; width: auto; max-width: 100%; padding: 0; transform: none; background: none; white-space: normal; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-text-row .ss-metric-value {position: static;width: auto;max-width: 100%;padding: 0;transform: none;background: none;white-space: normal;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-text-row .ss-metric-value b { font-size: 11px; line-height: 1.2; overflow-wrap: anywhere; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-metric-explanation { margin: 6px 0 0 !important; padding: 6px 8px; font-size: 10px; }
 
@@ -261,10 +261,10 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-radar-area { stroke-w
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-side-1 .ss-radar-shape > :last-child { stroke-dasharray: 5 2.5; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-radar-markers { fill: var(--ss-player-bright); stroke: var(--ss-player-deep); stroke-width: 1.2px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-side-1 .ss-radar-markers { fill: #101828; stroke: var(--ss-player); stroke-width: 1.6px; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-radar-rank { font-size: 8px; font-weight: 600; paint-order: stroke; fill: var(--ss-player); stroke: #101828; stroke-width: 2.5px; stroke-linejoin: round; }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-radar-rank {font-size: 8px;font-weight: 400;paint-order: stroke;fill: var(--ss-player);stroke: #101828;stroke-width: 1.5px;stroke-linejoin: round;filter: brightness(1.6);font-family: 'Google Sans Flex';font-weight: 350;font-variation-settings: "wdth" 90;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-radar-rank-leader { stroke: var(--ss-player); stroke-width: .6px; stroke-dasharray: 1.5 2; opacity: .28; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-radar-rank-suffix { font-size: 5.5px; font-weight: 400; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] :is(.ss-radar-rank,.ss-radar-axis-value).ss-trailing { opacity: var(--ss-trailing-opacity); }
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-radar-rank-suffix {font-size: 5.5px;font-weight: 400;}
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] :is(.ss-radar-rank,.ss-radar-axis-value).ss-trailing {opacity: 1;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-radar-ledger { padding: 0 10px 6px; min-width: 0; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-radar-ledger summary { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; color: #9eb3d0; font-size: 9px; cursor: pointer; border-top: 1px solid #a4bfe31a; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-radar-ledger summary .ss-icon { width: 12px; height: 12px; }
