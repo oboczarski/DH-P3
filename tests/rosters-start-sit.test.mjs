@@ -75,7 +75,9 @@ test('Start/Sit starts at positional production, keeps Fantasy above the switche
       assert.deepEqual(ids(initial), ['fantasy', groups[0].id, 'radar']);
       for (const group of groups) {
         const markup = comparisonMarkup(model, players, 'weekly', groups, group);
-        assert.ok(markup.indexOf('id="ss-section-fantasy"') < markup.indexOf('class="ss-stat-switcher"'));
+        assert.ok(markup.indexOf('id="ss-section-fantasy"') < markup.indexOf('id="ss-positional-heading"'));
+        assert.match(markup, /id="ss-positional-heading">Positional stats<\/h3>\s*<nav class="ss-stat-switcher" aria-labelledby="ss-positional-heading"/);
+        assert.doesNotMatch(markup, /Bar length = positional rank|scroll horizontally for more weeks/);
         assert.match(markup, new RegExp(`id="ss-stat-tab-${group.id}"[^>]+aria-pressed="true"`));
         assert.equal((markup.match(/aria-pressed="true" aria-controls="ss-active-stat-panels"/g) || []).length, 1);
         const selectedIds = group.id === 'general' ? ['general-production', 'general-efficiency'] : [group.id];
@@ -87,11 +89,13 @@ test('Start/Sit starts at positional production, keeps Fantasy above the switche
     const groups = startSitStatGroups(players);
     assert.equal(groups.length, 0);
     const mixed = comparisonMarkup({ players, season, isStartSit: true }, players, 'weekly', groups);
-    assert.doesNotMatch(mixed, /aria-label="Stat sections"/);
+    assert.doesNotMatch(mixed, /ss-stat-switcher|ss-positional-heading/);
     assert.deepEqual([...mixed.matchAll(/id="ss-section-([^"]+)"/g)].map(([, id]) => id), ['info', 'fantasy', 'overview', 'ceiling', 'radar']);
     checkIcons(mixed);
     const regular = comparisonMarkup({ players, season }, players, 'weekly');
     assert.match(regular, /class="ss-chapters"/);
+    assert.match(regular, /Bar length = positional rank/);
+    assert.match(regular, /scroll horizontally for more weeks/);
     assert.doesNotMatch(regular, /ss-stat-switcher|rosters-start-sit-stats\.svg/);
   }
 });
@@ -393,6 +397,32 @@ test('full-season trajectory reserves readable slots and every HTML score label'
   }
 });
 
+test('Start/Sit fits the complete sequence of recorded weeks and uses compact lowercase axis labels', () => {
+  const { timelineOption, scoringLabelsFor } = harness().window.RostersStartSit;
+  const echarts = { graphic: { LinearGradient: class {} } };
+  for (const length of [11, 13, 18]) {
+    const players = ['First', 'Second'].map(name => ({ name,
+      weekly: Array.from({ length }, (_, index) => ({ week: index + 1, points: 30 })),
+    }));
+    const option = timelineOption(players, 'cumulative', echarts, 290);
+    assert.deepEqual(Array.from(option.xAxis.data), Array.from({ length }, (_, index) => `w${index + 1}`));
+    assert.equal(option.xAxis.axisLabel.fontSize, length === 18 ? 8 : 10);
+    assert.equal(option.xAxis.axisLabel.margin, 12);
+    assert.equal(option.grid.left, 26);
+    assert.equal(option.series[0].data.at(-1).value, length * 30);
+    assert.equal(scoringLabelsFor(players, 'cumulative').length, length * 2);
+    if (length === 18) {
+      const compact = option.xAxis.axisLabel.interval;
+      assert.equal(compact(0), true);
+      assert.equal(compact(17), true);
+      assert.equal(compact(16), false);
+      assert.equal(timelineOption(players, 'cumulative', echarts, 360).xAxis.axisLabel.interval, 0);
+    } else {
+      assert.equal(option.xAxis.axisLabel.interval, 0);
+    }
+  }
+});
+
 test('comparison loading shows real player identities, announces its state, and disposes its keyboard trap', () => {
   const { renderLoading, disposeComparison } = harness().window.RostersStartSit;
   const attributes = {}, listeners = {};
@@ -462,7 +492,7 @@ test('radar-only season metrics preserve literal source percentages, zero and un
   assert.equal(context.buildRostersDecisionPlayer({ id: 'one', pos: 'WR' }).metrics.rec_yms.display, '—');
 });
 
-test('radar keeps the Game Logs top-seven scale and treats missing ranks as gaps', () => {
+test('Start/Sit radar reaches the outer ring and keeps the compact top-seven scale', () => {
   const { radarRadius } = harness().window.RostersStartSit;
   for (const maximum of [36, 48, 72, 24]) {
     assert.equal(radarRadius(1, maximum), 85);
@@ -470,7 +500,11 @@ test('radar keeps the Game Logs top-seven scale and treats missing ranks as gaps
     assert.equal(radarRadius(maximum, maximum), 10);
     assert.equal(radarRadius(maximum + 20, maximum), 10);
     assert.ok(radarRadius(8, maximum) < 73);
-    for (const value of [null, undefined, '', 'NA', 0, -1]) assert.equal(radarRadius(value, maximum), null);
+    assert.equal(radarRadius(1, maximum, 100), 100);
+    assert.equal(radarRadius(2, maximum, 100), 98);
+    assert.equal(radarRadius(7, maximum, 100), 88);
+    assert.equal(radarRadius(maximum, maximum, 100), 10);
+    for (const value of [null, undefined, '', 'NA', 0, -1]) assert.equal(radarRadius(value, maximum, 100), null);
   }
 });
 
@@ -488,12 +522,22 @@ test('radar overlays both players with stacked values, smaller ordinal ranks and
   const startSit = performanceRadar([rb, second], true);
   assert.match(startSit, /dominant-baseline="alphabetic"><title>[^<]+<\/title>5<tspan class="ss-radar-rank-suffix">th<\/tspan>/);
   assert.doesNotMatch(startSit, /ss-radar-rank-suffix" dy=/);
+  assert.match(startSit, /viewBox="0 5 360 350"/);
+  assert.equal((startSit.match(/class="ss-radar-axis-value ss-side-/g) || []).length, 22);
+  assert.doesNotMatch(startSit, /CSTY%|\bCL\b/);
   assert.doesNotMatch(same, /NaN|undefined|ss-trailing/);
   const mixed = performanceRadar([rb, qb]);
   assert.equal((mixed.match(/class="ss-radar-svg"/g) || []).length, 1);
   assert.match(mixed, /Shared metrics; each player retains their positional ranks/);
   assert.match(mixed, /data-ss-radar-stat="csty_pct"/);
   assert.doesNotMatch(mixed, /EPA\/DB|EXPLSV%/, 'mixed positions must never pair unrelated axes');
+  const mixedStartSit = performanceRadar([rb, qb], true);
+  assert.match(mixedStartSit, /data-ss-radar-stat="imp"/);
+  assert.doesNotMatch(mixedStartSit, /CSTY%|\bCL\b/);
+  rb.metrics.fpts.rank = 1;
+  const firstRank = performanceRadar([rb, second], true);
+  assert.match(firstRank, /<polygon points="180\.00,66\.00[^"]+" class="ss-radar-grid-ring" data-outer="true"/);
+  assert.match(firstRank, /RB rank 1<\/title><circle cx="180" cy="66"/);
   assert.notEqual(same.match(/id="ss-radar-0-line"[^]*?<\/linearGradient>/)[0], same.match(/id="ss-radar-1-line"[^]*?<\/linearGradient>/)[0]);
   second.metrics.ypc.rank = null;
   const partial = performanceRadar([rb, second]);

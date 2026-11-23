@@ -17000,16 +17000,12 @@ function getDataHubConsistencyAxisWeeks() {
     .map(Number)
     .filter(Number.isFinite)
     .sort((left, right) => left - right);
-  // DataHub's archived 2025 Consistency chart shows the full season. Keep the
-  // rolling results-only window below exclusive to the current 2026 season.
-  if (state.currentModalSeason === "2025") return weeks;
-  // The 2026 feed contains future schedule placeholders. End the nine-week
-  // chart at the last week with recorded results instead of at Week 18.
-  const recordedWeeks = state.currentModalSeason === "2026"
-    ? weeks.filter((week) => Object.values(state.playerWeeklyStats?.[week] || {}).some((stats) => stats.__hasRecordedStats))
-    : weeks;
-  const latestWeek = recordedWeeks[recordedWeeks.length - 1];
-  return weeks.filter((week) => week <= latestWeek).slice(-9);
+  if (state.currentModalSeason !== "2026") return weeks;
+  // DataHub Consistency keeps the opening weeks as results arrive. The last
+  // recorded week sets the right edge because the feed includes future slots.
+  const recordedWeeks = weeks.filter((week) => Object.values(state.playerWeeklyStats?.[week] || {}).some((stats) => stats.__hasRecordedStats));
+  const latestWeek = recordedWeeks.at(-1);
+  return weeks.filter((week) => week <= latestWeek);
 }
 
 function clampDataHubConsistencyPoints(value) {

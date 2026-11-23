@@ -13480,16 +13480,12 @@ function getConsistencyAxisWeeks() {
         .map(Number)
         .filter(Number.isFinite)
         .sort((a, b) => a - b);
-    // Rosters' shared-app Consistency fallback also keeps all archived 2025
-    // weeks; the current 2026 season retains its rolling results-only window.
-    if (state.currentGameLogsSeason === '2025') return weeks;
-    // Rosters 2026 includes future schedule placeholders. The consistency
-    // graph ends at the latest recorded week and shows at most nine weeks.
-    const recordedWeeks = state.currentGameLogsSeason === '2026'
-        ? weeks.filter(week => Object.values(state.playerWeeklyStats?.[week] || {}).some(stats => stats.__hasRecordedStats))
-        : weeks;
-    const latestWeek = recordedWeeks[recordedWeeks.length - 1];
-    return weeks.filter(week => week <= latestWeek).slice(-9);
+    if (state.currentGameLogsSeason !== '2026') return weeks;
+    // The Rosters fallback keeps every week through the latest recorded result.
+    // Future schedule slots stay off the Consistency chart until results arrive.
+    const recordedWeeks = weeks.filter(week => Object.values(state.playerWeeklyStats?.[week] || {}).some(stats => stats.__hasRecordedStats));
+    const latestWeek = recordedWeeks.at(-1);
+    return weeks.filter(week => week <= latestWeek);
 }
 
 function getConsistencyThresholds(position) {

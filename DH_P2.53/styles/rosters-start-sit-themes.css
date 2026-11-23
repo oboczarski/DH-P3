@@ -58,6 +58,10 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-player { padding
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-player.ss-side-1 { background: radial-gradient(ellipse at 100% 0,rgba(var(--ss-player-rgb),.18),transparent 70%),linear-gradient(205deg,#30233e,#19182e 60%,#201c32) padding-box,linear-gradient(215deg,rgba(var(--ss-player-rgb),.58),#b9a0e71a 55%,rgba(var(--ss-player-rgb),.23)) border-box; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero h2 {min-height: 0;margin: 1px 0 3px;font-size: 17px;line-height: 1;letter-spacing: -.5px;text-wrap: nowrap;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-score strong {font-size: 23px;line-height: 1;background-image: linear-gradient(125deg,var(--ss-player-bright),var(--ss-player) 58%,var(--ss-player-mid));}
+/* Leave room for the last glyph in Start/Sit's tight gradient text. A long
+   custom score can move its unit to the next line within the card. */
+body[data-page="rosters"] .ss-dashboard[data-ss-start-sit] .ss-hero-score > div { flex-wrap: wrap; row-gap: 0; }
+body[data-page="rosters"] .ss-dashboard[data-ss-start-sit] .ss-hero-score strong { padding-inline-end: 4px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-score .ss-eyebrow {font-size: 8.5px;letter-spacing: 0;font-family: 'Google Sans Flex';font-variation-settings: "slnt" -6;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-player-id {gap: 6px;font-size: 12px;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-hero-player-id .ss-logo { height: 24px; width: 24px; }
@@ -102,6 +106,9 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-production-legend { m
    shadow. The clean navy gradient/inset highlight follows Game Logs' actual
    .career-stats-fantasy-chip; only the text hue identifies each player. */
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-timeline-chart {position: relative;margin-top: -12px;}
+/* The Start/Sit plot fits its panel and keeps the existing vertical overlap
+   with the legend. The regular Compare chart can still scroll horizontally. */
+body[data-page="rosters"] .ss-dashboard[data-ss-start-sit] .ss-timeline-viewport { overflow-x: clip; overflow-y: visible; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-labels { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-labels.is-measuring { visibility: hidden; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-label {
@@ -130,6 +137,8 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-label.ss-s
         background: linear-gradient( 151deg, #2f3845, #28334bf1 62%, #212532);
     }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-label[hidden] { display: none; }
+/* Position endpoint chips using their full text width, even near the edge. */
+body[data-page="rosters"] .ss-dashboard[data-ss-start-sit] .ss-score-label { width: max-content; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-label.is-above {transform: translate(-50%,calc(-100% - var(--ss-score-distance)));}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-label.is-below { transform: translate(-50%,var(--ss-score-distance)); }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-score-label.is-status { min-height: 0; padding: 0; border: 0; background: none; box-shadow: none; opacity: .65; font-size: 8.5px; font-weight: 400; }
@@ -213,7 +222,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-stat-plot[data-ss-ran
    in the shared text row below the gauge; it never becomes a second dial. */
 
 
-body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-dm-gauges {display: flex;justify-content: center;padding: 3px 0 9px;width: 100%;}
+body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-dm-gauges {display: flex;justify-content: center;padding: 3px 0 9px;width: 100%;zoom: 1.3;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-hud-dial { --dial-accent: #a8b3cb; --dial-start: #cbd5e1; --dial-mid: #a8b3cb; --dial-end: #8291ac; --arc-end: calc(var(--progress) * 1turn); --arc-mid: calc(var(--progress) * .5turn); --dial-width: 4px; position: relative; isolation: isolate; flex: 0 0 94px; aspect-ratio: 1; border-radius: 50%; filter: drop-shadow(0 5px 10px color-mix(in srgb,var(--dial-accent) 14%,transparent)); }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] [data-dial-tone="green"] { --dial-accent: #55e58f; --dial-start: #8fffc0; --dial-mid: #55e58f; --dial-end: #00d9b0; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] [data-dial-tone="teal"] { --dial-accent: #00dcca; --dial-start: #50e8ff; --dial-mid: #00dcca; --dial-end: #27ef9f; }
@@ -265,7 +274,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-radar-area { stroke-w
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-side-1 .ss-radar-shape > :last-child { stroke-dasharray: 5 2.5; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-radar-markers { fill: var(--ss-player-bright); stroke: var(--ss-player-deep); stroke-width: 1.2px; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-side-1 .ss-radar-markers { fill: #101828; stroke: var(--ss-player); stroke-width: 1.6px; }
-body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-radar-rank {font-size: 8px;font-weight: 400;paint-order: stroke;fill: var(--ss-player);stroke: #101828;stroke-width: 1.6px;stroke-linejoin: round;filter: brightness(1.5) saturate(1.5);font-family: 'Google Sans Flex';font-weight: 350;font-variation-settings: "wdth" 90;text-shadow: 0px 1px 0px #0008;}
+body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-radar-rank {font-size: 8px;font-weight: 400;paint-order: stroke;fill: var(--ss-player);stroke: #101828;stroke-width: 1.6px;stroke-linejoin: round;filter: brightness(1.5) saturate(1.5);font-family: 'Google Sans Flex';font-weight: 450;font-variation-settings: "wdth" 90;text-shadow: 0px 1px 0px #0008;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-radar-rank-leader { stroke: var(--ss-player); stroke-width: .6px; stroke-dasharray: 1.5 2; opacity: .28; }
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] .ss-radar-rank-suffix {font-size: 5.5px;font-weight: 400;}
 body[data-page="rosters"] .ss-dashboard[data-ss-theme] :is(.ss-radar-rank,.ss-radar-axis-value).ss-trailing {opacity: 1;}
@@ -409,6 +418,30 @@ body[data-page="rosters"] .ss-start-sit-stats {
   margin-block: 8px;
 }
 body[data-page="rosters"] .ss-start-sit-stats--switchable { overflow-anchor: none; }
+/* Separate Fantasy from the positional filters. The heading lines up with
+   the dock on both phone and desktop widths. */
+body[data-page="rosters"] .ss-positional-stats {
+  --ss-positional-width: 520px;
+  margin-top: 15px;
+}
+body[data-page="rosters"] .ss-start-sit-stats .ss-positional-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(100%, var(--ss-positional-width));
+  margin: 0 auto 6px;
+  padding-inline: 2px;
+  color: #c5d4ec;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+body[data-page="rosters"] .ss-positional-heading::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, #9ab2db42, #9ab2db0d);
+}
 body[data-page="rosters"] .ss-stat-switcher {
   position: sticky;
   top: 0;
@@ -417,8 +450,8 @@ body[data-page="rosters"] .ss-stat-switcher {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;
-  width: min(100%, 520px);
-  margin: 8px auto;
+  width: min(100%, var(--ss-positional-width));
+  margin: 0 auto 8px;
   padding: 2px;
   border: 1px solid var(--ss-dm-control-border);
   border-radius: 28px / 35px;
@@ -471,7 +504,7 @@ body[data-page="rosters"] .ss-dashboard[data-ss-theme="dm"] .ss-start-sit-stats-
 /* Stat panels apply their own section hues. Compact inline column icons
    keep the metric label and delta centered between the two rank plots. */
 body[data-page="rosters"] .ss-stat-icon { width: 16px; height: 16px; flex: none; }
-body[data-page="rosters"] .ss-stat-section .ss-stat-icon { color: var(--ss-stat-icon-color, #a6bbd9); }
+body[data-page="rosters"] .ss-stat-section .ss-stat-icon {color: #7d8da9;}
 body[data-page="rosters"] .ss-start-sit-stats [data-ss-stat-group="fantasy"] { --ss-stat-icon-color: #dfc689; }
 body[data-page="rosters"] .ss-start-sit-stats [data-ss-stat-group="info"] { --ss-stat-icon-color: #a1a5ff; }
 body[data-page="rosters"] .ss-start-sit-stats [data-ss-stat-group="passing-production"] { --ss-stat-icon-color: #fd8787; }
@@ -512,7 +545,8 @@ body[data-page="rosters"] .ss-start-sit-stats #ss-section-info .ss-metric-value 
 }
 @media (min-width: 869px) {
   body[data-page="rosters"] .ss-start-sit-stats { --ss-stat-center: 74px; }
-  body[data-page="rosters"] .ss-stat-switcher { width: min(100%, 580px); }
+  body[data-page="rosters"] .ss-positional-stats { --ss-positional-width: 580px; margin-top: 18px; }
+  body[data-page="rosters"] .ss-start-sit-stats .ss-positional-heading { font-size: 13px; }
   body[data-page="rosters"] .ss-stat-switcher button { min-height: 60px; gap: 4px; font-size: 14px; border-radius: 24px / 28px; }
   body[data-page="rosters"] .ss-stat-switcher .ss-stat-icon { width: 28px; height: 28px; }
   body[data-page="rosters"] .ss-active-stat-panels { gap: 10px; }

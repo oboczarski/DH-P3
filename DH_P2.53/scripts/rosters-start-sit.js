@@ -34,6 +34,8 @@
   };
   const radarStatsForPosition = position => RADAR_CONFIG[position]?.stats || [];
   const TIMELINE_GUTTERS = { left: 30, right: 18 };
+  const START_SIT_TIMELINE_INSETS = { left: 26, right: 18, bottom: 30 };
+  const START_SIT_WEEK_LABEL_MARGIN = 12;
   const OVERVIEW = [
     { id: 'info', label: 'PLAYER INFO', stats: ['overall_rank', 'player_name', 'position', 'team', 'age'] },
     { id: 'fantasy', label: 'FANTASY', stats: ['fpts', 'ppg'] },
@@ -415,9 +417,16 @@
       const [name, detail] = label.split(' ');
       return `<button type="button" id="ss-stat-tab-${id}" data-ss-stat-tab="${id}" aria-pressed="${id === activeGroup.id}" aria-controls="ss-active-stat-panels">${statIcon('group', id)}<span class="ss-stat-tab-caption">${name}${detail ? ` <span>${detail}</span>` : ''}</span></button>`;
     }).join('');
-    // Only the group below the switcher is replaced on selection. The Fantasy
-    // panel, scoring chart and radar stay mounted and keep their own state.
-    return `<div class="ss-start-sit-stats ss-start-sit-stats--switchable">${statSections(players, fantasy, true)}<nav class="ss-stat-switcher" aria-label="Stat sections" data-group-count="${groups.length}">${buttons}</nav><div class="ss-active-stat-panels" id="ss-active-stat-panels" role="region" aria-labelledby="ss-stat-tab-${activeGroup.id}">${statSections(players, activeGroup.sections, true)}</div></div>`;
+    // The labeled positional section starts after Fantasy. Its switcher only
+    // replaces the panels below it, keeping the surrounding cards mounted.
+    return `<div class="ss-start-sit-stats ss-start-sit-stats--switchable">
+      ${statSections(players, fantasy, true)}
+      <div class="ss-positional-stats">
+        <h3 class="ss-positional-heading" id="ss-positional-heading">Positional stats</h3>
+        <nav class="ss-stat-switcher" aria-labelledby="ss-positional-heading" data-group-count="${groups.length}">${buttons}</nav>
+        <div class="ss-active-stat-panels" id="ss-active-stat-panels" role="region" aria-labelledby="ss-stat-tab-${activeGroup.id}">${statSections(players, activeGroup.sections, true)}</div>
+      </div>
+    </div>`;
   }
   function production(players) {
     const phases = [['pass_yd', 'Passing', '#9eb8f9'], ['rush_yd', 'Rushing', '#75d9c9'], ['rec_yd', 'Receiving', '#b99ae9']];
@@ -436,14 +445,15 @@
     const weeks = [...new Set(players.flatMap(player => player.weekly.map(item => item.week)))].sort((a, b) => a - b);
     return `<details class="ss-weekly-table"><summary>Explore weekly values ${icon('down')}</summary><div><table><caption>Recorded weekly fantasy points · league scoring</caption><thead><tr><th scope="col">Week</th>${players.map(player => `<th scope="col">${escape(player.name)}</th>`).join('')}</tr></thead><tbody>${weeks.map(week => `<tr><th scope="row">${week}</th>${players.map(player => { const item = player.weekly.find(row => row.week === week); return `<td>${item?.points != null ? fmt(item.points) : escape(item?.status || '—')}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div></details>`;
   }
-  // Preserve the Game Logs rank-to-radius mapping, including its tighter top
-  // seven band. Missing ranks are gaps, never zero scores or last-place ranks.
-  function radarRadius(rank, maximum) {
+  // Start/Sit maps rank 1 to the outside ring and keeps the tighter top-seven
+  // band and minimum radius. Missing ranks still leave gaps in the trace.
+  function radarRadius(rank, maximum, bestRadius = 85) {
     const value = number(rank);
     if (value === null || value < 1) return null;
-    if (value <= 1) return 85;
     if (value >= maximum) return 10;
-    return value <= 7 ? 85 - (value - 1) * 2 : 73 - (value - 7) / (maximum - 7) * 63;
+    const seventhRadius = bestRadius - 12;
+    return value <= 7 ? bestRadius - (value - 1) * 2
+      : seventhRadius - (value - 7) / (maximum - 7) * (seventhRadius - 10);
   }
   // DM preserves each edited spectrum's stop positions and alpha, including
   // player B's three-stop 52% midpoint. The same colors feed line and area.
@@ -473,17 +483,18 @@
     const n = Math.round(rank), last = n % 100;
     return last >= 11 && last <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th');
   }
-  // Both players share one radar. Same-position pairs retain every Game Logs
-  // axis; mixed positions use only the intersection of their actual axes, with
-  // each player's own positional radius scale. Never equate unrelated stats.
-  function radarConfigFor(players) {
+  // Both players share the Game Logs axes common to their positions. Start/Sit
+  // displays consistency and ceiling together in its separate progress card.
+  function radarConfigFor(players, isStartSit) {
     const configs = players.map(player => RADAR_CONFIG[player.pos]);
     if (configs.some(config => !config)) return null;
-    const stats = configs[0].stats.filter(key => configs[1].stats.includes(key));
+    const stats = configs[0].stats.filter(key => configs[1].stats.includes(key)
+      && (!isStartSit || (key !== 'csty_pct' && key !== 'ceiling')));
     return { stats, labels: stats.map(key => configs[0].labels[configs[0].stats.indexOf(key)]) };
   }
-  function radarGraphic(players, config, alignRankSuffixes) {
+  function radarGraphic(players, config, isStartSit) {
     const cx = 180, cy = 176, radius = 110, count = config.stats.length;
+    const bestRadius = isStartSit ? 100 : 85;
     const at = (index, distance) => {
       const angle = -Math.PI / 2 + index * Math.PI * 2 / count;
       return [cx + Math.cos(angle) * distance, cy + Math.sin(angle) * distance];
@@ -509,7 +520,7 @@
     const datasets = players.map((player, side) => {
       const maximum = RADAR_CONFIG[player.pos].maxRank;
       const points = config.stats.map((key, index) => {
-        const distance = radarRadius(qualifiedRank(player.metrics[key]), maximum);
+        const distance = radarRadius(qualifiedRank(player.metrics[key]), maximum, bestRadius);
         return distance === null ? null : at(index, radius * distance / 100);
       });
       const complete = points.every(Boolean);
@@ -520,7 +531,7 @@
       return { markup: `<g class="ss-radar-dataset ss-side-${side}"><g class="ss-radar-shape">${area}${line}</g><g class="ss-radar-markers">${markers}</g></g>`, points };
     });
     // Reserve the three-line axis groups before placing point labels. Dense
-    // low-rank profiles cannot fit 26 labels at the center: search nearby
+    // low-rank profiles can crowd the center: search nearby
     // radial/tangent slots, retaining every label and its player identity.
     const reserved = config.stats.map((key, index) => {
       const label = at(index, radius + 31);
@@ -533,7 +544,7 @@
       return players.map((player, side) => {
         const rank = qualifiedRank(metrics[side]);
         if (rank === null) return null;
-        const distance = radius * radarRadius(rank, RADAR_CONFIG[player.pos].maxRank) / 100;
+        const distance = radius * radarRadius(rank, RADAR_CONFIG[player.pos].maxRank, bestRadius) / 100;
         return { key, index, side, rank, winner, distance, point: datasets[side].points[index] };
       }).filter(Boolean);
     });
@@ -564,16 +575,19 @@
       : `<line x1="${item.point[0]}" y1="${item.point[1]}" x2="${item.xy[0]}" y2="${item.xy[1]}" class="ss-radar-rank-leader ss-side-${item.side}${comparisonState(item.winner, item.side)}"/>`).join('');
     // Start/Sit ordinals share an alphabetic baseline. Shift the whole label
     // down slightly so its numerals stay centered in the existing placement.
-    const rankBaseline = alignRankSuffixes ? 'alphabetic' : 'middle';
-    const rankOffset = alignRankSuffixes ? 2 : 0;
-    const suffixOffset = alignRankSuffixes ? '' : ' dy="-2.5"';
+    const rankBaseline = isStartSit ? 'alphabetic' : 'middle';
+    const rankOffset = isStartSit ? 2 : 0;
+    const suffixOffset = isStartSit ? '' : ' dy="-2.5"';
     const rankLabels = labels.map(item => `<text x="${item.xy[0]}" y="${item.xy[1] + rankOffset}" data-ss-radar-rank="${item.key}" class="ss-radar-rank ss-side-${item.side}${comparisonState(item.winner, item.side)}" text-anchor="middle" dominant-baseline="${rankBaseline}"><title>${escape(players[item.side].name)} · ${escape(config.labels[item.index])} · ${escape(players[item.side].pos)} rank ${item.rank}</title>${item.rank}<tspan class="ss-radar-rank-suffix"${suffixOffset}>${rankSuffix(item.rank)}</tspan></text>`).join('');
-    return `<svg class="ss-radar-svg" viewBox="0 0 360 360" role="img" aria-label="${escape(players.map(player => player.name).join(' and '))} performance radar. Each stat shows player A's value above player B's; colored positional ranks label the plotted points."><defs>${definitions}</defs><g>${grid}${axes}</g><circle cx="${cx}" cy="${cy}" r="2" class="ss-radar-center"/>${datasets.map(item => item.markup).join('')}<g class="ss-radar-ranks">${rankLeaders}${rankLabels}</g></svg>`;
+    // Trim only the vertical SVG gutter, keeping the axes and labels at the
+    // same scale and providing the same clearance to the sides of the card.
+    const viewBox = isStartSit ? '0 5 360 350' : '0 0 360 360';
+    return `<svg class="ss-radar-svg" viewBox="${viewBox}" role="img" aria-label="${escape(players.map(player => player.name).join(' and '))} performance radar. Each stat shows player A's value above player B's; colored positional ranks label the plotted points."><defs>${definitions}</defs><g>${grid}${axes}</g><circle cx="${cx}" cy="${cy}" r="2" class="ss-radar-center"/>${datasets.map(item => item.markup).join('')}<g class="ss-radar-ranks">${rankLeaders}${rankLabels}</g></svg>`;
   }
-  function performanceRadar(players, alignRankSuffixes = false) {
-    const config = radarConfigFor(players);
+  function performanceRadar(players, isStartSit = false) {
+    const config = radarConfigFor(players, isStartSit);
     if (!config) return '<p class="ss-panel-note">Performance radar unavailable for this position.</p>';
-    return `<div class="ss-radar-shared"><div class="ss-radar-card-content"><div class="ss-radar-plot">${radarGraphic(players, config, alignRankSuffixes)}</div><details class="ss-radar-ledger"><summary>All values & positional ranks ${icon('down')}</summary><table><caption>Season performance · ${players[0].pos === players[1].pos ? escape(players[0].pos) : 'Shared metrics; each player retains their positional ranks'}</caption><thead><tr><th scope="col">METRIC</th>${players.map((player, side) => `<th scope="col" class="ss-side-${side}">${escape(comparisonName(player))}</th>`).join('')}</tr></thead><tbody>${config.stats.map((key, index) => {
+    return `<div class="ss-radar-shared"><div class="ss-radar-card-content"><div class="ss-radar-plot">${radarGraphic(players, config, isStartSit)}</div><details class="ss-radar-ledger"><summary>All values & positional ranks ${icon('down')}</summary><table><caption>Season performance · ${players[0].pos === players[1].pos ? escape(players[0].pos) : 'Shared metrics; each player retains their positional ranks'}</caption><thead><tr><th scope="col">METRIC</th>${players.map((player, side) => `<th scope="col" class="ss-side-${side}">${escape(comparisonName(player))}</th>`).join('')}</tr></thead><tbody>${config.stats.map((key, index) => {
       const metrics = players.map(player => player.metrics[key]), winner = rankWinner(metrics), bestValue = valueWinner(key, metrics);
       return `<tr><th scope="row">${escape(config.labels[index])}</th>${players.map((player, side) => {
         const rank = qualifiedRank(metrics[side]);
@@ -590,13 +604,15 @@
     const detailPanels = model.isStartSit ? renderStartSitStats(pair, sections, groups, activeGroup)
       : `<nav class="ss-chapters" aria-label="Stat sections">${sections.map(section => `<button type="button" data-ss-section="${section.id}">${escape(section.label.toLowerCase())}</button>`).join('')}<button type="button" data-ss-section="radar">${icon('target')} Radar</button></nav><div class="ss-stat-grid">${statSections(pair, sections)}</div>`;
     const selectedOptions = side => model.players.map(player => `<option value="${escape(player.id)}"${player.id === pair[side].id ? ' selected' : ''}>${escape(player.name)} · ${escape(player.pos)}</option>`).join('');
-    return `<div class="ss-dashboard" data-ss-theme="dm"><header class="ss-dashboard-header"><div class="ss-title-lockup"><span class="ss-app-mark">${icon('layers')}</span><div><span class="ss-eyebrow">START / SIT · COMPARISON</span><h1>Head to head<span class="ss-season-pill">${escape(model.season)}</span></h1></div></div><div class="ss-dashboard-actions"><button class="ss-dashboard-close ss-icon-button" type="button" data-ss-close aria-label="Close player comparison">${icon('close')}</button></div></header>
+    const scoringViewport = model.isStartSit ? '' : ' tabindex="0" role="region" aria-label="Scoring Comparison; scroll horizontally for more weeks"';
+    const rankGuide = model.isStartSit ? '' : '<span>Bar length = positional rank · longer is stronger</span>';
+    return `<div class="ss-dashboard" data-ss-theme="dm"${model.isStartSit ? ' data-ss-start-sit' : ''}><header class="ss-dashboard-header"><div class="ss-title-lockup"><span class="ss-app-mark">${icon('layers')}</span><div><span class="ss-eyebrow">START / SIT · COMPARISON</span><h1>Head to head<span class="ss-season-pill">${escape(model.season)}</span></h1></div></div><div class="ss-dashboard-actions"><button class="ss-dashboard-close ss-icon-button" type="button" data-ss-close aria-label="Close player comparison">${icon('close')}</button></div></header>
       <div class="ss-dashboard-scroll"><div class="ss-comparison-pickers"><label class="ss-side-0"><span>A</span><select aria-label="First comparison player" data-ss-pick="0">${selectedOptions(0)}</select>${icon('down')}</label><button class="ss-swap ss-icon-button" type="button" data-ss-swap aria-label="Swap compared players">${icon('swap')}</button><label class="ss-side-1"><span>B</span><select aria-label="Second comparison player" data-ss-pick="1">${selectedOptions(1)}</select>${icon('down')}</label></div>
       <div class="ss-hero"><div class="ss-hero-orbit" aria-hidden="true"></div>${pair.map((player, side) => playerHero(player, side, model.week)).join('')}<span class="ss-hero-vs" aria-hidden="true">VS</span></div>
       <div class="ss-projection-insight">${icon('pulse')}<span>${number(pair[0].projection) !== null && number(pair[1].projection) !== null ? Math.abs(pair[0].projection - pair[1].projection) < .05 ? 'Level projections for this week' : `<b class="ss-side-${pair[0].projection > pair[1].projection ? 0 : 1}">${escape(comparisonName(pair[pair[0].projection > pair[1].projection ? 0 : 1]))}</b> projects <strong>${fmt(Math.abs(pair[0].projection - pair[1].projection))}</strong> points higher` : 'Compare season production while projections are unavailable'}</span><span class="ss-micro-label">WK ${model.week || '—'} OUTLOOK</span></div>
-      <div class="ss-analytics-grid"><section class="ss-panel ss-timeline"><header class="ss-panel-header"><div>${icon('chart')}<h3>Scoring Comparison</h3></div><div class="ss-chart-toggle" role="group" aria-label="Scoring chart view"><button type="button" data-ss-chart="weekly" aria-pressed="${chartMode === 'weekly'}">Weekly</button><button type="button" data-ss-chart="cumulative" aria-pressed="${chartMode === 'cumulative'}">Cumulative</button></div></header><div class="ss-chart-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i></i>${escape(comparisonName(player))}</span>`).join('')}<span>LEAGUE PTS</span></div><div class="ss-timeline-viewport" tabindex="0" role="region" aria-label="Scoring Comparison; scroll horizontally for more weeks"><div class="ss-timeline-chart" role="img" aria-label="${chartMode === 'weekly' ? 'Weekly' : 'Cumulative'} fantasy points for ${escape(pair.map(player => player.name).join(' and '))}"></div></div><div class="ss-chart-caption"><span>Recorded games only</span><span>Unplayed weeks show status</span></div>${weeklyTable(pair)}</section>
+      <div class="ss-analytics-grid"><section class="ss-panel ss-timeline"><header class="ss-panel-header"><div>${icon('chart')}<h3>Scoring Comparison</h3></div><div class="ss-chart-toggle" role="group" aria-label="Scoring chart view"><button type="button" data-ss-chart="weekly" aria-pressed="${chartMode === 'weekly'}">Weekly</button><button type="button" data-ss-chart="cumulative" aria-pressed="${chartMode === 'cumulative'}">Cumulative</button></div></header><div class="ss-chart-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i></i>${escape(comparisonName(player))}</span>`).join('')}<span>LEAGUE PTS</span></div><div class="ss-timeline-viewport"${scoringViewport}><div class="ss-timeline-chart" role="img" aria-label="${chartMode === 'weekly' ? 'Weekly' : 'Cumulative'} fantasy points for ${escape(pair.map(player => player.name).join(' and '))}"></div></div><div class="ss-chart-caption"><span>Recorded games only</span><span>Unplayed weeks show status</span></div>${weeklyTable(pair)}</section>
       <section class="ss-panel ss-reliability"><header class="ss-panel-header"><div>${icon('shield')}<h3>Consistency & ceiling</h3></div><span class="ss-micro-label">PPR BASELINE</span></header><div class="ss-consistency-rings">${pair.map((player, side) => ring(player, side)).join('')}</div><p class="ss-panel-note">CSTY% and CL · published season values</p></section>${production(pair)}</div>
-      ${detailHeading}<div class="ss-stat-contract"><span>${same ? `${escape(pair[0].pos)} · Game Logs season stats` : 'Mixed positions · Data Hub Overview'}</span><span>Bar length = positional rank · longer is stronger</span></div>
+      ${detailHeading}<div class="ss-stat-contract"><span>${same ? `${escape(pair[0].pos)} · Game Logs season stats` : 'Mixed positions · Data Hub Overview'}</span>${rankGuide}</div>
       ${detailPanels}
       <section class="ss-panel ss-performance" id="ss-section-radar" aria-label="Performance radar"><header class="ss-panel-header"><div>${icon('target')}<h3>Performance radar</h3></div><span class="ss-micro-label">${same ? `${escape(pair[0].pos)} · HEAD TO HEAD` : 'SHARED POSITION METRICS'}</span></header><div class="ss-radar-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i>${side === 0 ? '●' : '◆'}</i>${escape(comparisonName(player))}</span>`).join('')}<small>OUTWARD = STRONGER RANK</small></div><div class="ss-radar-region">${performanceRadar(pair, model.isStartSit)}</div><p class="ss-radar-note">${same ? 'Game Logs positional metrics' : 'Shared Game Logs metrics · each position retains its rank scale'} · A values above B · dimmed labels trail the other player. Unranked metrics keep their values and leave gaps.</p></section>
       <footer class="ss-data-note">${icon('target')}<p>FPTS & PPG follow your league scoring. Other season metrics, ceiling and consistency follow the published stats. Positional ranks retain Game Logs qualification. <span>— Unavailable &nbsp; · &nbsp; 0 Recorded zero &nbsp; · &nbsp; Dimmed label Trails the other player</span></p></footer></div></div>`;
@@ -641,8 +657,6 @@
     return { ...data, labels, plotted, hasScores: recorded.length > 0 };
   }
 
-  // Reserve one readable label slot per week. Long seasons can scroll within
-  // this comparison card instead of suppressing values or shrinking the text.
   // Labels use the same recorded scores/statuses and interpolated drawing
   // coordinates as the chart. Unplayed weeks remain text-only designations.
   function scoringLabelsFor(players, mode) {
@@ -660,8 +674,8 @@
   function sizeTrajectory(chartNode, players, mode) {
     const items = scoringLabelsFor(players, mode), weeks = seriesFor(players, mode).weeks;
     let labelWidth = Math.max(34, ...items.map(item => item.text.length * 5 + 14));
-    // Measure the actual CSS chips in one batch, so customized fonts/padding
-    // still reserve a readable slot for every week without hiding any label.
+    // Regular Rosters Compare keeps its scrollable label slots sized from the
+    // actual CSS chips. Start/Sit fits the full span inside the chart card.
     if (chartNode.appendChild && document.createElement) {
       const probe = document.createElement('div');
       probe.className = 'ss-score-labels is-measuring';
@@ -672,10 +686,31 @@
     }
     chartNode.style.minWidth = `${Math.max(0, weeks.length - 1) * labelWidth + TIMELINE_GUTTERS.left + TIMELINE_GUTTERS.right}px`;
   }
+  // Keep Start/Sit score chips at their week positions. If two chips collide
+  // on a narrow or late-season chart, move the later chip by the smallest
+  // clear vertical offset within the plot and above the week-label strip.
+  function staggerScoringLabels(overlay, nodes) {
+    const bounds = overlay.getBoundingClientRect();
+    const bottom = bounds.bottom - (START_SIT_TIMELINE_INSETS.bottom - START_SIT_WEEK_LABEL_MARGIN);
+    const labels = nodes.filter(node => !node.hidden).map(node => ({ node, box: node.getBoundingClientRect() }));
+    labels.sort((a, b) => Number(a.node.dataset.ssScoreIndex) - Number(b.node.dataset.ssScoreIndex));
+    const placed = [];
+    const gap = 1;
+    for (const { node, box } of labels) {
+      const neighbors = placed.filter(other => box.left < other.right + gap && box.right > other.left - gap);
+      const candidates = [0, ...neighbors.flatMap(other => [other.top - box.bottom - gap, other.bottom - box.top + gap])];
+      const direction = node.classList.contains('is-above') ? -1 : 1;
+      candidates.sort((a, b) => Math.abs(a) - Math.abs(b) || direction * (b - a));
+      const offset = candidates.find(delta => box.top + delta >= bounds.top && box.bottom + delta <= bottom
+        && neighbors.every(other => box.bottom + delta <= other.top - gap || box.top + delta >= other.bottom + gap)) ?? 0;
+      if (offset) node.style.top = `${Number.parseFloat(node.style.top) + offset}px`;
+      placed.push({ left: box.left, right: box.right, top: box.top + offset, bottom: box.bottom + offset });
+    }
+  }
   // Keep real CSS-styled chips anchored to ECharts' own point coordinates.
   // CSS controls their surface, typography and point gap directly; the chart
   // only supplies position. The overlay never intercepts hover/touch events.
-  function renderScoringLabels(chart, players, mode) {
+  function renderScoringLabels(chart, players, mode, isStartSit) {
     const chartNode = chart.getDom(), items = scoringLabelsFor(players, mode);
     let overlay = chartNode.querySelector('.ss-score-labels:not(.is-measuring)');
     if (!overlay) {
@@ -694,15 +729,26 @@
       node.style.left = `${Math.max(half + 1, Math.min(chart.getWidth() - half - 1, pixel[0]))}px`;
       node.style.top = `${pixel[1]}px`;
     });
+    if (isStartSit) staggerScoringLabels(overlay, nodes);
   }
-  function timelineOption(players, mode, echarts) {
+  function timelineOption(players, mode, echarts, fitWidth = null) {
     const data = trajectoryPlot(players, mode);
     const palettes = COMPARISON_PALETTES;
+    const grid = fitWidth === null ? { top: 24, ...TIMELINE_GUTTERS, bottom: 33 } : { top: 24, ...START_SIT_TIMELINE_INSETS };
+    const weekSpacing = (fitWidth - grid.left - grid.right) / Math.max(1, data.weeks.length - 1);
+    // Keep every tick through Week 13 even on narrow phones. If a dense
+    // timeline needs fewer printed ticks, retain both ends and plot every week.
+    const lastIndex = data.weeks.length - 1;
+    const interval = fitWidth !== null && weekSpacing < 15
+      ? index => index === lastIndex || (index < lastIndex - 1 && index % 2 === 0)
+      : 0;
+    const weekLabel = fitWidth === null ? { fontSize: 10, margin: 16 }
+      : { fontSize: weekSpacing < 18 ? 8 : 10, margin: START_SIT_WEEK_LABEL_MARGIN };
     return {
       animation: false, backgroundColor: 'transparent', textStyle: { fontFamily: 'Google Sans, Arial, sans-serif' },
-      // Use the comparison card's width, keeping a smaller gutter for axis and
-      // endpoint labels. A single week stays centered rather than edge-aligned.
-      grid: { top: 24, ...TIMELINE_GUTTERS, bottom: 33 },
+      // The Start/Sit panel fits its full timeline into the card width. The
+      // narrower insets bring axis labels closer while reserving endpoint room.
+      grid,
       tooltip: { trigger: 'axis', confine: true, transitionDuration: 0, backgroundColor: '#171f32f5', borderColor: '#8db9df55', padding: [10, 12], textStyle: { color: '#ebf4ff', fontSize: 11 }, axisPointer: { type: 'line', lineStyle: { color: '#d2e5ff66', type: 'dashed' } },
         formatter: items => {
           const index = items[0]?.dataIndex;
@@ -713,7 +759,7 @@
             return `<div style="display:flex;gap:20px;justify-content:space-between;margin:5px 0"><span style="color:${palettes[side].main}">${escape(player.name)}</span><b>${data.series[side][index] === null ? escape(item?.status || '—') : fmt(data.series[side][index])}</b></div>`;
           }).join('')}`;
         } },
-      xAxis: { type: 'category', data: data.weeks.map(week => `W${week}`), boundaryGap: data.weeks.length < 2, axisTick: { show: false }, axisLine: { lineStyle: { color: '#ffffff13' } }, axisLabel: { color: '#8a9db7', fontSize: 10, interval: 0, margin: 16 }, splitLine: { show: true, lineStyle: { color: '#b5d3ff09', type: 'dotted' } } },
+      xAxis: { type: 'category', data: data.weeks.map(week => `${fitWidth === null ? 'W' : 'w'}${week}`), boundaryGap: data.weeks.length < 2, axisTick: { show: false }, axisLine: { lineStyle: { color: '#ffffff13' } }, axisLabel: { color: '#8a9db7', interval, ...weekLabel }, splitLine: { show: true, lineStyle: { color: '#b5d3ff09', type: 'dotted' } } },
       yAxis: { type: 'value', scale: false, ...(!data.hasScores ? { min: -1, max: 1 } : {}), splitNumber: 4, axisLabel: { color: '#8a9db7', fontSize: 10 }, splitLine: { lineStyle: { color: '#b5d3ff10', type: 'dashed' } } },
       series: players.map((player, side) => {
         const p = palettes[side];
@@ -776,16 +822,22 @@
         if (ids[1 - side] === ids[side]) ids[1 - side] = previous;
         paint(`[data-ss-pick="${side}"]`);
       }));
+      const chartNode = model.mount.querySelector('.ss-timeline-chart');
+      // The mode toggle, resize observer and font refresh use the same
+      // width calculation so Start/Sit stays fitted across every redraw.
+      const refreshChart = () => {
+        const chart = mounted?.chart;
+        if (sequence !== token || !chart || chart.isDisposed()) return;
+        if (!model.isStartSit) sizeTrajectory(chartNode, pair, chartMode);
+        chart.resize();
+        const fitWidth = model.isStartSit ? chart.getWidth() : null;
+        chart.setOption(timelineOption(pair, chartMode, window.echarts, fitWidth), true);
+        renderScoringLabels(chart, pair, chartMode, model.isStartSit);
+      };
       model.mount.querySelectorAll('[data-ss-chart]').forEach(button => button.addEventListener('click', () => {
         chartMode = button.dataset.ssChart;
         model.mount.querySelectorAll('[data-ss-chart]').forEach(other => other.setAttribute('aria-pressed', String(other === button)));
-        const chartNode = model.mount.querySelector('.ss-timeline-chart');
-        sizeTrajectory(chartNode, pair, chartMode);
-        if (mounted?.chart) {
-          mounted.chart.resize();
-          mounted.chart.setOption(timelineOption(pair, chartMode, window.echarts), true);
-          renderScoringLabels(mounted.chart, pair, chartMode);
-        }
+        refreshChart();
         chartNode.setAttribute('aria-label', `${chartMode} fantasy points for ${pair.map(player => player.name).join(' and ')}`);
       }));
       model.mount.querySelectorAll('[data-ss-section]').forEach(button => button.addEventListener('click', () => {
@@ -837,25 +889,15 @@
       statsObserver.observe(model.mount.querySelector('.ss-start-sit-stats, .ss-stat-grid'));
       measureStatPlots(model.mount);
       document.fonts?.ready.then(() => { if (sequence === token) measureStatPlots(model.mount); });
-      const chartNode = model.mount.querySelector('.ss-timeline-chart');
       if (!pair.some(player => player.weekly.length)) {
         chartNode.innerHTML = `<div class="ss-chart-empty">${icon('chart')}<b>No recorded scoring yet</b><span>Season stats remain available below.</span></div>`;
         return;
       }
       loadCharts().then(echarts => {
         if (sequence !== token || !chartNode.isConnected) return;
-        sizeTrajectory(chartNode, pair, chartMode);
         const chart = echarts.init(chartNode, null, { renderer: 'canvas', devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2) });
         mounted.chart = chart;
-        chart.setOption(timelineOption(pair, chartMode, echarts));
-        renderScoringLabels(chart, pair, chartMode);
-        const refreshChart = () => {
-          if (sequence !== token || chart.isDisposed()) return;
-          sizeTrajectory(chartNode, pair, chartMode);
-          chart.resize();
-          chart.setOption(timelineOption(pair, chartMode, echarts), true);
-          renderScoringLabels(chart, pair, chartMode);
-        };
+        refreshChart();
         mounted.observer = new ResizeObserver(refreshChart);
         document.fonts?.ready.then(refreshChart);
         mounted.observer.observe(chartNode.parentElement);

@@ -42,11 +42,12 @@ for (const [label, filename, functionName, seasonKey] of implementations) {
     assert.deepEqual(select('2025', archivedWeeks), fullSeason);
   });
 
-  test(`${label}: season switches restore the full archive and preserve the 2026 window`, () => {
+  test(`${label}: season switches keep every week through the latest recorded 2026 result`, () => {
     const select = createSelector(filename, functionName, seasonKey);
     assert.deepEqual(select('2026', currentWeeks(9)), fullSeason.slice(0, 9));
     assert.deepEqual(select('2025', archivedWeeks), fullSeason);
-    assert.deepEqual(select('2026', currentWeeks(12)), [4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    assert.deepEqual(select('2026', currentWeeks(11)), fullSeason.slice(0, 11));
+    assert.deepEqual(select('2026', currentWeeks(18)), fullSeason);
     assert.deepEqual(select('2025', archivedWeeks), fullSeason);
   });
 

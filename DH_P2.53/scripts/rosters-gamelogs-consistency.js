@@ -462,10 +462,9 @@ function buildRostersConsistencyMetricData(base, key) {
     .map(([playerId, summary]) => ({ playerId, value: summary[field] })), ascending).get(base.playerId);
   const chart = chartFor(playerSeries.get(base.playerId) || []);
   const summary = summaries.get(base.playerId) || summarizeConsistencyGames([], chart.thresholds, 0, lowerBetter);
-  // Rosters' non-FPTS AVG is the mean of all recorded weekly positional ranks,
-  // including games before the visible window. Keep metric averages for the HUD
-  // and round only the chart label; incomplete source series stay unavailable.
-  // Default FPTS retains the player's PPG and its existing scoring reference.
+  // Rosters' non-FPTS AVG is the mean of all recorded weekly positional ranks.
+  // The HUD keeps metric averages, and only the chart label is rounded.
+  // Incomplete series stay unavailable; default FPTS still uses the player's PPG.
   const seasonPpg = Number(state.currentGameLogsPlayerRanks?.ppg ?? state.playerSeasonStats?.[base.playerId]?.ppg);
   const averageValue = key === "fpts" && summary.gamesPlayed > 0 && Number.isFinite(seasonPpg) ? seasonPpg : summary.averageValue;
   const averageRank = key === "fpts" ? rankSummary("averageValue", lowerBetter, false)
@@ -492,16 +491,12 @@ function getRostersConsistencyAxisWeeks() {
     .map(Number)
     .filter(Number.isFinite)
     .sort((left, right) => left - right);
-  // Rosters' archived 2025 Consistency chart shows the full season. Keep the
-  // rolling results-only window below exclusive to the current 2026 season.
-  if (state.currentGameLogsSeason === "2025") return weeks;
-  // The 2026 feed contains future schedule placeholders. End the nine-week
-  // chart at the last week with recorded results instead of at Week 18.
-  const recordedWeeks = state.currentGameLogsSeason === "2026"
-    ? weeks.filter((week) => Object.values(state.playerWeeklyStats?.[week] || {}).some((stats) => stats.__hasRecordedStats))
-    : weeks;
-  const latestWeek = recordedWeeks[recordedWeeks.length - 1];
-  return weeks.filter((week) => week <= latestWeek).slice(-9);
+  if (state.currentGameLogsSeason !== "2026") return weeks;
+  // Rosters Consistency keeps the opening weeks as results arrive. The last
+  // recorded week sets the right edge because the feed includes future slots.
+  const recordedWeeks = weeks.filter((week) => Object.values(state.playerWeeklyStats?.[week] || {}).some((stats) => stats.__hasRecordedStats));
+  const latestWeek = recordedWeeks.at(-1);
+  return weeks.filter((week) => week <= latestWeek);
 }
 
 function clampRostersConsistencyPoints(value) {
