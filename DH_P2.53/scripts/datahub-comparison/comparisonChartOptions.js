@@ -10,6 +10,7 @@ import {
 } from "./comparisonStats.js?v=DH3.87-compare-groups";
 
 const CHART_FONT = '"Product Sans", "Google Sans", Inter, system-ui, sans-serif';
+const Y_AXIS_LABEL_INSET = 1.5;
 
 function getWeeklyPlayerPalette(player, playerIndex) {
   // Compare uses the weekly WR/RB mapping across all charts. Count earlier
@@ -50,24 +51,29 @@ export function getWeeklyWeekEntry(player, week, statKey) {
   };
 }
 
-export function getWeeklyChartLayout(width, height, weekCount) {
-  // The first/last weeks sit on the plot edges. Reserve only enough room to
-  // keep their symbols and ticks inside the SVG, and draw Y labels in the plot.
+function getWeeklyChartLayout(width, height, weekCount, yLabelWidth, firstChipWidth, lastChipWidth) {
+  // Make room for the actual Week 1 chip beside the y-axis text so it and its
+  // point can share a center. The right edge only needs room for its own chip.
   const compact = width < 620;
   const side = compact ? 13 : 17;
-  const span = Math.max(1, width - side * 2);
+  const left = weekCount > 1 && firstChipWidth
+    ? Math.max(side, Math.ceil(Y_AXIS_LABEL_INSET + yLabelWidth + 4 + firstChipWidth / 2))
+    : side;
+  const right = weekCount > 1 ? Math.max(side, Math.ceil(lastChipWidth / 2) + 2) : side;
+  const span = Math.max(1, width - left - right);
   const spacing = weekCount > 1 ? span / (weekCount - 1) : span;
   return {
     width,
     height,
     compact,
-    side,
+    left,
+    right,
     top: compact ? 19 : 23,
     bottom: compact ? 20 : 23,
     spacing,
     tickStride: Math.max(1, Math.ceil(25 / spacing)),
-    xForIndex: (index) => weekCount <= 1 ? width / 2 : side + index * spacing,
-    indexAtX: (x) => weekCount <= 1 ? 0 : Math.max(0, Math.min(weekCount - 1, Math.round((x - side) / spacing))),
+    xForIndex: (index) => weekCount <= 1 ? width / 2 : left + index * spacing,
+    indexAtX: (x) => weekCount <= 1 ? 0 : Math.max(0, Math.min(weekCount - 1, Math.round((x - left) / spacing))),
   };
 }
 
@@ -166,18 +172,31 @@ function keepWeekLabel(index, length, stride) {
   return index === 0 || index === length - 1 || (index % stride === 0 && length - 1 - index >= stride);
 }
 
-export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, layout }) {
+export function buildWeeklyChart({ players, statKey, weeks, thresholds, size, measureText }) {
   const rows = players.map((player) => weeks.map((week) => getWeeklyWeekEntry(player, week, statKey)));
   const axis = getAxisConfig(players, rows, statKey, thresholds);
   const categories = weeks.map((week) => `wk${week}`);
-  return {
+  const { width, height, firstChipWidth = 0, lastChipWidth = 0 } = size;
+  const fontSize = width < 620 ? 9 : 10;
+  const formatYAxisLabel = (value) => formatComparisonValue(statKey, value, {
+    compact: true, decimals: Number.isInteger(value) ? 0 : null,
+  });
+  // Measure the same tick text that ECharts will paint, including percent or
+  // signed values. Wider metrics earn only the extra space they need.
+  const tickCount = Math.round((axis.max - axis.min) / axis.interval) + 1;
+  const yLabelWidth = firstChipWidth && weeks.length > 1 ? Math.max(...Array.from({ length: tickCount }, (_, index) => {
+    const tick = Number((axis.min + index * axis.interval).toPrecision(12));
+    return measureText(formatYAxisLabel(tick), `${fontSize}px ${CHART_FONT}`);
+  })) : 0;
+  const layout = getWeeklyChartLayout(width, height, weeks.length, yLabelWidth, firstChipWidth, lastChipWidth);
+  const option = {
     animation: false,
     backgroundColor: "transparent",
     grid: {
       top: layout.top,
       bottom: layout.bottom,
-      left: layout.side,
-      right: layout.side,
+      left: layout.left,
+      right: layout.right,
       containLabel: false,
     },
     xAxis: {
@@ -192,7 +211,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, la
         showMaxLabel: true,
         color: "#abb8d1",
         fontFamily: CHART_FONT,
-        fontSize: layout.compact ? 9 : 10,
+        fontSize,
         margin: 7,
       },
     },
@@ -205,17 +224,17 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, la
       axisLabel: {
         inside: true,
         align: "left",
-        verticalAlign: "bottom",
+        // Offset from the grid to the chart's inner edge. Centering on the
+        // gridline lowers the visible text by about half a text line.
+        verticalAlign: "middle",
         showMinLabel: true,
-        margin: 2,
+        margin: Y_AXIS_LABEL_INSET - layout.left,
         color: "#a8b5cd",
         backgroundColor: "#0d1522d9",
         padding: [0, 2, 1, 0],
         fontFamily: CHART_FONT,
-        fontSize: layout.compact ? 9 : 10,
-        formatter: (value) => formatComparisonValue(statKey, value, {
-          compact: true, decimals: Number.isInteger(value) ? 0 : null,
-        }),
+        fontSize,
+        formatter: formatYAxisLabel,
       },
     },
     series: players.map((player, index) => {
@@ -233,7 +252,8 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, la
         // Hollow circle vs diamond and solid vs dash distinguish players even
         // where a pair overlaps or two threshold colors happen to look alike.
         symbol: index === 0 ? "emptyCircle" : "diamond",
-        symbolSize: index === 0 ? (layout.compact ? 6 : 7) : (layout.compact ? 5 : 6),
+        // A slightly larger diamond balances the hollow circle's stroke.
+        symbolSize: (layout.compact ? 6 : 7) + index,
         showSymbol: true,
         clip: false,
         silent: true,
@@ -259,4 +279,5 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, la
       };
     }),
   };
+  return { layout, option };
 }

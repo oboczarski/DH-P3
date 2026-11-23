@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import { getConsistencyDialTone } from "../DH_P2.53/scripts/datahub-gamelogs-controls.js";
-import { buildWeeklyChartOption, getWeeklyChartLayout, getWeeklyPalette, getWeeklyPaletteStops, getWeeklyWeekEntry } from "../DH_P2.53/scripts/datahub-comparison/comparisonChartOptions.js";
+import { buildWeeklyChart, getWeeklyPalette, getWeeklyPaletteStops, getWeeklyWeekEntry } from "../DH_P2.53/scripts/datahub-comparison/comparisonChartOptions.js";
 import { getSeasonRadarEdgeStops } from "../DH_P2.53/scripts/datahub-comparison/DataHubComparisonModal.js";
 import { buildScoringProfile, buildScoringSpread, buildSeasonMetricRows } from "../DH_P2.53/scripts/datahub-comparison/comparisonSeasonPanel.js";
 
@@ -66,19 +66,27 @@ test("the shared plot preserves tied, negative, zero and missing values with bot
   ];
   for (const width of [292, 1120]) {
     const weeks = Array.from({ length: 18 }, (_, i) => i + 1);
-    const layout = getWeeklyChartLayout(width, 180, weeks.length);
-    const option = buildWeeklyChartOption({ players, statKey: "fpts", weeks, thresholds: {}, layout });
+    const firstChipWidth = 23;
+    const { layout, option } = buildWeeklyChart({
+      players, statKey: "fpts", weeks, thresholds: {},
+      size: { width, height: 180, firstChipWidth },
+      measureText: (text) => text.length * 5,
+    });
     const [a, b] = option.series.filter(({ type }) => type === "line");
     assert.deepEqual(a.data.slice(0, 4).map(({ value }) => value), [0, -2, null, null]);
     assert.deepEqual(b.data.slice(0, 4).map(({ value }) => value), [0, 4, 8, null]);
     assert.notEqual(a.lineStyle.type, b.lineStyle.type);
     assert.notEqual(a.symbol, b.symbol);
+    assert.equal(b.symbolSize, a.symbolSize + 1);
     assert.equal(getWeeklyWeekEntry(players[0], 3, "fpts").status, "BYE");
     assert.equal(option.xAxis.boundaryGap, false);
     assert.equal(option.yAxis.axisLabel.inside, true);
     assert.equal(option.xAxis.axisLabel.interval(0), true);
     assert.equal(option.xAxis.axisLabel.interval(17), true);
-    assert.ok(layout.xForIndex(0) <= 17);
+    assert.equal(option.yAxis.axisLabel.verticalAlign, "middle");
+    assert.equal(option.grid.left + option.yAxis.axisLabel.margin, 1.5);
+    assert.equal(layout.xForIndex(0), option.grid.left);
+    assert.ok(layout.xForIndex(0) - firstChipWidth / 2 > 1.5 + 10);
     assert.ok(Math.abs(width - layout.xForIndex(17)) <= 17.01);
     assert.equal(layout.indexAtX(layout.xForIndex(17)), 17);
   }

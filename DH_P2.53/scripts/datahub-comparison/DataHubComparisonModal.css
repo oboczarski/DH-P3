@@ -2146,12 +2146,14 @@ body[data-page="datahub"] .dh-compare-season {
 
 body[data-page="datahub"] .dh-compare-season [data-season-slot="0"] {
   --season-accent: var(--season-accent-0);
+  --season-high-mid: var(--season-high-mid-0);
   --season-deep: var(--season-deep-0);
   --season-gradient: var(--season-spectrum-0);
 }
 
 body[data-page="datahub"] .dh-compare-season [data-season-slot="1"] {
   --season-accent: var(--season-accent-1);
+  --season-high-mid: var(--season-high-mid-1);
   --season-deep: var(--season-deep-1);
   --season-gradient: var(--season-spectrum-1);
 }
@@ -2207,11 +2209,13 @@ body[data-page="datahub"] .dh-compare-season-name {
   align-items: center;
   gap: 6px;
   min-width: 0;
-  color: var(--season-light);
-  font-size: clamp(0.74rem, 4.75vw, 0.9rem);
+  /* The adjacent palette stop adds separation to the name text alone. */
+  --season-name-tint: color-mix(in srgb, var(--season-accent) 70%, var(--season-high-mid, var(--season-accent)));
+  color: color-mix(in srgb, var(--season-name-tint) 58%, #fff);
+  font-size: clamp(0.74rem, 4.75vw, 0.8rem);
   font-weight: 500;
   line-height: 1;
-  overflow-wrap: anywhere;
+  text-wrap-mode: nowrap;
 }
 
 body[data-page="datahub"] .dh-compare-season-name > i {
@@ -2376,8 +2380,9 @@ body[data-page="datahub"] .dh-compare-score-gauge__stats [data-score-stat="ceili
 
 body[data-page="datahub"] .dh-compare-body .dh-compare-season-note {
   color: var(--compare-muted);
-  font-size: 0.69rem;
-  line-height: 1.38;
+  font-size: 0.61rem;
+  line-height: 1;
+  margin: -2px 4px -6px;
 }
 
 /* The Stats table's group icons lead each switcher. Use two rows for four
@@ -2522,8 +2527,12 @@ body[data-page="datahub"] .dh-compare-modal .dh-compare-stat-segment--gamelogs b
 
 body[data-page="datahub"] .dh-compare-stat-segment--gamelogs button[aria-pressed="true"] .stats-table__group-header-icon {
   filter: drop-shadow(0 0 5px rgba(143, 198, 255, 0.3));
-  color: #707783;
-  stroke: var(--group-icon-color, rgb(225 129 117 / 74%));
+}
+
+/* Override the table SVG's inline color token only for inactive buttons.
+   Stroke icons and filled icons can then keep their original paint rules. */
+body[data-page="datahub"] .dh-compare-stat-segment--gamelogs button[aria-pressed="false"] .stats-table__group-header-icon {
+  --group-icon-color: #a3b0cb !important;
 }
 
 body[data-page="datahub"] .dh-compare-stat-segment--gamelogs button:focus-visible {
@@ -2709,23 +2718,24 @@ body[data-page="datahub"] .dh-compare-matchups__board[data-player-count="1"] .dh
 
 /* Scoring Distribution uses one PPR scale for both players. The dashed
    marker and diamond label identify each published season ceiling. */
-body[data-page="datahub"] .dh-compare-spread__rows {display: grid;gap: 2px;min-width: 0;padding: 8px 9px 5px;border: 0px solid #aab5;border-radius: 9px;background: linear-gradient( 161deg, #3b4a5710, #28334b86 62%, #191c2550);}
-body[data-page="datahub"] .dh-compare-spread__identity {display: flex;flex-wrap: wrap;align-items: baseline;justify-content: space-between;gap: 3px 8px;border-top: 1px solid #3345;padding-top: 1px;}
+body[data-page="datahub"] .dh-compare-spread__rows {display: grid;gap: 2px;min-width: 0;padding: 8px 5px 5px;border: 0px solid #aab5;border-radius: 9px;background: linear-gradient( 161deg, #3b4a5710, #28334b86 62%, #191c2550);}
+body[data-page="datahub"] .dh-compare-spread__identity {display: flex;flex-wrap: nowrap;align-items: baseline;justify-content: space-between;gap: 3px 8px;border-top: 1px solid #3345;padding-top: 1px;}
 body[data-page="datahub"] .dh-compare-spread__facts {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: baseline;
   gap: 3px 7px;
   color: var(--compare-muted);
   font-size: 0.67rem;
-  line-height: 1.15;
+  line-height: 1.4;
+  text-wrap-mode: nowrap;
 }
 
 body[data-page="datahub"] .dh-compare-spread__ceiling-label {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 5px;
+  gap: 3px;
+  padding: 2px 4px;
   border: 1px solid color-mix(in srgb, var(--season-accent) 29%, transparent);
   border-radius: 5px;
   background: color-mix(in srgb, var(--season-accent) 12%, var(--compare-inset-fill));
@@ -2735,8 +2745,8 @@ body[data-page="datahub"] .dh-compare-spread__ceiling-label {
 
 body[data-page="datahub"] .dh-compare-spread__ceiling-label i,
 body[data-page="datahub"] .dh-compare-spread__ceiling::before {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border: 1px solid var(--season-light);
   border-radius: 1px;
   background: var(--compare-inset-fill);

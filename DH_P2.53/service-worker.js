@@ -173,7 +173,7 @@
 // Refresh DM-only comparisons, directed rounded arrows, initialed names and
 // real CSS-styled scoring chips together with their renderer and stylesheet.
 // Refresh Compare's table groups, rank gradients and permanent dark theme together.
-const CACHE_NAME = 'DH3.88-compare-gamelogs-nav';
+const CACHE_NAME = 'DH3.89-compare-weekly-alignment';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

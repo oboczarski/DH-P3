@@ -1,11 +1,10 @@
 import { getConsistencyDialTone } from "../datahub-gamelogs-controls.js?v=DH3.81-compare";
 import { formatComparisonValue, formatRank, getPlayerName, getStatLabel, getWeeklyComparisonEdges, toFiniteNumber } from "./comparisonStats.js?v=DH3.87-compare-groups";
 import {
-  buildWeeklyChartOption,
-  getWeeklyChartLayout,
+  buildWeeklyChart,
   getWeeklyPlayerAccentColor,
   getWeeklyWeekEntry,
-} from "./comparisonChartOptions.js?v=DH3.87-compare-groups";
+} from "./comparisonChartOptions.js?v=DH3.89-compare-weekly-alignment";
 
 function placeWeeklyLabels(chart, layer, labels, layout, activeWeek) {
   const grid = { top: 2, bottom: layout.height - layout.bottom };
@@ -26,11 +25,16 @@ function placeWeeklyLabels(chart, layer, labels, layout, activeWeek) {
       item.node.dataset.visible = "false";
       return;
     }
-    const left = Math.max(item.first ? layout.side + 17 : 3, Math.min(layout.width - item.width - 3, target[0] - item.width / 2));
+    // The measured plot insets already give the endpoint chips enough room.
+    // Center each chip on the same x coordinate as its point and week tick.
+    const left = Math.max(2, Math.min(layout.width - item.width - 2, target[0] - item.width / 2));
     const positions = item.status ? [target[1] - item.height] : [
-      target[1] - item.height - 4, target[1] + 4,
+      target[1] - item.height - 5, target[1] + 5,
     ];
     if (item.below) positions.reverse();
+    // Tied endpoint values near the plot's ceiling or floor can stack on the
+    // same side of the point while keeping each chip horizontally aligned.
+    if (item.atEdge && !item.status) positions.push(target[1] - 2 * item.height - 8, target[1] + item.height + 8);
     const top = positions.find((y) => Number.isFinite(y) && y >= grid.top && y + item.height <= grid.bottom
       && occupied.every((box) => left + item.width + 2 < box.left || left > box.right + 2
         || y + item.height + 1 < box.top || y > box.bottom + 1));
@@ -100,11 +104,14 @@ export function createWeeklyComparison(React) {
     const labelLayer = useRef(null);
     const [size, setSize] = useState(null);
     const engine = window.echarts;
-    const layout = useMemo(() => size && getWeeklyChartLayout(size.width, size.height, weeks.length), [size, weeks.length]);
-    const option = useMemo(
-      () => layout && buildWeeklyChartOption({ players, statKey, weeks, thresholds, layout }),
-      [layout, players, statKey, weeks, thresholds],
+    const chartConfig = useMemo(
+      () => engine && size && buildWeeklyChart({
+        players, statKey, weeks, thresholds, size,
+        measureText: (text, font) => engine.format.getTextRect(text, font).width,
+      }),
+      [engine, size, players, statKey, weeks, thresholds],
     );
+    const { layout, option } = chartConfig || {};
     const hasValues = useMemo(
       () => players.some((player) => weeks.some((week) => getWeeklyWeekEntry(player, week, statKey).value !== null)),
       [players, statKey, weeks],
@@ -114,35 +121,55 @@ export function createWeeklyComparison(React) {
       return pair.flatMap(({ value, status }, side) => value === null && !status ? [] : [{
         value, status, side, week, weekIndex,
         atEdge: weekIndex === 0 || weekIndex === weeks.length - 1,
-        first: weekIndex === 0 && weeks.length > 1,
         otherValue: pair[1 - side]?.value,
         text: status || formatComparisonValue(statKey, value, { compact: true }),
       }]);
     }), [weeks, players, statKey]);
 
-    // One ECharts instance owns both lines. Observe the real plot dimensions
-    // for label density and edge positions, and dispose it on Clear All/close.
+    // One ECharts instance owns both lines and is disposed on Clear All/close.
     useLayoutEffect(() => {
       const element = canvas.current;
       if (!engine || !element) return;
       const chart = engine.init(element, null, { renderer: "svg" });
       chartRef.current = chart;
-      const measure = () => {
-        const width = element.clientWidth;
-        const height = element.clientHeight;
-        if (width && height) {
-          setSize((current) => current?.width === width && current?.height === height ? current : { width, height });
-        }
-      };
-      measure();
-      const observer = new ResizeObserver(measure);
-      observer.observe(element);
       return () => {
-        observer.disconnect();
         chart.dispose();
         chartRef.current = null;
       };
     }, [engine]);
+
+    // Measure the HTML endpoint chips before drawing the plot. Repeat on a
+    // resize or font load so both the chip and its week tick stay centered.
+    useLayoutEffect(() => {
+      const element = canvas.current;
+      const layer = labelLayer.current;
+      if (!element || !layer) return;
+      const measure = (fontSettled = false) => {
+        const width = element.clientWidth;
+        const height = element.clientHeight;
+        if (!width || !height) return;
+        let firstChipWidth = 0;
+        let lastChipWidth = 0;
+        labels.forEach((label, index) => {
+          if (!label.atEdge) return;
+          const chipWidth = layer.children[index].offsetWidth;
+          if (label.weekIndex === 0) firstChipWidth = Math.max(firstChipWidth, chipWidth);
+          else lastChipWidth = Math.max(lastChipWidth, chipWidth);
+        });
+        setSize((current) => !fontSettled && current?.width === width && current.height === height
+          && current.firstChipWidth === firstChipWidth && current.lastChipWidth === lastChipWidth
+          ? current : { width, height, firstChipWidth, lastChipWidth });
+      };
+      measure();
+      const observer = new ResizeObserver(() => measure());
+      observer.observe(element);
+      let current = true;
+      if (document.fonts?.status === "loading") document.fonts.ready.then(() => { if (current) measure(true); });
+      return () => {
+        current = false;
+        observer.disconnect();
+      };
+    }, [engine, labels]);
 
     useLayoutEffect(() => {
       if (!option || !chartRef.current) return;
@@ -161,12 +188,7 @@ export function createWeeklyComparison(React) {
           ? label.side === 1
           : inverse ? label.value > label.otherValue : label.value < label.otherValue),
       }));
-      const place = () => placeWeeklyLabels(chart, layer, entries, layout, activeWeek);
-      place();
-      // Font loading can change chip widths after the first draw.
-      let current = true;
-      if (document.fonts?.status === "loading") document.fonts.ready.then(() => { if (current) place(); });
-      return () => { current = false; };
+      placeWeeklyLabels(chart, layer, entries, layout, activeWeek);
     }, [layout, option, labels, activeWeek]);
 
     const inspectPointer = (event) => {
@@ -196,7 +218,7 @@ export function createWeeklyComparison(React) {
         : null,
       // Keep these as measurable HTML chips. The slot hooks let CSS style
       // the two players independently while JS supplies the line colors.
-      engine && layout ? h("div", {
+      engine ? h("div", {
         className: "dh-compare-weekly-labels", ref: labelLayer, "aria-hidden": "true",
         style: Object.fromEntries(players.map((_, slot) => [
           `--weekly-label-ink-${slot}`, getWeeklyPlayerAccentColor(players, slot),

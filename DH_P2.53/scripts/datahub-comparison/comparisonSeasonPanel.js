@@ -7,7 +7,18 @@ import {
   getStatDefinition,
   toFiniteNumber,
 } from "./comparisonStats.js?v=DH3.87-compare-groups";
-import { getWeeklyPalette, getWeeklyPaletteStops } from "./comparisonChartOptions.js?v=DH3.87-compare-groups";
+import { getWeeklyPalette, getWeeklyPaletteStops } from "./comparisonChartOptions.js?v=DH3.89-compare-weekly-alignment";
+
+// These shorter labels belong to the Stat Matchups buttons. The group keys
+// continue to come from the Stats table and drive selection and data lookup.
+const STAT_MATCHUP_BUTTON_LABELS = Object.freeze({
+  "PASSING PRODUCTION": "pass production",
+  "PASSING EFFICIENCY": "pass efficiency",
+  "RUSHING PRODUCTION": "rush production",
+  "RUSHING EFFICIENCY": "rush efficiency",
+  "RECEIVING PRODUCTION": "Rec production",
+  "RECEIVING EFFICIENCY": "Rec efficiency",
+});
 
 function getSeasonValue(player, key) {
   return toFiniteNumber(player.seasonStats?.[key]);
@@ -282,7 +293,7 @@ export function createSeasonComparison(React) {
             onClick: () => setSelectedKey(key), "aria-controls": "dh-compare-season-metrics",
           },
             h(TableHeaderIcon, { icon, className: "dh-compare-stat-segment__icon" }),
-            h("span", null, label),
+            h("span", null, STAT_MATCHUP_BUTTON_LABELS[key] ?? label),
           )),
         ),
       ),
@@ -358,6 +369,7 @@ export function createSeasonComparison(React) {
     const groups = matchupGroups?.[groupKey] || matchupGroups?.overview || [];
     const colors = Object.fromEntries(palettes.flatMap((palette, index) => [
       [`--season-accent-${index}`, palette.high],
+      [`--season-high-mid-${index}`, palette.highMid],
       [`--season-deep-${index}`, palette.low],
       [`--season-spectrum-${index}`, `linear-gradient(105deg, ${getWeeklyPaletteStops(palette).map(({ color, offset }) => `${color} ${offset * 100}%`).join(", ")})`],
     ]));
