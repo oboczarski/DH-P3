@@ -40,6 +40,14 @@
     { id: 'overview', label: 'OVERVIEW STATS', stats: ['games_played', 'snp_pct', 'yds_total', 'ypg', 'td_total', 'opp', 'imp', 'imp_per_opp', 'tds_pct'] },
     { id: 'ceiling', label: 'CEILING & CONSISTENCY', stats: ['fpoe', 'csty_pct', 'ceiling'] },
   ];
+  // The Start/Sit switcher follows the existing Season group order. WR and TE
+  // share receiving groups; QB and RB put both General panels under one button.
+  const STAT_GROUP_LABELS = {
+    'passing-production': 'Pass Production', 'passing-efficiency': 'Pass Efficiency',
+    'rushing-production': 'Rush Production', 'rushing-efficiency': 'Rush Efficiency',
+    'receiving-production': 'Rec Production', 'receiving-efficiency': 'Rec Efficiency',
+    'general-production': 'General Prod.', 'general-efficiency': 'General Eff.',
+  };
   const LABELS = { overall_rank: 'RK', player_name: 'PLAYER', position: 'POS', team: 'TM', age: 'AGE', games_played: 'G',
     ypg: 'YPG(t)', td_total: 'TD(t)', opp: 'OPP', imp: 'IMP', imp_per_opp: 'IMP/OPP', tds_pct: 'TDS%', csty_pct: 'CSTY%', ceiling: 'CL' };
   const DESCRIPTIONS = {
@@ -283,6 +291,24 @@
   function getSections(players) {
     return players[0].pos === players[1].pos && players[0].sections.length ? players[0].sections : OVERVIEW;
   }
+  function startSitStatGroups(players) {
+    const position = players[0].pos;
+    if (position !== players[1].pos) return [];
+    const combineGeneral = position === 'QB' || position === 'RB';
+    const sections = players[0].sections.filter(({ id }) => STAT_GROUP_LABELS[id]);
+    const groups = sections.filter(({ id }) => !combineGeneral || !id.startsWith('general-'))
+      .map(section => ({ id: section.id, label: STAT_GROUP_LABELS[section.id], sections: [section] }));
+    const general = sections.filter(({ id }) => id.startsWith('general-'));
+    if (combineGeneral && general.length) groups.push({ id: 'general', label: 'General', sections: general });
+    return groups;
+  }
+
+  // The Stats table artwork lives in a same-origin sprite keyed by the roster
+  // snapshot's stat IDs. Use DataHub's combined General glyph for both panels.
+  function statIcon(type, key) {
+    const id = type === 'group' && key.startsWith('general-') ? 'general' : key;
+    return `<svg class="ss-stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="../assets/icons/rosters-start-sit-stats.svg#${type}-${escape(id)}" width="24" height="24"/></svg>`;
+  }
   // Start/Sit compares published positional ranks directly: a smaller number
   // wins, even for lower-is-better or contextual stats. A source value is still
   // required, so missing/unqualified stats never acquire a fabricated rank.
@@ -301,7 +327,7 @@
     return Math.abs(values[0] - values[1]) < 1e-8 ? null : (LOWER.has(key) ? values[0] < values[1] : values[0] > values[1]) ? 0 : 1;
   }
   const comparisonState = (winner, side) => winner === null ? '' : winner === side ? ' ss-leading' : ' ss-trailing';
-  function metricRow(key, players) {
+  function metricRow(key, players, useTableIcons = false) {
     const metrics = players.map(player => player.metrics[key] || { display: '—', value: null, rank: null });
     const values = metrics.map(metric => number(metric.value));
     const ranks = metrics.map(qualifiedRank);
@@ -334,7 +360,8 @@
       // and negative values remain literal labels; unranked values have no fill.
       return `<div class="ss-stat-plot ss-side-${side}${comparisonState(winner, side)}" style="--ss-bar-ratio:${ratio}" data-ss-available="${values[side] !== null}" data-ss-ranked="${rank !== null}" data-ss-rank="${rank ?? ''}">${isNumeric ? `<div class="ss-stat-rail" aria-hidden="true">${rank === null ? '' : '<i class="ss-stat-fill"></i>'}</div>` : ''}${valueMarkup(side)}</div>`;
     };
-    return `<div class="ss-metric-row${!isNumeric ? ' ss-text-row' : ''}" data-ss-stat="${key}">${plotMarkup(0)}<div class="ss-metric-label"><button class="ss-metric-help" type="button" data-ss-help="${key}" aria-expanded="false" aria-controls="ss-help-${key}" aria-label="Explain ${escape(label)}" title="${escape(description)}"><span>${escape(label)}</span>${diff ? `<small class="ss-difference${differenceWinner === null ? '' : ` ss-side-${differenceWinner}`}">${directedDifference(diff, differenceWinner)}</small>` : ''}</button></div>${plotMarkup(1)}<p class="ss-metric-explanation" id="ss-help-${key}" hidden>${escape(description)}</p></div>`;
+    const labelMarkup = useTableIcons ? `<span class="ss-metric-caption">${statIcon('column', key)}<span>${escape(label)}</span></span>` : `<span>${escape(label)}</span>`;
+    return `<div class="ss-metric-row${!isNumeric ? ' ss-text-row' : ''}" data-ss-stat="${key}">${plotMarkup(0)}<div class="ss-metric-label"><button class="ss-metric-help" type="button" data-ss-help="${key}" aria-expanded="false" aria-controls="ss-help-${key}" aria-label="Explain ${escape(label)}" title="${escape(description)}">${labelMarkup}${diff ? `<small class="ss-difference${differenceWinner === null ? '' : ` ss-side-${differenceWinner}`}">${directedDifference(diff, differenceWinner)}</small>` : ''}</button></div>${plotMarkup(1)}<p class="ss-metric-explanation" id="ss-help-${key}" hidden>${escape(description)}</p></div>`;
   }
   function measureStatPlots(mount) {
     // Text uses real responsive font metrics, including percentages, large
@@ -371,8 +398,26 @@
       : `${comparisonName(players[winner])} leads by ${Math.abs(margin)} ranked stat${Math.abs(margin) === 1 ? '' : 's'} (${wins[winner]} to ${wins[1 - winner]})`;
     return `<div class="ss-section-stat"><i>STAT</i><small class="ss-section-margin${winner === null ? '' : ` ss-side-${winner}`}" aria-label="${escape(description)}" title="${escape(description)}">${label}</small></div>`;
   }
-  function statSections(players) {
-    return getSections(players).map((section, index) => `<section class="ss-stat-section ss-panel" id="ss-section-${section.id}" aria-label="${escape(section.label)}"><header class="ss-section-heading"><span class="ss-section-icon">${icon(section.id.includes('efficiency') ? 'spark' : section.id.includes('production') ? 'chart' : section.id === 'info' ? 'target' : 'layers')}</span><div><span class="ss-eyebrow">${String(index + 1).padStart(2, '0')} / SEASON DETAIL</span><h3>${escape(section.label.toLowerCase())}</h3></div><span class="ss-stat-count">${section.stats.length}<small>STATS</small></span></header><div class="ss-section-players"><span class="ss-side-0">${escape(comparisonName(players[0]))}</span>${sectionRankMargin(section, players)}<span class="ss-side-1">${escape(comparisonName(players[1]))}</span></div><div class="ss-metrics">${section.stats.map(key => metricRow(key, players)).join('')}</div></section>`).join('');
+  function statSections(players, sections = getSections(players), useTableIcons = false) {
+    return sections.map((section, index) => {
+      const label = STAT_GROUP_LABELS[section.id];
+      const heading = useTableIcons && label && !section.id.startsWith('general-') ? label : section.label.toLowerCase();
+      const sectionIcon = useTableIcons ? statIcon('group', section.id)
+        : icon(section.id.includes('efficiency') ? 'spark' : section.id.includes('production') ? 'chart' : section.id === 'info' ? 'target' : 'layers');
+      return `<section class="ss-stat-section ss-panel" id="ss-section-${section.id}" data-ss-stat-group="${section.id}" aria-label="${escape(useTableIcons ? heading : section.label)}"><header class="ss-section-heading"><span class="ss-section-icon">${sectionIcon}</span><div>${useTableIcons ? '' : `<span class="ss-eyebrow">${String(index + 1).padStart(2, '0')} / SEASON DETAIL</span>`}<h3>${escape(heading)}</h3></div>${useTableIcons ? '' : `<span class="ss-stat-count">${section.stats.length}<small>STATS</small></span>`}</header><div class="ss-section-players"><span class="ss-side-0">${escape(comparisonName(players[0]))}</span>${sectionRankMargin(section, players)}<span class="ss-side-1">${escape(comparisonName(players[1]))}</span></div><div class="ss-metrics">${section.stats.map(key => metricRow(key, players, useTableIcons)).join('')}</div></section>`;
+    }).join('');
+  }
+
+  function renderStartSitStats(players, sections, groups, activeGroup) {
+    if (!activeGroup) return `<div class="ss-start-sit-stats ss-stat-grid">${statSections(players, sections, true)}</div>`;
+    const fantasy = sections.filter(({ id }) => id === 'fantasy');
+    const buttons = groups.map(({ id, label }) => {
+      const [name, detail] = label.split(' ');
+      return `<button type="button" id="ss-stat-tab-${id}" data-ss-stat-tab="${id}" aria-pressed="${id === activeGroup.id}" aria-controls="ss-active-stat-panels">${statIcon('group', id)}<span class="ss-stat-tab-caption">${name}${detail ? ` <span>${detail}</span>` : ''}</span></button>`;
+    }).join('');
+    // Only the group below the switcher is replaced on selection. The Fantasy
+    // panel, scoring chart and radar stay mounted and keep their own state.
+    return `<div class="ss-start-sit-stats ss-start-sit-stats--switchable">${statSections(players, fantasy, true)}<nav class="ss-stat-switcher" aria-label="Stat sections" data-group-count="${groups.length}">${buttons}</nav><div class="ss-active-stat-panels" id="ss-active-stat-panels" role="region" aria-labelledby="ss-stat-tab-${activeGroup.id}">${statSections(players, activeGroup.sections, true)}</div></div>`;
   }
   function production(players) {
     const phases = [['pass_yd', 'Passing', '#9eb8f9'], ['rush_yd', 'Rushing', '#75d9c9'], ['rec_yd', 'Receiving', '#b99ae9']];
@@ -437,7 +482,7 @@
     const stats = configs[0].stats.filter(key => configs[1].stats.includes(key));
     return { stats, labels: stats.map(key => configs[0].labels[configs[0].stats.indexOf(key)]) };
   }
-  function radarGraphic(players, config) {
+  function radarGraphic(players, config, alignRankSuffixes) {
     const cx = 180, cy = 176, radius = 110, count = config.stats.length;
     const at = (index, distance) => {
       const angle = -Math.PI / 2 + index * Math.PI * 2 / count;
@@ -517,13 +562,18 @@
     });
     const rankLeaders = labels.map(item => Math.hypot(item.xy[0] - item.point[0], item.xy[1] - item.point[1]) < 17 ? ''
       : `<line x1="${item.point[0]}" y1="${item.point[1]}" x2="${item.xy[0]}" y2="${item.xy[1]}" class="ss-radar-rank-leader ss-side-${item.side}${comparisonState(item.winner, item.side)}"/>`).join('');
-    const rankLabels = labels.map(item => `<text x="${item.xy[0]}" y="${item.xy[1]}" data-ss-radar-rank="${item.key}" class="ss-radar-rank ss-side-${item.side}${comparisonState(item.winner, item.side)}" text-anchor="middle" dominant-baseline="middle"><title>${escape(players[item.side].name)} · ${escape(config.labels[item.index])} · ${escape(players[item.side].pos)} rank ${item.rank}</title>${item.rank}<tspan class="ss-radar-rank-suffix" dy="-2.5">${rankSuffix(item.rank)}</tspan></text>`).join('');
+    // Start/Sit ordinals share an alphabetic baseline. Shift the whole label
+    // down slightly so its numerals stay centered in the existing placement.
+    const rankBaseline = alignRankSuffixes ? 'alphabetic' : 'middle';
+    const rankOffset = alignRankSuffixes ? 2 : 0;
+    const suffixOffset = alignRankSuffixes ? '' : ' dy="-2.5"';
+    const rankLabels = labels.map(item => `<text x="${item.xy[0]}" y="${item.xy[1] + rankOffset}" data-ss-radar-rank="${item.key}" class="ss-radar-rank ss-side-${item.side}${comparisonState(item.winner, item.side)}" text-anchor="middle" dominant-baseline="${rankBaseline}"><title>${escape(players[item.side].name)} · ${escape(config.labels[item.index])} · ${escape(players[item.side].pos)} rank ${item.rank}</title>${item.rank}<tspan class="ss-radar-rank-suffix"${suffixOffset}>${rankSuffix(item.rank)}</tspan></text>`).join('');
     return `<svg class="ss-radar-svg" viewBox="0 0 360 360" role="img" aria-label="${escape(players.map(player => player.name).join(' and '))} performance radar. Each stat shows player A's value above player B's; colored positional ranks label the plotted points."><defs>${definitions}</defs><g>${grid}${axes}</g><circle cx="${cx}" cy="${cy}" r="2" class="ss-radar-center"/>${datasets.map(item => item.markup).join('')}<g class="ss-radar-ranks">${rankLeaders}${rankLabels}</g></svg>`;
   }
-  function performanceRadar(players) {
+  function performanceRadar(players, alignRankSuffixes = false) {
     const config = radarConfigFor(players);
     if (!config) return '<p class="ss-panel-note">Performance radar unavailable for this position.</p>';
-    return `<div class="ss-radar-shared"><div class="ss-radar-card-content"><div class="ss-radar-plot">${radarGraphic(players, config)}</div><details class="ss-radar-ledger"><summary>All values & positional ranks ${icon('down')}</summary><table><caption>Season performance · ${players[0].pos === players[1].pos ? escape(players[0].pos) : 'Shared metrics; each player retains their positional ranks'}</caption><thead><tr><th scope="col">METRIC</th>${players.map((player, side) => `<th scope="col" class="ss-side-${side}">${escape(comparisonName(player))}</th>`).join('')}</tr></thead><tbody>${config.stats.map((key, index) => {
+    return `<div class="ss-radar-shared"><div class="ss-radar-card-content"><div class="ss-radar-plot">${radarGraphic(players, config, alignRankSuffixes)}</div><details class="ss-radar-ledger"><summary>All values & positional ranks ${icon('down')}</summary><table><caption>Season performance · ${players[0].pos === players[1].pos ? escape(players[0].pos) : 'Shared metrics; each player retains their positional ranks'}</caption><thead><tr><th scope="col">METRIC</th>${players.map((player, side) => `<th scope="col" class="ss-side-${side}">${escape(comparisonName(player))}</th>`).join('')}</tr></thead><tbody>${config.stats.map((key, index) => {
       const metrics = players.map(player => player.metrics[key]), winner = rankWinner(metrics), bestValue = valueWinner(key, metrics);
       return `<tr><th scope="row">${escape(config.labels[index])}</th>${players.map((player, side) => {
         const rank = qualifiedRank(metrics[side]);
@@ -531,10 +581,14 @@
       }).join('')}</tr>`;
     }).join('')}</tbody></table></details></div></div>`;
   }
-  function comparisonMarkup(model, pair, chartMode) {
+  function comparisonMarkup(model, pair, chartMode, groups = [], activeGroup = groups[0]) {
     const sections = getSections(pair);
     const same = pair[0].pos === pair[1].pos;
     const metricCount = sections.reduce((sum, section) => sum + section.stats.length, 0);
+    const detailHeading = model.isStartSit ? '<div class="ss-detail-heading"><h2>Season stats</h2></div>'
+      : `<div class="ss-detail-heading"><div><span class="ss-eyebrow">THE COMPLETE PICTURE</span><h2>Every stat. Both players.</h2></div><span class="ss-detail-badge">${metricCount}<small>METRICS</small></span></div>`;
+    const detailPanels = model.isStartSit ? renderStartSitStats(pair, sections, groups, activeGroup)
+      : `<nav class="ss-chapters" aria-label="Stat sections">${sections.map(section => `<button type="button" data-ss-section="${section.id}">${escape(section.label.toLowerCase())}</button>`).join('')}<button type="button" data-ss-section="radar">${icon('target')} Radar</button></nav><div class="ss-stat-grid">${statSections(pair, sections)}</div>`;
     const selectedOptions = side => model.players.map(player => `<option value="${escape(player.id)}"${player.id === pair[side].id ? ' selected' : ''}>${escape(player.name)} · ${escape(player.pos)}</option>`).join('');
     return `<div class="ss-dashboard" data-ss-theme="dm"><header class="ss-dashboard-header"><div class="ss-title-lockup"><span class="ss-app-mark">${icon('layers')}</span><div><span class="ss-eyebrow">START / SIT · COMPARISON</span><h1>Head to head<span class="ss-season-pill">${escape(model.season)}</span></h1></div></div><div class="ss-dashboard-actions"><button class="ss-dashboard-close ss-icon-button" type="button" data-ss-close aria-label="Close player comparison">${icon('close')}</button></div></header>
       <div class="ss-dashboard-scroll"><div class="ss-comparison-pickers"><label class="ss-side-0"><span>A</span><select aria-label="First comparison player" data-ss-pick="0">${selectedOptions(0)}</select>${icon('down')}</label><button class="ss-swap ss-icon-button" type="button" data-ss-swap aria-label="Swap compared players">${icon('swap')}</button><label class="ss-side-1"><span>B</span><select aria-label="Second comparison player" data-ss-pick="1">${selectedOptions(1)}</select>${icon('down')}</label></div>
@@ -542,9 +596,9 @@
       <div class="ss-projection-insight">${icon('pulse')}<span>${number(pair[0].projection) !== null && number(pair[1].projection) !== null ? Math.abs(pair[0].projection - pair[1].projection) < .05 ? 'Level projections for this week' : `<b class="ss-side-${pair[0].projection > pair[1].projection ? 0 : 1}">${escape(comparisonName(pair[pair[0].projection > pair[1].projection ? 0 : 1]))}</b> projects <strong>${fmt(Math.abs(pair[0].projection - pair[1].projection))}</strong> points higher` : 'Compare season production while projections are unavailable'}</span><span class="ss-micro-label">WK ${model.week || '—'} OUTLOOK</span></div>
       <div class="ss-analytics-grid"><section class="ss-panel ss-timeline"><header class="ss-panel-header"><div>${icon('chart')}<h3>Scoring Comparison</h3></div><div class="ss-chart-toggle" role="group" aria-label="Scoring chart view"><button type="button" data-ss-chart="weekly" aria-pressed="${chartMode === 'weekly'}">Weekly</button><button type="button" data-ss-chart="cumulative" aria-pressed="${chartMode === 'cumulative'}">Cumulative</button></div></header><div class="ss-chart-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i></i>${escape(comparisonName(player))}</span>`).join('')}<span>LEAGUE PTS</span></div><div class="ss-timeline-viewport" tabindex="0" role="region" aria-label="Scoring Comparison; scroll horizontally for more weeks"><div class="ss-timeline-chart" role="img" aria-label="${chartMode === 'weekly' ? 'Weekly' : 'Cumulative'} fantasy points for ${escape(pair.map(player => player.name).join(' and '))}"></div></div><div class="ss-chart-caption"><span>Recorded games only</span><span>Unplayed weeks show status</span></div>${weeklyTable(pair)}</section>
       <section class="ss-panel ss-reliability"><header class="ss-panel-header"><div>${icon('shield')}<h3>Consistency & ceiling</h3></div><span class="ss-micro-label">PPR BASELINE</span></header><div class="ss-consistency-rings">${pair.map((player, side) => ring(player, side)).join('')}</div><p class="ss-panel-note">CSTY% and CL · published season values</p></section>${production(pair)}</div>
-      <div class="ss-detail-heading"><div><span class="ss-eyebrow">THE COMPLETE PICTURE</span><h2>Every stat. Both players.</h2></div><span class="ss-detail-badge">${metricCount}<small>METRICS</small></span></div><div class="ss-stat-contract"><span>${same ? `${escape(pair[0].pos)} · Game Logs season stats` : 'Mixed positions · Data Hub Overview'}</span><span>Bar length = positional rank · longer is stronger</span></div>
-      <nav class="ss-chapters" aria-label="Stat sections">${sections.map(section => `<button type="button" data-ss-section="${section.id}">${escape(section.label.toLowerCase())}</button>`).join('')}<button type="button" data-ss-section="radar">${icon('target')} Radar</button></nav><div class="ss-stat-grid">${statSections(pair)}</div>
-      <section class="ss-panel ss-performance" id="ss-section-radar" aria-label="Performance radar"><header class="ss-panel-header"><div>${icon('target')}<h3>Performance radar</h3></div><span class="ss-micro-label">${same ? `${escape(pair[0].pos)} · HEAD TO HEAD` : 'SHARED POSITION METRICS'}</span></header><div class="ss-radar-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i>${side === 0 ? '●' : '◆'}</i>${escape(comparisonName(player))}</span>`).join('')}<small>OUTWARD = STRONGER RANK</small></div><div class="ss-radar-region">${performanceRadar(pair)}</div><p class="ss-radar-note">${same ? 'Game Logs positional metrics' : 'Shared Game Logs metrics · each position retains its rank scale'} · A values above B · dimmed labels trail the other player. Unranked metrics keep their values and leave gaps.</p></section>
+      ${detailHeading}<div class="ss-stat-contract"><span>${same ? `${escape(pair[0].pos)} · Game Logs season stats` : 'Mixed positions · Data Hub Overview'}</span><span>Bar length = positional rank · longer is stronger</span></div>
+      ${detailPanels}
+      <section class="ss-panel ss-performance" id="ss-section-radar" aria-label="Performance radar"><header class="ss-panel-header"><div>${icon('target')}<h3>Performance radar</h3></div><span class="ss-micro-label">${same ? `${escape(pair[0].pos)} · HEAD TO HEAD` : 'SHARED POSITION METRICS'}</span></header><div class="ss-radar-legend">${pair.map((player, side) => `<span class="ss-side-${side}"><i>${side === 0 ? '●' : '◆'}</i>${escape(comparisonName(player))}</span>`).join('')}<small>OUTWARD = STRONGER RANK</small></div><div class="ss-radar-region">${performanceRadar(pair, model.isStartSit)}</div><p class="ss-radar-note">${same ? 'Game Logs positional metrics' : 'Shared Game Logs metrics · each position retains its rank scale'} · A values above B · dimmed labels trail the other player. Unranked metrics keep their values and leave gaps.</p></section>
       <footer class="ss-data-note">${icon('target')}<p>FPTS & PPG follow your league scoring. Other season metrics, ceiling and consistency follow the published stats. Positional ranks retain Game Logs qualification. <span>— Unavailable &nbsp; · &nbsp; 0 Recorded zero &nbsp; · &nbsp; Dimmed label Trails the other player</span></p></footer></div></div>`;
   }
 
@@ -698,12 +752,21 @@
     disposeComparison();
     let ids = model.players.slice(0, 2).map(player => player.id);
     let chartMode = 'weekly';
+    let statPosition = null;
+    let activeStatGroupId;
     const paint = (restoreFocus = null) => {
       disposeComparison();
       const token = sequence;
       const pair = ids.map(id => model.players.find(player => player.id === id));
       if (pair.some(player => !player)) return;
-      model.mount.innerHTML = comparisonMarkup(model, pair, chartMode);
+      const groups = model.isStartSit ? startSitStatGroups(pair) : [];
+      const position = groups.length ? pair[0].pos : null;
+      // Swaps and same-position picker changes retain the selected group.
+      // Entering a different position starts at its own production panel.
+      const activeGroup = (position === statPosition && groups.find(group => group.id === activeStatGroupId)) || groups[0];
+      statPosition = position;
+      activeStatGroupId = activeGroup?.id;
+      model.mount.innerHTML = comparisonMarkup(model, pair, chartMode, groups, activeGroup);
       bindPlayerNames(model.mount, pair, model.onGameLogs);
       model.mount.querySelector('[data-ss-close]').addEventListener('click', model.onClose);
       model.mount.querySelector('[data-ss-swap]').addEventListener('click', () => { ids.reverse(); paint('[data-ss-swap]'); });
@@ -729,13 +792,35 @@
         model.mount.querySelector(`#ss-section-${button.dataset.ssSection}`)?.scrollIntoView({ behavior: 'instant', block: 'start' });
         model.mount.querySelectorAll('[data-ss-section]').forEach(other => other.classList.toggle('is-active', other === button));
       }));
+      const statDock = model.mount.querySelector('.ss-stat-switcher');
+      if (statDock) {
+        const panel = model.mount.querySelector('#ss-active-stat-panels');
+        const scroller = model.mount.querySelector('.ss-dashboard-scroll');
+        const buttons = [...statDock.querySelectorAll('[data-ss-stat-tab]')];
+        buttons.forEach((button, index) => button.addEventListener('click', () => {
+          const group = groups[index];
+          if (activeStatGroupId === group.id) return;
+          activeStatGroupId = group.id;
+          // When the sticky switcher covers the old group's first row, bring
+          // the new group's heading into view directly below the switcher.
+          const overlap = statDock.getBoundingClientRect().bottom - panel.getBoundingClientRect().top;
+          const scrollTop = scroller.scrollTop;
+          buttons.forEach(other => other.setAttribute('aria-pressed', String(other === button)));
+          panel.setAttribute('aria-labelledby', button.id);
+          panel.innerHTML = statSections(pair, group.sections, true);
+          if (overlap > 0) scroller.scrollTop = scrollTop - overlap - 8;
+          measureStatPlots(model.mount);
+        }));
+      }
       // Metric definitions open inline on touch/keyboard, keeping abbreviated
-      // labels understandable without depending on desktop hover tooltips.
-      model.mount.querySelectorAll('[data-ss-help]').forEach(button => button.addEventListener('click', () => {
+      // labels understandable even after the switcher replaces the active rows.
+      model.mount.querySelector('.ss-dashboard').addEventListener('click', event => {
+        const button = event.target.closest('[data-ss-help]');
+        if (!button) return;
         const open = button.getAttribute('aria-expanded') !== 'true';
         button.setAttribute('aria-expanded', String(open));
         model.mount.querySelector(`#ss-help-${button.dataset.ssHelp}`).hidden = !open;
-      }));
+      });
       if (restoreFocus) model.mount.querySelector(restoreFocus)?.focus({ preventScroll: true });
       // Keep keyboard focus inside the dialog while preserving native select
       // and details behavior. Escape is handled by Rosters' existing listener.
@@ -749,7 +834,7 @@
       model.mount.addEventListener('keydown', keyHandler);
       const statsObserver = new ResizeObserver(() => { if (sequence === token) measureStatPlots(model.mount); });
       mounted = { chart: null, observer: null, statsObserver, keyHandler, mount: model.mount };
-      statsObserver.observe(model.mount.querySelector('.ss-stat-grid'));
+      statsObserver.observe(model.mount.querySelector('.ss-start-sit-stats, .ss-stat-grid'));
       measureStatPlots(model.mount);
       document.fonts?.ready.then(() => { if (sequence === token) measureStatPlots(model.mount); });
       const chartNode = model.mount.querySelector('.ss-timeline-chart');

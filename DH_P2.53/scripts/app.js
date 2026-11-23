@@ -9958,6 +9958,9 @@ async function openRostersDecisionComparison(players) {
     const body = document.getElementById('comparison-modal-body');
     const league = state.leagues.find(entry => entry.league_id === state.currentLeagueId);
     const season = String(league?.season || state.currentGameLogsSeason || '2026');
+    // Both Rosters entry points use this renderer. The stat-group switcher
+    // belongs to the comparison opened from the Start/Sit workspace.
+    const isStartSit = state.isStartSitMode;
     rostersDecisionOpener = document.activeElement;
     if (rostersDecisionSavedOverflow === null) rostersDecisionSavedOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -9985,7 +9988,7 @@ async function openRostersDecisionComparison(players) {
         if (state.isStartSitMode && rostersMatchupsPreparationPromise) await rostersMatchupsPreparationPromise;
         if (request !== rostersDecisionRequest || playerComparisonModal.classList.contains('hidden')) return;
         window.RostersStartSit.renderComparison({ mount: body,
-            players: players.map(buildRostersDecisionPlayer), season,
+            players: players.map(buildRostersDecisionPlayer), season, isStartSit,
             week: getCurrentNflWeekNumber(), onClose: closeComparisonModal, onGameLogs: openRostersDecisionGameLogs });
         const close = body.querySelector('[data-ss-close]');
         close?.focus({ preventScroll: true });

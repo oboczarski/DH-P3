@@ -30,7 +30,7 @@ function harness(season = '2026') {
     + slice('function getOpponentDefenseRank(', 'let tableCoreLoaderPromise')
     + slice('function buildRostersDecisionPlayer(input) {', 'async function openRostersDecisionComparison(')
     // Test the actual private renderers without expanding the production API.
-    + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, metricRow, statSections, measureStatPlots, sparkline, shortName, projectionMatchup, projectionState, timelineOption, sizeTrajectory, playerHero, radarRadius, performanceRadar, hudDial, ring, radarValue, comparisonName, comparisonMarkup, scoringLabelsFor, scoringLabelMarkup, directedDifference'), context);
+    + presentation.replace('overviewSections: OVERVIEW', 'overviewSections: OVERVIEW, startSitStatGroups, metricRow, statSections, measureStatPlots, sparkline, shortName, projectionMatchup, projectionState, timelineOption, sizeTrajectory, playerHero, radarRadius, performanceRadar, hudDial, ring, radarValue, comparisonName, comparisonMarkup, scoringLabelsFor, scoringLabelMarkup, directedDifference'), context);
   return context;
 }
 
@@ -44,6 +44,55 @@ test('current and historical same-position comparison includes the exact Game Lo
       assert.equal(JSON.stringify(result.sections), JSON.stringify(expected));
       for (const key of expected.flatMap(section => section.stats)) assert.ok(key in result.metrics, `${year} ${pos} ${key}`);
     }
+  }
+});
+
+test('Start/Sit starts at positional production, keeps Fantasy above the switcher and renders one selected group', () => {
+  const expectedLabels = {
+    QB: ['Pass Production', 'Pass Efficiency', 'Rush Production', 'Rush Efficiency', 'General'],
+    RB: ['Rush Production', 'Rush Efficiency', 'Rec Production', 'Rec Efficiency', 'General'],
+    WR: ['Rec Production', 'Rec Efficiency', 'General Prod.', 'General Eff.'],
+    TE: ['Rec Production', 'Rec Efficiency', 'General Prod.', 'General Eff.'],
+  };
+  const sprite = fs.readFileSync(new URL('../DH_P2.53/assets/icons/rosters-start-sit-stats.svg', import.meta.url), 'utf8');
+  const checkIcons = markup => {
+    const icons = [...markup.matchAll(/rosters-start-sit-stats\.svg#([^"]+)/g)].map(([, id]) => id);
+    assert.ok(icons.length);
+    for (const id of icons) assert.ok(sprite.includes(`id="${id}"`), `Missing SVG symbol ${id}`);
+    assert.equal(icons.filter(id => id.startsWith('column-')).length, [...markup.matchAll(/data-ss-stat="/g)].length);
+  };
+  for (const season of ['2026', '2025']) {
+    const context = harness(season);
+    const { comparisonMarkup, startSitStatGroups } = context.window.RostersStartSit;
+    for (const [pos, labels] of Object.entries(expectedLabels)) {
+      const players = ['one', 'two'].map(id => context.buildRostersDecisionPlayer({ id, pos, name: `Player ${id}` }));
+      const model = { players, season, week: 10, isStartSit: true };
+      const groups = startSitStatGroups(players);
+      assert.deepEqual(Array.from(groups, group => group.label), labels);
+      assert.equal(groups[0].id, { QB: 'passing-production', RB: 'rushing-production', WR: 'receiving-production', TE: 'receiving-production' }[pos]);
+      const ids = markup => [...markup.matchAll(/id="ss-section-([^"]+)"/g)].map(([, id]) => id);
+      const initial = comparisonMarkup(model, players, 'weekly', groups);
+      assert.deepEqual(ids(initial), ['fantasy', groups[0].id, 'radar']);
+      for (const group of groups) {
+        const markup = comparisonMarkup(model, players, 'weekly', groups, group);
+        assert.ok(markup.indexOf('id="ss-section-fantasy"') < markup.indexOf('class="ss-stat-switcher"'));
+        assert.match(markup, new RegExp(`id="ss-stat-tab-${group.id}"[^>]+aria-pressed="true"`));
+        assert.equal((markup.match(/aria-pressed="true" aria-controls="ss-active-stat-panels"/g) || []).length, 1);
+        const selectedIds = group.id === 'general' ? ['general-production', 'general-efficiency'] : [group.id];
+        assert.deepEqual(ids(markup), ['fantasy', ...selectedIds, 'radar']);
+        checkIcons(markup);
+      }
+    }
+    const players = ['QB', 'WR'].map(pos => context.buildRostersDecisionPlayer({ id: pos, pos, name: `Player ${pos}` }));
+    const groups = startSitStatGroups(players);
+    assert.equal(groups.length, 0);
+    const mixed = comparisonMarkup({ players, season, isStartSit: true }, players, 'weekly', groups);
+    assert.doesNotMatch(mixed, /aria-label="Stat sections"/);
+    assert.deepEqual([...mixed.matchAll(/id="ss-section-([^"]+)"/g)].map(([, id]) => id), ['info', 'fantasy', 'overview', 'ceiling', 'radar']);
+    checkIcons(mixed);
+    const regular = comparisonMarkup({ players, season }, players, 'weekly');
+    assert.match(regular, /class="ss-chapters"/);
+    assert.doesNotMatch(regular, /ss-stat-switcher|rosters-start-sit-stats\.svg/);
   }
 });
 
@@ -436,6 +485,9 @@ test('radar overlays both players with stacked values, smaller ordinal ranks and
   assert.equal((same.match(/class="ss-radar-rank ss-side-/g) || []).length, 26);
   assert.match(same, /Player first · FPTS: 0.0 · RB rank 5/);
   assert.match(same, /5<tspan class="ss-radar-rank-suffix" dy="-2.5">th<\/tspan>/);
+  const startSit = performanceRadar([rb, second], true);
+  assert.match(startSit, /dominant-baseline="alphabetic"><title>[^<]+<\/title>5<tspan class="ss-radar-rank-suffix">th<\/tspan>/);
+  assert.doesNotMatch(startSit, /ss-radar-rank-suffix" dy=/);
   assert.doesNotMatch(same, /NaN|undefined|ss-trailing/);
   const mixed = performanceRadar([rb, qb]);
   assert.equal((mixed.match(/class="ss-radar-svg"/g) || []).length, 1);
