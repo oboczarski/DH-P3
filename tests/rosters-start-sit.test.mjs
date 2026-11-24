@@ -554,10 +554,10 @@ test('DM consistency HUD preserves recorded zero, unavailable values and all sev
   const { hudDial } = harness().window.RostersStartSit;
   const player = { name: 'Fixture', pos: 'RB', metrics: { csty_pct: { value: 0 }, ceiling: { value: 28, display: '28.0', rank: null } } };
   assert.match(hudDial(player), /data-dial-tone="pink" data-has-progress="false"/);
-  assert.match(hudDial(player), />0%<\/b>/);
+  assert.match(hudDial(player), /<div class="progress-value">0%<\/div>/);
   player.metrics.csty_pct.value = null;
   assert.match(hudDial(player), /data-dial-tone="neutral"/);
-  assert.match(hudDial(player), />—<\/b>/);
+  assert.match(hudDial(player), /<div class="progress-value">—<\/div>/);
   for (const [value, tone] of [[0, 'pink'], [15, 'magenta'], [30, 'violet'], [50, 'blue'], [60, 'cyan'], [75, 'teal'], [100, 'green']]) {
     player.metrics.csty_pct.value = value;
     assert.match(hudDial(player), new RegExp(`data-dial-tone="${tone}"`));
@@ -568,7 +568,8 @@ test('DM retains one consistency dial and a separate plain ceiling row', () => {
   const { ring } = harness().window.RostersStartSit;
   const player = { ...previewPlayer('ceiling'), metrics: { csty_pct: { value: 50 }, ceiling: { value: 28, display: '28.0', rank: 1 } } };
   const markup = ring(player, 0);
-  assert.equal((markup.match(/class="ss-hud-dial"/g) || []).length, 1);
+  assert.equal((markup.match(/class="progress-circle ss-hud-dial"/g) || []).length, 1);
+  assert.match(markup, /<div class="progress-value">50%<\/div>\s*<div class="progress-label">Consistency<br \/>Rate<\/div>/);
   assert.equal((markup.match(/class="ss-ceiling"/g) || []).length, 1);
   assert.match(markup, /<div class="ss-ceiling"><span>CEILING<\/span><b>28.0<\/b><small>PPR pts<\/small>/);
   assert.doesNotMatch(markup, /ss-v2-gauges|ss-consistency-ring/);

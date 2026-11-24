@@ -277,15 +277,25 @@
     }).catch(error => { chartPromise = null; throw error; });
     return chartPromise;
   }
-  // The comparison consistency percentage uses the Game Logs HUD dial.
-  // Ceiling retains its separate plain label/value/PPR row.
+  // Start/Sit uses the Game Logs HUD layers and two-line label for each
+  // player's published consistency rate. Ceiling stays in its own text row.
   function hudDial(player) {
     const value = number(player.metrics.csty_pct?.value);
     const progress = value === null ? null : Math.max(0, Math.min(1, value / 100));
     const tones = ['pink', 'magenta', 'violet', 'blue', 'cyan', 'teal', 'green'];
     const tone = progress === null ? 'neutral' : tones[Math.min(6, Math.floor(progress * 7))];
     const display = value === null ? '—' : `${fmt(value, Number.isInteger(value) ? 0 : 1)}%`;
-    return `<div class="ss-hud-dial" data-dial-tone="${tone}" data-has-progress="${progress !== null && progress > 0}" style="--progress:${progress || 0}" role="img" aria-label="${escape(player.name)} consistency: ${display}" title="Arc = consistency percentage"><i class="ss-dial-glow"></i><i class="ss-dial-arc"></i><i class="ss-dial-echo"></i><i class="ss-dial-origin"></i><i class="ss-dial-cap"></i><div class="ss-dial-core"><b>${escape(display)}</b><span>CONSISTENCY</span></div></div>`;
+    return `<div class="progress-circle ss-hud-dial" data-dial-tone="${tone}" data-has-progress="${progress !== null && progress > 0}" style="--progress:${progress || 0}" role="img" aria-label="${escape(player.name)} consistency rate: ${display}" title="Arc = consistency percentage">
+      <span class="progress-dial-glow" aria-hidden="true"></span>
+      <span class="progress-dial-arc" aria-hidden="true"></span>
+      <span class="progress-dial-echo" aria-hidden="true"></span>
+      <span class="progress-dial-origin" aria-hidden="true"></span>
+      <span class="progress-dial-cap" aria-hidden="true"></span>
+      <div class="progress-circle-inner" aria-hidden="true">
+        <div class="progress-value">${escape(display)}</div>
+        <div class="progress-label">Consistency<br />Rate</div>
+      </div>
+    </div>`;
   }
   function ring(player, side) {
     return `<div class="ss-consistency-player ss-side-${side}"><strong><i></i>${escape(comparisonName(player))}</strong><div class="ss-dm-gauges">${hudDial(player)}</div><div class="ss-ceiling"><span>CEILING</span><b>${escape(player.metrics.ceiling?.display || '—')}</b><small>PPR pts</small></div></div>`;
