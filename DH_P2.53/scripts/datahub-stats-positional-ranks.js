@@ -45,7 +45,7 @@ export function isStatsSeasonRankQualified(row, season, weeksOfData, elapsedWeek
   return value !== null && value >= minimum;
 }
 
-export function buildStatsPositionalRanks(rows, columns, season, weeksOfData = 1, elapsedWeeks = season === "2026" ? weeksOfData : 18) {
+export function buildStatsPositionalRanks(rows, columns, season, weeksOfData = 1, elapsedWeeks = season === "2026" ? weeksOfData : 18, higherIsBetter = []) {
   const ranksByRow = new WeakMap();
   const stats = [...new Set(columns)].filter((column) => !IDENTITY_COLUMNS.has(column));
 
@@ -57,7 +57,8 @@ export function buildStatsPositionalRanks(rows, columns, season, weeksOfData = 1
       const candidates = pool
         .map((row) => ({ row, value: numericStat(row[stat]) }))
         .filter(({ value }) => value !== null);
-      const direction = LOWER_IS_BETTER_STATS.has(stat) ? 1 : -1;
+      // A table can opt into descending ranks while keeping the same qualifiers and ties.
+      const direction = LOWER_IS_BETTER_STATS.has(stat) && !higherIsBetter.includes(stat) ? 1 : -1;
       candidates.sort((left, right) => direction * (left.value - right.value));
       let previousValue = null;
       let rank = 0;

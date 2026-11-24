@@ -1658,6 +1658,8 @@ const STATS_PASSING_COLUMNS_2026 = Object.freeze([
   "RK", "PLAYER", "POS",
   ...STATS_PASSING_COLUMN_GROUPS_2026.flatMap((group) => group.columns),
 ]);
+// The Passing table gives QB1 to the highest deep pass rate in each period.
+const PASSING_TABLE_HIGHER_IS_BETTER = Object.freeze(["DP%"]);
 
 // DataHub 2026 Rushing (RB) Stats: copy the group metadata/colors and replace
 // only the requested column lists. The historical/shared schema stays intact.
@@ -2843,6 +2845,7 @@ const state = {
   // Stats-only position ranks are tied to each season's full qualified source,
   // so table search, category, and Show All never change a displayed rank.
   statsPositionalRanksBySeason: { "2026": new WeakMap(), "2025": new WeakMap() },
+  statsPassingDpRanksBySeason: {},
   showStatsPositionalRanks: true,
   stats2026Promise: null,
   seasonDataCache: Object.create(null),
@@ -4607,12 +4610,21 @@ function rebuildDataHubRows() {
 // independent of the visible category, search and selected qualifier threshold.
 function rebuildStatsPositionalRanks() {
   const columns = [...Object.values(STATS_COLUMN_SETS).flat(), ...STATS_PASSING_COLUMNS_2026, ...STATS_RUSHING_COLUMNS_2026, ...STATS_RECEIVING_COLUMNS_2026];
-  state.statsPositionalRanksBySeason["2025"] = buildStatsPositionalRanks(state.statsRowsBase, columns, "2025", 18, getStatsElapsedWeeks("2025"));
+  const elapsedWeeks2025 = getStatsElapsedWeeks("2025");
+  state.statsPositionalRanksBySeason["2025"] = buildStatsPositionalRanks(state.statsRowsBase, columns, "2025", 18, elapsedWeeks2025);
   const { rows, defaultRanks, weeksOfData } = state.stats2026;
   const elapsedWeeks = getStatsElapsedWeeks("2026");
   state.statsPositionalRanksBySeason["2026"] = defaultRanks && elapsedWeeks === weeksOfData
     ? new WeakMap(rows.map(row => [row, defaultRanks[row.__meta.playerId] || {}]))
     : buildStatsPositionalRanks(rows, columns, "2026", weeksOfData, elapsedWeeks);
+
+  // Rank the Passing table's DP% separately so Compare can keep reading its existing season rank index.
+  state.statsPassingDpRanksBySeason["2025"] = buildStatsPositionalRanks(
+    state.statsRowsBase, PASSING_TABLE_HIGHER_IS_BETTER, "2025", 18, elapsedWeeks2025, PASSING_TABLE_HIGHER_IS_BETTER,
+  );
+  state.statsPassingDpRanksBySeason["2026"] = buildStatsPositionalRanks(
+    rows, PASSING_TABLE_HIGHER_IS_BETTER, "2026", weeksOfData, elapsedWeeks, PASSING_TABLE_HIGHER_IS_BETTER,
+  );
 }
 
 // Normalize each completed week's own CSV lines through the existing table
@@ -4626,7 +4638,9 @@ function rebuildDataHubWeeklyStatsRows() {
   const columns = [...Object.values(STATS_COLUMN_SETS).flat(), ...STATS_PASSING_COLUMNS_2026, ...STATS_RUSHING_COLUMNS_2026, ...STATS_RECEIVING_COLUMNS_2026];
   const rows = getDataHubWeeklyTableSourceRows(sourceRows, week).map(row => normalizeRow(enrichSeasonRow(row, lookups)));
   state.statsWeeklyRows[week] = rows;
-  state.statsWeeklyPositionalRanks[week] = buildStatsPositionalRanks(rows, getDataHubWeeklyColumns(columns), "2026", 1, 1);
+  state.statsWeeklyPositionalRanks[week] = buildStatsPositionalRanks(
+    rows, getDataHubWeeklyColumns(columns), "2026", 1, 1, PASSING_TABLE_HIGHER_IS_BETTER,
+  );
 }
 
 // Use the same recorded-week cutoff as Game Logs' divider when WK data exists.
@@ -10694,6 +10708,9 @@ function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
 
 function getStatsPositionalRank(row, columnName) {
   if (isDataHubWeeklyStatsView()) return state.statsWeeklyPositionalRanks[state.statsWeek]?.get(row)?.[columnName] ?? null;
+  if (state.activeCategory === "passing" && columnName === "DP%") {
+    return state.statsPassingDpRanksBySeason[state.statsSeason]?.get(row)?.[columnName] ?? null;
+  }
   return state.statsPositionalRanksBySeason[state.statsSeason]?.get(row)?.[columnName] ?? null;
 }
 
