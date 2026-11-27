@@ -1,7 +1,7 @@
 /* Matchups presentation is owned by data-matchups-area markers in index.html.
    Each area has its own complete MOBILE (<=620px) and DESKTOP (>620px) rules.
-   Edit only the desired area's breakpoint block; selectors never share panel
-   declarations. :where() guards retain the original cascade specificity.
+   Edit the desired area's breakpoint block.
+   :where() guards retain the original cascade specificity.
    The strict desktop range also covers fractional viewport widths above 620px.
    Shared rules below cover only document foundations and accessibility. */
 :root:where([data-page="matchups"]) { color-scheme:dark;
@@ -286,7 +286,7 @@ body:where([data-page="matchups"]) { background:#050b13; }
      the main position bar its own full-width row. Desktop owns a separate layout. */
   :where(body[data-page="matchups"]) .toolbar:where([data-matchups-area="toolbar"]) {
     display:grid;
-    grid-template-columns: minmax(0,2.05fr) minmax(0,1fr);
+    grid-template-columns: minmax(0,1fr) max-content;
     grid-template-areas:
     "defense venue"
     "position position";
@@ -598,118 +598,6 @@ linear-gradient(90deg, #74efff 0%, #7297ff 19%, #d97dff 54%) text;
     box-shadow:inset 0 3px 9px #ffffff08,0 0 9px rgba(170,186,255,.09);
     border: 1px solid transparent;
     background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #e4efff 25%, #b2c7ff 50%, #d9addf 75%) text;
-  }
-}
-
-/* TOOLBAR-VENUE — MOBILE only. */
-@media (max-width:620px) {
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) button { font:inherit; color:inherit; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) button { cursor:pointer; background:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) button { -webkit-tap-highlight-color:transparent; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) button:disabled { cursor:default; opacity:.45; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) button:focus-visible,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
-  :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) { display:flex; align-items:center; gap:8px; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .fieldLabel { color:var(--dim);font-size: 9px;font-weight:600;letter-spacing: 0;white-space:nowrap; }
-  :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) {grid-area:venue;width: 110px;max-width:100%;justify-self:start;}
-  :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) > .teamPicker {flex: 1;}
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker { position:relative; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__btn {
-    width: 106%;
-    height:36px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    padding:0 12px;
-    border-radius:14px;
-    border:1px solid rgba(255,255,255,.14);
-    color:rgba(255,255,255,.92);
-    font-weight:900;
-    letter-spacing:.04em;
-    background:radial-gradient(180px 70px at 20% 20%,rgba(0,191,255,.14),transparent 60%),linear-gradient(135deg,rgba(255,255,255,.06),rgba(0,0,0,.16));
-    border: 1px solid transparent;
-    color: transparent;
-    background: 
-linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), 
-linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, 
-linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
-    }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__btn:hover { border-color:rgba(255,255,255,.2); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker.is-open .teamPicker__btn { border-color:rgba(0,191,255,.55); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__left { display:flex; align-items:center; gap:9px; min-width:0; }
-  /* Mobile picker chevrons need their own visible color because the button's
-     gradient text treatment makes its inherited text color transparent. */
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__chev { color:#b7c9f5; flex:none; opacity:.85; font-size:12px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__panel { position:fixed; inset:auto; margin:0; z-index:120; width:min(560px,calc(100vw - 28px)); max-height:calc(100dvh - 16px); overflow:auto;
-    padding:10px; border-radius:18px; border:1px solid rgba(255,255,255,.14); color:rgba(255,255,255,.92);
-    background:rgba(8,8,18,.92); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 16px 48px rgba(0,0,0,.5);
-    display:none; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; align-items:start; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__panel:popover-open { display:grid; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamOption { width:100%; display:flex; align-items:center; justify-content:center; gap:4px; padding:7px 3px; border-radius:14px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05); color:rgba(255,255,255,.9); font-weight:950; letter-spacing:.06em; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamOption:hover { border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.07); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamOption.is-selected { border-color:rgba(0,191,255,.55); background:linear-gradient(135deg,rgba(0,191,255,.14),rgba(207,120,255,.12)); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .venueMenuLabel { font-size:11px; font-weight:600; letter-spacing:0; white-space:nowrap; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .venueMenu .teamPicker__panel { width:164px; grid-template-columns:1fr; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .venueOption { justify-content:flex-start; padding:8px 10px; font-size:11px; font-weight:600; letter-spacing:0; }
-  :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) { gap:5px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__btn {height: 36px;padding-inline: 17px;border-radius:13px;}
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__panel { grid-template-columns:repeat(4,minmax(0,1fr)); }
-  :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) .fieldLabel { display:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .venueMenuLabel {font-size: 12px;}
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .fieldLabel { font-size: 9px; }
-  @media (max-width: 400px) {
-  :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) { width:106px; }
-  }
-}
-
-/* TOOLBAR-VENUE — DESKTOP only. */
-@media (width > 620px) {
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) button { font:inherit; color:inherit; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) button { cursor:pointer; background:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) button { -webkit-tap-highlight-color:transparent; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) button:disabled { cursor:default; opacity:.45; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) button:focus-visible,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
-  :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) { display:flex; align-items:center; gap:8px; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .fieldLabel {font-size: 10px;font-weight: 450;letter-spacing: 0;white-space: nowrap;color: transparent;background: linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;}
-  :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) { flex:0 0 216px; }
-  :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) > .teamPicker { flex:1; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker { position:relative; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__btn {
-    width:100%;
-    height:36px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    padding:0 12px;
-    border-radius:14px;
-    border:1px solid rgba(255,255,255,.14);
-    color:rgba(255,255,255,.92);
-    font-weight:900;
-    letter-spacing:.04em;
-    border: 1px solid transparent;
-    color: transparent;
-    background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #74efff 17%, #7297ff 42%, #d97dff 70%) text;
-    }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__btn:hover { border-color:rgba(255,255,255,.2); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker.is-open .teamPicker__btn { border-color:rgba(0,191,255,.55); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__left { display:flex; align-items:center; gap:9px; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__chev { opacity:.75; font-size:12px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__panel { position:fixed; inset:auto; margin:0; z-index:120; width:min(560px,calc(100vw - 28px)); max-height:calc(100dvh - 16px); overflow:auto;
-    padding:10px; border-radius:18px; border:1px solid rgba(255,255,255,.14); color:rgba(255,255,255,.92);
-    background:rgba(8,8,18,.92); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 16px 48px rgba(0,0,0,.5);
-    display:none; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; align-items:start; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamPicker__panel:popover-open { display:grid; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamOption { width:100%; display:flex; align-items:center; justify-content:center; gap:4px; padding:7px 3px; border-radius:14px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05); color:rgba(255,255,255,.9); font-weight:950; letter-spacing:.06em; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamOption:hover { border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.07); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .teamOption.is-selected { border-color:rgba(0,191,255,.55); background:linear-gradient(135deg,rgba(0,191,255,.14),rgba(207,120,255,.12)); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .venueMenuLabel { font-size:11px; font-weight:600; letter-spacing:0; white-space:nowrap; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .venueMenu .teamPicker__panel { width:164px; grid-template-columns:1fr; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="toolbar-venue"]) .venueOption { justify-content:flex-start; padding:8px 10px; font-size:11px; font-weight:600; letter-spacing:0; }
-  @media (max-width: 1100px) {
-  :where(body[data-page="matchups"]) .venuePicker:where([data-matchups-area="toolbar-venue"]) { flex-basis:200px; }
   }
 }
 
@@ -1375,7 +1263,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle button { position:relative; min-width:41px; padding:5px 9px; border:1px solid transparent; border-radius:8px; color:var(--muted); font-size:11px; font-weight:600; }
   /* These comparison position filters copy the user's main mobile gradients.
      Each position/breakpoint is independent; other controls keep their own styles. */
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle button[data-pos="QB"][aria-pressed="true"] {
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="dumbbell"], [data-matchups-area="composition"], [data-matchups-area="trend"]) .positionToggle button[data-pos="QB"][aria-pressed="true"] {
     color: #ffb2d800;
     background:rgba(255,178,216,.12);
     border:1px solid rgba(255,178,216,.35);
@@ -1385,7 +1273,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
     linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area,
     linear-gradient(90deg, #74efff 0%, #7297ff 19%, #d97dff 54%) text;
   }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle button[data-pos="RB"][aria-pressed="true"] {
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="dumbbell"], [data-matchups-area="composition"], [data-matchups-area="trend"]) .positionToggle button[data-pos="RB"][aria-pressed="true"] {
     color: #75e0b700;
     background:rgba(117,224,183,.12);
     border:1px solid rgba(117,224,183,.35);
@@ -1393,7 +1281,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
     border: 1px solid transparent;
     background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #74efff 60%, #7297ff 82%, #d97dff 100%) text;
   }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle button[data-pos="WR"][aria-pressed="true"] {
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="dumbbell"], [data-matchups-area="composition"], [data-matchups-area="trend"]) .positionToggle button[data-pos="WR"][aria-pressed="true"] {
     color: #63b0de00;
     background:rgba(99,176,222,.12);
     border:1px solid rgba(99,176,222,.35);
@@ -1401,7 +1289,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
     border: 1px solid transparent;
     background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #74efff -80%, #7297ff 50%, #d97dff 100%) text;
   }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle button[data-pos="TE"][aria-pressed="true"] {
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="dumbbell"], [data-matchups-area="composition"], [data-matchups-area="trend"]) .positionToggle button[data-pos="TE"][aria-pressed="true"] {
     color: #6b00ff20;
     background:rgba(171,155,255,.12);
     border:1px solid rgba(171,155,255,.35);
@@ -1409,7 +1297,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
     border: 1px solid transparent;
     background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #74efff 0%, #7297ff 10%, #d97dff 100%) text;
   }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle button[data-pos="ALL"][aria-pressed="true"] {
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="dumbbell"], [data-matchups-area="composition"], [data-matchups-area="trend"]) .positionToggle button[data-pos="ALL"][aria-pressed="true"] {
     color: #aabaff00;
     background:rgba(170,186,255,.12);
     border:1px solid rgba(170,186,255,.35);
@@ -1487,7 +1375,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle button { position:relative; min-width:41px; padding:5px 9px; border:1px solid transparent; border-radius:8px; color:var(--muted); font-size:11px; font-weight:600; }
   /* These comparison position filters copy the user's main mobile gradients.
      Each position/breakpoint is independent; other controls keep their own styles. */
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle button[data-pos="QB"][aria-pressed="true"] {
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="dumbbell"], [data-matchups-area="composition"], [data-matchups-area="trend"]) .positionToggle button[data-pos="QB"][aria-pressed="true"] {
     color: #ffb2d800;
     background:rgba(255,178,216,.12);
     border:1px solid rgba(255,178,216,.35);
@@ -1497,7 +1385,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
     linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area,
     linear-gradient(90deg, #74efff 0%, #7297ff 19%, #d97dff 54%) text;
   }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle button[data-pos="RB"][aria-pressed="true"] {
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="dumbbell"], [data-matchups-area="composition"], [data-matchups-area="trend"]) .positionToggle button[data-pos="RB"][aria-pressed="true"] {
     color: #75e0b700;
     background:rgba(117,224,183,.12);
     border:1px solid rgba(117,224,183,.35);
@@ -1505,7 +1393,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
     border: 1px solid transparent;
     background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #74efff 60%, #7297ff 82%, #d97dff 100%) text;
   }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle button[data-pos="WR"][aria-pressed="true"] {
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="dumbbell"], [data-matchups-area="composition"], [data-matchups-area="trend"]) .positionToggle button[data-pos="WR"][aria-pressed="true"] {
     color: #63b0de00;
     background:rgba(99,176,222,.12);
     border:1px solid rgba(99,176,222,.35);
@@ -1513,7 +1401,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
     border: 1px solid transparent;
     background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #74efff -80%, #7297ff 50%, #d97dff 100%) text;
   }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle button[data-pos="TE"][aria-pressed="true"] {
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="dumbbell"], [data-matchups-area="composition"], [data-matchups-area="trend"]) .positionToggle button[data-pos="TE"][aria-pressed="true"] {
     color: #6b00ff20;
     background:rgba(171,155,255,.12);
     border:1px solid rgba(171,155,255,.35);
@@ -1521,7 +1409,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
     border: 1px solid transparent;
     background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #74efff 0%, #7297ff 10%, #d97dff 100%) text;
   }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle button[data-pos="ALL"][aria-pressed="true"] {
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="dumbbell"], [data-matchups-area="composition"], [data-matchups-area="trend"]) .positionToggle button[data-pos="ALL"][aria-pressed="true"] {
     color: #aabaff00;
     background:rgba(170,186,255,.12);
     border:1px solid rgba(170,186,255,.35);
@@ -1949,66 +1837,66 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="dumbbell"]) .positionToggle.chartPositionToggle button { min-width: 40px;padding: 3px 6px;font-size:9px;border-radius:6px; }
 }
 
-/* POLAR — MOBILE only. */
+/* TREND — MOBILE only. */
 @media (max-width:620px) {
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) h2,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) p { margin:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) h2 { font-size:17px; line-height:1.2; font-weight:550; letter-spacing:-.3px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) button { font:inherit; color:inherit; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) button { cursor:pointer; background:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) button { -webkit-tap-highlight-color:transparent; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) button:disabled { cursor:default; opacity:.45; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) button:focus-visible,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
-  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="polar"]) { position:relative; min-width:0; border:1px solid var(--border); border-radius:14px;
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) h2,
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) p { margin:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) h2 { font-size:17px; line-height:1.2; font-weight:550; letter-spacing:-.3px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button { font:inherit; color:inherit; min-width:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button { cursor:pointer; background:none; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button { -webkit-tap-highlight-color:transparent; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button:disabled { cursor:default; opacity:.45; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button:focus-visible,
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
+  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="trend"]) { position:relative; min-width:0; border:1px solid var(--border); border-radius:14px;
     background:linear-gradient(155deg,rgba(255,255,255,.055),rgba(255,255,255,.009)),linear-gradient(180deg,rgba(15,21,39,.76),rgba(8,13,26,.7));
     box-shadow:0 8px 28px rgba(2,5,17,.22),inset 0 4px 18px rgba(255,255,255,.035);
     backdrop-filter:blur(7px) saturate(140%); -webkit-backdrop-filter:blur(7px) saturate(140%); }
-  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="polar"])::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:linear-gradient(135deg,rgba(215,225,255,.065),transparent 30%); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) .positionToggle { display:inline-flex;gap:3px;padding:3px;border:1px solid #aabbff1c;border-radius:11px;background:#03091642;box-shadow:inset 0 2px 9px #01051238;margin-left: auto; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) .positionToggle button { position:relative; min-width:41px; padding:5px 9px; border:1px solid transparent; border-radius:8px; color:var(--muted); font-size:11px; font-weight:600; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) .positionToggle button[aria-pressed="true"] { color:var(--pos-color,var(--position)); border-color:color-mix(in srgb,var(--pos-color,var(--position)) 35%,transparent); background:color-mix(in srgb,var(--pos-color,var(--position)) 12%,transparent); box-shadow:inset 0 3px 9px #ffffff08,0 0 9px color-mix(in srgb,var(--pos-color,var(--position)) 9%,transparent); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) [data-pos="QB"] { --pos-color:#ffb2d8; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) [data-pos="RB"] { --pos-color:#75e0b7; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) [data-pos="WR"] { --pos-color:#63b0de; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) [data-pos="TE"] { --pos-color:#ab9bff; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) [data-pos="ALL"] { --pos-color:#aabaff; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) .positionToggle.chartPositionToggle button { min-width: 40px;padding: 3px 6px;font-size:9px;border-radius:6px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) .positionToggle { padding:2px;border-radius:9px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) .positionToggle button { flex:1; min-width:0; font-size:10px; padding:5px 7px; }
-  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="polar"]) { border-radius:12px; }
+  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="trend"])::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:linear-gradient(135deg,rgba(215,225,255,.065),transparent 30%); }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle { display:inline-flex;gap:3px;padding:3px;border:1px solid #aabbff1c;border-radius:11px;background:#03091642;box-shadow:inset 0 2px 9px #01051238;margin-left: auto; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle button { position:relative; min-width:41px; padding:5px 9px; border:1px solid transparent; border-radius:8px; color:var(--muted); font-size:11px; font-weight:600; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle button[aria-pressed="true"] { color:var(--pos-color,var(--position)); border-color:color-mix(in srgb,var(--pos-color,var(--position)) 35%,transparent); background:color-mix(in srgb,var(--pos-color,var(--position)) 12%,transparent); box-shadow:inset 0 3px 9px #ffffff08,0 0 9px color-mix(in srgb,var(--pos-color,var(--position)) 9%,transparent); }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="QB"] { --pos-color:#ffb2d8; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="RB"] { --pos-color:#75e0b7; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="WR"] { --pos-color:#63b0de; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="TE"] { --pos-color:#ab9bff; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="ALL"] { --pos-color:#aabaff; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle.chartPositionToggle button { min-width: 40px;padding: 3px 6px;font-size:9px;border-radius:6px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle { padding:2px;border-radius:9px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle button { flex:1; min-width:0; font-size:10px; padding:5px 7px; }
+  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="trend"]) { border-radius:12px; }
   @media (max-width: 400px) {
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) .positionToggle button { padding-inline:5px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle button { padding-inline:5px; }
   }
 }
 
-/* POLAR — DESKTOP only. */
+/* TREND — DESKTOP only. */
 @media (width > 620px) {
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) h2,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) p { margin:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) h2 { font-size:17px; line-height:1.2; font-weight:550; letter-spacing:-.3px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) button { font:inherit; color:inherit; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) button { cursor:pointer; background:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) button { -webkit-tap-highlight-color:transparent; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) button:disabled { cursor:default; opacity:.45; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) button:focus-visible,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
-  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="polar"]) { position:relative; min-width:0; border:1px solid var(--border); border-radius:14px;
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) h2,
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) p { margin:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) h2 { font-size:17px; line-height:1.2; font-weight:550; letter-spacing:-.3px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button { font:inherit; color:inherit; min-width:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button { cursor:pointer; background:none; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button { -webkit-tap-highlight-color:transparent; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button:disabled { cursor:default; opacity:.45; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button:focus-visible,
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
+  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="trend"]) { position:relative; min-width:0; border:1px solid var(--border); border-radius:14px;
     background:linear-gradient(155deg,rgba(255,255,255,.055),rgba(255,255,255,.009)),linear-gradient(180deg,rgba(15,21,39,.76),rgba(8,13,26,.7));
     box-shadow:0 8px 28px rgba(2,5,17,.22),inset 0 4px 18px rgba(255,255,255,.035);
     backdrop-filter:blur(7px) saturate(140%); -webkit-backdrop-filter:blur(7px) saturate(140%); }
-  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="polar"])::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:linear-gradient(135deg,rgba(215,225,255,.065),transparent 30%); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) .positionToggle { display:inline-flex;gap:3px;padding:3px;border:1px solid #aabbff1c;border-radius:11px;background:#03091642;box-shadow:inset 0 2px 9px #01051238;margin-left: auto; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) .positionToggle button { position:relative; min-width:41px; padding:5px 9px; border:1px solid transparent; border-radius:8px; color:var(--muted); font-size:11px; font-weight:600; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) .positionToggle button[aria-pressed="true"] { color:var(--pos-color,var(--position)); border-color:color-mix(in srgb,var(--pos-color,var(--position)) 35%,transparent); background:color-mix(in srgb,var(--pos-color,var(--position)) 12%,transparent); box-shadow:inset 0 3px 9px #ffffff08,0 0 9px color-mix(in srgb,var(--pos-color,var(--position)) 9%,transparent); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) [data-pos="QB"] { --pos-color:#ffb2d8; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) [data-pos="RB"] { --pos-color:#75e0b7; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) [data-pos="WR"] { --pos-color:#63b0de; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) [data-pos="TE"] { --pos-color:#ab9bff; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) [data-pos="ALL"] { --pos-color:#aabaff; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="polar"]) .positionToggle.chartPositionToggle button { min-width: 40px;padding: 3px 6px;font-size:9px;border-radius:6px; }
+  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="trend"])::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:linear-gradient(135deg,rgba(215,225,255,.065),transparent 30%); }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle { display:inline-flex;gap:3px;padding:3px;border:1px solid #aabbff1c;border-radius:11px;background:#03091642;box-shadow:inset 0 2px 9px #01051238;margin-left: auto; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle button { position:relative; min-width:41px; padding:5px 9px; border:1px solid transparent; border-radius:8px; color:var(--muted); font-size:11px; font-weight:600; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle button[aria-pressed="true"] { color:var(--pos-color,var(--position)); border-color:color-mix(in srgb,var(--pos-color,var(--position)) 35%,transparent); background:color-mix(in srgb,var(--pos-color,var(--position)) 12%,transparent); box-shadow:inset 0 3px 9px #ffffff08,0 0 9px color-mix(in srgb,var(--pos-color,var(--position)) 9%,transparent); }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="QB"] { --pos-color:#ffb2d8; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="RB"] { --pos-color:#75e0b7; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="WR"] { --pos-color:#63b0de; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="TE"] { --pos-color:#ab9bff; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="ALL"] { --pos-color:#aabaff; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle.chartPositionToggle button { min-width: 40px;padding: 3px 6px;font-size:9px;border-radius:6px; }
 }
 
 /* METHODOLOGY — MOBILE only. */
@@ -2270,70 +2158,6 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-position"]) [data-pos="ALL"] { --pos-color:#aabaff; }
 }
 
-/* EXPANDED-VENUE — MOBILE only. */
-@media (max-width:620px) {
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) button { font:inherit; color:inherit; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) button { cursor:pointer; background:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) button { -webkit-tap-highlight-color:transparent; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) button:disabled { cursor:default; opacity:.45; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) button:focus-visible,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
-  :where(body[data-page="matchups"]) .teamPicker:where([data-matchups-area="expanded-venue"]) { position:relative; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamPicker__btn { width:100%; height:36px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 12px;
-    border-radius:14px; border:1px solid rgba(255,255,255,.14); color:rgba(255,255,255,.92); font-weight:900; letter-spacing:.04em;
-    background:radial-gradient(180px 70px at 20% 20%,rgba(0,191,255,.14),transparent 60%),linear-gradient(135deg,rgba(255,255,255,.06),rgba(0,0,0,.16)); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamPicker__btn:hover { border-color:rgba(255,255,255,.2); }
-  :where(body[data-page="matchups"]) .teamPicker.is-open:where([data-matchups-area="expanded-venue"]) .teamPicker__btn { border-color:rgba(0,191,255,.55); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamPicker__left { display:flex; align-items:center; gap:9px; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamPicker__chev { opacity:.75; font-size:12px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamPicker__panel { position:fixed; inset:auto; margin:0; z-index:120; width:min(560px,calc(100vw - 28px)); max-height:calc(100dvh - 16px); overflow:auto;
-    padding:10px; border-radius:18px; border:1px solid rgba(255,255,255,.14); color:rgba(255,255,255,.92);
-    background:rgba(8,8,18,.92); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 16px 48px rgba(0,0,0,.5);
-    display:none; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; align-items:start; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamPicker__panel:popover-open { display:grid; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamOption { width:100%; display:flex; align-items:center; justify-content:center; gap:4px; padding:7px 3px; border-radius:14px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05); color:rgba(255,255,255,.9); font-weight:950; letter-spacing:.06em; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamOption:hover { border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.07); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamOption.is-selected { border-color:rgba(0,191,255,.55); background:linear-gradient(135deg,rgba(0,191,255,.14),rgba(207,120,255,.12)); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .venueMenuLabel { font-size:11px; font-weight:600; letter-spacing:0; white-space:nowrap; }
-  :where(body[data-page="matchups"]) .venueMenu:where([data-matchups-area="expanded-venue"]) .teamPicker__panel { width:164px; grid-template-columns:1fr; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .venueOption { justify-content:flex-start; padding:8px 10px; font-size:11px; font-weight:600; letter-spacing:0; }
-  :where(body[data-page="matchups"]) .expandedControls > .teamPicker:where([data-matchups-area="expanded-venue"]) { flex:1; min-width:120px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamPicker__btn { height:34px; padding-inline:10px; border-radius:13px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamPicker__panel { grid-template-columns:repeat(4,minmax(0,1fr)); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .venueMenuLabel { font-size:10px; }
-  :where(body[data-page="matchups"]) .expandedControls > .teamPicker:where([data-matchups-area="expanded-venue"]) { min-width:120px; flex:1 1 45%; }
-}
-
-/* EXPANDED-VENUE — DESKTOP only. */
-@media (width > 620px) {
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) button { font:inherit; color:inherit; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) button { cursor:pointer; background:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) button { -webkit-tap-highlight-color:transparent; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) button:disabled { cursor:default; opacity:.45; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) button:focus-visible,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
-  :where(body[data-page="matchups"]) .teamPicker:where([data-matchups-area="expanded-venue"]) { position:relative; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamPicker__btn { width:100%; height:36px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 12px;
-    border-radius:14px; border:1px solid rgba(255,255,255,.14); color:rgba(255,255,255,.92); font-weight:900; letter-spacing:.04em;
-    background:radial-gradient(180px 70px at 20% 20%,rgba(0,191,255,.14),transparent 60%),linear-gradient(135deg,rgba(255,255,255,.06),rgba(0,0,0,.16)); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamPicker__btn:hover { border-color:rgba(255,255,255,.2); }
-  :where(body[data-page="matchups"]) .teamPicker.is-open:where([data-matchups-area="expanded-venue"]) .teamPicker__btn { border-color:rgba(0,191,255,.55); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamPicker__left { display:flex; align-items:center; gap:9px; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamPicker__chev { opacity:.75; font-size:12px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamPicker__panel { position:fixed; inset:auto; margin:0; z-index:120; width:min(560px,calc(100vw - 28px)); max-height:calc(100dvh - 16px); overflow:auto;
-    padding:10px; border-radius:18px; border:1px solid rgba(255,255,255,.14); color:rgba(255,255,255,.92);
-    background:rgba(8,8,18,.92); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 16px 48px rgba(0,0,0,.5);
-    display:none; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; align-items:start; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamPicker__panel:popover-open { display:grid; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamOption { width:100%; display:flex; align-items:center; justify-content:center; gap:4px; padding:7px 3px; border-radius:14px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05); color:rgba(255,255,255,.9); font-weight:950; letter-spacing:.06em; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamOption:hover { border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.07); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .teamOption.is-selected { border-color:rgba(0,191,255,.55); background:linear-gradient(135deg,rgba(0,191,255,.14),rgba(207,120,255,.12)); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .venueMenuLabel { font-size:11px; font-weight:600; letter-spacing:0; white-space:nowrap; }
-  :where(body[data-page="matchups"]) .venueMenu:where([data-matchups-area="expanded-venue"]) .teamPicker__panel { width:164px; grid-template-columns:1fr; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="expanded-venue"]) .venueOption { justify-content:flex-start; padding:8px 10px; font-size:11px; font-weight:600; letter-spacing:0; }
-  :where(body[data-page="matchups"]) .expandedControls > .teamPicker:where([data-matchups-area="expanded-venue"]) { flex:1; min-width:120px; }
-}
-
 /* EXPANDED-PLAYERS — MOBILE only. */
 @media (max-width:620px) {
   /* ALL-position player badges resolve their color within this table area. */
@@ -2485,7 +2309,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;
 :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="dumbbell"]) { backdrop-filter:none; }
 }
 @media print {
-:where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="polar"]) { backdrop-filter:none; }
+:where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="trend"]) { backdrop-filter:none; }
 }
 @media print {
 :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="expanded-dialog"]) { backdrop-filter:none; }
@@ -2559,4 +2383,111 @@ body[data-page="matchups"] :is(#playerTable, #expandedTable) tbody::after {
   content:"";
   display:table-row;
   height: 2px;
+}
+
+/* Game Range owns its trigger and menu styling. The popover width is
+   measured from its trigger where the shared picker places the popover. */
+:where(body[data-page="matchups"]) :is(.rangePicker, .venuePicker) { min-width:0; }
+:where(body[data-page="matchups"]) .venuePicker { display:flex; align-items:center; gap:8px; flex:0 0 216px; }
+:where(body[data-page="matchups"]) .venuePicker > .rangePicker { flex:1; }
+:where(body[data-page="matchups"]) .venuePicker > .fieldLabel {
+  font-size:10px;
+  font-weight:450;
+  white-space:nowrap;
+  color:transparent;
+  background:var(--accent-gradient) text;
+}
+:where(body[data-page="matchups"]) .expandedControls > .rangePicker { flex:1; min-width:120px; }
+:where(body[data-page="matchups"]) .rangePicker__btn {
+  display:flex;
+  align-items:center;
+  width:100%;
+  height:36px;
+  padding:0 12px 0 0;
+  border:1px solid #ffffff24;
+  border-radius:14px;
+  background:radial-gradient(180px 70px at 20% 20%, #00bfff24, transparent 60%),
+    linear-gradient(135deg, #ffffff0f, #00000029);
+  color:#eeeef6;
+  font:600 11px var(--font);
+  cursor:pointer;
+}
+:where(body[data-page="matchups"]) .rangePicker__left { flex:1; min-width:0; text-align:center; }
+:where(body[data-page="matchups"]) .rangePicker__chev { flex:none; color:#b7c9f5; font-size:12px; opacity:.85; }
+:where(body[data-page="matchups"]) .venueMenuLabel { letter-spacing:-.02em; white-space:nowrap; }
+:where(body[data-page="matchups"]) .rangePicker__btn:hover { border-color:#ffffff33; }
+:where(body[data-page="matchups"]) .rangePicker.is-open .rangePicker__btn { border-color:#00bfff8c; }
+:where(body[data-page="matchups"]) .rangePicker :is(.rangePicker__btn, .venueOption):focus-visible {
+  outline:2px solid #74efff;
+  outline-offset:1px;
+}
+:where(body[data-page="matchups"]) .rangePicker__panel {
+  position:fixed;
+  inset:auto;
+  z-index:120;
+  width:min(var(--range-button-width, 126px), calc(100vw - 16px));
+  margin:0;
+  padding:6px;
+  overflow:auto;
+  border:1px solid #aabbff48;
+  border-radius:13px;
+  background:#0c1123f2;
+  box-shadow:0 16px 48px #0008;
+  backdrop-filter:blur(16px);
+}
+:where(body[data-page="matchups"]) .rangePicker__panel:popover-open { display:grid; gap:5px; }
+:where(body[data-page="matchups"]) .venueOption {
+  min-height:36px;
+  padding:8px 9px;
+  border:1px solid #ffffff1a;
+  border-radius:8px;
+  background:#ffffff0d;
+  color:#dce6fa;
+  font:650 12px/1.25 var(--font);
+  text-align:left;
+  cursor:pointer;
+}
+:where(body[data-page="matchups"]) .venueOption:hover { border-color:#ffffff2e; background:#ffffff16; }
+:where(body[data-page="matchups"]) .venueOption.is-selected {
+  border-color:#74efff72;
+  background:linear-gradient(115deg,#74efff23,#7297ff24 58%,#d97dff25);
+  color:#e5f6ff;
+}
+:where(body[data-page="matchups"]) .venuePicker .rangePicker__btn {
+  background:linear-gradient(90deg,#74efff33,#7297ff33 52%,#d97dff33);
+}
+@supports (background-clip: border-area) {
+  :where(body[data-page="matchups"]) .venuePicker .rangePicker__btn {
+    border-color:transparent;
+    color:transparent;
+    background:linear-gradient(90deg,#74efff33,#7297ff33 52%,#d97dff33),
+      linear-gradient(90deg,#74efffbb,#7297ffbb 52%,#d97dffbb) border-area,
+      var(--accent-gradient) text;
+  }
+}
+@media (max-width:1100px) {
+  :where(body[data-page="matchups"]) .venuePicker { flex-basis:200px; }
+}
+@media (max-width:620px) {
+  :where(body[data-page="matchups"]) .venuePicker { grid-area:venue; width:134px; max-width:100%; justify-self:start; }
+  :where(body[data-page="matchups"]) .venuePicker > .fieldLabel { display:none; }
+  :where(body[data-page="matchups"]) .venuePicker .rangePicker__btn { border-radius:13px; font-size:12px; }
+  :where(body[data-page="matchups"]) .expandedControls > .rangePicker { flex:1 1 45%; }
+  :where(body[data-page="matchups"]) .expandedControls .rangePicker__btn { height:34px; padding-inline-end:10px; border-radius:13px; font-size:10px; }
+}
+@media (max-width:400px) {
+  :where(body[data-page="matchups"]) .venuePicker { width:126px; }
+}
+
+/* On compact phones, wrap chart controls inside their own panel. */
+@media (max-width:380px) {
+  body[data-page="matchups"] .pageHeaderBrand { flex-wrap: wrap; gap: 3px; }
+  body[data-page="matchups"] .pageHeaderBrand .brand > span,
+  body[data-page="matchups"] .pageIdentity h1 { font-size: 20px; }
+
+  body[data-page="matchups"] :is(.comparisonPanel, .rankingsPanel) { width: 100%; }
+  body[data-page="matchups"] :is(.comparisonPanel, .rankingsPanel) .panelHeader { flex-wrap: wrap; }
+  body[data-page="matchups"] .comparisonPanel .chartHeaderControls { margin: 8px 0 0; justify-content: flex-start; }
+  body[data-page="matchups"] .comparisonPanel .chart svg { width: 100%; margin-left: 0; }
+  body[data-page="matchups"] .rankingsPanel .heatmapHeader { margin-bottom: 3px; }
 }

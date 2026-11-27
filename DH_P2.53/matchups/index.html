@@ -12,20 +12,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,slnt,wdth,wght,GRAD,ROND@6..144,-10..0,25..151,1..1000,0..100,0..100&amp;family=MuseoModerno:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
   <!-- Matchups owns its styles, assets, models and chart library; shared DH app/CSS are not loaded. -->
-  <link rel="stylesheet" href="matchups.css?v=DH3.81-mobile-week-spacing">
-  <link rel="stylesheet" href="chart-lab.css?v=DH3.64b-live-bar-sizing">
+  <link rel="stylesheet" href="matchups.css?v=DH3.90-league-matchup-trends">
+  <link rel="stylesheet" href="chart-lab.css?v=DH3.90-league-matchup-trends">
   <script defer src="data-model.js?v=DH3.72-local-matchups"></script>
   <!-- Matchups' read-only view model owns defense-rank presentation and
        per-game comparisons; load it before either page renderer uses it. -->
-  <script defer src="chart-lab-model.js?v=DH3.57-matchup-average-precision"></script>
+  <script defer src="chart-lab-model.js?v=DH3.90-matchup-ranges"></script>
   <script defer src="chart-utils.js?v=DH3.52q-matchups-scatter-average-precision"></script>
-  <script defer src="app.js?v=DH3.82-startup"></script>
+  <script defer src="rank-trend.js?v=DH3.90-league-matchup-trends"></script>
+  <script defer src="app.js?v=DH3.90-league-matchup-trends"></script>
   <script defer src="vendor/amcharts5/index.js?v=5.20.8"></script>
   <script defer src="vendor/amcharts5/xy.js?v=5.20.8"></script>
-  <script defer src="vendor/amcharts5/radar.js?v=5.20.8"></script>
   <script defer src="vendor/amcharts5/themes/Animated.js?v=5.20.8"></script>
   <script defer src="vendor/amcharts5/themes/Dark.js?v=5.20.8"></script>
-  <script defer src="chart-lab.js?v=DH3.64c-stack-selection"></script>
+  <script defer src="chart-lab.js?v=DH3.90-matchup-ranges"></script>
 </head>
 <body data-page="matchups">
   <div data-matchups-area="background" class="background-orb background-orb--one" aria-hidden="true"></div>
@@ -78,7 +78,7 @@
         <button type="button" data-position="TE" data-pos="TE" aria-pressed="false">TE</button>
         <button type="button" data-position="ALL" data-pos="ALL" aria-pressed="false">ALL</button>
       </div>
-      <div data-matchups-area="toolbar-venue" class="venuePicker"><span class="fieldLabel">DEFENSE VENUE</span><div class="teamPicker venueMenu" id="venueMenu" data-picker-kind="venue"></div></div>
+      <div data-matchups-area="toolbar-venue" class="venuePicker"><span class="fieldLabel">GAME RANGE</span><div class="rangePicker" id="venueMenu" data-picker-kind="range"></div></div>
       <span data-matchups-area="toolbar-note" class="toolbarNote" id="scopeNote"></span>
     </section>
     <div data-matchups-area="chart-error" class="labError" id="labError" role="status" hidden></div>
@@ -118,7 +118,7 @@
           <div data-matchups-area="offenses" class="opponentsSection"><div class="sectionHeading"><h3>Offenses faced</h3><span class="smallMuted" id="opponentsScope"></span></div><div class="tableScroll"><table class="opponentsTable" id="opponentsTable"></table></div></div>
         </section>
         <article data-matchups-area="composition" id="labBreakdownPanel" data-amchart-panel aria-labelledby="labBreakdownTitle" class="glass-panel labCard labCard--composition" aria-label="Stacked scoring bars for all 32 defenses and positions">
-          <div class="labCaption"><span class="labNumber">01</span><span>POSITIONAL SCORING / STACKED BARS</span></div>
+          <div class="labCaption"><span class="labNumber">01</span><span>POSITIONAL SCORING / STACKED BARS</span><span class="rangeIndicator" data-range-indicator hidden></span></div>
           <div class="labBody labBody--breakdown">
           <div class="labHeading"><h2 class="labTitle" id="labBreakdownTitle">Scoring Allowed, Total by Position</h2><p class="labSubtitle" id="labBreakdownSubtitle"></p></div>
           <div class="labLegendRow labLegendSortRow"><div class="labLegend" id="labBreakdownLegend"></div><div class="chartSortControls"><span class="chartSortLabel">sort-by</span><div class="positionToggle chartPositionToggle" role="group" aria-label="Sort stacked bars by position FPA, highest first"><button type="button" data-stack-sort="QB" data-pos="QB" aria-pressed="false">QB</button><button type="button" data-stack-sort="RB" data-pos="RB" aria-pressed="false">RB</button><button type="button" data-stack-sort="WR" data-pos="WR" aria-pressed="false">WR</button><button type="button" data-stack-sort="TE" data-pos="TE" aria-pressed="false">TE</button><button type="button" data-stack-sort="ALL" data-pos="ALL" aria-pressed="true">ALL</button></div></div></div>
@@ -133,7 +133,7 @@
           <p class="panelFootnote">FPA per game <span class="footnoteDivider">/</span> <span id="heatRankNote">Rank 1 = best defense / fewest FPA per game</span> <span class="footnoteDivider">/</span> Select a defense</p>
         </section>
         <article data-matchups-area="dumbbell" id="labDumbbellPanel" data-amchart-panel aria-labelledby="labDumbbellTitle" class="glass-panel labCard labCard--dumbbell" aria-label="Dumbbell comparison of actual and expected FPA per game for every defense">
-          <div class="labCaption"><span class="labNumber">02</span><span>ACTUAL VS. EXPECTED / DUMBBELLS</span></div>
+          <div class="labCaption"><span class="labNumber">02</span><span>ACTUAL VS. EXPECTED / DUMBBELLS</span><span class="rangeIndicator" data-range-indicator hidden></span></div>
           <div class="labBody labBody--dumbbell">
           <div class="labHeading"><div class="labTitleRow"><h2 class="labTitle" id="labDumbbellTitle">Actual vs. Expected</h2><div class="positionToggle chartPositionToggle" role="group" aria-label="Actual vs expected dumbbell position"><button type="button" data-position="QB" data-pos="QB" aria-pressed="true">QB</button><button type="button" data-position="RB" data-pos="RB" aria-pressed="false">RB</button><button type="button" data-position="WR" data-pos="WR" aria-pressed="false">WR</button><button type="button" data-position="TE" data-pos="TE" aria-pressed="false">TE</button><button type="button" data-position="ALL" data-pos="ALL" aria-pressed="false">ALL</button></div></div><p class="labSubtitle" id="labDumbbellSubtitle"></p></div>
           <div class="labLegend" id="labDumbbellLegend"></div>
@@ -142,22 +142,39 @@
           <div class="labReadout" id="dumbbellReadout" aria-live="polite"></div>
           <p class="labFootnote">Hollow Ring → Expected FPA/game  |  Filled Dot → Actual FPA/game  |  Δ → (actual - expected)/game.</p>
         </article>
-        <article data-matchups-area="polar" id="labPolarPanel" data-amchart-panel aria-labelledby="labPolarTitle" class="glass-panel labCard labCard--polar" aria-label="Polar scatter with opposing offense logos aligned to each defense">
-          <div class="labCaption"><span class="labNumber">03</span><span>INDIVIDUAL MATCHUPS / POLAR SCATTER</span></div>
-          <div class="labBody labBody--polar">
-          <div class="labHeading"><div class="labTitleRow"><h2 class="labTitle" id="labPolarTitle">Game Spokes</h2><div class="positionToggle chartPositionToggle" role="group" aria-label="Polar scatter position"><button type="button" data-position="QB" data-pos="QB" aria-pressed="true">QB</button><button type="button" data-position="RB" data-pos="RB" aria-pressed="false">RB</button><button type="button" data-position="WR" data-pos="WR" aria-pressed="false">WR</button><button type="button" data-position="TE" data-pos="TE" aria-pressed="false">TE</button><button type="button" data-position="ALL" data-pos="ALL" aria-pressed="false">ALL</button></div></div><p class="labSubtitle" id="labPolarSubtitle"></p></div>
-          <div class="labLegendRow"><div class="labLegend" id="labPolarLegend"></div><button type="button" class="labFocusButton" data-lab-focus="labPolar" aria-pressed="false">Focus defense</button></div>
-          <div class="labScroll" tabindex="0" aria-label="Scroll for the full-size polar scatter"><div class="labCanvas labCanvas--polar" id="labPolar"><p class="labLoading">Preparing the aligned matchup scatter…</p></div></div>
-          </div>
-          <div class="labReadout" id="polarReadout" aria-live="polite"></div>
-          <p class="labFootnote">FPA for each matchup defense has had shown on its spoke.<span class="labScrollHint">Scroll horizontally to inspect the full-size chart.</span></p>
-        </article>
+        <!-- Matchup Trends always compares both periods for all defenses at the active position. -->
+        <section data-matchups-area="trend" class="glass-panel trendPanel" aria-labelledby="trendTitle">
+          <header class="trendHeader">
+            <div class="trendHeading">
+              <span class="trendEyebrow">Matchup Strength Season Trends</span>
+              <h2 id="trendTitle">Matchup Trends</h2>
+            </div>
+            <div class="trendControls">
+              <div class="trendMode" role="group" aria-label="Matchup trend metric">
+                <button type="button" data-trend-mode="points" aria-pressed="false">Points</button>
+                <button type="button" data-trend-mode="rank" aria-pressed="true">Ranks</button>
+              </div>
+              <div class="positionToggle chartPositionToggle" role="group" aria-label="Matchup trend position">
+                <button type="button" data-position="QB" data-pos="QB" aria-pressed="true">QB</button>
+                <button type="button" data-position="RB" data-pos="RB" aria-pressed="false">RB</button>
+                <button type="button" data-position="WR" data-pos="WR" aria-pressed="false">WR</button>
+                <button type="button" data-position="TE" data-pos="TE" aria-pressed="false">TE</button>
+                <button type="button" data-position="ALL" data-pos="ALL" aria-pressed="false">ALL</button>
+              </div>
+            </div>
+          </header>
+          <div class="trendChart" id="trendChart"></div>
+          <p class="trendNote" id="trendNote"></p>
+          <section class="trendLeague" aria-labelledby="trendLeagueTitle">
+            <div class="trendLeagueHeader"><h3 id="trendLeagueTitle">League movement</h3><div class="trendCounts" id="trendCounts" aria-live="polite"></div></div>
+            <div class="trendList" tabindex="0" role="region" aria-label="Defense movement for all teams"><table id="trendTable" aria-labelledby="trendLeagueTitle"></table></div>
+          </section>
+        </section>
     </div>
     <details data-matchups-area="methodology" class="methodology"><summary><svg class="icon"><use href="#icon-info"/></svg>How expected FPA works</summary><div class="methodologyContent">
-      <p><strong>Defense ranks:</strong> Rank 1 means the best defense against the selected position; rank 32 means the weakest. Season defense ranks order points allowed per game from lowest to highest; tied averages share a rank and missing results stay unavailable. Home/away defense ranks use fewest actual FPA per recorded game first. The summary, defense heading, heatmap, scatter and scoring-bar tooltips use this same direction. Colors stay with the defense: pink means stronger/tougher, green means weaker/easier.</p>
-      <p><strong>Season summaries and per-game comparisons:</strong> Recorded player results determine actual FPA totals, per-game averages, defense ranks, expected scoring and SOS ranks for QB, RB, WR, TE and ALL. The FPA / G and OPP AVG PPG chips show per-game values above labeled total footers. Their main values, heatmap, stacked bars, dumbbells and FPA vs Expected all divide the original actual and expected totals by each defense’s games played, keep full precision for plotting, and display one decimal place. BYEs do not count as zero-point games. Tied scores are compared at full precision before display rounding. In the scatter’s Ranks view, the x-axis keeps the season SOS rank and the y-axis shows defense rank.</p>
-      <p><strong>SOS and offense ranks:</strong> SOS describes the quality of opponents already faced: 1 is the easiest schedule, 32 the toughest. The SOS card retains this season-to-date rank under home/away filters. Offense rank 1 means the most points scored. These describe schedule difficulty and offense scoring, so their ranks retain their original direction.</p>
-      <p><strong>Weekly games, players and venues:</strong> Recorded weekly results supply individual game totals, player scores and box scores, including zero and negative results. Each offense’s season-to-date scoring determines its average points per game and scoring rank for the weekly expected line, Offenses faced table, and Game Spokes tooltips. Venue describes the defense: a player’s <code>vs TB</code> puts TB away; <code>@ NYG</code> puts NYG at home. Home/away FPA per game uses recorded results divided by recorded games; expected FPA per game averages the offense baselines for those games. Every eligible game needs an available offense baseline. The scatter’s home/away expected rank orders these opponent averages from lowest to highest, separately from season SOS. Player search and hiding scores below one point affect the player list only.</p>
+      <p><strong>Defense ranks.</strong> Within the selected period, rank 1 allows the fewest PPR points per game at the selected position. Ties share a rank. BYEs are excluded and missing results stay unavailable.</p>
+      <p><strong>Expected FPA and SOS.</strong> Each game uses the opposing offense’s average PPR scoring in the same period. Expected FPA per game averages those baselines across the defense’s recorded opponents, counting repeat meetings separately. SOS ranks that average from lowest (easiest) to highest. Offense ranks use total points scored in the period.</p>
+      <p><strong>Weekly results.</strong> Recorded player scores and box scores drive the weekly chart and player tables. Search and the scoring threshold apply only to displayed player rows. Matchup Trends always compares the regular season against the interval from Week 7 through the last completed week.</p>
       <p id="sourceNotes"></p>
     </div></details>
     <footer data-matchups-area="footer" class="pageFooter"><span>DYNASTY HUB <span>/</span> MATCHUPS</span><span id="footerCoverage">2026 · PPR scoring</span></footer>
@@ -168,7 +185,7 @@
       <div data-matchups-area="expanded-controls" class="expandedControls">
         <div data-matchups-area="expanded-defense" class="teamPicker" id="modalTeamPicker" data-picker-kind="team"></div>
         <div data-matchups-area="expanded-position" class="positionToggle" role="group" aria-label="Expanded position"><button type="button" data-position="QB" data-pos="QB" aria-pressed="true">QB</button><button type="button" data-position="RB" data-pos="RB" aria-pressed="false">RB</button><button type="button" data-position="WR" data-pos="WR" aria-pressed="false">WR</button><button type="button" data-position="TE" data-pos="TE" aria-pressed="false">TE</button><button type="button" data-position="ALL" data-pos="ALL" aria-pressed="false">ALL</button></div>
-        <div data-matchups-area="expanded-venue" class="teamPicker venueMenu" id="modalVenueMenu" data-picker-kind="venue"></div>
+        <div data-matchups-area="expanded-venue" class="rangePicker" id="modalVenueMenu" data-picker-kind="range"></div>
       </div>
       <div data-matchups-area="expanded-players" class="expandedPlayers">
       <div class="playerFilters"><label class="searchField"><svg class="icon"><use href="#icon-search"/></svg><input type="search" id="expandedSearch" placeholder="Search players or offenses" aria-label="Search expanded player results"></label><label class="checkboxField"><input type="checkbox" id="expandedHideZero" checked>Hide &lt;1 point</label></div>

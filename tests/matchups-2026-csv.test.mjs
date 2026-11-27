@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import { parse2026Csv, build2026MatchupData, load2026MatchupData, load2026WeeklyCsv, MATCHUP_TEAMS } from '../DH_P2.53/scripts/nfl-2026-matchups.js';
-import { buildMatchupsPageSnapshot, load2026MatchupSources, loadMatchupsPageData } from '../DH_P2.53/matchups/data/2026-csv.js';
+import { buildMatchupsPageSnapshot, load2026MatchupSources, loadMatchupsPageData, recentMatchupsPeriod } from '../DH_P2.53/matchups/data/2026-csv.js';
 import { get2026SheetCsvUrl } from '../DH_P2.53/scripts/nfl-2026-sheets.js';
 import { positions, schedule, weekly, fixtureFetch, response } from './fixtures/matchup-csv.mjs';
 const require = createRequire(import.meta.url);
@@ -30,6 +30,36 @@ test('Matchups loads the generated snapshot without CSV requests and keeps venue
     const analyze = source => Data.matchupAnalysis(source.model, source.summary, { venue }, source.offenses).byTeam;
     assert.deepEqual(analyze(generated), analyze(original));
   }
+});
+
+// Week 8 has only one side recorded. The recent view must stop at Week 7,
+// re-rank the offenses on that week's results, and use those baselines for SOS.
+test('recent period uses completed games and the same scoped baselines on CSV and generated paths', () => {
+  const scheduleRows = parse2026Csv(schedule).map(row => ({ ...row, 7: row[2], 8: row[1] }));
+  const originalRows = parse2026Csv(weekly);
+  const wk7 = originalRows.filter(row => row.WK === '2').map(row => ({ ...row, WK: '7',
+    FPT_PPR: row.POS === 'QB' && row.TM === 'ARI' ? '31.75' : row.FPT_PPR }));
+  const wk8 = originalRows.filter(row => row.WK === '1' && row.TM === 'BAL').map(row => ({ ...row, WK: '8' }));
+  const full = build2026MatchupData({ weeklyRows: [...originalRows, ...wk7, ...wk8], scheduleRows });
+  const generated = JSON.parse(JSON.stringify(buildMatchupsPageSnapshot(full)));
+  assert.equal(full.model.maxWeek, 8);
+  assert.equal(generated.latestCompletedWeek, 7);
+  for (const source of [full, generated]) {
+    const period = recentMatchupsPeriod(source);
+    assert.deepEqual(period.model.weeks, [7]);
+    assert.equal(period.model.results.length, wk7.length);
+    assert.ok(period.model.results.every(row => row.week === 7));
+    const analysis = Data.matchupAnalysis(period.model, period.summary, {}, period.offenses);
+    const qb = analysis.byTeam.get('BAL').metrics.QB;
+    assert.equal(qb.actual.total, 31.75);
+    assert.equal(qb.expectedAvg, 31.75);
+    assert.equal(qb.entries[0].offenseRank, 1);
+    assert.equal(qb.actual.rank, 2);
+    assert.equal(qb.sosRank, 2);
+    assert.equal(qb.games, 1);
+    assert.notEqual(qb.actual.avg, full.summary.byTeam.get('BAL').metrics.QB.avg);
+  }
+  assert.equal(recentMatchupsPeriod(build()), null);
 });
 
 test('matchup/defense Sheets URLs are retired, including indirect callers', () => {

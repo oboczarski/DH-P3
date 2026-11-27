@@ -79,11 +79,7 @@
     dumbbell.sort((a, b) => b.actualAvg - a.actualAvg || a.team.localeCompare(b.team));
     const bands = ["highest", "upper", "lower", "lowest"];
     dumbbell.forEach((row, index) => { row.gradientKey = bands[Math.min(3, Math.floor(index * 4 / dumbbell.length))]; });
-    const weeks = [...new Set(teams.flatMap(team => analysis.byTeam.get(team).metrics[pos].entries.map(entry => entry.week)))].sort((a, b) => a - b);
-    const polar = teams.flatMap((team, index) => analysis.byTeam.get(team).metrics[pos].entries.filter(entry => Number.isFinite(entry.actual)).map(entry => ({
-      ...entry, team, pos, logoTeam: entry.offense, location: .5, angle: -90 + (index + .5) * 360 / teams.length,
-    })));
-    return { teams, positions: [...POSITIONS], cells, breakdown, dumbbell, polar, weeks, pos };
+    return { teams, positions: [...POSITIONS], cells, breakdown, dumbbell, pos };
   }
   function dumbbellBounds(rows) {
     const values = rows.flatMap(row => [row.actualAvg, row.expectedAvg]).filter(Number.isFinite);

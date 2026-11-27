@@ -173,7 +173,8 @@
 // Refresh DM-only comparisons, directed rounded arrows, initialed names and
 // real CSS-styled scoring chips together with their renderer and stylesheet.
 // Refresh Compare's table groups, rank gradients and permanent dark theme together.
-const CACHE_NAME = 'DH3.89-compare-weekly-alignment3.12';
+// Refresh the Matchups range controls, chart styles and rank trend renderer together.
+const CACHE_NAME = 'DH3.90-league-matchup-trends';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

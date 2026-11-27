@@ -59,7 +59,7 @@ reduced-motion behavior) remain shared. Print rules are explicit exceptions.
 | `weekly` | Weekly heading, legend, position controls, SVG plot, and opponent chips |
 | `players` | Inline Players faced heading, filters, table, and footer |
 | `comparison`, `offenses` | Comparison plot/controls and its independent Offenses faced section |
-| `composition`, `heatmap`, `dumbbell`, `polar` | Individual chart/table panels and their controls |
+| `composition`, `heatmap`, `dumbbell`, `trend` | Individual chart/table panels and their controls |
 | `expanded-heading`, `expanded-defense`, `expanded-venue`, `expanded-position`, `expanded-players` | Independent expanded Players faced dialog areas |
 | `header`, `navigation`, `methodology`, `footer`, `tooltip` | Page chrome and supporting text |
 
@@ -76,10 +76,10 @@ For example, to adjust only the weekly heading on mobile, edit its rule in the
 
 Chart typography variables (`--am-*`) are declared separately on each chart
 panel for each breakpoint in `chart-lab.css`. Adjusting composition labels no
-longer changes dumbbell or polar labels. Keep selection IDs/data attributes
+longer changes dumbbell labels. Keep selection IDs/data attributes
 intact: they are behavior hooks, separate from these presentation owners.
 
-The mobile toolbar places the compact Defense picker beside the Venue picker,
+The mobile toolbar places the compact Defense picker beside the Game Range picker,
 with the main position filter bar spanning the next row. Main position active
 states have individual `button[data-pos="QB"][aria-pressed="true"]` rules (and
 equivalents for RB/WR/TE/ALL) in each `TOOLBAR-POSITION` breakpoint block of
@@ -87,32 +87,33 @@ equivalents for RB/WR/TE/ALL) in each `TOOLBAR-POSITION` breakpoint block of
 `box-shadow` values independently; the chart position filters have their own rules.
 The user's mobile main-filter gradients are also copied to desktop main filters,
 all five defense-heading position badges, and the weekly/scatter position buttons
-at both breakpoints. Each area keeps separate literal per-position declarations;
-editing one area or breakpoint does not restyle another. Badge/chart geometry
+at both breakpoints. The stacked-bar, dumbbell and trend controls share the
+comparison panel’s active position treatment. Badge and chart geometry
 remains local, and the scatter's Points/Ranks controls retain their own styling.
 
 The defense heading groups its defense-strength ordinal immediately before the
 existing position badge (for example, `14th vs. QB`). It uses the same current
-team/position/venue rank as RANK and displays a dash when unavailable.
+team/position/period rank as RANK and displays a dash when unavailable.
 Its `.defenseMatchup`, `.defenseRank`, and `.defenseHeaderCopy` styles belong
 to the separate `DEFENSE-HEADING` mobile and desktop blocks.
 
 `chart-lab-model.js` owns read-only rank/color presentation. The calculator
 provides direct defense-strength ranks (1 fewest points/game), including exact
-best-defense ties. Home/away ranks also order actual FPA/game ascending. Every
+best-defense ties. Every
 summary, heading, chart, heatmap and tooltip uses the same rank convention.
 Legacy parser fixtures keep their original source ranks for migration checks.
 
 Every per-game view uses the calculated actual/expected totals divided by its
-recorded-game count. Season and venue views use the same full-precision offense
-baselines, with one-decimal labels only at display time. BYEs never add games.
-In Ranks mode the season x-axis retains opposing-offense SOS (1 easiest); venue
-x-values rank the selected opponents' average baselines ascending. The y-axis
-shows defense strength. Offense ranks independently order total scoring.
+recorded-game count. The regular season and the Week 7 range each compute
+offense averages, expected FPA, defense ranks and SOS from that period’s games.
+The recent cutoff advances when every scheduled non-bye offense has a recorded
+result. The generated snapshot stores this cutoff. Source previews calculate
+it from the same schedule and results. In Ranks mode, the scatter plots SOS
+(1 easiest) against defense strength (1 fewest points allowed per game).
 
 The weekly opponent chips omit visible W# labels and sit directly beneath the
 corresponding chart week ticks. `renderWeekly()` gives their grid the SVG's
-plot insets and entry count, so venue filters, sparse weeks, and resizes retain
+plot insets and entry count, so range filters, sparse weeks, and resizes retain
 the same chip/bar/tick centers. The plot and chips share one horizontal scroll
 track when the week count needs more room. Each chip retains its week in its
 accessible label and native tooltip. Timeline and chip styles remain separate
@@ -120,21 +121,25 @@ in the mobile and desktop `WEEKLY` blocks.
 
 The weekly y-axis gutter fits the rendered tick labels, with independent mobile
 and desktop minimums, and passes its measured inset to the opponent-chip grid.
-Mobile Defense/Venue chevrons have an explicit visible color rather than
+Mobile Defense and Game Range chevrons have an explicit visible color rather than
 inheriting their buttons' transparent gradient-text color. RANK leads the
 summary chips; the SOS footer describes the supplied rank as VERY EASY (1–6),
 EASY (7–12), FAVORABLE (13–16), MODERATE (17–20), HARD (21–26) or VERY HARD
-(27–32), with a dash for an unavailable rank. Venue filters retain season SOS.
+(27–32), with a dash for an unavailable rank.
 
 Dumbbells compare and sort by actual FPA per game against expected FPA per game.
 Their markers, labels, bounds, differences, tooltips and selected-defense readout
 all use precise totals/game averages from the same recorded CSV for both the
-season and venue selections. The legend contains Expected
+season and recent selections. The legend contains Expected
 and Actual. In `chart-lab.css`, `DUMBBELL — DESKTOP` owns `--am-x-grid-color` and
 `--am-x-grid-opacity` for vertical gridlines only; opacity defaults to `0.025`.
-Mobile retains its existing gridline treatment. Game Spokes is desktop-only:
-the mobile polar panel is hidden and its amCharts scene is skipped/disposed
-until the viewport returns to desktop.
+Mobile retains its existing gridline treatment.
+
+Matchup Trends compares both periods independently of the Game Range picker.
+The team scatter and league movement list share the active position and offer
+Points (FPA per game) and Ranks. All 32 rows are ordered from the largest
+improvement to the largest decline. The compact league list scrolls inside
+the card, which aligns with the dumbbell panel on desktop.
 
 Matchups defense menus use team abbreviations, alphabetized independently in
 AFC and NFC columns on mobile and desktop, including the expanded player dialog.
@@ -154,7 +159,7 @@ consume that panel's `--am-*` typography variables. amCharts still owns their
 positions, hover tooltips, keyboard focus, and defense selection.
 
 FPA / G shows the precise per-game average in the current defense-rank color.
-OPP AVG PPG shows the opponent per-game baseline in the calculated season SOS
+OPP AVG PPG shows the opponent per-game baseline in the active period’s SOS
 color, matching Start/Sit. Both labeled total footers retain their muted CSS
 color; the per-game unit is implied by the main labels. The comparison chip is
 labeled vs OPP AVG, and the weekly chart legend calls its baseline OPP AVG;

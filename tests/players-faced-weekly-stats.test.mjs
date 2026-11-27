@@ -65,7 +65,7 @@ for (const path of ['matchups/app.js', 'rosters/matchup-breakdown/modal.js']) {
   const model = Matchups.attachPlayerStats(Matchups.readSource(fpa), details);
   const ctx = vm.createContext({ state, model, Data: Matchups, esc: String, logo: () => '',
     fmt: (value, digits = 2) => Number.isFinite(value) ? value.toFixed(digits) : '—',
-    weekLabel: () => 'All weeks', venueLabel: () => 'All games', empty: () => 'Empty' });
+    weekLabel: () => 'All weeks', rangeLabel: () => 'Regular Season', venueLabel: () => 'All games', empty: () => 'Empty' });
   vm.runInContext(slice(source, '  function selectedPlayers()', '  function renderPlayers()'), ctx);
   test(`${path}: active view determines exact columns, including mixed-position ALL`, () => {
     const expected = {

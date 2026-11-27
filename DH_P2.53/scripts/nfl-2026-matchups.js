@@ -163,6 +163,25 @@ export function build2026MatchupData({ weeklyRows, scheduleRows, rawCSV = '' }) 
       matchedPlayers: new Set(results.map(r => r.playerId)).size, zeroResults: results.filter(r => r.cents === 0).length,
       negativeResults: results.filter(r => r.cents < 0).length, totalPoints: results.reduce((sum, r) => sum + r.cents, 0) / 100,
       defenseGames: games.length, matchups: matchups.size } };
+  const { summary, offenses } = summarize2026MatchupGames(games, weeks);
+  // Game Logs uses the same raw allowance ranks for every recorded/future tag
+  // and upcoming matchup. Its SOS adapter averages these ranks over each local
+  // schedule window; the modal's SOS separately ranks opposing offense PPG.
+  const defenseByTeam = Object.fromEntries(summary.rows.map(row => [row.team, Object.fromEntries(MATCHUP_POSITIONS.flatMap(pos => [
+    [pos, row.metrics[pos].avg], [`${pos}RK`, row.metrics[pos].rank]
+  ]))]));
+  // Legacy Game Logs renderers reverse a raw /32 rank. Adapt the independently
+  // ranked defense strength here so ties at either end and partial NFL weeks
+  // still display 1 = fewest points/game. SOS retains allowance ranks above.
+  const matchupRanksByTeam = Object.fromEntries(summary.rows.map(row => [row.team, Object.fromEntries(MATCHUP_POSITIONS.map(pos => [
+    `${pos}RK`, row.metrics[pos].defenseRank === null ? null : 33 - row.metrics[pos].defenseRank
+  ]))]));
+  return { season: 2026, model, summary, offenses, scheduleByTeam, defenseByTeam, matchupRanksByTeam, latestRecordedWeek };
+}
+
+// Both Matchups periods use the same exact ranks, game counts and opponent
+// baselines. Each call takes only the recorded games belonging to its period.
+export function summarize2026MatchupGames(games, weeks) {
   const points = (game, pos) => pos === 'ALL' ? game.totalCents : game.positionCents[pos];
   const totals = (teamGames, pos) => teamGames.length && teamGames.every(g => points(g, pos) !== null)
     ? teamGames.reduce((sum, g) => sum + points(g, pos), 0) : null;
@@ -205,22 +224,9 @@ export function build2026MatchupData({ weeklyRows, scheduleRows, rawCSV = '' }) 
       expectedTotal: numeric(expected.get(row.team)), expectedAvg: expected.get(row.team) ? numeric(expected.get(row.team)) / row.games : null,
       expectedRank: expectedRanks.get(row.team) ?? null }));
   }
-  // Game Logs uses the same raw allowance ranks for every recorded/future tag
-  // and upcoming matchup. Its SOS adapter averages these ranks over each local
-  // schedule window; the modal's SOS separately ranks opposing offense PPG.
-  const defenseByTeam = Object.fromEntries(summaryRows.map(row => [row.team, Object.fromEntries(MATCHUP_POSITIONS.flatMap(pos => [
-    [pos, row.metrics[pos].avg], [`${pos}RK`, row.metrics[pos].rank]
-  ]))]));
-  // Legacy Game Logs renderers reverse a raw /32 rank. Adapt the independently
-  // ranked defense strength here so ties at either end and partial NFL weeks
-  // still display 1 = fewest points/game. SOS retains allowance ranks above.
-  const matchupRanksByTeam = Object.fromEntries(summaryRows.map(row => [row.team, Object.fromEntries(MATCHUP_POSITIONS.map(pos => [
-    `${pos}RK`, row.metrics[pos].defenseRank === null ? null : 33 - row.metrics[pos].defenseRank
-  ]))]));
-  return { season: 2026, model, summary: { name: 'Calculated 2026 defense matchups', rows: summaryRows,
+  return { summary: { name: 'Calculated 2026 defense matchups', rows: summaryRows,
     byTeam: new Map(summaryRows.map(row => [row.team, row])), weeks },
-    offenses: { name: 'Calculated 2026 offense scoring', rows: offenseRows, byTeam: offenseByTeam },
-    scheduleByTeam, defenseByTeam, matchupRanksByTeam, latestRecordedWeek };
+    offenses: { name: 'Calculated 2026 offense scoring', rows: offenseRows, byTeam: offenseByTeam } };
 }
 
 // Share in-flight local reads within one page (Game Logs, projections and the

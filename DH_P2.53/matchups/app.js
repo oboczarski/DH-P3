@@ -7,8 +7,7 @@
   const POSITIONS = ["QB", "RB", "WR", "TE", "ALL"];
   const COLORS = { QB: "#ffb2d8", RB: "#75e0b7", WR: "#63b0de", TE: "#ab9bff", ALL: "#aabaff" };
   const LABELS = { QB: "quarterbacks", RB: "running backs", WR: "wide receivers", TE: "tight ends", ALL: "all positions" };
-  // Preserve the polar chart's division order. Defense pickers independently
-  // alphabetize displayed team abbreviations within AFC and NFC at every width.
+  // Defense pickers alphabetize team abbreviations within each conference.
   const DIVISIONS = [
     { conf: "AFC", name: "East", teams: ["BUF", "MIA", "NE", "NYJ"] },
     { conf: "AFC", name: "North", teams: ["BAL", "CIN", "CLE", "PIT"] },
@@ -29,11 +28,12 @@
     NYJ: "rgba(64,160,120,.95)", PHI: "rgba(43,140,78,.95)", PIT: "rgba(255,182,18,.61)", SEA: "rgba(105,190,40,.86)",
     SF: "rgba(179,153,93,.74)", TB: "rgba(247,122,97,.74)", TEN: "rgba(75,146,219,.95)", WAS: "rgba(180,36,36,.95)",
   };
-  const VENUES = { all: "All games", home: "At home", away: "On the road" };
+  const rangeLabels = { season: "Regular Season" };
   const pickerRoots = [...document.querySelectorAll("[data-picker-kind]")];
-  const state = { team: "BAL", pos: "QB", venue: "all", mode: "points", query: "", hideZero: true,
+  const state = { team: "BAL", pos: "QB", range: "season", mode: "points", query: "", hideZero: true,
     heatSort: { pos: "QB", direction: "desc" }, playerSort: { key: "week", direction: "desc", activeKey: null, step: 0 } };
-  let model = null, summary = null, offenses = null, analysis = null, openPicker = null;
+  const periods = {};
+  let model = null, analysis = null, openPicker = null, trend = null;
   const tooltips = new Map();
 
   const esc = value => String(value ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
@@ -46,7 +46,7 @@
   };
   const signed = (value, digits = 1) => value === null ? "—" : `${value > 0 ? "+" : ""}${fmt(Math.abs(value) < 1e-9 ? 0 : value, digits)}`;
   const logo = team => team ? `<img src="assets/NFL-Tags_webp/${team.toLowerCase()}.webp" alt="" width="24" height="24">` : "";
-  const venueLabel = () => state.venue === "home" ? "Defense at home" : state.venue === "away" ? "Defense away" : "All games";
+  const rangeLabel = () => rangeLabels[state.range];
   const weekLabel = () => model.minWeek === model.maxWeek ? `Week ${model.maxWeek}` : `Weeks ${model.minWeek}–${model.maxWeek}`;
   const comparison = team => analysis.byTeam.get(team || state.team).metrics[state.pos];
   const direction = value => value > 0 ? "is-easy" : value < 0 ? "is-tough" : "";
@@ -66,20 +66,21 @@
     return `<span class="teamLogoStack" aria-hidden="true" style="--team-glow:${TEAM_GLOWS[team] || "transparent"}"><img class="teamLogo teamLogoStack__glow" src="${image}" alt=""><img class="teamLogo teamLogoStack__img" src="${image}" alt=""></span>`;
   }
   function buildPickers() {
-    for (const root of pickerRoots) {
-      const isTeam = root.dataset.pickerKind === "team", label = isTeam ? "Opponent defense" : "Defense venue";
-      // Both Matchups defense controls use one conference menu on mobile and
-      // desktop; full team names remain available in accessible labels/tooltips.
-      const conferenceTeams = ["AFC", "NFC"].map(conference => {
-        const teams = DIVISIONS.filter(division => division.conf === conference).flatMap(division => division.teams)
-          .filter(team => model.defenses.includes(team)).sort();
-        return `<div class="teamPickerConference" role="group" aria-label="${conference}">
+    // Both Defense pickers use the same conference menu, with full names in
+    // accessible labels. The range picker has its own markup and style hooks.
+    const conferenceTeams = ["AFC", "NFC"].map(conference => {
+      const teams = DIVISIONS.filter(division => division.conf === conference).flatMap(division => division.teams)
+        .filter(team => model.defenses.includes(team)).sort();
+      return `<div class="teamPickerConference" role="group" aria-label="${conference}">
           <div class="teamPickerConference__title"><img src="assets/NFL-Tags_webp/${conference.toLowerCase()}.webp" alt="">${conference}</div>
           ${teams.map(team => `<button type="button" class="teamOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${team}" aria-label="${esc(Data.TEAM_NAMES[team])}" title="${esc(Data.TEAM_NAMES[team])}">${pickerLogo(team)}<span class="teamOption__code">${team}</span></button>`).join("")}</div>`;
-      }).join("");
+    }).join("");
+    for (const root of pickerRoots) {
+      const isTeam = root.dataset.pickerKind === "team", label = isTeam ? "Opponent defense" : "Game range";
+      const pickerClass = isTeam ? "teamPicker" : "rangePicker";
       const options = isTeam ? `<div class="teamPickerConferences">${conferenceTeams}</div>` :
-        Object.entries(VENUES).map(([value, text]) => `<button type="button" class="teamOption venueOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${value}">${text}</button>`).join("");
-      root.innerHTML = `<button type="button" class="teamPicker__btn" id="${root.id}Btn" data-picker-toggle="${root.id}" aria-haspopup="listbox" aria-expanded="false" aria-controls="${root.id}Panel" aria-label="${label}"><span class="teamPicker__left"></span><span class="teamPicker__chev" aria-hidden="true">▾</span></button><div class="teamPicker__panel" id="${root.id}Panel" popover="manual" role="listbox" aria-label="${label} options">${options}</div>`;
+        Object.entries(rangeLabels).map(([value, text]) => `<button type="button" class="venueOption" role="option" aria-selected="false" tabindex="-1" data-picker-value="${value}">${text}</button>`).join("");
+      root.innerHTML = `<button type="button" class="${pickerClass}__btn" id="${root.id}Btn" data-picker-toggle="${root.id}" aria-haspopup="listbox" aria-expanded="false" aria-controls="${root.id}Panel" aria-label="${label}"><span class="${pickerClass}__left"></span><span class="${pickerClass}__chev" aria-hidden="true">▾</span></button><div class="${pickerClass}__panel" id="${root.id}Panel" popover="manual" role="listbox" aria-label="${label} options">${options}</div>`;
     }
   }
   function closePicker(restoreFocus = false) {
@@ -92,7 +93,7 @@
   function focusPickerOption(option) {
     if (!option) return;
     option.focus({ preventScroll: true });
-    const panel = option.closest(".teamPicker__panel"), box = option.getBoundingClientRect(), bounds = panel.getBoundingClientRect();
+    const panel = option.closest('[role="listbox"]'), box = option.getBoundingClientRect(), bounds = panel.getBoundingClientRect();
     if (box.top < bounds.top + 10) panel.scrollTop -= bounds.top + 10 - box.top;
     else if (box.bottom > bounds.bottom - 10) panel.scrollTop += box.bottom - bounds.bottom + 10;
   }
@@ -102,6 +103,8 @@
     panel.showPopover(); root.classList.add("is-open"); button.setAttribute("aria-expanded", "true"); openPicker = root;
     const anchor = button.getBoundingClientRect(), padding = 8, gap = 6;
     const viewportWidth = document.documentElement.clientWidth, viewportHeight = innerHeight;
+    // The range menu tracks the trigger width at open time, before placement.
+    if (root.dataset.pickerKind === "range") panel.style.setProperty("--range-button-width", `${anchor.width}px`);
     panel.style.maxHeight = `${Math.max(36, viewportHeight - padding * 2)}px`;
     const box = panel.getBoundingClientRect();
     panel.style.left = `${Math.max(padding, Math.min(anchor.left, viewportWidth - box.width - padding))}px`;
@@ -134,28 +137,27 @@
   // rank direction; reversing a defense's displayed number preserves its color.
   const heatColor = View.rankColor;
 
-  // Keep only current matchup selection in the URL. Removed week-range controls
-  // and saved uploads cannot carry an old dataset or recent window into this app.
+  // Restore supported ranges only. Old venue links open the regular season.
   function readURL() {
     const params = new URLSearchParams(location.search);
     if (model.defenses.includes(params.get("team"))) state.team = params.get("team");
     else if (!model.defenses.includes(state.team)) state.team = model.defenses[0];
     if (POSITIONS.includes(params.get("pos"))) state.pos = params.get("pos");
-    if (["all", "home", "away"].includes(params.get("venue"))) state.venue = params.get("venue");
+    if (params.get("range") === "recent" && periods.recent) state.range = "recent";
     state.heatSort.pos = state.pos;
   }
   function saveURL() {
     const url = new URL(location.href);
-    for (const key of ["team", "pos", "venue"]) url.searchParams.set(key, state[key]);
-    for (const key of ["range", "recent", "from", "to"]) url.searchParams.delete(key);
+    for (const key of ["team", "pos", "range"]) url.searchParams.set(key, state[key]);
+    for (const key of ["venue", "recent", "from", "to"]) url.searchParams.delete(key);
     try { history.replaceState(null, "", url); } catch { /* Some direct-file browsers restrict history. */ }
   }
   function syncControls() {
     for (const root of pickerRoots) {
-      const isTeam = root.dataset.pickerKind === "team", value = isTeam ? state.team : state.venue;
+      const isTeam = root.dataset.pickerKind === "team", value = isTeam ? state.team : state.range;
       const button = $(`${root.id}Btn`);
-      button.querySelector(".teamPicker__left").innerHTML = isTeam ? `${pickerLogo(value)}<span class="teamPicker__code">${value}</span>` : `<span class="venueMenuLabel">${VENUES[value]}</span>`;
-      button.setAttribute("aria-label", isTeam ? `Opponent defense: ${Data.TEAM_NAMES[value]}` : `Defense venue: ${venueLabel()}`);
+      button.firstElementChild.innerHTML = isTeam ? `${pickerLogo(value)}<span class="teamPicker__code">${value}</span>` : `<span class="venueMenuLabel">${rangeLabels[value]}</span>`;
+      button.setAttribute("aria-label", isTeam ? `Opponent defense: ${Data.TEAM_NAMES[value]}` : `Game range: ${rangeLabel()}`);
       root.querySelectorAll("[data-picker-value]").forEach(option => {
         const selected = option.dataset.pickerValue === value;
         option.classList.toggle("is-selected", selected); option.setAttribute("aria-selected", String(selected));
@@ -166,16 +168,23 @@
   }
   function render() {
     if (!model) return;
-    analysis = Data.matchupAnalysis(model, summary, { venue: state.venue }, offenses);
+    // Switch the entire analysis and its player rows together, including the
+    // expanded dialog, chart readouts and offensive baselines.
+    ({ model, analysis } = periods[state.range]);
+    document.querySelectorAll("[data-range-indicator]").forEach(indicator => {
+      indicator.hidden = state.range !== "recent";
+      indicator.textContent = rangeLabel();
+    });
     syncControls(); tooltips.clear(); hideTooltip();
     $("coverage").innerHTML = `<strong>${weekLabel()}</strong> · ${model.defenses.length} defenses · ${model.audit.usedRows.toLocaleString("en-US")} player records`;
-    $("scopeNote").textContent = `Season to date · ${weekLabel()}`;
+    $("scopeNote").textContent = weekLabel();
     $("footerCoverage").textContent = `2026 · ${weekLabel()} · PPR`;
     renderProfile(); renderWeekly(); renderPlayers(); renderScatter(); renderOpponents(); renderHeatmap();
+    trend.update(state.pos);
     $("analysis").setAttribute("aria-busy", "false"); saveURL();
     // Additive chart views consume the current analysis and share its selection.
     // Their deferred library/bootstrap never blocks the existing dashboard render.
-    window.FPAChartContext = { analysis, team: state.team, pos: state.pos, venue: state.venue,
+    window.FPAChartContext = { analysis, team: state.team, pos: state.pos, rangeLabel: rangeLabel(),
       divisions: DIVISIONS, positionColor: COLORS[state.pos], select: choose, heatColor };
     window.FPAChartLab?.update(window.FPAChartContext);
   }
@@ -191,15 +200,15 @@
     const c = comparison(), stat = View.defenseMetric(c.actual);
     $("defenseLogo").innerHTML = logo(state.team);
     $("defenseTitle").textContent = Data.TEAM_NAMES[state.team];
-    $("defenseSubtitle").textContent = `vs. ${LABELS[state.pos]} · ${venueLabel()}`;
+    $("defenseSubtitle").textContent = `vs. ${LABELS[state.pos]} · ${rangeLabel()}`;
     $("selectedPosition").textContent = state.pos; $("selectedPosition").dataset.pos = state.pos;
-    // Mirror RANK's defense-strength rank for this team/position/venue. Keep
+    // Mirror RANK's defense-strength rank for this team, position and period. Keep
     // the existing styled position badge as the final part of "14th vs. QB".
     $("defenseRank").textContent = `${ordinalRank(stat.rank)} vs.`;
-    $("defenseRank").title = `Defense rank vs. ${LABELS[state.pos]} · ${venueLabel()} · Rank 1 = best defense / fewest FPA per game`;
+    $("defenseRank").title = `Defense rank vs. ${LABELS[state.pos]} · ${rangeLabel()} · Rank 1 = best defense / fewest FPA per game`;
     // Summary copy controls its own case; the percent unit is sized separately.
     const deltaValue = c.deltaPct !== null ? `${signed(c.deltaPct)}<span class="metricPercent">%</span>` : signed(c.delta, 2);
-    // The SOS card keeps the positional season vRK and its low-rank/easy color
+    // The SOS card keeps the period's opposing-offense rank and its low-rank/easy color
     // direction. Defense-rank reversal never applies to schedule or offense ranks.
     // Per-game averages lead these two chips, with labeled totals in their
     // muted footers. Preserve the total's existing mobile/desktop precision;
@@ -217,10 +226,9 @@
       <div class="metric"><div class="metricLabel">FPA / G</div><div class="metricValue" style="color:${actualColor}">${fmt(stat.avg, 1)}</div><div class="metricSub"><span class="metricDesktop">${fmt(stat.total)} total</span><span class="metricMobile">${fmt(stat.total, 1)} total</span></div></div>
       <div class="metric"><div class="metricLabel">OPP AVG PPG</div><div class="metricValue" style="color:${expectedColor}">${fmt(c.expectedAvg, 1)}</div><div class="metricSub">${fmt(c.expectedTotal, 1)} total</div></div>
       <div class="metric"><div class="metricLabel">vs OPP AVG</div><div class="metricValue ${direction(c.delta)}">${deltaValue}</div><div class="metricSub">${c.delta === null ? "Comparison unavailable" : `${signed(c.delta, 2)} points`}</div></div>
-      <div class="metric metric--sos" title="Season-to-date strength of opponents already faced vs. ${LABELS[state.pos]}. Opponent offense scoring: 1 = easiest schedule, 32 = toughest. Applies to all games."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub">${sosLabel(c.sosRank)}</div></div>`;
+      <div class="metric metric--sos" title="${rangeLabel()} strength of opponents faced vs. ${LABELS[state.pos]}. Opponent offense scoring: 1 = easiest schedule, 32 = toughest."><div class="metricLabel">SOS RK</div><div class="metricValue" style="color:${sosColor}">${c.sosRank ?? "—"}${c.sosRank === null ? "" : `<small>/ ${Data.TEAMS.length}</small>`}</div><div class="metricSub">${sosLabel(c.sosRank)}</div></div>`;
   }
-  // Page-owned labels describe the calculated season SOS rank without reversing
-  // or recomputing it under venue filters. Missing ranks stay unavailable.
+  // Describe the opposing-offense SOS rank within the selected period.
   function sosLabel(rank) {
     if (!Number.isInteger(rank) || rank < 1 || rank > 32) return '—';
     return rank <= 6 ? 'Very Easy' : rank <= 12 ? 'Easy' : rank <= 16 ? 'Average'
@@ -272,7 +280,7 @@
       const label = esc(`Week ${entry.week}: ${opponent}`);
       return `<div class="weekMatchup" role="group" aria-label="${label}" title="${label}"><span class="weekOpponentStack"><span class="weekOpponent">${esc(opponent)}</span>${logo(entry.offense)}</span></div>`;
     }).join("");
-    if (!entries.some(entry => entry.actual !== null)) { $("weeklyChart").innerHTML = empty("No recorded games", "Choose another defense venue or position."); return; }
+    if (!entries.some(entry => entry.actual !== null)) { $("weeklyChart").innerHTML = empty("No recorded games", "Choose another game range or position."); return; }
     const y = value => bottom - (value - bounds.low) / (bounds.high - bounds.low) * (bottom - top);
     const slot = (right - left) / entries.length, x = index => left + slot * (index + .5), barWidth = Math.min(49, slot * .4);
     let content = `<defs><linearGradient id="weekly-bar" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${COLORS[state.pos]}" stop-opacity=".83"/><stop offset="1" stop-color="${COLORS[state.pos]}" stop-opacity=".24"/></linearGradient><linearGradient id="weekly-expected-line" gradientUnits="userSpaceOnUse" x1="${left}" y1="0" x2="${right}" y2="0"><stop stop-color="#8af7ff" stop-opacity=".71"/><stop offset="1" stop-color="#e3b3ff" stop-opacity=".66"/></linearGradient></defs>`;
@@ -288,7 +296,7 @@
     let labels = "";
     entries.forEach((entry, i) => {
       const key = `week:${entry.week}`;
-      tooltips.set(key, `<strong>${state.team} vs. ${state.pos} · Week ${entry.week}</strong><br>Actual: ${fmt(entry.actual)} PPR points<br>Expected: ${fmt(entry.expected, 1)} · ${entry.offense || "Opponent"} season average<br>Offense rank: ${entry.offenseRank === null ? "—" : `#${entry.offenseRank}`}<br><span class="tooltipMuted">${entry.venue === "home" ? "Defense at home" : "Defense away"}</span>`);
+      tooltips.set(key, `<strong>${state.team} vs. ${state.pos} · Week ${entry.week}</strong><br>Actual: ${fmt(entry.actual)} PPR points<br>Expected: ${fmt(entry.expected, 1)} · ${entry.offense || "Opponent"} average in this range<br>Offense rank: ${entry.offenseRank === null ? "—" : `#${entry.offenseRank}`}<br><span class="tooltipMuted">${entry.venue === "home" ? "Defense at home" : "Defense away"}</span>`);
       if (entry.actual !== null) {
         const labelY = entry.actual >= 0 ? y(entry.actual) - 7 : Math.min(bottom - 6, y(entry.actual) + 13);
         content += `<g class="chartPoint" role="img" tabindex="0" data-tooltip="${key}" aria-label="Week ${entry.week}: ${fmt(entry.actual)} actual, ${fmt(entry.expected, 1)} expected ${state.pos} points"><rect x="${x(i) - barWidth / 2}" y="${Math.min(y(0), y(entry.actual))}" width="${barWidth}" height="${Math.max(2, Math.abs(y(entry.actual) - y(0)))}" rx="4" fill="url(#weekly-bar)"/></g>`;
@@ -363,7 +371,7 @@
       tooltips.set(key, `<strong>${esc(Data.TEAM_NAMES[point.team])} · ${state.pos}</strong><br>Expected: ${fmt(point.expectedAvg, 1)} PPR points/game<br>Actual: ${fmt(point.actual.avg, 1)} PPR points/game<br><span class="${direction(point.deltaAvg)}">${signed(point.deltaAvg, 1)} points/game versus expected</span><br><span class="tooltipMuted">${c.games} games · Defense rank ${point.actual.rank ?? "—"} (1 = best)${ranked ? ` · ${seasonRanks ? "SOS" : "Expected FPA/game"} rank ${point.expectedRank}` : ""}</span>`);
       content += `<g class="chartPoint" role="button" tabindex="0" aria-pressed="${selected}" data-chart-team="${point.team}" data-tooltip="${key}" aria-label="Explore ${point.team}: ${ranked && seasonRanks ? "SOS" : "expected"} ${fmt(point.x, ranked ? 0 : 1)}, ${ranked ? "defense rank" : "actual"} ${fmt(point.y, ranked ? 0 : 1)} ${ranked ? "" : "points/game"}"><circle cx="${marker.displayX}" cy="${marker.displayY}" r="${selected ? 10.5 : 8.5}" fill="#10182b" stroke="${selected ? COLORS[state.pos] : heatColor(point.actual)}" stroke-width="${selected ? 2 : .9}"/><image href="assets/NFL-Tags_webp/${point.team.toLowerCase()}.webp" x="${marker.displayX - 7}" y="${marker.displayY - 7}" width="14" height="14"/></g>`;
     });
-    $("comparisonChart").innerHTML = frame(W, H, `${state.pos} ${ranked ? seasonRanks ? "SOS versus defense ranks" : "expected FPA/game versus defense ranks" : "expected versus actual FPA per game"}, ${venueLabel()}`, content);
+    $("comparisonChart").innerHTML = frame(W, H, `${state.pos} ${ranked ? seasonRanks ? "SOS versus defense ranks" : "expected FPA/game versus defense ranks" : "expected versus actual FPA per game"}, ${rangeLabel()}`, content);
   }
   function renderScatterDetail(team) {
     const point = View.scatterRows(analysis, state.pos).find(row => row.team === team), ranked = state.mode === "rank";
@@ -375,13 +383,11 @@
   }
   function renderOpponents() {
     const c = comparison();
-    // Layout-only preview row: never add it to the analysis or matchup entries.
-    const placeholder = c.entries.some(entry => entry.week === 4) ? "" : '<tr class="opponentPlaceholder" aria-label="Week 4 layout placeholder; no matchup or scoring data"><td>W4</td><td><span class="offenseCell"><i class="placeholderLogo" aria-hidden="true"></i>Placeholder</span></td><td>—</td><td>—</td><td>—</td><td>—</td></tr>';
     $("opponentsScope").textContent = `${state.team} · ${state.pos}`;
     $("opponentsTable").innerHTML = `<caption class="srOnly">${state.team} opposing offenses, supplied ${state.pos} scoring averages and actual FPA</caption><thead><tr><th>Wk</th><th>Offense</th><th title="Offense position rank; 1 is the most points scored">Off. rank</th><th title="Offense average, counted once for this game">Expected</th><th>Actual</th><th>Δ FPA</th></tr></thead><tbody>${c.entries.length ? c.entries.map(entry => {
       const delta = entry.actual !== null && entry.expected !== null ? entry.actual - entry.expected : null;
       return `<tr><td>W${entry.week}</td><td><span class="offenseCell" title="${esc(Data.TEAM_NAMES[entry.offense] || "Offense unavailable")}">${logo(entry.offense)}${entry.offense || "—"}</span></td><td>${entry.offenseRank === null ? "—" : `#${entry.offenseRank}`}</td><td>${fmt(entry.expected, 1)}</td><td>${fmt(entry.actual)}</td><td class="${direction(delta)}">${signed(delta)}</td></tr>`;
-    }).join("") : '<tr><td colspan="6">No recorded games in this venue.</td></tr>'}${placeholder}</tbody>`;
+    }).join("") : '<tr><td colspan="6">No recorded games in this range.</td></tr>'}</tbody>`;
   }
   function renderHeatmap() {
     $("heatRankNote").textContent = "Rank 1 = best defense / fewest FPA per game";
@@ -396,7 +402,7 @@
       const stat = View.defenseMetric(row.metrics[pos]);
       return `<td><button type="button" class="heatCell" data-team="${row.team}" data-cell-position="${pos}" style="--heat-color:${heatColor(stat)}" aria-pressed="${row.team === state.team && state.pos === pos}" aria-label="${row.team} ${pos}: ${fmt(stat.avg, 1)} FPA per game, defense rank ${stat.rank ?? "unavailable"} of ${stat.pool} (1 = best), ${stat.games} games"${stat.avg === null ? " disabled" : ""}>${fmt(stat.avg, 1)}${stat.rank === null ? "" : `<sup>#${stat.rank}</sup>`}</button></td>`;
     }).join("")}</tr>`).join("");
-    $("heatTable").innerHTML = `<caption class="srOnly">2026 FPA per game and defense ranks, ${venueLabel()}</caption><thead><tr><th scope="col">DEF</th>${head}</tr></thead><tbody>${body}</tbody>`;
+    $("heatTable").innerHTML = `<caption class="srOnly">2026 FPA per game and defense ranks, ${rangeLabel()}</caption><thead><tr><th scope="col">DEF</th>${head}</tr></thead><tbody>${body}</tbody>`;
   }
 
   // The player list is directly below the bars and shares their matchup scope.
@@ -414,7 +420,7 @@
     const getters = { week: row => row.week, player: row => row.player, team: row => row.playerTeam || "", vs: playerLocation, pts: row => row.cents };
     const sort = state.playerSort;
     const getter = getters[sort.key] || (row => row.stats?.[sort.key] ?? null);
-    return Data.selectResults(model, { team: state.team, pos: state.pos, venue: state.venue, query: state.query, hideZero: state.hideZero, minPoints: state.hideZero ? 1 : null }).sort((a, b) => {
+    return Data.selectResults(model, { team: state.team, pos: state.pos, query: state.query, hideZero: state.hideZero, minPoints: state.hideZero ? 1 : null }).sort((a, b) => {
       const first = getter(a), second = getter(b);
       // Unavailable stats sort last in either direction; zero is a real value.
       if (first === null || second === null) return first === second ? b.week - a.week || a.player.localeCompare(b.player) : first === null ? 1 : -1;
@@ -462,7 +468,7 @@
     const columns = [["week", "Wk", "weekColumn"], ["player", "Player", "nameColumn"], ["team", "TM", "offenseColumn"], ["vs", "Site", "siteColumn"], ["pts", "PPR", "scoreColumn"], ...stats.map(([key, label]) => [key, label, "statColumn"])];
     const head = columns.map(([key, label, className]) => `<th class="${className}" scope="col" aria-sort="${state.playerSort.key === key ? state.playerSort.direction === "desc" ? "descending" : "ascending" : "none"}"><button type="button" data-player-sort="${key}" aria-label="Sort players by ${label}">${label}${state.playerSort.key === key ? `<span class="sortArrow">${state.playerSort.direction === "desc" ? "↓" : "↑"}</span>` : ""}</button></th>`).join("");
     const body = rows.length ? rows.map(row => `<tr><td class="weekColumn">W${row.week}</td><td class="nameColumn">${state.pos === "ALL" ? `<span class="playerPosition" data-pos="${row.pos}">${row.pos}</span>` : ""}<span class="playerName" title="${esc(row.player)}">${esc(row.player)}</span></td><td class="offenseColumn"><span class="offenseCell" title="${esc(Data.TEAM_NAMES[row.playerTeam] || "Offense not supplied")}">${logo(row.playerTeam)}${row.playerTeam || "—"}</span></td><td class="siteColumn"><span class="playerOpponent">${esc(playerLocation(row))}</span></td><td class="scoreColumn" data-ppr-tier="${playerPprTier(row)}">${fmt(row.pts, 1)}</td>${stats.map(column => `<td class="statColumn">${playerStatCell(row, column)}</td>`).join("")}</tr>`).join("") : `<tr><td colspan="${columns.length}">${empty("No matching player results", "Change the matchup or clear the player filters.")}<div class="emptyState"><button type="button" data-clear-search>Clear player filters</button></div></td></tr>`;
-    return `<caption class="srOnly">${state.pos} recorded player scores and weekly stats against ${state.team}, ${weekLabel()}, ${venueLabel()}</caption><thead><tr>${head}</tr></thead><tbody>${body}</tbody>`;
+    return `<caption class="srOnly">${state.pos} recorded player scores and weekly stats against ${state.team}, ${weekLabel()}, ${rangeLabel()}</caption><thead><tr>${head}</tr></thead><tbody>${body}</tbody>`;
   }
   function renderPlayers() {
     const rows = selectedPlayers(), total = rows.reduce((sum, row) => sum + row.cents, 0) / 100;
@@ -470,7 +476,7 @@
     for (const id of ["playerSearch", "expandedSearch"]) if ($(id).value !== state.query) $(id).value = state.query;
     for (const id of ["hideZero", "expandedHideZero"]) $(id).checked = state.hideZero;
     $("playerTable").innerHTML = playersTable(rows);
-    $("expandedSubtitle").textContent = `${Data.TEAM_NAMES[state.team]} defense vs. ${LABELS[state.pos]} · ${venueLabel()}`;
+    $("expandedSubtitle").textContent = `${Data.TEAM_NAMES[state.team]} defense vs. ${LABELS[state.pos]} · ${rangeLabel()}`;
     if ($("playersDialog").open) $("expandedTable").innerHTML = playersTable(rows);
     const label = `${rows.length} player record${rows.length === 1 ? "" : "s"}${state.hideZero ? " · scores below 1 hidden" : ""}${model.playerStatsError ? " · weekly stats unavailable" : ""}`;
     $("playerCount").textContent = label; $("expandedCount").textContent = label;
@@ -556,7 +562,7 @@
         const root = target.closest("[data-picker-kind]"), value = target.dataset.pickerValue;
         closePicker(true);
         if (root.dataset.pickerKind === "team") choose(value);
-        else { state.venue = value; render(); }
+        else { state.range = value; render(); }
       } else if (target.dataset.position) choose(state.team, target.dataset.position);
       else if (target.dataset.team || target.dataset.chartTeam) choose(target.dataset.team || target.dataset.chartTeam, target.dataset.cellPosition || state.pos);
       else if (target.dataset.scatterMode) { state.mode = target.dataset.scatterMode; hideTooltip(); renderScatter(); }
@@ -590,10 +596,22 @@
     try {
       // One local snapshot supplies all charts, Players Faced box scores and
       // offense/defense summaries. Future projections cannot advance coverage.
-      const { loadMatchupsPageData } = await import("./data/2026-csv.js?v=DH3.82-startup");
+      const { loadMatchupsPageData, recentMatchupsPeriod, RECENT_START_WEEK } = await import("./data/2026-csv.js?v=DH3.90-matchup-ranges");
       const sources = await loadMatchupsPageData();
       if (!Data || sources?.season !== 2026 || !sources.model || !sources.summary || !sources.offenses) throw new Error("The 2026 local matchup data is unavailable.");
-      model = sources.model; summary = sources.summary; offenses = sources.offenses; readURL();
+      // Build both periods once. The trend renderer keeps the original pair
+      // while every other view follows the active period.
+      const prepare = ({ model, summary, offenses }) => ({ model,
+        analysis: Data.matchupAnalysis(model, summary, {}, offenses) });
+      periods.season = prepare(sources);
+      const recent = recentMatchupsPeriod(sources);
+      if (recent) {
+        periods.recent = prepare(recent);
+        rangeLabels.recent = `WK${RECENT_START_WEEK}-WK${recent.model.maxWeek}`;
+      }
+      model = sources.model;
+      trend = window.FPARankTrend.create(sources.summary, recent?.summary, rangeLabels.recent, fmt);
+      readURL();
       buildPickers();
       $("sourceNotes").textContent = `2026 recorded weekly results and player stats through Week ${model.maxWeek}. ` +
         "Actual scoring, offense averages and schedule difficulty update together when weekly results are updated. BYEs and future projections do not count as games. Tied scores share a rank; averages retain full precision until display.";

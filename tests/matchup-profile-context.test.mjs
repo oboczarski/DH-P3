@@ -71,7 +71,7 @@ for (const path of ['matchups/app.js', 'rosters/matchup-breakdown/modal.js']) {
     const table = vm.createContext({ Data: data, state: { pos: 'QB', team: 'WAS',
       playerSort: { key: 'vs', direction: 'asc' } }, model: {},
       esc: value => value, logo: () => '', fmt: (value, digits = 1) => Number.isFinite(value) ? value.toFixed(digits) : '—',
-      weekLabel: () => 'Weeks 8–9', venueLabel: () => 'All games' });
+      weekLabel: () => 'Weeks 8–9', rangeLabel: () => 'Regular Season', venueLabel: () => 'All games' });
     vm.runInContext(slice(source, '  function selectedPlayers()', '  function renderPlayers()'), table);
     const rows = table.selectedPlayers();
     assert.deepEqual(Array.from(rows, row => row.player), ['Away Player', 'Home Player']);
