@@ -372,66 +372,20 @@ body[data-page="matchups"] [data-range-indicator] {
   }
 }
 
-/* Follow the FPA vs Expected header layout. The compact league list scrolls
-   under the chart so every team is accessible at the same panel height. */
-body[data-page="matchups"] .trendPanel {
-  display:flex;
-  flex-direction:column;
-  width:100%;
-  padding-bottom:10px;
-  --trend-up:#80e6bf;
-  --trend-down:#ffa7cb;
-  & .trendHeader { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:3px 5px 0 10px; }
-  & .trendEyebrow { color:#a9bce1; font-size:10px; font-weight:550; letter-spacing:.045em; }
-  & h2 { color:#e2ebff; font:500 19px/1.25 "MuseoModerno",var(--font); }
-  & .trendControls { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
-  & .trendHeading h2 { margin-top:12px; }
-  & .trendControls .chartPositionToggle { margin:0; }
-  & .trendControls .chartPositionToggle button { min-width:29px; padding:4px; }
-  & .trendMode {
-    display:inline-flex;
-    gap:2px;
-    padding:2px;
-    border:1px solid #aabbff1c;
-    border-radius:9px;
-    background:#03091642;
-    box-shadow:inset 0 2px 9px #01051238;
-  }
-  & .trendMode button {
-    min-height:24px;
-    padding:3px 8px;
-    border:1px solid transparent;
-    border-radius:6px;
-    font-size:10px;
-    color:var(--muted);
-  }
-  & .trendMode button[aria-pressed="true"] {
-    border-color:#9ad1ff68;
-    background:linear-gradient(90deg,#74efff33,#7297ff33 52%,#d97dff33);
-    color:#dceeff;
-    box-shadow:inset 0 3px 8px #ffffff08;
-  }
-  & .trendChart { position:relative; height:clamp(265px,72vw,330px); min-width:0; margin:5px 10px 0; }
-  & .trendChart svg { position:absolute; inset:0; width:100%; height:100%; }
-  & svg text { fill:#a1b1d2; font:10px var(--font); }
-  & svg .trendAxis { fill:#bac9e3; }
-  & svg .trendZone { font-weight:650; }
-  & .trendGrid { fill:none; stroke:#aabbff24; }
-  & .trendLeader { fill:none; stroke:#a9bad78c; }
-  & .trendEquality { fill:none; stroke:#b6c7e6a8; stroke-dasharray:4 4; }
-  & .trendZoneUp { fill:#75e0b70d; }
-  & .trendZoneDown { fill:#ffb2d80c; }
-  & .trendNote { color:#a5b5ce; font-size:9px; line-height:1.4; padding:5px 10px 8px; }
-  & .trendEmpty { padding:32px 8px; text-align:center; color:var(--muted); }
-
-  & .trendLeague {
-    margin-inline:10px;
-    border:1px solid #aabcff29;
-    border-radius:11px;
-    background:linear-gradient(145deg,#111e35,#10172a 70%);
-    overflow:hidden;
-  }
+/* Only the league movement area has its own layout below the shared
+   scatter. Its row dimensions and meter geometry are shared with the dialog. */
+body[data-page="matchups"] .trendPanel { align-self:stretch; padding-bottom:10px; }
+body[data-page="matchups"] #trendChart .trendLogo { filter:drop-shadow(0 3px 3px #0004); }
+body[data-page="matchups"] .trendLeague {
+  --trend-up:#83ecff;
+  --trend-down:#e0a3ff;
+  --trend-steady:#a9bbf2;
+  --trend-fill:linear-gradient(103deg, rgba(115, 244, 255, .72) 0%, rgba(91, 127, 255, .72) 50%, rgba(219, 109, 255, .82) 100%);
+  border:1px solid #aabcff29;
+  border-radius:11px;
+  background:linear-gradient(145deg,#111e35,#10172a 70%);
   & .trendLeagueHeader { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:4px 8px; padding:5px 7px; }
+  & .trendLeagueHeading { display:flex; align-items:center; gap:5px; }
   & .trendLeagueHeader h3 { margin:0; color:#e1eafd; font-size:11px; font-weight:650; }
   & .trendCounts { display:flex; flex-wrap:wrap; gap:5px; }
   & .trendCounts span {
@@ -445,11 +399,12 @@ body[data-page="matchups"] .trendPanel {
   & .trendCounts strong { font-weight:800; }
   & .improved { color:var(--trend-up); fill:var(--trend-up); }
   & .declined { color:var(--trend-down); fill:var(--trend-down); }
-  & .steady, & .unavailable { color:#adb9d4; }
+  & .steady { color:var(--trend-steady); }
+  & .unavailable { color:#adb9d4; }
   & .trendList { max-height:170px; overflow:auto; scrollbar-width:thin; scrollbar-color:#63749b transparent; }
   & .trendList:focus-visible { outline:2px solid #74efff; outline-offset:-2px; }
   & table { width:100%; border-spacing:0; font-size:10px; font-variant-numeric:tabular-nums; }
-  & :is(th, td) { height:21px; padding:1px 6px; text-align:right; white-space:nowrap; }
+  & :is(th, td) {height: 20px;padding: 1px 10px;text-align: center;white-space:nowrap;}
   & th:first-child { text-align:left; }
   & thead th { position:sticky; top:0; z-index:1; height:21px; color:#b5c5e5; background:#1a2740; font-size:10px; font-weight:650; }
   & tbody :is(th, td) { border-bottom:1px solid #aabbff13; }
@@ -462,43 +417,103 @@ body[data-page="matchups"] .trendPanel {
   & .trendRowChange strong { min-width:30px; color:inherit; font-weight:650; }
   & tr.improved .trendRowChange { color:var(--trend-up); }
   & tr.declined .trendRowChange { color:var(--trend-down); }
+  & tr.steady .trendRowChange { color:var(--trend-steady); }
   & .trendMeter {
     position:relative;
-    width:clamp(30px,11vw,64px);
-    height:6px;
-    border-radius:3px;
-    background:linear-gradient(90deg,#75e0b713 50%,#ffb2d814 50%);
+    width: clamp(30px,24vw,70px);
+    height: 10px;
+    border-radius: 14px;
+    background:linear-gradient(103deg,#73f4ff16,#5b7fff24 50%,#db6dff18);
   }
   & .trendMeter::after { content:""; position:absolute; inset:0 auto 0 50%; width:1px; background:#abbde070; }
-  & .trendMeter i { position:absolute; inset-block:1px; width:var(--trend-bar-width); border-radius:2px; background:currentColor; }
-  & tr.improved .trendMeter i { right:50%; }
-  & tr.declined .trendMeter i { left:50%; }
+  /* Both directions reveal the same fixed gradient from its blue midpoint.
+     Clipping preserves the palette of the covered distance on short bars. */
+  & .trendMeter i { position:absolute; inset:1px 0; border-radius:14px; background:var(--trend-fill); }
+  & tr.improved .trendMeter i { clip-path:inset(0 50% 0 calc(50% - var(--trend-bar-width)) round 14px); }
+  & tr.declined .trendMeter i { clip-path:inset(0 calc(50% - var(--trend-bar-width)) 0 50% round 14px); }
 }
-@media (max-width:380px) {
-  body[data-page="matchups"] .trendPanel {
-    & .trendHeader { flex-wrap:wrap; }
-    & .trendControls { width:100%; }
-  }
+body[data-page="matchups"] .trendPanel > .trendLeague { margin-inline:10px; overflow:hidden; }
+
+body[data-page="matchups"] .trendLeague .trendIconButton {
+  display:grid;
+  place-items:center;
+  width:22px;
+  height:22px;
+  padding:0;
+  border:1px solid #aabbff38;
+  border-radius:6px;
+  background:#aabbff10;
+  color:#bbcfff;
+  cursor:pointer;
+}
+body[data-page="matchups"] .trendLeague .trendIconButton:hover { background:#aabbff26; color:#ecf4ff; }
+body[data-page="matchups"] .trendLeague .trendIconButton:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
+body[data-page="matchups"] .trendLeague .trendIconButton svg {
+  width:12px;
+  height:12px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.6;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+html[data-page="matchups"]:has(.trendDialog[open]) { overflow:hidden; }
+body[data-page="matchups"] .trendDialog {
+  width:min(760px,calc(100% - 16px));
+  max-width:none;
+  max-height:calc(100dvh - 16px);
+  padding:8px;
+  color:#dfe9ff;
+  box-shadow:0 16px 48px #0009;
+}
+body[data-page="matchups"] .trendDialog::backdrop { background:#050912b8; backdrop-filter:blur(5px); }
+body[data-page="matchups"] .trendDialogHeader {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:5px 10px;
+  margin-bottom:8px;
+}
+body[data-page="matchups"] .trendDialogHeader h2 { margin:0; font-size:16px; font-weight:650; }
+body[data-page="matchups"] .trendDialogHeader p { margin:1px 0 0; color:#adbdde; font-size:10px; }
+body[data-page="matchups"] .trendDialogActions { display:flex; align-items:center; gap:6px; margin-left:auto; }
+body[data-page="matchups"] .trendDialogTables {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:start;
+  gap:6px;
+}
+body[data-page="matchups"] .trendDialogTables table { min-width:0; table-layout:fixed; }
+body[data-page="matchups"] .trendDialogTables th:first-child { width:25%; }
+body[data-page="matchups"] .trendDialogTables th:last-child { width:32%; }
+body[data-page="matchups"] .trendDialogTables :is(th, td) { padding-inline:3px; }
+body[data-page="matchups"] .trendDialogTables .trendMeter { width:min(100%,70px); }
+@media (max-width:560px) {
+  body[data-page="matchups"] .trendDialog { padding:7px; }
+  body[data-page="matchups"] .trendDialogTables :is(th, td) { font-size:9px; padding-inline:2px; }
+  body[data-page="matchups"] .trendDialogTables .trendRowTeam { gap:2px; }
+  body[data-page="matchups"] .trendDialogTables .trendRowTeam img { width:12px; height:12px; }
+  body[data-page="matchups"] .trendDialogTables .trendRowChange { gap:2px; }
+  body[data-page="matchups"] .trendDialogTables .trendRowChange strong { min-width:22px; }
+  body[data-page="matchups"] .trendDialogTables .trendMeter { height:7px; }
+}
+@media (max-height:420px) {
+  body[data-page="matchups"] .trendDialogTables :is(th, td) { height:17px; padding-block:0; }
+}
+@media (max-height:360px) {
+  body[data-page="matchups"] .trendDialogHeader { margin-bottom:5px; }
+  body[data-page="matchups"] .trendDialogHeader h2 { font-size:13px; }
+  body[data-page="matchups"] .trendDialogTables :is(th, td) { height:14px; line-height:1.15; }
+  body[data-page="matchups"] .trendDialogTables .trendRowTeam img { width:12px; height:12px; }
 }
 @media (width > 620px) {
   body[data-page="matchups"] [data-range-indicator] { top:15px; }
-  body[data-page="matchups"] .trendPanel {
-    & .trendHeader { flex-wrap:wrap; padding:8px 12px 2px; }
-    & .trendHeading h2 { margin-top:0; }
-    & .trendControls { flex-direction:row; align-items:center; }
-    & .trendControls .chartPositionToggle button { min-width:34px; padding:4px 5px; }
-    & .trendChart { margin-inline:14px; }
-    & .trendNote { padding-inline:14px; }
-    & .trendLeague { margin-inline:14px; }
-    & :is(th, td) { padding-inline:9px; }
-  }
+  body[data-page="matchups"] .trendPanel > .trendLeague { margin-inline:14px; }
+  body[data-page="matchups"] .trendPanel .trendLeague :is(th, td) { padding-inline:9px; }
 }
 @media (width > 1100px) {
-  body[data-page="matchups"] .trendPanel {
-    align-self:stretch;
-    & .trendChart { flex:1; height:auto; min-height:230px; }
-    & .trendList { max-height:190px; }
-  }
+  body[data-page="matchups"] .trendPanel .trendList { max-height:190px; }
 }
 /* Keep both eyebrows and the overlay on one line on the narrowest phones.
    Apply the same caption geometry in both periods to prevent movement. */

@@ -4,17 +4,25 @@
   "use strict";
   if (document.body?.dataset.page !== "matchups") return;
   const { TEAM_NAMES, TEAMS } = window.FPAData;
-  const { pointBounds, spreadScatterPoints } = window.FPACharts;
+  const { plotWidth, scatterPlot, scatterLeaders, spreadScatterPoints } = window.FPACharts;
   const logoUrl = team => `assets/NFL-Tags_webp/${team.toLowerCase()}.webp`;
-  const rankTicks = [1, 8, 16, 24, 32];
+  const logoSize = 22;
 
-  function create(season, recent, rangeLabel, fmt) {
+  function create(season, recent, rangeLabel, fmt, tick) {
     const chart = document.getElementById("trendChart");
+    const heading = chart.closest(".trendPanel").querySelector(".panelHeader > :first-child");
+    const referenceHeading = document.querySelector('[data-matchups-area="comparison"] .panelHeader > :first-child');
     const note = document.getElementById("trendNote");
     const table = document.getElementById("trendTable");
     const counts = document.getElementById("trendCounts");
+    const expand = document.getElementById("expandTrend");
+    const dialog = document.getElementById("trendDialog");
+    const dialogScope = document.getElementById("trendDialogScope");
+    const dialogTables = document.getElementById("trendDialogTables");
+    const dialogCounts = document.getElementById("trendDialogCounts");
     const modeButtons = [...document.querySelectorAll("[data-trend-mode]")];
-    let position, mode = "rank", rows = [];
+    let position, mode = "rank", rows = [], tableRows = [];
+    expand.disabled = !recent;
 
     const displayValue = value => {
       if (!Number.isFinite(value)) return "—";
@@ -23,49 +31,30 @@
 
     function renderChart() {
       if (!position) return;
-      const points = rows.filter(row => row.change !== null);
+      const points = rows.filter(row => row.change !== null).map(row => ({ ...row, x: row.season, y: row.recent }));
       if (!points.length) {
-        chart.innerHTML = `<p class="trendEmpty">${recent ? "No comparable results for this position." : "Recent trends begin after Week 7 is complete."}</p>`;
+        chart.innerHTML = `<p class="emptyState">${recent ? "No comparable results for this position." : "Recent trends begin after Week 7 is complete."}</p>`;
         note.textContent = "";
         return;
       }
+      if (!chart.clientWidth) return;
+      const width = plotWidth(chart.clientWidth, getComputedStyle(chart));
+      const ranked = mode === "rank", metric = ranked ? "FPA rank" : "FPA · Points/Game";
+      const plot = scatterPlot(points, { width, mobile: innerWidth <= 620, ranked, pool: TEAMS.length, tick,
+        xTitle: `Regular Season ${metric}`, yTitle: `${rangeLabel} ${metric}`,
+        aboveLabel: "Declined", belowLabel: "Improved" });
 
-      const width = chart.clientWidth, height = chart.clientHeight;
-      if (!width || !height) return;
-      const left = 40, right = width - 17, top = 18, bottom = height - 34;
-      const ranked = mode === "rank";
-      const bounds = ranked ? { low: 0, high: TEAMS.length + 1, ticks: rankTicks }
-        : pointBounds(points.flatMap(row => [row.season, row.recent]));
-      // A shared scale makes equality the rising diagonal in both modes.
-      // Smaller recent values are improvements and fall below that line.
-      const fraction = value => (value - bounds.low) / (bounds.high - bounds.low);
-      const x = value => left + fraction(value) * (right - left);
-      const y = value => bottom - fraction(value) * (bottom - top);
-      const digits = ranked || bounds.step >= 1 ? 0 : Math.ceil(-Math.log10(bounds.step));
-      const grid = bounds.ticks.map(value => `
-        <path class="trendGrid" d="M${x(value)} ${top}V${bottom} M${left} ${y(value)}H${right}"/>
-        <text x="${left - 6}" y="${y(value) + 3}" text-anchor="end" data-trend-axis="y">${fmt(value, digits)}</text>
-        <text x="${x(value)}" y="${bottom + 14}" text-anchor="middle" data-trend-axis="x">${fmt(value, digits)}</text>`).join("");
-
-      // Keep team logos visible in crowded regions, with a leader back to
-      // each adjusted marker's exact coordinates.
-      const markers = spreadScatterPoints(points.map(row => ({ ...row, x: x(row.season), y: y(row.recent) })),
-        { left, right, top, bottom }, { radius: 10, gap: 2, maxOffset: 20 });
-      const leaders = markers.filter(marker => Math.hypot(marker.x - marker.displayX, marker.y - marker.displayY) > 1)
-        .map(marker => `<path class="trendLeader" d="M${marker.x} ${marker.y}L${marker.displayX} ${marker.displayY}"/>`).join("");
-      const logos = markers.map(marker => `<g transform="translate(${marker.displayX} ${marker.displayY})">
+      // The logo is the only marker layer. Keep it clear of the edges and
+      // retain the reference chart's exact-value leaders in crowded areas.
+      const radius = logoSize / 2, inset = ranked ? 0 : radius;
+      const markers = spreadScatterPoints(points.map(row => ({ ...row, x: plot.x(row.x), y: plot.y(row.y) })),
+        { left: plot.left + inset, right: plot.right - inset, top: plot.top + inset, bottom: plot.bottom - inset },
+        { radius, gap: 2, maxOffset: 20 });
+      const logos = markers.map(marker => `<g class="trendLogo" transform="translate(${marker.displayX} ${marker.displayY})">
         <title>${TEAM_NAMES[marker.team]} · ${displayValue(marker.season)} → ${displayValue(marker.recent)}</title>
-        <image href="${logoUrl(marker.team)}" x="-10" y="-10" width="20" height="20"/></g>`).join("");
-      const metric = ranked ? "FPA rank" : "FPA/G";
-      chart.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${position} ${metric}, Regular Season versus ${rangeLabel}">
-        <path class="trendZoneDown" d="M${left} ${bottom}V${top}H${right}Z"/>
-        <path class="trendZoneUp" d="M${left} ${bottom}H${right}V${top}Z"/>${grid}
-        <path class="trendEquality" d="M${left} ${bottom}L${right} ${top}"/>
-        <text class="trendZone declined" x="${left + 7}" y="${top + 13}">Declined</text>
-        <text class="trendZone improved" x="${right - 6}" y="${bottom - 8}" text-anchor="end">Improved</text>
-        <text class="trendAxis" text-anchor="middle" x="${(left + right) / 2}" y="${height - 5}">Regular Season ${metric}</text>
-        <text class="trendAxis" text-anchor="middle" transform="translate(10 ${(top + bottom) / 2}) rotate(-90)">${rangeLabel} ${metric}</text>
-        ${leaders}${logos}</svg>`;
+        <image href="${logoUrl(marker.team)}" x="${-radius}" y="${-radius}" width="${logoSize}" height="${logoSize}"/></g>`).join("");
+      chart.innerHTML = `<svg viewBox="0 0 ${width} ${plot.height}" role="img" aria-label="${position} ${metric}, Regular Season versus ${rangeLabel}">
+        ${plot.content}${scatterLeaders(markers)}${logos}</svg>`;
       note.textContent = ranked ? "Rank 1 allows the fewest points per game · Dashed line shows equal ranks"
         : "PPR points allowed per game · Dashed line shows equal averages";
     }
@@ -79,7 +68,7 @@
       const ranked = mode === "rank";
       const magnitude = Math.max(1, ...rows.map(row => Math.abs(row.change ?? 0)));
       const totals = { improved: 0, steady: 0, declined: 0 };
-      const lines = rows.map(row => {
+      tableRows = rows.map(row => {
         // Negative change represents a lower rank or fewer points allowed.
         // The centered track puts improvements on the left in both modes.
         const change = row.change;
@@ -93,11 +82,27 @@
           <td>${displayValue(row.season)}</td><td class="trendRecentValue">${displayValue(row.recent)}</td>
           <td><span class="trendRowChange"><span class="trendMeter" aria-hidden="true">${bar}</span><strong>${sign}${amount}</strong></span></td>
         </tr>`;
-      }).join("");
+      });
       counts.innerHTML = Object.entries(totals).map(([tone, count]) =>
         `<span class="${tone}"><strong>${count}</strong> ${tone}</span>`).join("");
-      table.innerHTML = `<thead><tr><th scope="col">Defense</th><th scope="col">Season</th><th scope="col">${rangeLabel}</th><th scope="col">${ranked ? "Δ Rank" : "Δ FPA/G"}</th></tr></thead><tbody>${lines}</tbody>`;
+      table.innerHTML = leagueTable(tableRows, rangeLabel);
       table.parentElement.scrollTop = 0;
+      if (dialog.open) renderExpanded();
+    }
+
+    function leagueTable(lines, recentLabel, compact = false) {
+      const changeLabel = mode === "rank" ? "Δ Rank" : compact ? "Δ Pts" : "Δ FPA/G";
+      return `<thead><tr><th scope="col" aria-label="Defense">${compact ? "DEF" : "Defense"}</th><th scope="col">Season</th><th scope="col">${recentLabel}</th><th scope="col">${changeLabel}</th></tr></thead><tbody>${lines.join("")}</tbody>`;
+    }
+
+    // Two balanced tables show the entire league in one dialog, in the same
+    // order and with the same values as the condensed panel.
+    function renderExpanded() {
+      const split = Math.ceil(tableRows.length / 2);
+      dialogScope.textContent = `${position} · ${mode === "rank" ? "FPA ranks" : "Points allowed per game"} · ${rangeLabel}`;
+      dialogCounts.innerHTML = counts.innerHTML;
+      dialogTables.innerHTML = [tableRows.slice(0, split), tableRows.slice(split)]
+        .map((lines, index) => `<table aria-label="League movement, teams ${index * split + 1} through ${index * split + lines.length}">${leagueTable(lines, "Recent", true)}</table>`).join("");
     }
 
     function render() {
@@ -121,6 +126,18 @@
       modeButtons.forEach(toggle => toggle.setAttribute("aria-pressed", String(toggle === button)));
       render();
     });
+    expand.addEventListener("click", () => {
+      if (!tableRows.length) return;
+      renderExpanded();
+      dialog.showModal();
+    });
+    // The different eyebrow text must reserve the same space as the
+    // reference so both control groups wrap at the same viewport width.
+    const syncHeadingWidth = () => {
+      heading.style.minInlineSize = `${referenceHeading.getBoundingClientRect().width}px`;
+    };
+    syncHeadingWidth();
+    new ResizeObserver(syncHeadingWidth).observe(referenceHeading);
     new ResizeObserver(renderChart).observe(chart);
     return { update(selectedPosition) {
       if (position === selectedPosition) return;

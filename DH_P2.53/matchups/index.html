@@ -12,15 +12,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,slnt,wdth,wght,GRAD,ROND@6..144,-10..0,25..151,1..1000,0..100,0..100&amp;family=MuseoModerno:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
   <!-- Matchups owns its styles, assets, models and chart library; shared DH app/CSS are not loaded. -->
-  <link rel="stylesheet" href="matchups.css?v=DH3.90-league-matchup-trends">
-  <link rel="stylesheet" href="chart-lab.css?v=DH3.90-league-matchup-trends">
+  <link rel="stylesheet" href="matchups.css?v=DH3.91-matchup-trends-parity">
+  <link rel="stylesheet" href="chart-lab.css?v=DH3.91-matchup-trends-parity">
   <script defer src="data-model.js?v=DH3.72-local-matchups"></script>
   <!-- Matchups' read-only view model owns defense-rank presentation and
        per-game comparisons; load it before either page renderer uses it. -->
   <script defer src="chart-lab-model.js?v=DH3.90-matchup-ranges"></script>
-  <script defer src="chart-utils.js?v=DH3.52q-matchups-scatter-average-precision"></script>
-  <script defer src="rank-trend.js?v=DH3.90-league-matchup-trends"></script>
-  <script defer src="app.js?v=DH3.90-league-matchup-trends"></script>
+  <script defer src="chart-utils.js?v=DH3.91-matchup-trends-parity"></script>
+  <script defer src="rank-trend.js?v=DH3.91-matchup-trends-parity"></script>
+  <script defer src="app.js?v=DH3.91-matchup-trends-parity"></script>
   <script defer src="vendor/amcharts5/index.js?v=5.20.8"></script>
   <script defer src="vendor/amcharts5/xy.js?v=5.20.8"></script>
   <script defer src="vendor/amcharts5/themes/Animated.js?v=5.20.8"></script>
@@ -143,14 +143,14 @@
           <p class="labFootnote">Hollow Ring → Expected FPA/game  |  Filled Dot → Actual FPA/game  |  Δ → (actual - expected)/game.</p>
         </article>
         <!-- Matchup Trends always compares both periods for all defenses at the active position. -->
-        <section data-matchups-area="trend" class="glass-panel trendPanel" aria-labelledby="trendTitle">
-          <header class="trendHeader">
-            <div class="trendHeading">
-              <span class="trendEyebrow">Matchup Strength Season Trends</span>
+        <section data-matchups-area="trend" class="glass-panel comparisonPanel trendPanel" aria-labelledby="trendTitle">
+          <div class="panelHeader">
+            <div>
+              <span class="fieldLabel">Matchup Strength Season Trends</span>
               <h2 id="trendTitle">Matchup Trends</h2>
             </div>
-            <div class="trendControls">
-              <div class="trendMode" role="group" aria-label="Matchup trend metric">
+            <div class="chartHeaderControls">
+              <div class="smallToggle" role="group" aria-label="Matchup trend metric">
                 <button type="button" data-trend-mode="points" aria-pressed="false">Points</button>
                 <button type="button" data-trend-mode="rank" aria-pressed="true">Ranks</button>
               </div>
@@ -162,11 +162,17 @@
                 <button type="button" data-position="ALL" data-pos="ALL" aria-pressed="false">ALL</button>
               </div>
             </div>
-          </header>
-          <div class="trendChart" id="trendChart"></div>
-          <p class="trendNote" id="trendNote"></p>
+          </div>
+          <div class="chart comparisonChart" id="trendChart"></div>
+          <p class="chartNote" id="trendNote"></p>
           <section class="trendLeague" aria-labelledby="trendLeagueTitle">
-            <div class="trendLeagueHeader"><h3 id="trendLeagueTitle">League movement</h3><div class="trendCounts" id="trendCounts" aria-live="polite"></div></div>
+            <div class="trendLeagueHeader">
+              <div class="trendLeagueHeading">
+                <h3 id="trendLeagueTitle">League movement</h3>
+                <button type="button" class="trendIconButton" id="expandTrend" aria-label="Expand league movement" aria-haspopup="dialog" aria-controls="trendDialog" title="Expand league movement"><svg aria-hidden="true"><use href="#icon-expand"/></svg></button>
+              </div>
+              <div class="trendCounts" id="trendCounts" aria-live="polite"></div>
+            </div>
             <div class="trendList" tabindex="0" role="region" aria-label="Defense movement for all teams"><table id="trendTable" aria-labelledby="trendLeagueTitle"></table></div>
           </section>
         </section>
@@ -192,6 +198,16 @@
       <div class="tableScroll expandedTableScroll" tabindex="0" aria-label="Expanded player results"><table class="playerTable" id="expandedTable"></table></div><div class="playerFooter"><span id="expandedCount"></span><span>Selections update the dashboard.</span></div>
       </div>
     </div>
+  </dialog>
+  <dialog data-matchups-area="trend-dialog" class="trendLeague trendDialog" id="trendDialog" aria-labelledby="trendDialogTitle" aria-describedby="trendDialogScope">
+    <div class="trendDialogHeader">
+      <div><h2 id="trendDialogTitle">League movement</h2><p id="trendDialogScope"></p></div>
+      <div class="trendDialogActions">
+        <div class="trendCounts" id="trendDialogCounts"></div>
+        <form method="dialog"><button type="submit" class="trendIconButton" aria-label="Close league movement" title="Close league movement" autofocus><svg aria-hidden="true"><use href="#icon-close"/></svg></button></form>
+      </div>
+    </div>
+    <div class="trendDialogTables" id="trendDialogTables"></div>
   </dialog>
   <div data-matchups-area="tooltip" class="chartTooltip" id="chartTooltip" role="status" hidden></div>
   <noscript><p data-matchups-area="fallback" class="noscript">Enable JavaScript to view the 2026 matchups.</p></noscript>

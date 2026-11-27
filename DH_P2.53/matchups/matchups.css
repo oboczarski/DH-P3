@@ -1239,28 +1239,34 @@ linear-gradient(90deg, #74efff 0%, #7297ff 19%, #d97dff 54%) text;
   :where(body[data-page="matchups"]) .emptyState button:where([data-matchups-area="players"], [data-matchups-area="players"] *) { margin-top:7px; padding:4px 7px; border:1px solid var(--border); background:#aabbff10; border-radius:6px; font-size:10px; }
 }
 
+/* The two scatter cards share their entire heading, controls and plot style.
+   Their content below the plot remains owned by each panel. */
 /* COMPARISON — MOBILE only. */
 @media (max-width:620px) {
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) h2,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) p { margin:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) h2 { font-size:17px; line-height:1.2; font-weight:550; letter-spacing:-.3px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) button { font:inherit; color:inherit; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) button { cursor:pointer; background:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) button { -webkit-tap-highlight-color:transparent; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) button:disabled { cursor:default; opacity:.45; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) button:focus-visible,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) svg { display:block; }
-  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="comparison"]) { position:relative; min-width:0; border:1px solid var(--border); border-radius:14px;
+  /* Give each scatter its final width before its SVG measures the plot. */
+  :where(body[data-page="matchups"]) .comparisonPanel { width:100%; }
+  /* The SVG shares the reference's overscan; contain it at wide phone sizes. */
+  :where(body[data-page="matchups"]) .comparisonPanel .comparisonChart { overflow-x:clip; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) h2,
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) p { margin:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) h2 { font-size:17px; line-height:1.2; font-weight:550; letter-spacing:-.3px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) button { font:inherit; color:inherit; min-width:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) button { cursor:pointer; background:none; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) button { -webkit-tap-highlight-color:transparent; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) button:disabled { cursor:default; opacity:.45; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) button:focus-visible,
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) svg { display:block; }
+  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="comparison"], [data-matchups-area="trend"]) { position:relative; min-width:0; border:1px solid var(--border); border-radius:14px;
     background:linear-gradient(155deg,rgba(255,255,255,.055),rgba(255,255,255,.009)),linear-gradient(180deg,rgba(15,21,39,.76),rgba(8,13,26,.7));
     box-shadow:0 8px 28px rgba(2,5,17,.22),inset 0 4px 18px rgba(255,255,255,.035);
     backdrop-filter:blur(7px) saturate(140%); -webkit-backdrop-filter:blur(7px) saturate(140%); }
-  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="comparison"])::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:linear-gradient(135deg,rgba(215,225,255,.065),transparent 30%); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .fieldLabel {color:var(--dim);font-size: 9px;font-weight:600;letter-spacing: 0;white-space: nowrap;}
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .smallToggle { display:inline-flex;gap:3px;padding:3px;border:1px solid #aabbff1c;border-radius:11px;background:#03091642;box-shadow:inset 0 2px 9px #01051238;margin-left: auto; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle { background:#0309160a; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle button { position:relative; min-width:41px; padding:5px 9px; border:1px solid transparent; border-radius:8px; color:var(--muted); font-size:11px; font-weight:600; }
+  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="comparison"], [data-matchups-area="trend"])::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:linear-gradient(135deg,rgba(215,225,255,.065),transparent 30%); }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .fieldLabel {color:var(--dim);font-size: 9px;font-weight:600;letter-spacing: 0;white-space: nowrap;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .positionToggle,
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .smallToggle { display:inline-flex;gap:3px;padding:3px;border:1px solid #aabbff1c;border-radius:11px;background:#03091642;box-shadow:inset 0 2px 9px #01051238;margin-left: auto; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .positionToggle { background:#0309160a; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .positionToggle button { position:relative; min-width:41px; padding:5px 9px; border:1px solid transparent; border-radius:8px; color:var(--muted); font-size:11px; font-weight:600; }
   /* These comparison position filters copy the user's main mobile gradients.
      Each position/breakpoint is independent; other controls keep their own styles. */
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="dumbbell"], [data-matchups-area="composition"], [data-matchups-area="trend"]) .positionToggle button[data-pos="QB"][aria-pressed="true"] {
@@ -1305,74 +1311,74 @@ linear-gradient(90deg, #74efff 0%, #7297ff 19%, #d97dff 54%) text;
     border: 1px solid transparent;
     background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #e4efff 25%, #b2c7ff 50%, #d9addf 75%) text;
   }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .smallToggle button {padding: 3px 11px;min-height: 20px;border:1px solid transparent;border-radius:7px;font-size:10px;color:var(--muted);}
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .smallToggle button[aria-pressed="true"] {background:linear-gradient(180deg,#85d7ff24,#a27fff17);border-color:#9ad1ff35;color:#dceeff;box-shadow:inset 0 3px 8px #ffffff08;border: 1px solid transparent;color: transparent;background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .smallToggle button {padding: 3px 11px;min-height: 20px;border:1px solid transparent;border-radius:7px;font-size:10px;color:var(--muted);}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .smallToggle button[aria-pressed="true"] {background:linear-gradient(180deg,#85d7ff24,#a27fff17);border-color:#9ad1ff35;color:#dceeff;box-shadow:inset 0 3px 8px #ffffff08;border: 1px solid transparent;color: transparent;background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;}
   :where(body[data-page="matchups"]) .is-easy:where([data-matchups-area="comparison"], [data-matchups-area="comparison"] *) { color:var(--mint); }
   :where(body[data-page="matchups"]) .is-tough:where([data-matchups-area="comparison"], [data-matchups-area="comparison"] *) { color:var(--pink); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chartHeaderControls {display:flex;align-items:center;justify-content: center;flex-wrap: wrap;gap: 4px;margin-left: -68px;}
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle.chartPositionToggle button { min-width: 40px;padding: 3px 6px;font-size:9px;border-radius:6px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart { min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg {display:block;width: 104%;height:auto;overflow:visible;margin-left: -9px;}
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg text { font:9px var(--font); fill:var(--dim); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg .axisTitle { fill:#adb4d3; font-size:10px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg .zoneLabel { fill:#9199bd; font-size:8px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .gridLine { stroke:#aabbff; stroke-opacity:.09; stroke-width:1; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chartPoint { cursor:pointer;outline:none;r: 5.5;fill: #e3b3ffa8;stroke: #f0f8ff9e;filter: drop-shadow(0px 3px 3px #0004); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chartPoint:focus-visible circle { stroke:#fff; stroke-width:2; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .panelHeader { display:flex;justify-content:space-between;align-items:center;gap:10px;padding: 14px 12px 2px; }
-  :where(body[data-page="matchups"]) .comparisonPanel:where([data-matchups-area="comparison"]) .panelHeader { flex-wrap:wrap; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonChart { padding: 0px 0px 18px 4px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chartHeaderControls {display:flex;align-items:center;justify-content: center;flex-wrap: wrap;gap: 4px;margin-left: -68px;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .positionToggle.chartPositionToggle button { min-width: 40px;padding: 3px 6px;font-size:9px;border-radius:6px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chart { min-width:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chart svg {display:block;width: 104%;height:auto;overflow:visible;margin-left: -9px;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chart svg text { font:9px var(--font); fill:var(--dim); }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chart svg .axisTitle { fill:#adb4d3; font-size:10px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chart svg .zoneLabel { fill:#9199bd; font-size:8px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .gridLine { stroke:#aabbff; stroke-opacity:.09; stroke-width:1; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chartPoint { cursor:pointer;outline:none;r: 5.5;fill: #e3b3ffa8;stroke: #f0f8ff9e;filter: drop-shadow(0px 3px 3px #0004); }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chartPoint:focus-visible circle { stroke:#fff; stroke-width:2; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .panelHeader { display:flex;justify-content:space-between;align-items:center;gap:10px;padding: 14px 12px 2px; }
+  :where(body[data-page="matchups"]) .comparisonPanel:where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .panelHeader { flex-wrap:wrap; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .comparisonChart { padding: 0px 0px 18px 4px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonDetail { display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding: 12px 12px;border-top:1px solid #aabbff14;color:var(--dim);font-size:10px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonDetail strong { color:#d3daf5; font-weight:550; margin-left:3px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonDetail .is-easy,
   :where(body[data-page="matchups"]) .comparisonDetail .is-tough:where([data-matchups-area="comparison"], [data-matchups-area="comparison"] *) { margin-left:auto; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonTeam { display:flex; align-items:center; gap:4px; color:#d3daf5; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonTeam img { width:20px; height:19px; object-fit:contain; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chartNote { font-size:9px; color:var(--dim); padding:0 12px 7px; }
-  :where(body[data-page="matchups"]) .emptyState:where([data-matchups-area="comparison"], [data-matchups-area="comparison"] *) { padding:18px 8px; text-align:center; color:var(--dim); font-size:10px; }
-  :where(body[data-page="matchups"]) .emptyState strong:where([data-matchups-area="comparison"], [data-matchups-area="comparison"] *) { display:block; color:#bdc1d8; font-size:12px; margin-bottom:4px; font-weight:500; }
-  :where(body[data-page="matchups"]) .emptyState button:where([data-matchups-area="comparison"], [data-matchups-area="comparison"] *) { margin-top:7px; padding:4px 7px; border:1px solid var(--border); background:#aabbff10; border-radius:6px; font-size:10px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chartNote { font-size:9px; color:var(--dim); padding:0 12px 7px; }
+  :where(body[data-page="matchups"]) .emptyState:where([data-matchups-area="comparison"], [data-matchups-area="trend"], [data-matchups-area="comparison"] *, [data-matchups-area="trend"] *) { padding:18px 8px; text-align:center; color:var(--dim); font-size:10px; }
+  :where(body[data-page="matchups"]) .emptyState strong:where([data-matchups-area="comparison"], [data-matchups-area="trend"], [data-matchups-area="comparison"] *, [data-matchups-area="trend"] *) { display:block; color:#bdc1d8; font-size:12px; margin-bottom:4px; font-weight:500; }
+  :where(body[data-page="matchups"]) .emptyState button:where([data-matchups-area="comparison"], [data-matchups-area="trend"], [data-matchups-area="comparison"] *, [data-matchups-area="trend"] *) { margin-top:7px; padding:4px 7px; border:1px solid var(--border); background:#aabbff10; border-radius:6px; font-size:10px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonDetail { gap:7px; font-size:9px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .panelHeader h2 { font-size:15px; }
-  :where(body[data-page="matchups"]) .comparisonPanel:where([data-matchups-area="comparison"]) .panelHeader { flex-wrap:wrap; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle { padding:2px;border-radius:9px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle button { flex:1; min-width:0; font-size:10px; padding:5px 7px; }
-  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="comparison"]) {border-radius:12px;}
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .fieldLabel {font-size: 11px;}
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .panelHeader { padding: 3px 5px 0px 10px;margin-bottom: -6px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .panelHeader h2 {font-size: 18px;margin-top: 12px;margin-bottom: -4px;text-wrap-mode: nowrap;}
-  :where(body[data-page="matchups"]) .comparisonPanel:where([data-matchups-area="comparison"]) .panelHeader {flex-wrap: nowrap;gap: 0px;grid: auto;}
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonChart {padding: 0 0px;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .panelHeader h2 { font-size:15px; }
+  :where(body[data-page="matchups"]) .comparisonPanel:where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .panelHeader { flex-wrap:wrap; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .positionToggle { padding:2px;border-radius:9px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .positionToggle button { flex:1; min-width:0; font-size:10px; padding:5px 7px; }
+  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="comparison"], [data-matchups-area="trend"]) {border-radius:12px;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .fieldLabel {font-size: 11px;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .panelHeader { padding: 3px 5px 0px 10px;margin-bottom: -6px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .panelHeader h2 {font-size: 18px;margin-top: 12px;margin-bottom: -4px;text-wrap-mode: nowrap;}
+  :where(body[data-page="matchups"]) .comparisonPanel:where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .panelHeader {flex-wrap: nowrap;gap: 0px;grid: auto;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .comparisonChart {padding: 0 0px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonDetail { padding:5px 10px; font-size:9px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chartNote { padding-inline:10px; font-size:8px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chartNote { padding-inline:10px; font-size:8px; }
   @media (max-width: 400px) {
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle button { padding-inline:5px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .positionToggle button { padding-inline:5px; }
   }
 }
 
 /* COMPARISON — DESKTOP only. */
 @media (width > 620px) {
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) h2,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) p { margin:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) h2 { font-size:17px; line-height:1.2; font-weight:550; letter-spacing:-.3px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) button { font:inherit; color:inherit; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) button { cursor:pointer; background:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) button { -webkit-tap-highlight-color:transparent; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) button:disabled { cursor:default; opacity:.45; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) button:focus-visible,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) svg { display:block; }
-  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="comparison"]) { position:relative; min-width:0; border:1px solid var(--border); border-radius:14px;
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) h2,
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) p { margin:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) h2 { font-size:17px; line-height:1.2; font-weight:550; letter-spacing:-.3px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) button { font:inherit; color:inherit; min-width:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) button { cursor:pointer; background:none; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) button { -webkit-tap-highlight-color:transparent; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) button:disabled { cursor:default; opacity:.45; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) button:focus-visible,
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) svg { display:block; }
+  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="comparison"], [data-matchups-area="trend"]) { position:relative; min-width:0; border:1px solid var(--border); border-radius:14px;
     background:linear-gradient(155deg,rgba(255,255,255,.055),rgba(255,255,255,.009)),linear-gradient(180deg,rgba(15,21,39,.76),rgba(8,13,26,.7));
     box-shadow:0 8px 28px rgba(2,5,17,.22),inset 0 4px 18px rgba(255,255,255,.035);
     backdrop-filter:blur(7px) saturate(140%); -webkit-backdrop-filter:blur(7px) saturate(140%); }
-  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="comparison"])::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:linear-gradient(135deg,rgba(215,225,255,.065),transparent 30%); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .fieldLabel { color:var(--dim);font-size: 9px;font-weight:600;letter-spacing: 0;white-space:nowrap; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .smallToggle { display:inline-flex;gap:3px;padding:3px;border:1px solid #aabbff1c;border-radius:11px;background:#03091642;box-shadow:inset 0 2px 9px #01051238;margin-left: auto; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle { background:#0309160a; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle button { position:relative; min-width:41px; padding:5px 9px; border:1px solid transparent; border-radius:8px; color:var(--muted); font-size:11px; font-weight:600; }
+  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="comparison"], [data-matchups-area="trend"])::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:linear-gradient(135deg,rgba(215,225,255,.065),transparent 30%); }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .fieldLabel { color:var(--dim);font-size: 9px;font-weight:600;letter-spacing: 0;white-space:nowrap; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .positionToggle,
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .smallToggle { display:inline-flex;gap:3px;padding:3px;border:1px solid #aabbff1c;border-radius:11px;background:#03091642;box-shadow:inset 0 2px 9px #01051238;margin-left: auto; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .positionToggle { background:#0309160a; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .positionToggle button { position:relative; min-width:41px; padding:5px 9px; border:1px solid transparent; border-radius:8px; color:var(--muted); font-size:11px; font-weight:600; }
   /* These comparison position filters copy the user's main mobile gradients.
      Each position/breakpoint is independent; other controls keep their own styles. */
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="dumbbell"], [data-matchups-area="composition"], [data-matchups-area="trend"]) .positionToggle button[data-pos="QB"][aria-pressed="true"] {
@@ -1417,42 +1423,42 @@ linear-gradient(90deg, #74efff 0%, #7297ff 19%, #d97dff 54%) text;
     border: 1px solid transparent;
     background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #e4efff 25%, #b2c7ff 50%, #d9addf 75%) text;
   }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .smallToggle button { padding: 3px 8px;min-height: 20px;border:1px solid transparent;border-radius:7px;font-size:10px;color:var(--muted); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .smallToggle button[aria-pressed="true"] {border-color:#9ad1ff35;box-shadow:inset 0 3px 8px #ffffff08;border: 1px solid transparent;color: transparent;background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .smallToggle button { padding: 3px 8px;min-height: 20px;border:1px solid transparent;border-radius:7px;font-size:10px;color:var(--muted); }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .smallToggle button[aria-pressed="true"] {border-color:#9ad1ff35;box-shadow:inset 0 3px 8px #ffffff08;border: 1px solid transparent;color: transparent;background: linear-gradient(90deg, #74efff33 0%, #7297ff33 52%, #d97dff33 100%), linear-gradient(90deg, #74efffbb 0%, #7297ffbb 52%, #d97dffbb 100%) border-area, linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%) text;}
   :where(body[data-page="matchups"]) .is-easy:where([data-matchups-area="comparison"], [data-matchups-area="comparison"] *) { color:var(--mint); }
   :where(body[data-page="matchups"]) .is-tough:where([data-matchups-area="comparison"], [data-matchups-area="comparison"] *) { color:var(--pink); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chartHeaderControls { display:flex;align-items:center;justify-content: center;flex-wrap: wrap;gap: 4px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .positionToggle.chartPositionToggle button {min-width: 40px;padding: 4px 6px;font-size: 10px;border-radius:6px;}
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart { min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg {display:block;width: 102%;height:auto;overflow:visible;margin-left: -8px;}
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg text { font:9px var(--font); fill:var(--dim); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg .axisTitle { fill:#adb4d3; font-size:10px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chart svg .zoneLabel { fill:#9199bd; font-size:8px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .gridLine { stroke:#aabbff; stroke-opacity:.09; stroke-width:1; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chartPoint { cursor:pointer;outline:none;r: 5.5;fill: #e3b3ffa8;stroke: #f0f8ff9e;filter: drop-shadow(0px 3px 3px #0004); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chartPoint:focus-visible circle { stroke:#fff; stroke-width:2; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .panelHeader {display:flex;justify-content:space-between;align-items:center;gap:10px;padding: 8px 12px 2px;}
-  :where(body[data-page="matchups"]) .comparisonPanel:where([data-matchups-area="comparison"]) .panelHeader { flex-wrap:wrap; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonChart {padding: 0px 0px 18px 4px;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chartHeaderControls { display:flex;align-items:center;justify-content: center;flex-wrap: wrap;gap: 4px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .positionToggle.chartPositionToggle button {min-width: 40px;padding: 4px 6px;font-size: 10px;border-radius:6px;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chart { min-width:0; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chart svg {display:block;width: 102%;height:auto;overflow:visible;margin-left: -8px;}
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chart svg text { font:9px var(--font); fill:var(--dim); }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chart svg .axisTitle { fill:#adb4d3; font-size:10px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chart svg .zoneLabel { fill:#9199bd; font-size:8px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .gridLine { stroke:#aabbff; stroke-opacity:.09; stroke-width:1; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chartPoint { cursor:pointer;outline:none;r: 5.5;fill: #e3b3ffa8;stroke: #f0f8ff9e;filter: drop-shadow(0px 3px 3px #0004); }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chartPoint:focus-visible circle { stroke:#fff; stroke-width:2; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .panelHeader {display:flex;justify-content:space-between;align-items:center;gap:10px;padding: 8px 12px 2px;}
+  :where(body[data-page="matchups"]) .comparisonPanel:where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .panelHeader { flex-wrap:wrap; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .comparisonChart {padding: 0px 0px 18px 4px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonDetail {display:flex;gap: 30px;align-items:center;flex-wrap:wrap;padding: 5px 12px;border-top: 2px double #aabbff34;color:var(--dim);font-size: 13px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonDetail strong {color:#d3daf5;font-weight:550;margin-left:3px;font-size: 14px;}
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonDetail .is-easy,
   :where(body[data-page="matchups"]) .comparisonDetail .is-tough:where([data-matchups-area="comparison"], [data-matchups-area="comparison"] *) { margin-left:auto; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonTeam { display:flex; align-items:center; gap:4px; color:#d3daf5; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonTeam img {width: 36px;height: 36px;object-fit:contain;}
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .chartNote { font-size:9px; color:var(--dim); padding:0 12px 7px; }
-  :where(body[data-page="matchups"]) .emptyState:where([data-matchups-area="comparison"], [data-matchups-area="comparison"] *) { padding:18px 8px; text-align:center; color:var(--dim); font-size:10px; }
-  :where(body[data-page="matchups"]) .emptyState strong:where([data-matchups-area="comparison"], [data-matchups-area="comparison"] *) { display:block; color:#bdc1d8; font-size:12px; margin-bottom:4px; font-weight:500; }
-  :where(body[data-page="matchups"]) .emptyState button:where([data-matchups-area="comparison"], [data-matchups-area="comparison"] *) { margin-top:7px; padding:4px 7px; border:1px solid var(--border); background:#aabbff10; border-radius:6px; font-size:10px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .chartNote { font-size:9px; color:var(--dim); padding:0 12px 7px; }
+  :where(body[data-page="matchups"]) .emptyState:where([data-matchups-area="comparison"], [data-matchups-area="trend"], [data-matchups-area="comparison"] *, [data-matchups-area="trend"] *) { padding:18px 8px; text-align:center; color:var(--dim); font-size:10px; }
+  :where(body[data-page="matchups"]) .emptyState strong:where([data-matchups-area="comparison"], [data-matchups-area="trend"], [data-matchups-area="comparison"] *, [data-matchups-area="trend"] *) { display:block; color:#bdc1d8; font-size:12px; margin-bottom:4px; font-weight:500; }
+  :where(body[data-page="matchups"]) .emptyState button:where([data-matchups-area="comparison"], [data-matchups-area="trend"], [data-matchups-area="comparison"] *, [data-matchups-area="trend"] *) { margin-top:7px; padding:4px 7px; border:1px solid var(--border); background:#aabbff10; border-radius:6px; font-size:10px; }
   @media (max-width: 860px) {
   :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .comparisonDetail { gap:7px; font-size:9px; }
   }
   @media (max-width: 860px) {
-  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"]) .panelHeader h2 { font-size:15px; }
+  :where(body[data-page="matchups"]) :where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .panelHeader h2 { font-size:15px; }
   }
   @media (max-width: 860px) {
-  :where(body[data-page="matchups"]) .comparisonPanel:where([data-matchups-area="comparison"]) .panelHeader { flex-wrap:wrap; }
+  :where(body[data-page="matchups"]) .comparisonPanel:where([data-matchups-area="comparison"], [data-matchups-area="trend"]) .panelHeader { flex-wrap:wrap; }
   }
 }
 
@@ -1835,68 +1841,6 @@ linear-gradient(90deg, #74efff 0%, #7297ff 19%, #d97dff 54%) text;
   :where(body[data-page="matchups"]) :where([data-matchups-area="dumbbell"]) [data-pos="ALL"] { --pos-color:#aabaff; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="dumbbell"]) .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
   :where(body[data-page="matchups"]) :where([data-matchups-area="dumbbell"]) .positionToggle.chartPositionToggle button { min-width: 40px;padding: 3px 6px;font-size:9px;border-radius:6px; }
-}
-
-/* TREND — MOBILE only. */
-@media (max-width:620px) {
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) h2,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) p { margin:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) h2 { font-size:17px; line-height:1.2; font-weight:550; letter-spacing:-.3px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button { font:inherit; color:inherit; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button { cursor:pointer; background:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button { -webkit-tap-highlight-color:transparent; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button:disabled { cursor:default; opacity:.45; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button:focus-visible,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
-  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="trend"]) { position:relative; min-width:0; border:1px solid var(--border); border-radius:14px;
-    background:linear-gradient(155deg,rgba(255,255,255,.055),rgba(255,255,255,.009)),linear-gradient(180deg,rgba(15,21,39,.76),rgba(8,13,26,.7));
-    box-shadow:0 8px 28px rgba(2,5,17,.22),inset 0 4px 18px rgba(255,255,255,.035);
-    backdrop-filter:blur(7px) saturate(140%); -webkit-backdrop-filter:blur(7px) saturate(140%); }
-  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="trend"])::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:linear-gradient(135deg,rgba(215,225,255,.065),transparent 30%); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle { display:inline-flex;gap:3px;padding:3px;border:1px solid #aabbff1c;border-radius:11px;background:#03091642;box-shadow:inset 0 2px 9px #01051238;margin-left: auto; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle button { position:relative; min-width:41px; padding:5px 9px; border:1px solid transparent; border-radius:8px; color:var(--muted); font-size:11px; font-weight:600; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle button[aria-pressed="true"] { color:var(--pos-color,var(--position)); border-color:color-mix(in srgb,var(--pos-color,var(--position)) 35%,transparent); background:color-mix(in srgb,var(--pos-color,var(--position)) 12%,transparent); box-shadow:inset 0 3px 9px #ffffff08,0 0 9px color-mix(in srgb,var(--pos-color,var(--position)) 9%,transparent); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="QB"] { --pos-color:#ffb2d8; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="RB"] { --pos-color:#75e0b7; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="WR"] { --pos-color:#63b0de; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="TE"] { --pos-color:#ab9bff; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="ALL"] { --pos-color:#aabaff; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle.chartPositionToggle button { min-width: 40px;padding: 3px 6px;font-size:9px;border-radius:6px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle { padding:2px;border-radius:9px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle button { flex:1; min-width:0; font-size:10px; padding:5px 7px; }
-  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="trend"]) { border-radius:12px; }
-  @media (max-width: 400px) {
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle button { padding-inline:5px; }
-  }
-}
-
-/* TREND — DESKTOP only. */
-@media (width > 620px) {
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) h2,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) p { margin:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) h2 { font-size:17px; line-height:1.2; font-weight:550; letter-spacing:-.3px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button { font:inherit; color:inherit; min-width:0; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button { cursor:pointer; background:none; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button { -webkit-tap-highlight-color:transparent; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button:disabled { cursor:default; opacity:.45; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) button:focus-visible,
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [tabindex]:focus-visible { outline:2px solid #74efff; outline-offset:2px; }
-  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="trend"]) { position:relative; min-width:0; border:1px solid var(--border); border-radius:14px;
-    background:linear-gradient(155deg,rgba(255,255,255,.055),rgba(255,255,255,.009)),linear-gradient(180deg,rgba(15,21,39,.76),rgba(8,13,26,.7));
-    box-shadow:0 8px 28px rgba(2,5,17,.22),inset 0 4px 18px rgba(255,255,255,.035);
-    backdrop-filter:blur(7px) saturate(140%); -webkit-backdrop-filter:blur(7px) saturate(140%); }
-  :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="trend"])::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:linear-gradient(135deg,rgba(215,225,255,.065),transparent 30%); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle { display:inline-flex;gap:3px;padding:3px;border:1px solid #aabbff1c;border-radius:11px;background:#03091642;box-shadow:inset 0 2px 9px #01051238;margin-left: auto; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle button { position:relative; min-width:41px; padding:5px 9px; border:1px solid transparent; border-radius:8px; color:var(--muted); font-size:11px; font-weight:600; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle button[aria-pressed="true"] { color:var(--pos-color,var(--position)); border-color:color-mix(in srgb,var(--pos-color,var(--position)) 35%,transparent); background:color-mix(in srgb,var(--pos-color,var(--position)) 12%,transparent); box-shadow:inset 0 3px 9px #ffffff08,0 0 9px color-mix(in srgb,var(--pos-color,var(--position)) 9%,transparent); }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="QB"] { --pos-color:#ffb2d8; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="RB"] { --pos-color:#75e0b7; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="WR"] { --pos-color:#63b0de; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="TE"] { --pos-color:#ab9bff; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) [data-pos="ALL"] { --pos-color:#aabaff; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle.chartPositionToggle { flex-shrink:0; gap:2px; padding:2px; border-radius:9px; }
-  :where(body[data-page="matchups"]) :where([data-matchups-area="trend"]) .positionToggle.chartPositionToggle button { min-width: 40px;padding: 3px 6px;font-size:9px;border-radius:6px; }
 }
 
 /* METHODOLOGY — MOBILE only. */
@@ -2297,7 +2241,7 @@ linear-gradient(90deg, #74efff 0%, #7297ff 19%, #d97dff 54%) text;
 :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="defense"]) { backdrop-filter:none; }
 }
 @media print {
-:where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="comparison"]) { backdrop-filter:none; }
+:where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="comparison"], [data-matchups-area="trend"]) { backdrop-filter:none; }
 }
 @media print {
 :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="composition"]) { backdrop-filter:none; }
@@ -2307,9 +2251,6 @@ linear-gradient(90deg, #74efff 0%, #7297ff 19%, #d97dff 54%) text;
 }
 @media print {
 :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="dumbbell"]) { backdrop-filter:none; }
-}
-@media print {
-:where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="trend"]) { backdrop-filter:none; }
 }
 @media print {
 :where(body[data-page="matchups"]) .glass-panel:where([data-matchups-area="expanded-dialog"]) { backdrop-filter:none; }

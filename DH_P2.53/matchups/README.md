@@ -137,9 +137,11 @@ Mobile retains its existing gridline treatment.
 
 Matchup Trends compares both periods independently of the Game Range picker.
 The team scatter and league movement list share the active position and offer
-Points (FPA per game) and Ranks. All 32 rows are ordered from the largest
-improvement to the largest decline. The compact league list scrolls inside
-the card, which aligns with the dumbbell panel on desktop.
+Points (FPA per game) and Ranks. Both scatter panels use the same header and
+plot presentation. In Points mode each axis fits the games in its own period.
+All 32 rows are ordered from the largest improvement to the largest decline.
+The compact list scrolls inside the card. Its expand button opens both halves
+of the list together, with the current position, metric, and week range.
 
 Matchups defense menus use team abbreviations, alphabetized independently in
 AFC and NFC columns on mobile and desktop, including the expanded player dialog.

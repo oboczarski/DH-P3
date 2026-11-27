@@ -236,7 +236,7 @@
   }
   function width(id) {
     const element = $(id), style = getComputedStyle(element);
-    return Math.max(260, Math.round((element.clientWidth || 500) - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0)));
+    return Charts.plotWidth(element.clientWidth, style);
   }
   function scale(values) {
     const finite = values.filter(value => value !== null && Number.isFinite(value));
@@ -327,29 +327,14 @@
     renderScatterDetail(state.team);
     $("comparisonNote").textContent = ranked ? `${seasonRanks ? "Defense rank: 1 = best · SOS: 1 = easiest schedule" : "Defense rank: 1 = fewest FPA/game · Expected rank: 1 = lowest opponent average"}. ${points.length} comparable defenses. Select a logo.` : `Per-game averages · Above the line = more FPA/game than expected. ${points.length} comparable defenses. Select a logo.`;
     if (!points.length) { $("comparisonChart").innerHTML = empty("No complete comparisons", analysis.unavailableReason); return; }
-    const W = width("comparisonChart"), H = innerWidth <= 620 ? 320 : 330, left = 43, right = W - 16, top = 18, bottom = H - 34;
-    const pool = Data.TEAMS.length;
-    const rankBounds = { low: 0, high: Math.max(2, pool + 1), ticks: [...new Set([1, Math.ceil(pool / 4), Math.ceil(pool / 2), Math.ceil(pool * 3 / 4), pool])] };
-    const xBounds = ranked ? rankBounds : Charts.pointBounds(points.map(point => point.x));
-    const yBounds = ranked ? rankBounds : Charts.pointBounds(points.map(point => point.y));
-    const x = value => left + (value - xBounds.low) / (xBounds.high - xBounds.low) * (right - left);
-    const y = value => bottom - (value - yBounds.low) / (yBounds.high - yBounds.low) * (bottom - top);
-    const geometry = Charts.comparisonGeometry(xBounds, yBounds);
-    const polygon = (vertices, color) => vertices.length < 3 ? "" : `<polygon points="${vertices.map(([a, b]) => `${x(a)},${y(b)}`).join(" ")}" fill="${color}" fill-opacity=".025"/>`;
-    // A larger defense rank now means more permissive defense. In both modes,
-    // the region above the baseline is easier/green and below is tougher/pink.
-    let content = polygon(geometry.above, "#75e0b7") + polygon(geometry.below, "#ffb2d8");
-    // FPA vs Expected tick labels sit 5px farther right and 4px higher on both
-    // layouts; only label offsets change, preserving the plot and axis titles.
-    content += yBounds.ticks.map(n => `<line class="gridLine" x1="${left}" x2="${right}" y1="${y(n)}" y2="${y(n)}"/><text x="${left - 2}" y="${y(n) + 3}" text-anchor="end">${tick(n, yBounds)}</text>`).join("");
-    content += xBounds.ticks.map(n => `<line class="gridLine" x1="${x(n)}" x2="${x(n)}" y1="${top}" y2="${bottom}"/><text x="${x(n)}" y="${bottom + 9}" text-anchor="middle">${tick(n, xBounds)}</text>`).join("");
-    if (geometry.equality.length) {
-      const [a, b] = geometry.equality;
-      content += `<line x1="${x(a[0])}" y1="${y(a[1])}" x2="${x(b[0])}" y2="${y(b[1])}" stroke="#9eb0d9" stroke-opacity=".6" stroke-dasharray="4 4"/>`;
-    }
-    if (yBounds.high - 9 / (bottom - top) * (yBounds.high - yBounds.low) > xBounds.low + 5 / (right - left) * (xBounds.high - xBounds.low)) content += `<text class="zoneLabel" x="${left + 5}" y="${top + 9}">${ranked ? "Weaker Defense vs. Baseline" : "Above Expected FPA/Game"}</text>`;
-    if (yBounds.low + 6 / (bottom - top) * (yBounds.high - yBounds.low) < xBounds.high - 5 / (right - left) * (xBounds.high - xBounds.low)) content += `<text class="zoneLabel" x="${right - 5}" y="${bottom - 6}" text-anchor="end">${ranked ? "Stronger Defense vs. Baseline" : "Below Expected FPA/Game"}</text>`;
-    content += `<text class="axisTitle" x="${(left + right) / 2}" y="${H - 10}" text-anchor="middle">${ranked ? seasonRanks ? "SOS Rank · 1 = Easiest" : "Expected FPA/Game · Rank" : "Expected FPA · Points | [Opponent Weekly Avg.]"}</text><text class="axisTitle" transform="translate(23 ${(top + bottom) / 2}) rotate(-90)" text-anchor="middle">${ranked ? "Defense Rank · 1 = Best" : "Actual FPA · Points/Game"}</text>`;
+    const W = width("comparisonChart");
+    const plot = Charts.scatterPlot(points, { width: W, mobile: innerWidth <= 620, ranked, pool: Data.TEAMS.length, tick,
+      xTitle: ranked ? (seasonRanks ? "SOS Rank · 1 = Easiest" : "Expected FPA/Game · Rank") : "Expected FPA · Points | [Opponent Weekly Avg.]",
+      yTitle: ranked ? "Defense Rank · 1 = Best" : "Actual FPA · Points/Game",
+      aboveLabel: ranked ? "Weaker Defense vs. Baseline" : "Above Expected FPA/Game",
+      belowLabel: ranked ? "Stronger Defense vs. Baseline" : "Below Expected FPA/Game" });
+    const { height: H, left, right, top, bottom, x, y } = plot;
+    let content = plot.content;
     // This scatter alone uses smaller logos and bounded collision spacing at
     // both widths. Lay out before selection sorting so picking a team never
     // reshuffles the cluster; connectors retain each team's exact data anchor.
@@ -358,9 +343,9 @@
     const markerBounds = ranked ? { left, right, top, bottom } : { left: left + 11, right: right - 11, top: top + 11, bottom: bottom - 11 };
     const markers = Charts.spreadScatterPoints(points.map(point => ({ team: point.team, x: x(point.x), y: y(point.y) })), markerBounds);
     const markerByTeam = new Map(markers.map(marker => [marker.team, marker]));
-    const moved = markers.filter(marker => Math.hypot(marker.displayX - marker.x, marker.displayY - marker.y) > 1);
-    if (moved.length) {
-      content += `<g class="scatterLeaders" aria-hidden="true" pointer-events="none" stroke="#9eb0d9" stroke-width=".8" stroke-opacity=".45">${moved.map(marker => `<line x1="${marker.x}" y1="${marker.y}" x2="${marker.displayX}" y2="${marker.displayY}"/><circle cx="${marker.x}" cy="${marker.y}" r="1.4" fill="#9eb0d9" fill-opacity=".55" stroke="none"/>`).join("")}</g>`;
+    const leaders = Charts.scatterLeaders(markers);
+    if (leaders) {
+      content += leaders;
       $("comparisonNote").textContent += " Crowded logos are nudged slightly; connectors mark exact values.";
     }
     points.sort((a, b) => Number(a.team === state.team) - Number(b.team === state.team)).forEach(point => {
@@ -610,7 +595,7 @@
         rangeLabels.recent = `WK${RECENT_START_WEEK}-WK${recent.model.maxWeek}`;
       }
       model = sources.model;
-      trend = window.FPARankTrend.create(sources.summary, recent?.summary, rangeLabels.recent, fmt);
+      trend = window.FPARankTrend.create(sources.summary, recent?.summary, rangeLabels.recent, fmt, tick);
       readURL();
       buildPickers();
       $("sourceNotes").textContent = `2026 recorded weekly results and player stats through Week ${model.maxWeek}. ` +

@@ -174,7 +174,7 @@
 // real CSS-styled scoring chips together with their renderer and stylesheet.
 // Refresh Compare's table groups, rank gradients and permanent dark theme together.
 // Refresh the Matchups range controls, chart styles and rank trend renderer together.
-const CACHE_NAME = 'DH3.90-league-matchup-trends';
+const CACHE_NAME = 'DH3.91-matchup-trends-parity';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

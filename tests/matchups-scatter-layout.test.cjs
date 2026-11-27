@@ -1,11 +1,33 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { spreadScatterPoints } = require('../DH_P2.53/matchups/chart-utils.js');
+const { pointBounds, scatterPlot, spreadScatterPoints } = require('../DH_P2.53/matchups/chart-utils.js');
 
 const bounds = { left: 43, right: 320, top: 18, bottom: 286 };
 const movement = point => Math.hypot(point.displayX - point.x, point.displayY - point.y);
 const overlap = points => points.reduce((total, a, index) => total + points.slice(index + 1).reduce((sum, b) =>
   sum + Math.max(0, 18.5 - Math.hypot(a.displayX - b.displayX, a.displayY - b.displayY)), 0), 0);
+
+test('the shared Points scatter fits each period separately and clips equality to the visible plot', () => {
+  const points = [{ x: 10, y: 20 }, { x: 13, y: 23 }, { x: 16, y: 26 }];
+  const config = { width: 360, mobile: true, ranked: false, pool: 32, tick: String,
+    xTitle: 'Regular Season', yTitle: 'Recent', aboveLabel: 'Declined', belowLabel: 'Improved' };
+  const plot = scatterPlot(points, config);
+  const xBounds = pointBounds(points.map(row => row.x));
+  const yBounds = pointBounds(points.map(row => row.y));
+  assert.equal(plot.height, 320);
+  assert.equal(plot.x(xBounds.low), plot.left);
+  assert.equal(plot.x(xBounds.high), plot.right);
+  assert.equal(plot.y(yBounds.low), plot.bottom);
+  assert.equal(plot.y(yBounds.high), plot.top);
+  assert.ok(plot.x(17) > plot.right);
+  assert.doesNotMatch(plot.content, /stroke-dasharray/, 'disjoint axes have no visible equality line');
+
+  const ranked = scatterPlot(points, { ...config, ranked: true, mobile: false });
+  assert.equal(ranked.height, 330);
+  assert.ok(ranked.x(32) > ranked.x(1));
+  assert.ok(ranked.y(32) < ranked.y(1));
+  assert.match(ranked.content, /stroke-dasharray="4 4"/);
+});
 
 test('isolated markers keep their exact positions and inputs stay untouched', () => {
   const points = [{ team: 'BAL', x: 60, y: 40 }, { team: 'BUF', x: 220, y: 200 }];
