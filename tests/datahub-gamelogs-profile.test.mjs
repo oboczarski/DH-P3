@@ -89,7 +89,7 @@ test('DataHub Ownership changes only lower content for veterans and restores the
   const modal = node(), playerPane = node(), ownershipPane = node();
   const state = { currentGameLogsPlayer: { id: '1' }, currentGameLogsView: 'gl' };
   let rookie = false;
-  const ctx = vm.createContext({ state, gameLogsModal: modal, gameLogsModalTabs: [],
+  const ctx = vm.createContext({ state, dataHubMobileView: null, gameLogsModal: modal, gameLogsModalTabs: [],
     document: { querySelector: selector => selector === '#gamelogs-tab-pane' ? playerPane : ownershipPane },
     isDataHubOwnershipOnlyModal: () => rookie, renderDataHubOwnershipPane() {}, closeDataHubConsistencyStatMenu() {},
     syncDataHubGameLogsNavigation() {}, renderDataHubConsistencyChart() {}, syncDataHubCareerRowHeights() {},

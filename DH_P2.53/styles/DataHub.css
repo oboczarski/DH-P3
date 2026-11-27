@@ -17006,3 +17006,10 @@ body[data-page="datahub"] #game-logs-modal .team-modal-summary-status[hidden] { 
 /* DataHub Weekly: center the two week/opponent lines together within the
    fixed-height chip, matching Rosters while leaving the tags noninteractive. */
 body[data-page="datahub"] #game-logs-modal .gamelog-week-tag { align-content: center; grid-auto-rows: max-content; }
+/* Mobile DataHub backgrounding: release the fixed blend and blur layers
+   while the tab is hidden, without rebuilding the table on return. */
+html.dh-mobile-page-hidden body[data-page="datahub"]::before,
+html.dh-mobile-page-hidden body[data-page="datahub"]::after,
+html.dh-mobile-page-hidden body[data-page="datahub"] .background-orb {
+  display: none;
+}

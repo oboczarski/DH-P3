@@ -11,6 +11,8 @@ import { attachDataHubStatsHelp, getDataHubStatDefinition, setDataHubStatTooltip
 import { load2026TeamStats, build2026TeamRanks, get2026TeamStatColor, TEAM_SUMMARY_FIELDS } from "./datahub-team-stats.js?v=DH3.62-datahub-gamelogs-parity";
 import { resolveGameLogsNavigation, rankWeeklyMetricValues, buildConsistencyRankChart, getConsistencyRankPlotValue, summarizeConsistencyGames, isConsistencyProductionStat, getConsistencyAverageLabelCenter, getConsistencyDialTone } from "./datahub-gamelogs-controls.js?v=DH3.81-compare";
 
+const dataHubMobileView = window.DynastyHubMobileView;
+
 // ---------------------------------------------------------------------------
 // Hero copy and filter labels that drive the surrounding page shell.
 // ---------------------------------------------------------------------------
@@ -3112,6 +3114,7 @@ let rookieDataPromise = null;
 let dataHubComparisonModulePromise = null;
 let dataHubComparisonStylesPromise = null;
 let dataHubComparisonReactRoot = null;
+let dataHubComparisonView = null;
 
 let activeMoreToggle = null;
 let moreCloseTimer = 0;
@@ -3124,6 +3127,8 @@ initializeApp();
 // overlay so the layout stays stable even before CSV import completes.
 // ---------------------------------------------------------------------------
 function initializeApp() {
+  const savedView = dataHubMobileView?.read();
+  if (savedView) restoreDataHubMobileControls(savedView);
   attachEventListeners();
   syncPageTabButtons();
   syncUiState();
@@ -3134,7 +3139,7 @@ function initializeApp() {
     description:
       "Building out the Data Hub. Loading season stats, rankings, player values, and ADP feeds.",
   });
-  loadInitialData();
+  loadInitialData(savedView);
   // Warm future projections immediately without adding them to the page's
   // loading barrier. DRK/schedule and all modal rendering remain on demand.
   void prepareDataHub2026Projections().catch((error) => console.warn("DataHub projection preload failed.", error));
@@ -3147,6 +3152,114 @@ function initializeApp() {
       })
       .catch(() => {});
   }
+}
+
+// Save the mobile grid's state and active player by ID on the tab's history
+// entry. Restoring the view uses freshly loaded data and the normal renderers.
+function captureDataHubMobileView() {
+  const player = state.currentGameLogsPlayer;
+  return {
+    tab: state.activePageTab,
+    rookiesSubview: state.activeRookiesSubview,
+    categories: state.activeCategoryByView,
+    season: state.statsSeason,
+    week: state.activePageView === "stats" ? state.statsWeek : null,
+    search: state.searchText,
+    sort: state.sort,
+    receiving: state.receivingFilters,
+    qualifier: state.statsFilters,
+    tradeEntities: state.tradeEntityFilters,
+    tradeColumns: state.tradeMarketColumnFilters,
+    hiddenGroups: [...getFocusHiddenGroups()],
+    positionRanks: state.showStatsPositionalRanks,
+    gridScroll: saveGridScrollPositions(),
+    pageScroll: [window.scrollX, window.scrollY],
+    chartOpen: state.isChartModalOpen,
+    comparison: state.isComparisonModalOpen || state.isComparisonModalOpening ? {
+      ...dataHubComparisonView,
+      scroll: comparisonModalRoot?.querySelector(".dh-compare-body")?.scrollTop || 0,
+    } : null,
+    player: player && !gameLogsModal.classList.contains("hidden") ? {
+      id: String(player.id),
+      season: state.currentModalSeason,
+      view: state.currentGameLogsView,
+      stat: state.currentConsistencyStat,
+      keyPeriod: state.currentGameLogsKeyPeriod,
+      ownershipOnly: isDataHubOwnershipOnlyModal(),
+      ownership: gameLogsModal.classList.contains("is-ownership-view"),
+      team: gameLogsModal.classList.contains("is-team-view"),
+      scroll: dataHubMobileView.saveGameLogsScroll(gameLogsModal),
+    } : null,
+  };
+}
+
+function restoreDataHubMobileControls(view) {
+  if (Object.hasOwn(DATAHUB_PAGE_TAB_TO_CONTENT_VIEW, view.tab)) state.activePageTab = view.tab;
+  if (view.rookiesSubview === "rookies-trade") state.activeRookiesSubview = view.rookiesSubview;
+  state.activePageView = resolveDataHubContentView();
+  Object.assign(state.activeCategoryByView, view.categories);
+  state.activeCategory = getStoredCategoryForView();
+  state.statsSeason = view.season === "2025" ? "2025" : "2026";
+  state.searchText = typeof view.search === "string" ? view.search : "";
+  state.sort = view.sort || createDefaultSort(state.activePageView);
+  Object.assign(state.receivingFilters, view.receiving);
+  Object.assign(state.tradeEntityFilters, view.tradeEntities);
+  Object.assign(state.tradeMarketColumnFilters, view.tradeColumns);
+  state.showStatsPositionalRanks = view.positionRanks !== false;
+  state.focusHiddenGroupsByView.set(getFocusViewKey(), new Set(view.hiddenGroups));
+}
+
+async function restoreDataHubMobileGrid(view) {
+  // Restore a recorded week through the existing period selector and wait
+  // until the scrollers have real rows before applying their saved offsets.
+  if (view.week && state.activePageView === "stats" && state.statsSeason === "2026") {
+    try {
+      await ensureDataHubWeeklyRows();
+      selectDataHubStatsPeriod(`2026-wk-${view.week}`);
+    } catch (error) {
+      console.warn("Unable to restore the DataHub weekly table.", error);
+    }
+  }
+  if ((state.statsWeek || null) === view.week) {
+    Object.assign(state.statsFilters, view.qualifier);
+    state.sort = view.sort || state.sort;
+    syncUiState();
+    refreshGrid();
+    restoreGridScrollPositions(state.gridRefs, view.gridScroll);
+  }
+  window.scrollTo(...view.pageScroll);
+}
+
+async function restoreDataHubMobileModal(view) {
+  const saved = view.player;
+  if (!saved) {
+    if (view.comparison) await openDataHubComparisonModal(null, view.comparison);
+    else if (view.chartOpen) openDataHubChartModal();
+    return;
+  }
+  const request = dataHubGameLogsRequestSeq;
+  if (saved.season === "2025" && !saved.ownershipOnly) await warmDataHubHistoricalSeason();
+  if (request !== dataHubGameLogsRequestSeq) return;
+
+  const findPlayer = rows => rows.find(row => row.__meta.playerId === saved.id);
+  if (saved.ownershipOnly) {
+    const row = findPlayer(state.rows);
+    if (row) await openDataHubRookieOwnership(row);
+  } else {
+    const row = findPlayer(getDataHubStatsRowsForSeason(saved.season)) || findPlayer(state.rows)
+      || findPlayer(getDataHubStatsRowsForSeason("2026")) || findPlayer(getDataHubStatsRowsForSeason("2025"));
+    if (row) {
+      await openDataHubGameLogs(row, null, { season: saved.season, view: saved.view, consistencyStat: saved.stat });
+    }
+  }
+  if (request + 1 !== dataHubGameLogsRequestSeq) return;
+  if (saved.view === "key") {
+    state.currentGameLogsKeyPeriod = saved.keyPeriod === "szn" ? "szn" : "gl";
+    syncDataHubGameLogsNavigation();
+  }
+  if (saved.ownership && !saved.ownershipOnly) switchDataHubModalTab("ownership");
+  if (saved.team) gameLogsModal.querySelector('[data-gamelogs-panel="team"]')?.click();
+  dataHubMobileView.restoreGameLogsScroll(gameLogsModal, saved.scroll);
 }
 
 // ---------------------------------------------------------------------------
@@ -3186,6 +3299,7 @@ function attachEventListeners() {
       if (nextPageTab === "rookies" && !state.rookieDataLoaded) {
         ensureDataHubRookieData().catch(() => {});
       }
+      if (dataHubMobileView && nextPageTab !== "stats") void warmDataHubHistoricalSeason();
 
       const nextPageView = resolveDataHubContentView(nextPageTab);
       if (!CONTENT_PAGE_VIEWS.has(nextPageView)) {
@@ -3931,24 +4045,35 @@ function isElementVisible(element) {
   return element.offsetParent !== null;
 }
 
-async function loadInitialData() {
+async function loadInitialData(savedView) {
   try {
     // Only the active season is on the first render's critical path.
     if (state.statsSeason === "2026") await ensureDataHub2026Data();
     else await ensureDataHubHistoricalSeason();
-    hideOverlay();
+    if (!savedView) hideOverlay();
 
-    // Warm the archive and retain the independent live enrichment. Switching
-    // to 2025 while it loads reuses this request.
-    void ensureDataHubHistoricalSeason().catch(error => console.warn("DataHub 2025 season preload failed.", error));
-    ensureDataHubSupplementalData()
+    // On phones, the current Stats tab can stay smaller by loading archived
+    // stats and rookie tables when their views need them. Trade Values still
+    // loads the historical metadata used for team, age and Game Logs support.
+    const archive = !dataHubMobileView || state.activePageTab !== "stats"
+      ? warmDataHubHistoricalSeason() : null;
+    const enrichment = ensureDataHubSupplementalData()
       .then(() => {
         rebuildDataHubRows();
-        return ensureDataHubRookieData();
+        if (!dataHubMobileView || state.activePageTab === "rookies") return ensureDataHubRookieData();
       })
       .catch((error) => {
         console.error("Data Hub enrichment refresh failed.", error);
       });
+    if (savedView) {
+      if (state.activePageTab !== "stats") await Promise.all([archive, enrichment]);
+      await restoreDataHubMobileGrid(savedView)
+        .catch(error => console.warn("Unable to restore the mobile DataHub table.", error));
+      hideOverlay();
+      await restoreDataHubMobileModal(savedView)
+        .catch(error => console.warn("Unable to restore the mobile DataHub dialog.", error));
+    }
+    dataHubMobileView?.saveOnHide(captureDataHubMobileView);
   } catch (error) {
     console.error(error);
     showOverlay({
@@ -3957,6 +4082,10 @@ async function loadInitialData() {
       showActions: state.statsSeason === "2025",
     });
   }
+}
+
+function warmDataHubHistoricalSeason() {
+  return ensureDataHubHistoricalSeason().catch(error => console.warn("Unable to load the DataHub 2025 season archive.", error));
 }
 
 function ensureDataHubHistoricalSeason() {
@@ -7481,7 +7610,7 @@ async function ensureDataHubComparisonModule() {
     dataHubComparisonModulePromise = Promise.all([
       import(DATAHUB_COMPARISON_REACT_URL),
       import(DATAHUB_COMPARISON_REACT_DOM_URL),
-      import("./datahub-comparison/DataHubComparisonModal.js?v=DH3.89-compare-weekly-alignment"),
+      import("./datahub-comparison/DataHubComparisonModal.js?v=DH3.89-mobile-resume"),
     ])
       .then(([reactModule, reactDomModule, comparisonModule]) => {
         const React = reactModule.default || reactModule;
@@ -7542,12 +7671,13 @@ function getDataHubComparisonReactRoot(ReactDOMClient) {
   return dataHubComparisonReactRoot;
 }
 
-async function openDataHubComparisonModal(triggerButton = null) {
+async function openDataHubComparisonModal(triggerButton = null, resumeView = null) {
   if (!comparisonModalRoot || state.isComparisonModalOpening || !getDataHubStatsRowsForSeason().length) {
     return;
   }
 
   const season = state.statsSeason;
+  dataHubComparisonView = resumeView;
   state.isComparisonModalOpening = true;
   state.comparisonModalTriggerButton = triggerButton || document.activeElement;
   syncComparisonControls();
@@ -7566,6 +7696,13 @@ async function openDataHubComparisonModal(triggerButton = null) {
     if (!payload.players.length) {
       throw new Error("No eligible players are available for comparison.");
     }
+    // Resume the same comparison against fresh season data. Players that
+    // have left the comparison pool free up their picker slots.
+    if (resumeView) {
+      const available = new Set(payload.players.map(player => player.id));
+      payload.defaults = { ...payload.defaults, ...resumeView,
+        selectedPlayerIds: (resumeView.selectedPlayerIds || []).filter(id => available.has(id)) };
+    }
 
     const root = getDataHubComparisonReactRoot(comparisonModule.ReactDOMClient);
     if (!root) {
@@ -7577,6 +7714,7 @@ async function openDataHubComparisonModal(triggerButton = null) {
     root.render(comparisonModule.React.createElement(comparisonModule.Component, {
       payload,
       onClose: closeDataHubComparisonModal,
+      onViewChange: dataHubMobileView ? view => { dataHubComparisonView = view; } : undefined,
     }));
   } catch (error) {
     console.error("Unable to open DataHub comparison modal.", error);
@@ -7589,6 +7727,7 @@ async function openDataHubComparisonModal(triggerButton = null) {
 
 function closeDataHubComparisonModal({ restoreFocus = true } = {}) {
   state.isComparisonModalOpen = false;
+  dataHubComparisonView = null;
   document.body.classList.remove("datahub-comparison-modal-open");
   if (dataHubComparisonReactRoot) {
     dataHubComparisonReactRoot.render(null);
@@ -13775,6 +13914,16 @@ function switchDataHubModalTab(tabKey) {
     const playerId = String(state.currentGameLogsPlayer?.id || "").trim();
     if (playerId) {
       renderDataHubOwnershipPane(playerId);
+      // On phones the historical identity fallback may only be needed once
+      // the Ownership pane is opened from a current-season player.
+      if (dataHubMobileView && !state.statsRowsBase.length) {
+        const request = dataHubGameLogsRequestSeq;
+        void warmDataHubHistoricalSeason().then(() => {
+          if (request === dataHubGameLogsRequestSeq && gameLogsModal.classList.contains("is-ownership-view")) {
+            renderDataHubOwnershipPane(playerId);
+          }
+        });
+      }
       if (state.userId && !hasDataHubOwnershipContextLoaded()) {
         loadDataHubOwnershipContextForUser()
           .then(() => {
@@ -14010,7 +14159,10 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
   if (state.seasonDataCache[season]) return state.seasonDataCache[season];
   if (!state.seasonDataPromises[season]) {
     state.seasonDataPromises[season] = (async () => {
-      await Promise.all([fetchDataHubSleeperPlayers(), ensureDataHubSupplementalData(), bootstrapDataHubUserContext()]);
+      await Promise.all([
+        fetchDataHubSleeperPlayers(), ensureDataHubSupplementalData(), bootstrapDataHubUserContext(),
+        dataHubMobileView && season === "2025" ? warmDataHubHistoricalSeason() : null,
+      ]);
       let seasonStats, seasonRanks, weeklyStats, profileSource;
       if (season === "2026") {
         const source = await ensureDataHub2026Data();

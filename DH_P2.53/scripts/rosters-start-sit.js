@@ -806,10 +806,15 @@
   }
   function renderComparison(model) {
     disposeComparison();
-    let ids = model.players.slice(0, 2).map(player => player.id);
-    let chartMode = 'weekly';
-    let statPosition = null;
-    let activeStatGroupId;
+    // A resumed mobile comparison keeps its selected pair and chart settings.
+    // Recheck the players against the refreshed roster before using them.
+    const saved = model.resumeView;
+    const rosterIds = model.players.map(player => player.id);
+    const eligibleSavedIds = (saved?.ids || []).filter(id => rosterIds.includes(id));
+    let ids = saved ? [...new Set([...eligibleSavedIds, ...rosterIds])].slice(0, 2) : rosterIds.slice(0, 2);
+    let chartMode = saved?.chartMode || 'weekly';
+    let statPosition = saved?.statPosition || null;
+    let activeStatGroupId = saved?.activeStatGroupId;
     const paint = (restoreFocus = null) => {
       disposeComparison();
       const token = sequence;
@@ -895,7 +900,9 @@
       };
       model.mount.addEventListener('keydown', keyHandler);
       const statsObserver = new ResizeObserver(() => { if (sequence === token) measureStatPlots(model.mount); });
-      mounted = { chart: null, observer: null, statsObserver, keyHandler, mount: model.mount };
+      const scroller = model.mount.querySelector('.ss-dashboard-scroll');
+      mounted = { chart: null, observer: null, statsObserver, keyHandler, mount: model.mount,
+        getView: () => ({ ids, chartMode, statPosition, activeStatGroupId, scroll: scroller?.scrollTop || 0 }) };
       statsObserver.observe(model.mount.querySelector('.ss-start-sit-stats, .ss-stat-grid'));
       measureStatPlots(model.mount);
       document.fonts?.ready.then(() => { if (sequence === token) measureStatPlots(model.mount); });
@@ -918,6 +925,8 @@
       });
     };
     paint();
+    if (saved?.scroll) model.mount.querySelector('.ss-dashboard-scroll')?.scrollTo(0, saved.scroll);
   }
-  window.RostersStartSit = Object.freeze({ renderPreview, renderLoading, renderComparison, disposeComparison, disposePreview, seriesFor, radarStatsForPosition, overviewSections: OVERVIEW });
+  window.RostersStartSit = Object.freeze({ renderPreview, renderLoading, renderComparison, disposeComparison, disposePreview,
+    getComparisonView: () => mounted?.getView(), seriesFor, radarStatsForPosition, overviewSections: OVERVIEW });
 })();

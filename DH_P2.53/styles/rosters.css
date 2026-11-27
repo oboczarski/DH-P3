@@ -4614,3 +4614,8 @@ body[data-page="rosters"] .nav-more-item:focus-visible {
   }
 }
 /* ============================================================================ */
+/* Mobile Rosters backgrounding: drop the fixed animated starfield's layers
+   while the document is hidden. The viewport and roster cards stay intact. */
+html.dh-mobile-page-hidden body[data-page="rosters"] #starfield {
+  display: none;
+}

@@ -360,24 +360,37 @@ test('DataHub renders the 2026 Stats grid while the 2025 archive and PROJ export
   const held = new Promise((resolve) => { release = resolve; });
   let csvCalls = 0;
   let projectionCalls = 0;
+  let archiveCalls = 0;
+  let rookieCalls = 0;
   let hidden = false;
   const ctx = vm.createContext({
-    parseCsv, state: { statsSeason: '2026' }, console: { warn() {}, error() {} },
+    parseCsv, state: { statsSeason: '2026' }, dataHubMobileView: null, console: { warn() {}, error() {} },
     load2026DataManifest: async () => ({ recordedWeeks: [4], latestRecordedWeek: 4 }),
     load2026WeeklyCsvData: async () => { csvCalls++; },
     load2026ProjectionSourceData: async () => { projectionCalls++; await held; return { projectionRows: {}, projectionErrors: {} }; },
-    fetchCsvText: async () => { await held; return ''; }, applyCsvText() {}, ensureDataHub2026Data: async () => ({}),
+    fetchCsvText: async () => { archiveCalls++; await held; return ''; }, applyCsvText() {}, ensureDataHub2026Data: async () => ({}),
     rebuildDataHubWeeklyStatsRows() {}, syncUiState() {}, refreshGrid() {},
-    hideOverlay() { hidden = true; }, ensureDataHubSupplementalData: async () => {}, rebuildDataHubRows() {}, ensureDataHubRookieData: async () => {},
+    hideOverlay() { hidden = true; }, ensureDataHubSupplementalData: async () => {}, rebuildDataHubRows() {},
+    ensureDataHubRookieData: async () => { rookieCalls++; }, captureDataHubMobileView() {},
   });
   vm.runInContext('let dataHub2026ProjectionPreparationPromise = null;'
     + 'let dataHubHistoricalSeasonPromise = null;'
     + source.slice(source.indexOf('function prepareDataHub2026Projections()'), source.indexOf('function getDataHubStatsRowsForSeason('))
-    + source.slice(source.indexOf('async function loadInitialData()'), source.indexOf('// Stats, Game Logs and Compare share the season snapshot.')), ctx);
+    + source.slice(source.indexOf('async function loadInitialData('), source.indexOf('// Stats, Game Logs and Compare share the season snapshot.')), ctx);
   const pending = ctx.prepareDataHub2026Projections();
   assert.equal(ctx.prepareDataHub2026Projections(), pending);
   await ctx.loadInitialData();
   assert.equal(hidden, true, 'Stats must become ready while nonessential responses are pending');
+  assert.equal(archiveCalls, 1);
+  assert.equal(rookieCalls, 1);
+  vm.runInContext('dataHubHistoricalSeasonPromise = null;', ctx);
+  ctx.state.activePageTab = 'stats';
+  ctx.dataHubMobileView = { saveOnHide() {} };
+  hidden = false;
+  await ctx.loadInitialData();
+  assert.equal(hidden, true, 'The mobile Stats grid also boots without the archive');
+  assert.equal(archiveCalls, 1, 'Mobile Stats leaves archived rows unloaded');
+  assert.equal(rookieCalls, 1, 'Mobile Stats leaves rookie rows unloaded');
   release();
   await pending;
   assert.equal(csvCalls, 0, 'The build index supplies the projection cutoff without loading weekly rows');

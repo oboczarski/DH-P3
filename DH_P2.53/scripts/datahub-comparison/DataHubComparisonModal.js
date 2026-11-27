@@ -815,17 +815,17 @@ export function createDataHubComparisonModal(React) {
   const WeeklyComparison = createWeeklyComparison(React);
   const SeasonComparison = createSeasonComparison(React);
 
-  function DataHubComparisonModal({ payload, onClose }) {
+  function DataHubComparisonModal({ payload, onClose, onViewChange }) {
     const players = payload?.players || [];
     const weeks = payload?.weeks || [];
     const thresholds = payload?.thresholds || {};
     const playersById = useMemo(() => new Map(players.map((player) => [player.id, player])), [players]);
     const [selectedIds, setSelectedIds] = useState(() => getInitialSelectedIds(payload));
     const [weeklyStatKey, setWeeklyStatKey] = useState(payload?.defaults?.weeklyStat || "fpts");
-    const [query, setQuery] = useState("");
-    const [isSearchOpen, setIsSearchOpen] = useState(true);
+    const [query, setQuery] = useState(payload?.defaults?.query || "");
+    const [isSearchOpen, setIsSearchOpen] = useState(payload?.defaults?.isSearchOpen ?? true);
     const [isStatOpen, setIsStatOpen] = useState(false);
-    const [positionFilter, setPositionFilter] = useState("all");
+    const [positionFilter, setPositionFilter] = useState(payload?.defaults?.positionFilter || "all");
     const [activeOptionIndex, setActiveOptionIndex] = useState(0);
     const searchInputRef = useRef(null);
     const searchShellRef = useRef(null);
@@ -885,11 +885,22 @@ export function createDataHubComparisonModal(React) {
     useEffect(() => {
       setSelectedIds(getInitialSelectedIds(payload));
       setWeeklyStatKey(payload?.defaults?.weeklyStat || "fpts");
-      setQuery("");
-      setIsSearchOpen(true);
+      setQuery(payload?.defaults?.query || "");
+      setIsSearchOpen(payload?.defaults?.isSearchOpen ?? true);
       setIsStatOpen(false);
-      setPositionFilter("all");
+      setPositionFilter(payload?.defaults?.positionFilter || "all");
       setActiveOptionIndex(0);
+    }, [payload?.revision]);
+
+    useLayoutEffect(() => {
+      // DataHub's mobile history snapshot needs the picker and stat choices.
+      onViewChange?.({ selectedPlayerIds: selectedIds, weeklyStat: weeklyStatKey, query, positionFilter, isSearchOpen });
+    }, [onViewChange, selectedIds, weeklyStatKey, query, positionFilter, isSearchOpen]);
+
+    useLayoutEffect(() => {
+      if (payload?.defaults?.scroll) {
+        dialogRef.current?.querySelector(".dh-compare-body")?.scrollTo(0, payload.defaults.scroll);
+      }
     }, [payload?.revision]);
 
     useEffect(() => {

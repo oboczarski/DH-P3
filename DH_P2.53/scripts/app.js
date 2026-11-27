@@ -36,6 +36,8 @@ const clearFiltersButton = document.getElementById('clearFiltersButton');
 const tradeSimulator = document.getElementById('tradeSimulator');
 const mainContent = document.getElementById('content');
 const pageType = document.body.dataset.page || 'welcome';
+const rostersMobileView = pageType === 'rosters' ? window.DynastyHubMobileView : null;
+let restoringRostersView = false;
 // New nav buttons
 const homeButton = document.getElementById('homeButton');
 const rostersButton = document.getElementById('rostersButton');
@@ -1627,7 +1629,7 @@ function getCurrentNflWeekNumber() {
 // --- Event Listeners ---
 if (pageType === 'rosters') {
     leagueSelect?.addEventListener('change', (e) => {
-        handleLeagueSelect(e);
+        handleLeagueSelect();
         if (e && e.target && e.target.blur) e.target.blur();
     });
     rosterGrid?.addEventListener('click', handleTeamSelect);
@@ -2050,6 +2052,8 @@ if (pageType === 'ownership' || pageType === 'rosters') {
 }
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
+    const savedRosterView = rostersMobileView?.read();
+    rostersMobileView?.saveOnHide(captureRostersMobileView);
     if (usesLeagueUsernameGate(pageType)) {
         initializeLeagueUsernameGate();
     }
@@ -2106,7 +2110,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try { suppressFocusTemporary(600); } catch (e) { }
         syncHeaderUsernameValue(uname);
         if (pageType === 'rosters') {
-            await handleFetchRosters();
+            await handleFetchRosters(savedRosterView);
         } else if (pageType === 'ownership') {
             await handleFetchOwnership();
         }
@@ -2116,7 +2120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (storedUsername) {
             syncHeaderUsernameValue(storedUsername);
             if (pageType === 'rosters') {
-                await handleFetchRosters();
+                await handleFetchRosters(savedRosterView);
             } else if (pageType === 'ownership') {
                 await handleFetchOwnership();
             }
@@ -2133,6 +2137,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 // runs, the on-demand tab fetch still loads the data immediately.
 (function scheduleOwnershipContextPreloadAfterFullPageLoad() {
     if (pageType !== 'rosters' && pageType !== 'stats') return;
+    // Phones using Rosters can leave the other leagues' payloads unloaded
+    // until the Ownership tab or watchlist asks for them.
+    if (rostersMobileView) return;
 
     const schedulePreload = () => {
         const runWhenIdle = typeof requestIdleCallback === 'function'
@@ -2337,7 +2344,7 @@ if (pageType === 'rosters') {
 }
 
 // --- View Toggling and Main Handlers ---
-function setRosterView(view) {
+function setRosterView(view, { render = true } = {}) {
     closeComparisonModal();
     hideLegend();
     state.currentRosterView = view;
@@ -2381,11 +2388,122 @@ function setRosterView(view) {
         condensedViewBtn.classList.toggle('counterpart-active', !isCondensed);
     }
 
-    if (state.currentTeams) {
+    if (render && state.currentTeams) {
         renderAllTeamData(state.currentTeams);
     }
 }
-async function handleFetchRosters() {
+// Mobile Rosters records view choices for the current league and history entry.
+// Reopening reloads current roster data and uses it to rebuild the same view.
+function captureRostersMobileView() {
+    if (restoringRostersView || !rosterGrid.childElementCount || rosterView.classList.contains('hidden')) return null;
+    const player = state.currentGameLogsPlayer;
+    const gameLogs = player && !gameLogsModal.classList.contains('hidden') ? {
+        id: String(player.id || player.player_id || ''),
+        season: state.currentGameLogsSeason,
+        view: state.currentGameLogsView,
+        stat: state.currentConsistencyStat,
+        keyPeriod: state.currentGameLogsKeyPeriod,
+        ownership: gameLogsModal.classList.contains('is-ownership-view'),
+        team: gameLogsModal.classList.contains('is-team-view'),
+        fromWorkspace: Boolean(rostersDecisionGameLogsContext),
+        scroll: rostersMobileView.saveGameLogsScroll(gameLogsModal),
+    } : null;
+    return {
+        username: normalizeLeagueUsername(usernameInput.value),
+        leagueId: state.currentLeagueId,
+        view: state.currentRosterView,
+        positions: [...state.activePositions],
+        search: compareSearchInput?.value || rosterSearchInput?.value || '',
+        teams: [...state.teamsToCompare],
+        comparingTeams: state.isCompareMode,
+        tradeAssets: Object.fromEntries(Object.entries(state.tradeBlock)
+            .map(([team, assets]) => [team, assets.map(asset => asset.id)])),
+        startSit: state.isStartSitMode
+            ? state.startSitSelections.map(({ id, side }) => ({ id, side })) : null,
+        comparison: !playerComparisonModal.classList.contains('hidden')
+            ? window.RostersStartSit?.getComparisonView?.() || {} : null,
+        previewCollapsed: state.isTradeCollapsed,
+        scroll: [window.scrollX, window.scrollY],
+        bodyScroll: [document.body.scrollLeft, document.body.scrollTop],
+        gameLogs,
+    };
+}
+
+function restoreRostersMobileControls(view) {
+    if (['positional', 'condensed', 'lineup'].includes(view.view)) setRosterView(view.view, { render: false });
+    const filters = [...positionalFiltersContainer.querySelectorAll('[data-position]')];
+    state.activePositions = new Set(filters.map(button => button.dataset.position)
+        .filter(position => view.positions.includes(position)));
+    updatePositionFilterButtons();
+    clearFiltersButton.classList.toggle('active', state.activePositions.size > 0);
+    if (compareSearchInput) compareSearchInput.value = view.search;
+    if (rosterSearchInput) rosterSearchInput.value = view.search;
+    if (view.search && compareSearchInput?.value) openCompareSearch({ focusInput: false });
+    state.isTradeCollapsed = view.previewCollapsed;
+}
+
+async function restoreRostersMobileView(view) {
+    // The normal render can add teams in batches on a phone. Apply scroll
+    // and reopen the workspace only after the league content is available.
+    if (view.startSit) {
+        await handleStartSitButtonClick();
+        if (view.leagueId !== state.currentLeagueId) return;
+        const rows = new Map(Array.from(rosterGrid.querySelectorAll('.start-sit-column .player-row'),
+            row => [row.dataset.assetId, row]));
+        if (state.isStartSitMode) {
+            for (const { id, side } of view.startSit) {
+                if (!rows.has(id)) continue;
+                state.startSitNextSide = side;
+                toggleStartSitPlayer(rows.get(id), { render: false });
+            }
+            renderTradeBlock();
+            // Start/Sit scrolls to the top when opened from its button.
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }
+    } else if (state.isCompareMode) {
+        rosterGrid.querySelectorAll('.roster-column').forEach(column => {
+            const savedAssets = view.tradeAssets[column.dataset.teamName];
+            column.querySelectorAll('.player-row, .pick-row').forEach(row => {
+                if (savedAssets?.includes(row.dataset.assetId)) toggleRostersTradeAsset(row, { render: false });
+            });
+        });
+        renderTradeBlock();
+    }
+    if (view.leagueId !== state.currentLeagueId) return;
+    window.scrollTo(...view.scroll);
+    // Mobile Rosters can scroll the body itself in both directions.
+    if (view.bodyScroll) document.body.scrollTo(...view.bodyScroll);
+    syncRosterHeaderPosition();
+    if (view.comparison && (state.startSitSelections.length >= 2
+        || Object.values(state.tradeBlock).flat().filter(asset => asset.pos !== 'DP').length === 2)) {
+        await handlePlayerCompare(null, view.comparison);
+    }
+
+    const savedPlayer = view.gameLogs;
+    const player = state.players[savedPlayer?.id];
+    if (!player || view.leagueId !== state.currentLeagueId || state.currentGameLogsPlayer) return;
+    const request = gameLogsModalRequestSeq + 1;
+    const position = player.position || player.fantasy_positions?.[0];
+    const playerData = getPlayerData(savedPlayer.id, position);
+    if (savedPlayer.fromWorkspace && (state.isStartSitMode || state.isCompareMode)) {
+        await openRostersDecisionGameLogs(playerData, document.activeElement, { season: savedPlayer.season });
+    } else {
+        setGameLogsSelectedSeason(savedPlayer.season);
+        await handlePlayerNameClick(playerData);
+    }
+    if (request !== gameLogsModalRequestSeq || view.leagueId !== state.currentLeagueId) return;
+    state.currentConsistencyStat = savedPlayer.stat || 'fpts';
+    setGameLogsModalView(savedPlayer.view);
+    if (savedPlayer.view === 'key' && savedPlayer.keyPeriod === 'szn') {
+        state.currentGameLogsKeyPeriod = 'szn';
+        setGameLogsModalView('key');
+    }
+    if (savedPlayer.ownership) switchGameLogsModalTab('ownership');
+    if (savedPlayer.team) gameLogsModal.querySelector('[data-gamelogs-panel="team"]')?.click();
+    rostersMobileView.restoreGameLogsScroll(gameLogsModal, savedPlayer.scroll);
+}
+
+async function handleFetchRosters(savedView = null) {
     hideLegend();
     const username = syncHeaderUsernameValue(usernameInput.value);
     if (!username) return false;
@@ -2412,7 +2530,9 @@ async function handleFetchRosters() {
                 .map(id => state.leagues.find(league => league.league_id === id))
                 .find(Boolean) || state.leagues[0];
             leagueSelect.value = initialLeague.league_id;
-            await handleLeagueSelect();
+            const resumeView = savedView?.username === username && savedView?.leagueId === initialLeague.league_id
+                ? savedView : null;
+            await handleLeagueSelect(resumeView);
             // Update mobile league navigation after league is loaded
             if (typeof window.updateMobileLeagueNav === 'function') {
                 window.updateMobileLeagueNav();
@@ -2427,8 +2547,9 @@ async function handleFetchRosters() {
     } finally {
         setLoading(false);
 
-        // Start loading weekly stats in background for game logs (non-blocking)
-        if (!state.statsSheetsLoaded && typeof fetchPlayerStatsSheets === 'function') {
+        // A phone on the modern Rosters card snapshot does not need to keep
+        // 18 archived weekly files in memory before someone opens 2025 logs.
+        if (!state.statsSheetsLoaded && !(rostersMobileView && state.activeRostersGameLogsSeason === '2026')) {
             fetchPlayerStatsSheets().catch(err => {
                 console.warn('Background load of weekly stats failed:', err);
             });
@@ -2496,7 +2617,7 @@ async function fetchPreviousSeasonData(currentLeagueInfo) {
     }
 }
 
-async function handleLeagueSelect() {
+async function handleLeagueSelect(resumeView = null) {
     hideLegend();
     const leagueId = leagueSelect.value;
     if (state.isStartSitMode) {
@@ -2518,6 +2639,7 @@ async function handleLeagueSelect() {
     const leagueName = leagueInfo?.name || 'league';
     setLoading(true, `Loading ${leagueName}...`);
     rosterGrid.innerHTML = '';
+    restoringRostersView = Boolean(resumeView);
     try {
         const rosterPositions = leagueInfo.roster_positions;
         const superflexSlots = rosterPositions.filter(p => p === 'SUPER_FLEX').length;
@@ -2568,10 +2690,28 @@ async function handleLeagueSelect() {
         } else {
             state.userTeamName = null;
         }
+        if (resumeView) {
+            restoreRostersMobileControls(resumeView);
+            const availableTeams = new Set(teams.map(team => team.teamName));
+            state.teamsToCompare = new Set(resumeView.teams.filter(team => availableTeams.has(team)));
+            state.isCompareMode = resumeView.comparingTeams && state.teamsToCompare.size === 2;
+            rosterView.classList.toggle('is-trade-mode', state.isCompareMode);
+            rosterGrid.classList.toggle('is-preview-mode', state.isCompareMode);
+            updateHeaderPreviewState();
+        }
         updateCompareButtonState();
-        renderAllTeamData(teams);
+        renderAllTeamData(teams, resumeView ? complete => {
+            if (!complete) {
+                restoringRostersView = false;
+                return;
+            }
+            void restoreRostersMobileView(resumeView)
+                .catch(error => console.warn('Unable to restore the mobile Rosters view.', error))
+                .finally(() => { restoringRostersView = false; });
+        } : undefined);
         rosterView.classList.remove('hidden');
     } catch (error) {
+        restoringRostersView = false;
         console.error(`Error loading league ${leagueId}:`, error);
     } finally {
         setLoading(false);
@@ -2727,6 +2867,7 @@ async function handleStartSitButtonClick() {
     // An optional matchup failure does not prevent selecting Start/Sit players.
     void prepareRostersStartSitMatchups();
     const teams = state.currentTeams || [];
+    const leagueId = state.currentLeagueId;
     const userTeam = teams.find(team => team.teamName === state.userTeamName) || teams.find(team => team.isUserTeam);
     if (!userTeam) {
         if (startSitButton) {
@@ -2765,7 +2906,8 @@ async function handleStartSitButtonClick() {
             }
             return;
         }
-        enterStartSitMode();
+        // A resumed Start/Sit view can finish loading after the league changes.
+        if (state.currentLeagueId === leagueId) enterStartSitMode();
     } catch (error) {
         console.warn('Unable to prepare Start/Sit projections.', error);
         if (startSitButton) {
@@ -2962,7 +3104,9 @@ function getUpcomingProjectionDesignation(playerId) {
     return { designation: fallback.designation, color: fallback.color, week: currentWeek };
 }
 function handleStartSitPlayerClick(e) {
-    const row = e.target.closest('.player-row');
+    toggleStartSitPlayer(e.target.closest('.player-row'));
+}
+function toggleStartSitPlayer(row, { render = true } = {}) {
     if (!row) return;
     const column = row.closest('.roster-column.start-sit-column');
     if (!column) return;
@@ -2977,7 +3121,7 @@ function handleStartSitPlayerClick(e) {
         row.classList.remove('player-selected');
         delete row.dataset.startSitSide;
         recalcStartSitNextSide();
-        renderTradeBlock();
+        if (render) renderTradeBlock();
         return;
     }
     if (state.startSitSelections.length >= 6) {
@@ -3021,7 +3165,7 @@ function handleStartSitPlayerClick(e) {
     row.classList.add('player-selected');
     row.dataset.startSitSide = selection.side;
     state.startSitNextSide = selection.side === 'left' ? 'right' : 'left';
-    renderTradeBlock();
+    if (render) renderTradeBlock();
 }
 function handleClearCompare(keepUserTeam = false) {
     const userTeamName = state.currentTeams?.find(team => team.isUserTeam)?.teamName;
@@ -3084,13 +3228,13 @@ function updateCompareButtonState() {
         handleCompareClick(); // Automatically exit compare mode
     }
 }
-function openCompareSearch() {
+function openCompareSearch({ focusInput = true } = {}) {
     if (!compareSearchPopover || !compareSearchToggle || !compareSearchInput) {
         return;
     }
     compareSearchPopover.classList.remove('hidden');
     compareSearchToggle.setAttribute('aria-expanded', 'true');
-    compareSearchInput.focus();
+    if (focusInput) compareSearchInput.focus();
 }
 function closeCompareSearch() {
     if (!compareSearchPopover || !compareSearchToggle || !compareSearchInput) {
@@ -3264,7 +3408,9 @@ function handleAssetClickForTrade(e) {
         return;
     }
     if (!state.isCompareMode) return;
-    const assetRow = e.target.closest('.player-row, .pick-row');
+    toggleRostersTradeAsset(e.target.closest('.player-row, .pick-row'));
+}
+function toggleRostersTradeAsset(assetRow, { render = true } = {}) {
     if (!assetRow) return;
     const teamName = assetRow.closest('.roster-column')?.dataset.teamName;
     if (!teamName || !state.teamsToCompare.has(teamName)) return;
@@ -3288,7 +3434,7 @@ function handleAssetClickForTrade(e) {
         });
         assetRow.classList.add('player-selected');
     }
-    renderTradeBlock();
+    if (render) renderTradeBlock();
 }
 function clearTrade() {
     state.tradeBlock = {};
@@ -8485,7 +8631,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     }
     setGameLogsModalView(state.currentGameLogsView || 'gl');
 }
-async function handlePlayerCompare(e) {
+async function handlePlayerCompare(e, resumeView = null) {
     let selectedPlayersWithTeams = [];
     if (state.isStartSitMode) {
         // Keep every selected option available to the new dashboard's pair
@@ -8543,7 +8689,7 @@ async function handlePlayerCompare(e) {
         });
     }
     if (pageType === 'rosters' && window.RostersStartSit) {
-        await openRostersDecisionComparison(selectedPlayersWithTeams);
+        await openRostersDecisionComparison(selectedPlayersWithTeams, resumeView);
         return;
     }
     const comparisonModalBody = document.getElementById('comparison-modal-body');
@@ -9175,7 +9321,8 @@ function estimateTeamCardHeight(team) {
 // Generation counter: incremented on every renderAllTeamData call so stale
 // rAF callbacks from a superseded render can bail out without mutating the DOM.
 let _renderAllTeamDataGenId = 0;
-function renderAllTeamData(teams) {
+function renderAllTeamData(teams, onRendered) {
+    const renderGenId = ++_renderAllTeamDataGenId;
     updateRosterContentVisibility();
     rosterGrid.innerHTML = '';
     rosterGrid.style.justifyContent = ''; // Reset style
@@ -9186,6 +9333,7 @@ function renderAllTeamData(teams) {
         renderStartSitColumns(teams);
         adjustStickyHeaders();
         syncRosterHeaderPosition();
+        onRendered?.(true);
         return;
     }
     let teamsToRender = teams;
@@ -9193,8 +9341,6 @@ function renderAllTeamData(teams) {
         teamsToRender = teams.filter(team => state.teamsToCompare.has(team.teamName));
         rosterGrid.style.justifyContent = 'center';
     }
-
-    const renderGenId = ++_renderAllTeamDataGenId;
 
     // Pre-warm the rank cache before any createPlayerRow calls.
     // buildCalculatedRankCache iterates all ~10k NFL players on first call — running it once
@@ -9286,12 +9432,16 @@ function renderAllTeamData(teams) {
         // Deferred pass — remaining teams added in background batches.
         let deferIdx = MOBILE_INITIAL;
         const renderNextBatch = () => {
-            if (_renderAllTeamDataGenId !== renderGenId) return; // newer render superseded this one
+            if (_renderAllTeamDataGenId !== renderGenId) {
+                onRendered?.(false);
+                return;
+            }
             const batch = teamsToRender.slice(deferIdx, deferIdx + MOBILE_BATCH);
             if (batch.length === 0) {
                 // All teams are in the DOM — final sync pass.
                 if (compareSearchInput && compareSearchInput.value) filterTeamsByQuery(compareSearchInput.value);
                 adjustStickyHeaders();
+                onRendered?.(true);
                 return;
             }
             const batchFragment = document.createDocumentFragment();
@@ -9312,6 +9462,7 @@ function renderAllTeamData(teams) {
         }
         adjustStickyHeaders();
         syncRosterHeaderPosition();
+        onRendered?.(true);
     }
 }
 function renderStartSitColumns(teams) {
@@ -9796,7 +9947,7 @@ function restoreRostersDecisionGameLogs() {
     setGameLogsSelectedSeason(state.currentGameLogsSeason, { resetCareer: false });
     if (state.currentLeagueId === context.leagueId && context.opener?.isConnected) context.opener.focus({ preventScroll: true });
 }
-async function openRostersDecisionGameLogs(player, opener = document.activeElement) {
+async function openRostersDecisionGameLogs(player, opener = document.activeElement, { season } = {}) {
     if (rostersDecisionGameLogsContext) return;
     const fromComparison = !playerComparisonModal.classList.contains('hidden');
     const sourceRoot = fromComparison ? playerComparisonModal : tradeSimulator;
@@ -9814,7 +9965,7 @@ async function openRostersDecisionGameLogs(player, opener = document.activeEleme
     state.isGameLogModalOpenFromComparison = fromComparison;
     state.isGameLogFromStatsPage = false;
     const league = state.leagues.find(entry => entry.league_id === state.currentLeagueId);
-    state.currentGameLogsSeason = String(league?.season || state.currentGameLogsSeason || '2026');
+    state.currentGameLogsSeason = String(season || league?.season || state.currentGameLogsSeason || '2026');
     context.keyHandler = event => {
         if (event.key !== 'Tab') return;
         const controls = [...gameLogsModal.querySelectorAll('button:not(:disabled),select,summary,[tabindex="0"]')].filter(node => node.offsetParent !== null);
@@ -9952,7 +10103,7 @@ function buildRostersDecisionPlayer(input) {
         sosColor: matchupMetric?.sosRank ? getOpponentRankColor(matchupMetric.sosRank, 'descending') : null };
 }
 
-async function openRostersDecisionComparison(players) {
+async function openRostersDecisionComparison(players, resumeView = null) {
     if (players.length < 2) return;
     const request = ++rostersDecisionRequest;
     const body = document.getElementById('comparison-modal-body');
@@ -9989,7 +10140,8 @@ async function openRostersDecisionComparison(players) {
         if (request !== rostersDecisionRequest || playerComparisonModal.classList.contains('hidden')) return;
         window.RostersStartSit.renderComparison({ mount: body,
             players: players.map(buildRostersDecisionPlayer), season, isStartSit,
-            week: getCurrentNflWeekNumber(), onClose: closeComparisonModal, onGameLogs: openRostersDecisionGameLogs });
+            week: getCurrentNflWeekNumber(), onClose: closeComparisonModal, onGameLogs: openRostersDecisionGameLogs,
+            resumeView });
         const close = body.querySelector('[data-ss-close]');
         close?.focus({ preventScroll: true });
     } catch (error) {

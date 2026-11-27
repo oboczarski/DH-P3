@@ -128,7 +128,7 @@ test('2026 league selection prepares current-league scores after activation and 
   const context = harness();
   context.state.leagues[0] = { league_id: 'ppr', season: '2026', previous_league_id: 'old-league', roster_positions: ['QB'] };
   Object.assign(context, {
-    leagueSelect: { value: 'ppr' }, rosterView: { classList: { add() {}, remove() {} } }, rosterGrid: {},
+    leagueSelect: { value: 'ppr' }, rosterView: { classList: { add() {}, remove() {} } }, rosterGrid: {}, restoringRostersView: false,
     API_BASE: 'https://fixture.local', console,
     hideLegend() {}, rememberViewedRostersLeague() {}, handleClearCompare() {}, setLoading() {},
     fetchWithCache: async () => [], hydrateDraftOrderBySeason: async () => {}, fetchPreviousSeasonData: async () => null,
@@ -145,7 +145,7 @@ test('2026 league selection prepares current-league scores after activation and 
     calls.push('activate'); context.state.matchupDataLoaded = false;
   };
   context.state.currentGameLogsSeason = '2025';
-  vm.runInContext(slice('async function handleLeagueSelect()', '// --- Compare & Trade Logic ---'), context);
+  vm.runInContext(slice('async function handleLeagueSelect(', '// --- Compare & Trade Logic ---'), context);
   await context.handleLeagueSelect();
   assert.deepEqual(calls, ['season:2026', 'activate', 'nfl-week', 'scores:ppr:7', 'render']);
 });
